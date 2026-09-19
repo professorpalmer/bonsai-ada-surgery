@@ -273,13 +273,28 @@ pp512 1233 -> 1312, pp2048 1220 -> 1297 (+6%), tg128 66.9 -> 67.1. Two lines. Le
 
 ## Upstream (2026-09-19)
 
-Submitted to PrismML-Eng/llama.cpp as three independent PRs so the work reaches their
+Submitted to PrismML-Eng/llama.cpp as independent PRs so the work reaches their
 official binaries and everything downstream of them:
 
-- [#215](https://github.com/PrismML-Eng/llama.cpp/pull/215) decode (cuts 3, 4, 5), 351 lines,
+- [#215](https://github.com/PrismML-Eng/llama.cpp/pull/215) decode layout + geometry (cuts 3, 4),
   diagnostics and dead experiments stripped
+- [#220](https://github.com/PrismML-Eng/llama.cpp/pull/220) GDN gather fusion (cut 5), split out
+  of #215 after review
 - [#214](https://github.com/PrismML-Eng/llama.cpp/pull/214) prefill loader + tile table (cut 7)
 - [#216](https://github.com/PrismML-Eng/llama.cpp/pull/216) GDN cols_per_warp gate (cut 8)
+
+Review round 1 (maintainer's agent, same day) asked for two things, both in revision 2:
+the gather registry was a process-wide static map (two CUDA contexts could interleave
+register / clear / lookup); it now lives in `ggml_backend_cuda_context::gdn_gather_context`,
+reset per graph evaluation. And the cols_per_warp gate compared `cc >= AMPERE` on the host,
+which is also true for AMD's offset capability values while the kernel compiled 1 column
+under HIP; host and kernel now share one constexpr predicate, the host fed with
+`ggml_cuda_highest_compiled_arch(cc)`. Reviewer also asked that the layout be reconciled with
+[#218](https://github.com/PrismML-Eng/llama.cpp/pull/218) (sudoingX, RTX 3060): different SoA
+layout (per-column 16-byte planes), dedicated 2-8 column kernel, batch-invariance switch.
+Paired on the 4070 at stock clocks: tg128 51.0 prism / 54.9 #218 / 56.4 #215 / 58.5 #215+#220;
+pp4 148.9 #218 vs 92.0 #215. One layout wins at one column on Ada, the other at 2-4 columns;
+the proposed merge is exact isum + warp-per-row from here, multi-column kernel from there.
 
 Fork CI only runs the labeler until a maintainer approves; HIP/MUSA paths are guarded so they
 keep Prism's original behaviour. Kept out of the PRs: op-timing / graph-stats / MMVQ-dump

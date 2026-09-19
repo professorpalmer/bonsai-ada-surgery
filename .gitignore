@@ -24,3 +24,5 @@ artifacts/*
 .codegraph/
 __pycache__/
 *.pyc
+!artifacts/h2h_*.json
+!artifacts/h2h_*.log

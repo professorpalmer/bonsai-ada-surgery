@@ -24,14 +24,24 @@ prompt 2.75 s -> 1.39 s. Same +1500 memory clock either side; prefill is compute
 Everything here is submitted to PrismML's fork so it lands in their official binaries (and
 from there in whatever bundles their llama.cpp) without anyone needing this repo:
 
-| PR | What | Gain on RTX 4070 |
+| PR | What | Gain on RTX 4070, stock clocks |
 | --- | --- | ---: |
-| [PrismML-Eng/llama.cpp#215](https://github.com/PrismML-Eng/llama.cpp/pull/215) | decode: SoA q8 activations + exact isum, warp-per-row small-K GEMV, GDN gather fusion | +18% TG |
-| [PrismML-Eng/llama.cpp#214](https://github.com/PrismML-Eng/llama.cpp/pull/214) | prefill: branch-free PTQ1_0 MMQ tile loader + full Ampere tile table | 2.07x pp2048 |
+| [PrismML-Eng/llama.cpp#215](https://github.com/PrismML-Eng/llama.cpp/pull/215) | decode: SoA q8 activations + exact isum, warp-per-row small-K GEMV | +10.5% TG |
+| [PrismML-Eng/llama.cpp#220](https://github.com/PrismML-Eng/llama.cpp/pull/220) | decode: recurrent-state gather folded into the GDN kernel (per-context registry) | +3.8% TG on top |
+| [PrismML-Eng/llama.cpp#214](https://github.com/PrismML-Eng/llama.cpp/pull/214) | prefill: branch-free PTQ1_0 MMQ tile loader + full Ampere tile table | 2.1x pp512 |
 | [PrismML-Eng/llama.cpp#216](https://github.com/PrismML-Eng/llama.cpp/pull/216) | prefill: 4-column GDN warp layout on all Ampere+, not only GB10 | +6% pp2048 |
 
-The three are independent and apply in any order. Until they merge, the branch below is
-exactly those three commits on top of Prism's `prism` branch.
+The four are independent and apply in any order. Until they merge, the branch below is
+exactly those four commits on top of Prism's `prism` branch. Revision 2 of #215/#216 and the
+split into #220 followed maintainer review (per-context gather registry; host/device GDN
+geometry derived from one predicate so HIP cannot mismatch).
+
+A parallel PR, [#218](https://github.com/PrismML-Eng/llama.cpp/pull/218) by sudoingX,
+attacks the same batch-1 wall with a different activation layout and adds a dedicated 2-8
+column kernel for speculative decoding. Paired on this card at stock clocks
+(`artifacts/h2h_215_vs_218_4070_stockclocks.json`, three alternating rounds): tg128 prism
+51.0, #218 54.9, #215 56.4, #215+#220 58.5; pp4 #218 148.9 vs #215 92.0. The two layouts
+are being reconciled on the PR threads: one-column decode from here, multi-column from there.
 
 The card is one of the slowest "12 GB" parts for this workload (504 GB/s). The same
 patches should help any GPU that runs the small-K PTQ1 GEMV geometry: Ampere and Ada
@@ -91,7 +101,7 @@ timing under WDDM is wrong for this (host-bound issue gaps), which is documented
 
 The kernel branch lives at
 [professorpalmer/llama.cpp-ada-ternary @ `ada-ptq1-surgery`](https://github.com/professorpalmer/llama.cpp-ada-ternary/tree/ada-ptq1-surgery)
-(PrismML `9a9394a` + the three PR commits above). The same commits are in
+(PrismML `9a9394a` + the four PR commits above). The same commits are in
 [`patches/`](patches/) for `git am` onto PrismML-Eng/llama.cpp. The profiling
 instrumentation used during the investigation (`GGML_CUDA_OP_TIMING`, `GGML_CUDA_GRAPH_STATS`,
 `GGML_CUDA_MMVQ_DUMP`, the env-gated L2 persistence experiment) is kept out of the PRs; it

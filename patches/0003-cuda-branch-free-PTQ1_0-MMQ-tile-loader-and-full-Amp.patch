@@ -1,7 +1,7 @@
-From d501e5adc5f85028515ead914bfb17e364957f7a Mon Sep 17 00:00:00 2001
+From f727e23cd60751518456b8f6be174ae43ae333e1 Mon Sep 17 00:00:00 2001
 From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
 Date: Sat, 19 Sep 2026 08:38:00 -0500
-Subject: [PATCH 2/3] cuda: branch-free PTQ1_0 MMQ tile loader and full Ampere
+Subject: [PATCH 3/4] cuda: branch-free PTQ1_0 MMQ tile loader and full Ampere
  tile table (2x prefill)
 
 Prefill takes the MMQ path and PTQ1_0 ran it at half PQ2_0's speed from the same weights

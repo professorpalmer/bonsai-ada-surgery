@@ -1,10 +1,10 @@
-From ecea420fea2ad3c6ce0db6ea5f14a59fe088c87f Mon Sep 17 00:00:00 2001
+From a0fe1a19a9a946112ca6e2fb51593cbb7f727aa2 Mon Sep 17 00:00:00 2001
 From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
-Date: Sat, 19 Sep 2026 00:23:11 -0500
-Subject: [PATCH 1/3] cuda: PTQ1_0 decode on consumer Ampere/Ada: SoA q8
- activations, warp-per-row small-K GEMV, GDN gather fusion (+18% TG)
+Date: Sat, 19 Sep 2026 15:05:56 -0500
+Subject: [PATCH 1/4] cuda: PTQ1_0 decode on consumer Ampere/Ada: SoA q8
+ activations, warp-per-row small-K GEMV (+14% TG)
 
-Three changes to the batch-1 PTQ1_0 path, found by tracing a Bonsai 2 27B decode graph
+Two changes to the batch-1 PTQ1_0 mat-vec path, found by tracing a Bonsai 2 27B decode graph
 on an RTX 4070 (sm_89) with CUPTI. Same weights, same bits, output byte-identical.
 
 1. Exact integer sums + warp-transposed (SoA) q8_1 activation layout.
@@ -23,31 +23,23 @@ on an RTX 4070 (sm_89) with CUPTI. Same weights, same bits, output byte-identica
    at __syncthreads. Each warp now owns one row and its 32 lanes stride that row's K-blocks;
    shuffle reduction, no shared memory, no barrier. qkv 391 -> 445 GB/s, lm_head 414 -> 460.
 
-3. Recurrent-state gather folded into the GDN kernel.
-   build_rs gathers each layer's live state via GET_ROWS into a temp (3 MB for the 27B) that
-   only the GDN kernel reads. In-graph the gather is ~8 us/layer and its dirty output sits in L2
-   until the FFN weight stream evicts it, making gate/up GEMVs in GDN layers ~15% slower than
-   the identical GEMVs in attention layers. When the GET_ROWS output has no other consumer, the
-   graph evaluator skips it and the kernel indexes the cache row s_ids[seq] directly.
-   Single-sequence only; GGML_CUDA_GDN_GATHER_FUSION=0 disables.
+The recurrent-state gather fusion that was part of the first revision of this PR is now its
+own PR so that this activation layout can be compared with #218 on its own.
 
-RTX 4070 12 GB, Ternary-Bonsai-2-27B-PTQ1_0, llama-bench -fa on TG128, stock clocks:
-  prism @ 9a9394a                 50.9 t/s
-  + 1 (SoA / exact isum)          55.7
-  + 2 (warp-per-row)              58.1
-  + 3 (GDN gather fusion)         60.1   (+18%)
+RTX 4070 12 GB, Ternary-Bonsai-2-27B-PTQ1_0, llama-bench -fa 1 -ctk/-ctv q4_0, stock clocks,
+three alternating rounds of r=3:
+  prism @ 9a9394a                 51.0 t/s tg128
+  + 1 + 2 (this PR)               56.4     (+10.5%)
+  + GDN gather fusion (follow-up) 58.5     (+14.7%)
 
-test-backend-ops CUDA0 vs CPU: MUL_MAT 1283/1283, MUL_MAT_ID 1019/1019, GATED_DELTA_NET 39/39,
-GET_ROWS 119/119. 400 greedy tokens identical with each change on/off.
+test-backend-ops CUDA0 vs CPU: MUL_MAT ptq1_0 45/45 supported cases, MUL_MAT_ID ptq1_0 75/75.
+400 greedy tokens identical with the change on and off.
 ---
- ggml/src/ggml-cuda/common.cuh          |  37 +++++++
- ggml/src/ggml-cuda/gated_delta_net.cu  |  50 ++++++++--
- ggml/src/ggml-cuda/gated_delta_net.cuh |  13 +++
- ggml/src/ggml-cuda/ggml-cuda.cu        |  70 +++++++++++++
- ggml/src/ggml-cuda/mmvq.cu             | 132 +++++++++++++++++++++++--
- ggml/src/ggml-cuda/quantize.cu         |  30 +++++-
- ggml/src/ggml-cuda/vecdotq.cuh         |  49 ++++++---
- 7 files changed, 351 insertions(+), 30 deletions(-)
+ ggml/src/ggml-cuda/common.cuh  |  37 +++++++++
+ ggml/src/ggml-cuda/mmvq.cu     | 132 +++++++++++++++++++++++++++++++--
+ ggml/src/ggml-cuda/quantize.cu |  30 +++++++-
+ ggml/src/ggml-cuda/vecdotq.cuh |  49 ++++++++----
+ 4 files changed, 226 insertions(+), 22 deletions(-)
 
 diff --git a/ggml/src/ggml-cuda/common.cuh b/ggml/src/ggml-cuda/common.cuh
 index ef929d3..b438ad7 100644
@@ -97,244 +89,6 @@ index ef929d3..b438ad7 100644
  template<>
  struct ggml_cuda_type_traits<GGML_TYPE_Q4_0> {
      static constexpr int qk = QK4_0;
-diff --git a/ggml/src/ggml-cuda/gated_delta_net.cu b/ggml/src/ggml-cuda/gated_delta_net.cu
-index 5cf6968..33b8ea1 100644
---- a/ggml/src/ggml-cuda/gated_delta_net.cu
-+++ b/ggml/src/ggml-cuda/gated_delta_net.cu
-@@ -1,6 +1,23 @@
- #include "gated_delta_net.cuh"
- #include "ggml-cuda/common.cuh"
- 
-+#include <unordered_map>
-+
-+// gdn node -> fused state gather, registered by the graph evaluator when it skips the GET_ROWS.
-+// Cleared at the start of every graph evaluation/capture so stale tensor pointers cannot match.
-+static std::unordered_map<const ggml_tensor *, ggml_cuda_gated_delta_net_gather> & gdn_gather_map() {
-+    static std::unordered_map<const ggml_tensor *, ggml_cuda_gated_delta_net_gather> m;
-+    return m;
-+}
-+
-+void ggml_cuda_gdn_gather_clear() {
-+    gdn_gather_map().clear();
-+}
-+
-+void ggml_cuda_gdn_gather_register(const ggml_tensor * gdn, const ggml_cuda_gated_delta_net_gather & gather) {
-+    gdn_gather_map()[gdn] = gather;
-+}
-+
- static __global__ void gdn_precompute_exp(const float * g, float * g_exp, int64_t n) {
-     for (int64_t i = (int64_t) blockIdx.x*blockDim.x + threadIdx.x; i < n;
-          i += (int64_t) blockDim.x*gridDim.x) {
-@@ -39,7 +56,9 @@ gated_delta_net_cuda(const float * q,
-                                      const uint3   rq3_magic,
-                                      float         scale,
-                                      int64_t       state_slot_stride,
--                                     int           K) {
-+                                     int           K,
-+                                     const int32_t * s_ids,
-+                                     int64_t       s_row_stride) {
-     const uint32_t h_idx    = blockIdx.x;
-     const uint32_t sequence = blockIdx.y;
-     // Each warp owns one or more columns, using warp-level primitives to reduce across rows.
-@@ -58,7 +77,9 @@ gated_delta_net_cuda(const float * q,
- 
-     // input state holds s0 only: [S_v, S_v, H, n_seqs] — seq stride is D = H * S_v * S_v.
-     // output state layout (per-slot D * n_seqs) — same per-(seq,head) offset as before.
--    const int64_t state_in_offset      = sequence * H * S_v * S_v + h_idx * S_v * S_v;
-+    // fused gather: read this sequence's live state straight out of the cache row s_ids[sequence]
-+    const int64_t state_in_offset      = (s_ids ? (int64_t) s_ids[sequence] * s_row_stride : sequence * H * S_v * S_v)
-+                                         + h_idx * S_v * S_v;
-     const int64_t state_out_offset     = (sequence * H + h_idx) * S_v * S_v;
-     state += state_out_offset;
-     curr_state += state_in_offset;
-@@ -212,7 +233,8 @@ static void launch_gated_delta_net(
-         int64_t sv1,   int64_t sv2, int64_t sv3,
-         int64_t sb1,   int64_t sb2, int64_t sb3,
-         int64_t neqk1, int64_t rq3,
--        float scale, int64_t state_slot_stride, int K, cudaStream_t stream) {
-+        float scale, int64_t state_slot_stride, int K,
-+        const int32_t * s_ids, int64_t s_row_stride, cudaStream_t stream) {
-     //TODO: Add chunked kernel for even faster pre-fill
-     const int warp_size = ggml_cuda_info().devices[ggml_cuda_get_device()].warp_size;
-     const int cc = ggml_cuda_info().devices[ggml_cuda_get_device()].cc;
-@@ -230,26 +252,26 @@ static void launch_gated_delta_net(
-             ggml_cuda_kernel_launch(gated_delta_net_cuda<16, KDA, keep_rs_t, RAW, G_PRECOMPUTED>, launch_params,
-                 q_d, k_d, v_d, g_d, b_d, rb_d, ra_d, s_d, dst_d, state_d, H,
-                 n_tokens, n_seqs, sq1, sq2, sq3, sv1, sv2, sv3,
--                sb1, sb2, sb3, neqk1_magic, rq3_magic, scale, state_slot_stride, K);
-+                sb1, sb2, sb3, neqk1_magic, rq3_magic, scale, state_slot_stride, K, s_ids, s_row_stride);
-             break;
-         case 32:
-             ggml_cuda_kernel_launch(gated_delta_net_cuda<32, KDA, keep_rs_t, RAW, G_PRECOMPUTED>, launch_params,
-                 q_d, k_d, v_d, g_d, b_d, rb_d, ra_d, s_d, dst_d, state_d, H,
-                 n_tokens, n_seqs, sq1, sq2, sq3, sv1, sv2, sv3,
--                sb1, sb2, sb3, neqk1_magic, rq3_magic, scale, state_slot_stride, K);
-+                sb1, sb2, sb3, neqk1_magic, rq3_magic, scale, state_slot_stride, K, s_ids, s_row_stride);
-             break;
-         case 64: {
-             ggml_cuda_kernel_launch(gated_delta_net_cuda<64, KDA, keep_rs_t, RAW, G_PRECOMPUTED>, launch_params,
-                 q_d, k_d, v_d, g_d, b_d, rb_d, ra_d, s_d, dst_d, state_d, H,
-                 n_tokens, n_seqs, sq1, sq2, sq3, sv1, sv2, sv3,
--                sb1, sb2, sb3, neqk1_magic, rq3_magic, scale, state_slot_stride, K);
-+                sb1, sb2, sb3, neqk1_magic, rq3_magic, scale, state_slot_stride, K, s_ids, s_row_stride);
-             break;
-         }
-         case 128: {
-             ggml_cuda_kernel_launch(gated_delta_net_cuda<128, KDA, keep_rs_t, RAW, G_PRECOMPUTED>, launch_params,
-                 q_d, k_d, v_d, g_d, b_d, rb_d, ra_d, s_d, dst_d, state_d, H,
-                 n_tokens, n_seqs, sq1, sq2, sq3, sv1, sv2, sv3,
--                sb1, sb2, sb3, neqk1_magic, rq3_magic, scale, state_slot_stride, K);
-+                sb1, sb2, sb3, neqk1_magic, rq3_magic, scale, state_slot_stride, K, s_ids, s_row_stride);
-             break;
-         }
-         default:
-@@ -296,6 +318,18 @@ static void ggml_cuda_op_gated_delta_net_impl(
-     const float * s_d   = (const float *) src_state->data;
-     float *       dst_d = (float *) dst->data;
- 
-+    // fused state gather (see ggml_cuda_gdn_gather_register)
-+    const int32_t * s_ids        = nullptr;
-+    int64_t         s_row_stride = 0;
-+    {
-+        const auto it = gdn_gather_map().find(dst);
-+        if (it != gdn_gather_map().end()) {
-+            s_d          = it->second.base;
-+            s_ids        = it->second.ids;
-+            s_row_stride = it->second.row_stride;
-+        }
-+    }
-+
-     GGML_ASSERT(ggml_is_contiguous_rows(src_q));
-     GGML_ASSERT(ggml_is_contiguous_rows(src_k));
-     GGML_ASSERT(ggml_is_contiguous_rows(src_v));
-@@ -355,7 +389,7 @@ static void ggml_cuda_op_gated_delta_net_impl(
- #define GDN_LAUNCH(KDA_, KEEP_, RAW_, PRE_)                                                       \
-     launch_gated_delta_net<KDA_, KEEP_, RAW_, PRE_>(q_d, k_d, v_d, g_d, b_d, rb_d, ra_d, s_d, dst_d, state_d, \
-         S_v, H, n_tokens, n_seqs, sq1, sq2, sq3, sv1, sv2, sv3,                                    \
--        sb1, sb2, sb3, neqk1, rq3, scale, state_slot_stride, K, stream)
-+        sb1, sb2, sb3, neqk1, rq3, scale, state_slot_stride, K, s_ids, s_row_stride, stream)
- 
-     if (kda) {
-         if (keep_rs) { GDN_LAUNCH(true,  true,  false, false); } else { GDN_LAUNCH(true,  false, false, false); }
-diff --git a/ggml/src/ggml-cuda/gated_delta_net.cuh b/ggml/src/ggml-cuda/gated_delta_net.cuh
-index f9bf437..ea26055 100644
---- a/ggml/src/ggml-cuda/gated_delta_net.cuh
-+++ b/ggml/src/ggml-cuda/gated_delta_net.cuh
-@@ -7,6 +7,19 @@ struct ggml_cuda_gated_delta_net_fused_cache {
-     int64_t slot_stride; // between rollback slots (0 when K==1)
- };
- 
-+// Fused state gather. build_rs materialises GET_ROWS(cache, s_copy) into a temp per layer that the
-+// GDN kernel reads once; that temp is a dirty L2 write that later evicts into the FFN weight
-+// stream. When the GET_ROWS feeds nothing but this op's state input, the backend skips it and
-+// registers the gather here so the kernel reads cache row s_ids[seq] directly.
-+struct ggml_cuda_gated_delta_net_gather {
-+    const float *   base       = nullptr; // cache rows [row_stride floats each]
-+    const int32_t * ids        = nullptr; // per-seq row index
-+    int64_t         row_stride = 0;       // in floats
-+};
-+
-+void ggml_cuda_gdn_gather_clear();
-+void ggml_cuda_gdn_gather_register(const ggml_tensor * gdn, const ggml_cuda_gated_delta_net_gather & gather);
-+
- void ggml_cuda_op_gated_delta_net(ggml_backend_cuda_context & ctx, ggml_tensor * dst);
- 
- // same op, but writes the snapshot(s) into the cache instead of dst (see ggml_cuda_try_gdn_cache_fusion)
-diff --git a/ggml/src/ggml-cuda/ggml-cuda.cu b/ggml/src/ggml-cuda/ggml-cuda.cu
-index 7536a5d..2614c70 100644
---- a/ggml/src/ggml-cuda/ggml-cuda.cu
-+++ b/ggml/src/ggml-cuda/ggml-cuda.cu
-@@ -2747,6 +2747,68 @@ static bool ggml_cuda_should_fuse_rms_norm_mul_rope(const ggml_tensor * rms_norm
-     return true;
- }
- 
-+// GET_ROWS(cache[D, n_rs], ids[n_seqs]) -> [RESHAPE] -> GATED_DELTA_NET src[5].
-+// build_rs gathers each layer's live recurrent state into a temp (3 MB for the 27B) that only the
-+// GDN kernel reads. In-graph the gather kernel is ~8 us/layer and its dirty output sits in L2 until
-+// the FFN weight stream evicts it, which made the gate/up GEMVs in GDN layers ~15% slower than the
-+// identical GEMVs in attention layers. When the gathered temp has no other consumer, skip the
-+// GET_ROWS and let the kernel index the cache row directly. Single-sequence only: with several
-+// sequences a gathered row may alias a row another sequence writes in the same op.
-+// GGML_CUDA_GDN_GATHER_FUSION=0 disables it.
-+static bool ggml_cuda_try_gdn_gather_skip(const ggml_cgraph * cgraph, int node_idx) {
-+    static const bool disabled = getenv("GGML_CUDA_GDN_GATHER_FUSION") != nullptr &&
-+                                 atoi(getenv("GGML_CUDA_GDN_GATHER_FUSION")) == 0;
-+    if (disabled) {
-+        return false;
-+    }
-+    const ggml_tensor * gr = cgraph->nodes[node_idx];
-+    if (gr->op != GGML_OP_GET_ROWS || gr->type != GGML_TYPE_F32 || (gr->flags & GGML_TENSOR_FLAG_OUTPUT) ||
-+        !ggml_is_contiguous(gr)) {
-+        return false;
-+    }
-+    const ggml_tensor * cache = gr->src[0];
-+    const ggml_tensor * ids   = gr->src[1];
-+    if (cache->type != GGML_TYPE_F32 || ids->type != GGML_TYPE_I32 || cache->data == nullptr || ids->data == nullptr ||
-+        cache->nb[0] != sizeof(float) || cache->nb[1] % sizeof(float) != 0 || !ggml_is_contiguous(ids) ||
-+        ids->ne[0] != 1 || ids->ne[1] != 1 || ids->ne[2] != 1 || ids->ne[3] != 1 ||
-+        gr->ne[1] != 1 || gr->ne[2] != 1 || gr->ne[3] != 1 || gr->ne[0] != cache->ne[0]) {
-+        return false;
-+    }
-+    if (ggml_node_get_use_count(cgraph, node_idx) != 1) {
-+        return false;
-+    }
-+    const ggml_tensor * cur = gr;
-+    for (int j = node_idx + 1; j < cgraph->n_nodes; ++j) {
-+        const ggml_tensor * n = cgraph->nodes[j];
-+        if (n->op == GGML_OP_GATED_DELTA_NET && n->src[5] == cur) {
-+            const ggml_tensor * v = n->src[2];
-+            const int64_t       D = v->ne[0] * v->ne[0] * v->ne[1];
-+            if (gr->ne[0] != D || v->ne[3] != 1 || ggml_nelements(cur) != D) {
-+                return false;
-+            }
-+            ggml_cuda_gated_delta_net_gather gather;
-+            gather.base       = (const float *) cache->data;
-+            gather.ids        = (const int32_t *) ids->data;
-+            gather.row_stride = (int64_t) (cache->nb[1] / sizeof(float));
-+            ggml_cuda_gdn_gather_register(n, gather);
-+            return true;
-+        }
-+        if (n->op == GGML_OP_RESHAPE && n->src[0] == cur) {
-+            if (ggml_node_get_use_count(cgraph, j) != 1) {
-+                return false;
-+            }
-+            cur = n;
-+            continue;
-+        }
-+        for (int s = 0; s < GGML_MAX_SRC; ++s) {
-+            if (n->src[s] == cur || (n->view_src != nullptr && n->view_src == gr)) {
-+                return false;
-+            }
-+        }
-+    }
-+    return false;
-+}
-+
- // match gated_delta_net + the strided cpy that scatters its state snapshots into the cache
- // (slot i -> rollback group i, slot 0 newest), so the kernel can write them and skip the cpy.
- static int ggml_cuda_try_gdn_cache_fusion(
-@@ -4281,6 +4343,8 @@ static void ggml_cuda_graph_evaluate_and_capture(ggml_backend_cuda_context * cud
-                 stream_ctx.concurrent_events.clear();
-             }
- 
-+            ggml_cuda_gdn_gather_clear();
-+
-             for (int i = 0; i < cgraph->n_nodes; i++) {
-                 ggml_tensor * node = cgraph->nodes[i];
-                 if (is_concurrent_event_active) {
-@@ -4323,6 +4387,12 @@ static void ggml_cuda_graph_evaluate_and_capture(ggml_backend_cuda_context * cud
-                     continue;
-                 }
- 
-+                // recurrent-state gather folded into the GDN kernel (no temp, no kernel)
-+                if (node->op == GGML_OP_GET_ROWS && !is_concurrent_event_active &&
-+                        ggml_cuda_try_gdn_gather_skip(cgraph, i)) {
-+                    continue;
-+                }
-+
-                 // The normalized pre-attention residual is consumed only by a
-                 // group of low-bit projections. Preserve residual + one scale per
-                 // row and let their shared Q8 quantizer apply the norm weight.
 diff --git a/ggml/src/ggml-cuda/mmvq.cu b/ggml/src/ggml-cuda/mmvq.cu
 index bf51b61..5ec5e11 100644
 --- a/ggml/src/ggml-cuda/mmvq.cu
