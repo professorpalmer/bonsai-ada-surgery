@@ -19,6 +19,20 @@ Prefill doubled too: llama-bench pp2048 630 -> 1304 tok/s (**2.07x**), live serv
 prefill 617 -> 1275 tok/s, 35k-context prefill 498 -> 847, first token on a 1611-token
 prompt 2.75 s -> 1.39 s. Same +1500 memory clock either side; prefill is compute-bound.
 
+## Upstream status
+
+Everything here is submitted to PrismML's fork so it lands in their official binaries (and
+from there in whatever bundles their llama.cpp) without anyone needing this repo:
+
+| PR | What | Gain on RTX 4070 |
+| --- | --- | ---: |
+| [PrismML-Eng/llama.cpp#215](https://github.com/PrismML-Eng/llama.cpp/pull/215) | decode: SoA q8 activations + exact isum, warp-per-row small-K GEMV, GDN gather fusion | +18% TG |
+| [PrismML-Eng/llama.cpp#214](https://github.com/PrismML-Eng/llama.cpp/pull/214) | prefill: branch-free PTQ1_0 MMQ tile loader + full Ampere tile table | 2.07x pp2048 |
+| [PrismML-Eng/llama.cpp#216](https://github.com/PrismML-Eng/llama.cpp/pull/216) | prefill: 4-column GDN warp layout on all Ampere+, not only GB10 | +6% pp2048 |
+
+The three are independent and apply in any order. Until they merge, the branch below is
+exactly those three commits on top of Prism's `prism` branch.
+
 The card is one of the slowest "12 GB" parts for this workload (504 GB/s). The same
 patches should help any GPU that runs the small-K PTQ1 GEMV geometry: Ampere and Ada
 consumer cards, and (untested) Blackwell. Please run the receipt and open an issue with
@@ -58,6 +72,10 @@ Full write-up with measurements: [`surgery/ADA4070_PTQ1.md`](surgery/ADA4070_PTQ
    tile loader split a block's 8 lanes into three divergent `if / else if` branches, so
    each warp serialized 12 trit-unpack iterations for 5 of work. Uniform loop, per-lane
    store offsets only. pp2048 630 -> 1304 tok/s (2.06x), bit-identical output.
+7. **GDN 4-column warp layout on Ada.** Prism's `cols_per_warp = 4` GatedDeltaNet path was
+   gated to GB10. Nothing in it is GB10-specific, and prefill runs the recurrence serially
+   over every token, so the kernel's per-step efficiency is prefill-critical. Neutral for
+   decode, +6% pp2048 on the 4070 (1220 -> 1297 with cut 6 in place).
 
 Things that were tried and did not help on Ada, with the measurements: a LUT trit unpack
 (0.29x), L2 prefetch, L2 persistence windows, nwarps changes, forcing MMQ, PDL off,
@@ -73,8 +91,11 @@ timing under WDDM is wrong for this (host-bound issue gaps), which is documented
 
 The kernel branch lives at
 [professorpalmer/llama.cpp-ada-ternary @ `ada-ptq1-surgery`](https://github.com/professorpalmer/llama.cpp-ada-ternary/tree/ada-ptq1-surgery)
-(PrismML `9a9394a` + two commits: decode, then prefill). The same commits are in
-[`patches/`](patches/) for `git am` onto PrismML-Eng/llama.cpp.
+(PrismML `9a9394a` + the three PR commits above). The same commits are in
+[`patches/`](patches/) for `git am` onto PrismML-Eng/llama.cpp. The profiling
+instrumentation used during the investigation (`GGML_CUDA_OP_TIMING`, `GGML_CUDA_GRAPH_STATS`,
+`GGML_CUDA_MMVQ_DUMP`, the env-gated L2 persistence experiment) is kept out of the PRs; it
+lives on `ada-ptq1-surgery-diagnostics` if you want to reproduce the traces.
 
 ```powershell
 git clone -b ada-ptq1-surgery https://github.com/professorpalmer/llama.cpp-ada-ternary vendor/prism-llama

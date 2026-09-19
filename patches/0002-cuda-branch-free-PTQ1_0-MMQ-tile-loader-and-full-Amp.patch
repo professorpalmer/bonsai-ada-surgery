@@ -1,8 +1,8 @@
-From 20c1662964376a9de90b78a9081ac102c34c4eb4 Mon Sep 17 00:00:00 2001
+From d501e5adc5f85028515ead914bfb17e364957f7a Mon Sep 17 00:00:00 2001
 From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
 Date: Sat, 19 Sep 2026 08:38:00 -0500
-Subject: [PATCH 2/2] CUDA: PTQ1_0 prefill, branch-free MMQ tile loader and
- full Ampere tile table (2.07x pp2048)
+Subject: [PATCH 2/3] cuda: branch-free PTQ1_0 MMQ tile loader and full Ampere
+ tile table (2x prefill)
 
 Prefill takes the MMQ path and PTQ1_0 ran it at half PQ2_0's speed from the same weights
 (RTX 4070: pp2048 630 vs ~1300 t/s). CUPTI put the whole gap in mul_mat_q<PTQ1_0>, 2.7x the
@@ -20,12 +20,12 @@ per-call time of the PQ2_0 instantiation for identical shapes.
 Decode untouched (66.9 t/s). test-backend-ops MUL_MAT 78/78, MUL_MAT_ID 75/75 PTQ1_0 shapes vs
 CPU; greedy 300-token generation identical; perplexity -c 2048 -b 2048 7.6740 vs 7.6742 stock.
 ---
- ggml/src/ggml-cuda/mmq-config-ampere.cuh |  6 ++++
- ggml/src/ggml-cuda/mmq-load-tiles.cuh    | 42 ++++++++++++++++--------
- 2 files changed, 35 insertions(+), 13 deletions(-)
+ ggml/src/ggml-cuda/mmq-config-ampere.cuh |  5 +++
+ ggml/src/ggml-cuda/mmq-load-tiles.cuh    | 55 ++++++++++++------------
+ 2 files changed, 32 insertions(+), 28 deletions(-)
 
 diff --git a/ggml/src/ggml-cuda/mmq-config-ampere.cuh b/ggml/src/ggml-cuda/mmq-config-ampere.cuh
-index 9261c67..3fa94d9 100644
+index 9261c67..ca46838 100644
 --- a/ggml/src/ggml-cuda/mmq-config-ampere.cuh
 +++ b/ggml/src/ggml-cuda/mmq-config-ampere.cuh
 @@ -54,6 +54,7 @@ static constexpr __host__ __device__ ggml_cuda_mmq_config ggml_cuda_mmq_get_conf
@@ -36,11 +36,10 @@ index 9261c67..3fa94d9 100644
      CASE(GGML_TYPE_PTQ1_0, 256, 1, 128, 8, GGML_CUDA_MMQ_SRAM_LAYOUT_Q8_0, MMQ_ITER_K, true, false);
      CASE(GGML_TYPE_PTQ1_0, 256, 1, 128, 16, GGML_CUDA_MMQ_SRAM_LAYOUT_Q8_0, MMQ_ITER_K, true, false);
      CASE(GGML_TYPE_PTQ1_0, 256, 1, 128, 24, GGML_CUDA_MMQ_SRAM_LAYOUT_Q8_0, MMQ_ITER_K, true, false);
-@@ -61,6 +62,11 @@ static constexpr __host__ __device__ ggml_cuda_mmq_config ggml_cuda_mmq_get_conf
+@@ -61,6 +62,10 @@ static constexpr __host__ __device__ ggml_cuda_mmq_config ggml_cuda_mmq_get_conf
      CASE(GGML_TYPE_PTQ1_0, 256, 1, 128, 40, GGML_CUDA_MMQ_SRAM_LAYOUT_Q8_0, MMQ_ITER_K, true, false);
      CASE(GGML_TYPE_PTQ1_0, 256, 1, 128, 48, GGML_CUDA_MMQ_SRAM_LAYOUT_Q8_0, MMQ_ITER_K, true, false);
      CASE(GGML_TYPE_PTQ1_0, 256, 1, 128, 64, GGML_CUDA_MMQ_SRAM_LAYOUT_Q8_0, MMQ_ITER_K, true, false);
-+    // Ada surgery: PTQ1_0 was the only type capped at J=64; the wider tiles are what PQ2_0 uses for prefill.
 +    CASE(GGML_TYPE_PTQ1_0, 256, 1, 128, 80, GGML_CUDA_MMQ_SRAM_LAYOUT_Q8_0, MMQ_ITER_K, true, false);
 +    CASE(GGML_TYPE_PTQ1_0, 256, 1, 128, 96, GGML_CUDA_MMQ_SRAM_LAYOUT_Q8_0, MMQ_ITER_K, true, false);
 +    CASE(GGML_TYPE_PTQ1_0, 256, 1, 128, 112, GGML_CUDA_MMQ_SRAM_LAYOUT_Q8_0, MMQ_ITER_K, true, false);
@@ -49,10 +48,32 @@ index 9261c67..3fa94d9 100644
      CASE(GGML_TYPE_Q4_0, 256, 1, 128,   8, GGML_CUDA_MMQ_SRAM_LAYOUT_Q8_0, MMQ_ITER_K, true, true);
      CASE(GGML_TYPE_Q4_0, 256, 1, 128,  16, GGML_CUDA_MMQ_SRAM_LAYOUT_Q8_0, MMQ_ITER_K, true, true);
 diff --git a/ggml/src/ggml-cuda/mmq-load-tiles.cuh b/ggml/src/ggml-cuda/mmq-load-tiles.cuh
-index 7f7192e..c0f8fd7 100644
+index 7f7192e..e804916 100644
 --- a/ggml/src/ggml-cuda/mmq-load-tiles.cuh
 +++ b/ggml/src/ggml-cuda/mmq-load-tiles.cuh
-@@ -315,22 +315,38 @@ static __device__ __forceinline__ void ggml_cuda_mmq_load_tiles_ptq1_0(const cha
+@@ -257,21 +257,6 @@ template <ggml_type type, int J, bool fallback> static __device__ __forceinline_
+ }
+ 
+ #if !defined(GGML_USE_HIP)
+-static __device__
+-__forceinline__ void ggml_cuda_mmq_decode_ptq1_0_qs4(uint32_t packed, int * __restrict__ dst, int stride) {
+-    uint32_t v_lo = __byte_perm(packed, 0, 0x4140);
+-    uint32_t v_hi = __byte_perm(packed, 0, 0x4342);
+-
+-#    pragma unroll
+-    for (int t = 0; t < 5; ++t) {
+-        const uint32_t w_lo = v_lo * 3;
+-        const uint32_t w_hi = v_hi * 3;
+-        v_lo                = w_lo & 0x00FF00FF;
+-        v_hi                = w_hi & 0x00FF00FF;
+-        dst[t * stride]     = __vsub4(__byte_perm(w_lo, w_hi, 0x7531), 0x01010101);
+-    }
+-}
+-
+ template <ggml_type type, int J, bool fallback>
+ static __device__ __forceinline__ void ggml_cuda_mmq_load_tiles_ptq1_0(const char * __restrict__ x,
+                                                                        int * __restrict__ x_tile,
+@@ -315,22 +300,36 @@ static __device__ __forceinline__ void ggml_cuda_mmq_load_tiles_ptq1_0(const cha
          int * row = x_qs + i * (2 * MMQ_TILE_NE_K + 1) + kbx * (QK_PTQ1_0 / 4);
  #    endif
  
@@ -63,14 +84,12 @@ index 7f7192e..c0f8fd7 100644
 -            ggml_cuda_mmq_decode_ptq1_0_qs4(get_int_b4(bxi->qs + 16, g), row + 20 + g, 2);
 -        } else if (lane == 6) {
 -            uint32_t v = (uint32_t) bxi->qh[0] | ((uint32_t) bxi->qh[1] << 16);
-+        // Ada surgery: branch-free unpack. The stock loader split the 8 lanes of a block into three
-+        // divergent branches (lanes 0-3: 5 unpack iterations, lanes 4-5: 5 more, lane 6: 2, lane 7
-+        // idle), so a warp executed 12 serial *3 iterations per block where 5 suffice. This was the
-+        // whole PTQ1_0-vs-PQ2_0 prefill gap (PQ2_0's loader is uniform). Here every lane runs the same
-+        // 5-iteration loop on its own 32-bit word of the block: lanes 0-5 take qs words 0-5, lane 6
-+        // takes word 6 (qh0 | qh1<<8 | d<<16) with its high half pre-advanced by one trit so that
-+        // iterations 0 and 2 yield exactly the two qh ints the old code produced; lane 7 computes
-+        // garbage and stores nothing. Only the smem store offsets differ per lane (predicated STS).
++        // Branch-free unpack. All 8 lanes of a block run the same 5-iteration trit-extraction loop
++        // on their own 32-bit word: lanes 0-5 take qs words 0-5, lane 6 takes word 6
++        // (qh[0] | qh[1] << 8 | d << 16) with both 16-bit halves walking the two qh bytes, lane 7
++        // computes and discards. Only the shared-memory store offsets differ per lane, so the warp
++        // never diverges. The previous lane<4 / lane<6 / lane==6 branch chain serialized 5+5+2
++        // iterations per warp and made this loader ~2.7x slower than the PQ2_0 one for the same tile.
 +        const uint32_t packed = get_int_b4(bxi->qs, lane < 7 ? lane : 6);
 +        uint32_t       v_lo   = __byte_perm(packed, 0, 0x4140);   // bytes 0,1 as 16-bit lanes
 +        uint32_t       v_hi   = __byte_perm(packed, 0, 0x4342);   // bytes 2,3

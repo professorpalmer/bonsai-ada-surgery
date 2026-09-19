@@ -1,0 +1,49 @@
+From 4ba238201d2f613c1e199af8e6b16d9c5470a7ef Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Sat, 19 Sep 2026 09:20:25 -0500
+Subject: [PATCH 3/3] cuda: use the 4-column GDN warp layout on all Ampere+
+ NVIDIA, not only GB10 (+6% prefill on Ada)
+
+gated_delta_net_cuda's cols_per_warp = 4 path (S_v == 128, !KDA) was gated to
+GGML_CUDA_CC_DGX_SPARK on both the host launch geometry and the device constexpr. The kernel
+uses nothing GB10-specific, and because the recurrence is serial over tokens, prefill depends
+directly on this kernel's per-step efficiency. Widening the gate to cc >= GGML_CUDA_CC_AMPERE:
+
+RTX 4070 (sm_89), Ternary-Bonsai-2-27B-PTQ1_0, llama-bench -fa on, 4 runs each:
+  pp512   1233 -> 1312 t/s
+  pp2048  1220 -> 1297 t/s   (+6%)
+  tg128   66.9 -> 67.1        (unchanged)
+
+test-backend-ops -b CUDA0 -o GATED_DELTA_NET: 39/39 vs CPU. Greedy output identical.
+---
+ ggml/src/ggml-cuda/gated_delta_net.cu | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/ggml/src/ggml-cuda/gated_delta_net.cu b/ggml/src/ggml-cuda/gated_delta_net.cu
+index 33b8ea1..f90b5e7 100644
+--- a/ggml/src/ggml-cuda/gated_delta_net.cu
++++ b/ggml/src/ggml-cuda/gated_delta_net.cu
+@@ -63,7 +63,7 @@ gated_delta_net_cuda(const float * q,
+     const uint32_t sequence = blockIdx.y;
+     // Each warp owns one or more columns, using warp-level primitives to reduce across rows.
+     const int      lane     = threadIdx.x;
+-#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ == GGML_CUDA_CC_DGX_SPARK
++#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= GGML_CUDA_CC_AMPERE
+     constexpr int cols_per_warp = S_v == 128 && !KDA ? 4 : 1;
+ #else
+     constexpr int cols_per_warp = 1;
+@@ -239,7 +239,10 @@ static void launch_gated_delta_net(
+     const int warp_size = ggml_cuda_info().devices[ggml_cuda_get_device()].warp_size;
+     const int cc = ggml_cuda_info().devices[ggml_cuda_get_device()].cc;
+     const int num_warps = 4;
+-    const int cols_per_warp = cc == GGML_CUDA_CC_DGX_SPARK && S_v == 128 && !KDA ? 4 : 1;
++    // 4 columns per warp was tuned on GB10 but is a straight win on consumer Ampere/Ada as well:
++    // the recurrence is serial over tokens, so prefill lives or dies on this kernel's per-step
++    // efficiency (RTX 4070, Bonsai 2 27B: pp2048 1220 -> 1297 t/s, decode unchanged).
++    const int cols_per_warp = cc >= GGML_CUDA_CC_AMPERE && S_v == 128 && !KDA ? 4 : 1;
+     dim3      grid_dims(H, n_seqs, (S_v + num_warps * cols_per_warp - 1) / (num_warps * cols_per_warp));
+     dim3      block_dims(warp_size <= S_v ? warp_size : S_v, num_warps, 1);
+ 
+-- 
+2.55.0.windows.3
+

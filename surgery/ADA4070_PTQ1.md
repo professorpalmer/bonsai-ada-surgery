@@ -261,6 +261,32 @@ from inside the loop failed 21/78 shapes despite bit-identical arithmetic in emu
 the plain register-array form above is what shipped. Left as a note for anyone tempted
 by the shorter version.
 
+## Cut 8: the GB10-only GDN warp layout was a 6% prefill gate (shipped, PR #216)
+
+Found while stripping cut 1's experiments for upstream. `gated_delta_net_cuda` has a
+`cols_per_warp = 4` path (S_v 128, non-KDA) gated to `GGML_CUDA_CC_DGX_SPARK` on both host
+and device. Widening it to all Ampere+ was measured "neutral" in cut 1 because it was
+measured on decode. Prefill runs the recurrence serially over every token, so the kernel's
+per-step efficiency is prefill-critical: A/B with everything else equal, 4 runs each,
+pp512 1233 -> 1312, pp2048 1220 -> 1297 (+6%), tg128 66.9 -> 67.1. Two lines. Lesson for the
+"neutral" list below: neutral for which phase.
+
+## Upstream (2026-09-19)
+
+Submitted to PrismML-Eng/llama.cpp as three independent PRs so the work reaches their
+official binaries and everything downstream of them:
+
+- [#215](https://github.com/PrismML-Eng/llama.cpp/pull/215) decode (cuts 3, 4, 5), 351 lines,
+  diagnostics and dead experiments stripped
+- [#214](https://github.com/PrismML-Eng/llama.cpp/pull/214) prefill loader + tile table (cut 7)
+- [#216](https://github.com/PrismML-Eng/llama.cpp/pull/216) GDN cols_per_warp gate (cut 8)
+
+Fork CI only runs the labeler until a maintainer approves; HIP/MUSA paths are guarded so they
+keep Prism's original behaviour. Kept out of the PRs: op-timing / graph-stats / MMVQ-dump
+instrumentation and the env-gated L2 persistence window (branch
+`ada-ptq1-surgery-diagnostics`). The stock-clock decode receipts in the PRs are from the
+instrumented build; the clean stack was re-benchmarked and matches (67.1 / 1302 at +1500).
+
 ## What is left (in-graph, per token, ~15 ms at +1500)
 
 Stock-clock breakdown (CUPTI): GEMV 13.3 ms (75%), ~1900 small kernels 2.8 ms (16%),
