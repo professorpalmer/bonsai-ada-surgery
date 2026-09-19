@@ -1,0 +1,95 @@
+{
+  "gpu": "NVIDIA GeForce RTX 4070",
+  "model": "Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+  "kv": "q4_0",
+  "tag": "stock",
+  "date": "2026-09-19 00:30",
+  "depth": [
+    {
+      "depth": 7168,
+      "tg_tps": 53.8,
+      "stddev": 0.33,
+      "power_w": 157.1,
+      "power_max_w": 195.8,
+      "sm_mhz": 2791,
+      "mem_mhz": 10251,
+      "temp_c": 61,
+      "fan_pct": 33,
+      "samples": 155
+    },
+    {
+      "depth": 12288,
+      "tg_tps": 51.07,
+      "stddev": 0.26,
+      "power_w": 158.9,
+      "power_max_w": 198.9,
+      "sm_mhz": 2782,
+      "mem_mhz": 10251,
+      "temp_c": 65,
+      "fan_pct": 33,
+      "samples": 246
+    },
+    {
+      "depth": 35840,
+      "tg_tps": 40.84,
+      "stddev": 0.0,
+      "power_w": 167.0,
+      "power_max_w": 195.3,
+      "sm_mhz": 2775,
+      "mem_mhz": 10251,
+      "temp_c": 69,
+      "fan_pct": 44,
+      "samples": 631
+    },
+    {
+      "depth": 77824,
+      "tg_tps": 29.97,
+      "stddev": 0.0,
+      "power_w": 170.6,
+      "power_max_w": 199.8,
+      "sm_mhz": 2753,
+      "mem_mhz": 10251,
+      "temp_c": 69,
+      "fan_pct": 47,
+      "samples": 1547
+    }
+  ],
+  "prefill": [
+    {
+      "prompt": 2048,
+      "depth": 0,
+      "pp_tps": 600.2,
+      "power_w": 152.5,
+      "power_max_w": 159.4,
+      "sm_mhz": 2790,
+      "mem_mhz": 10251,
+      "temp_c": 66,
+      "fan_pct": 46,
+      "samples": 96
+    },
+    {
+      "prompt": 2048,
+      "depth": 35840,
+      "pp_tps": 481.6,
+      "power_w": 166.8,
+      "power_max_w": 173.9,
+      "sm_mhz": 2785,
+      "mem_mhz": 10251,
+      "temp_c": 69,
+      "fan_pct": 45,
+      "samples": 678
+    }
+  ],
+  "footprint": [],
+  "fresh_decode": {
+    "tg_tps": 58.14,
+    "power_w": 189.0,
+    "power_max_w": 195.2,
+    "sm_mhz": 2757,
+    "mem_mhz": 10251,
+    "temp_c": 67,
+    "fan_pct": 45,
+    "samples": 119,
+    "tps_per_watt": 0.308
+  }
+}

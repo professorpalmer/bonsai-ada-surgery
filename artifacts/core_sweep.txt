@@ -1,0 +1,10 @@
+--- 2026-09-19T00:14:15 mem=405 MHz
+lgc 2100 : tg 61.132684  ||  samples=78 sm_clk min/avg/max=2100/2100/2100  mem_clk=11751  power min/avg/max=70.4/134.9/141.5  temp=52  [GPU clocks set to "(gpuClkMin 2100, gpuClkMax 2100)" for GPU 00000000:01:00.0
+All done.]
+lgc 2400 : tg 65.976182  ||  samples=68 sm_clk min/avg/max=2400/2400/2400  mem_clk=11751  power min/avg/max=78.5/146.8/153.7  temp=57  [GPU clocks set to "(gpuClkMin 2400, gpuClkMax 2400)" for GPU 00000000:01:00.0
+All done.]
+lgc 2600 : tg 67.224899  ||  samples=77 sm_clk min/avg/max=2610/2610/2610  mem_clk=11751  power min/avg/max=31.8/162.0/183.2  temp=63  [GPU clocks set to "(gpuClkMin 2600, gpuClkMax 2600)" for GPU 00000000:01:00.0
+All done.]
+lgc 2805 : tg 67.564868  ||  samples=68 sm_clk min/avg/max=2655/2677/2760  mem_clk=11751  power min/avg/max=92.2/184.3/194.9  temp=63  [GPU clocks set to "(gpuClkMin 2805, gpuClkMax 2805)" for GPU 00000000:01:00.0
+All done.]
+reset to default clocks

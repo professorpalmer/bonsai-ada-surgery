@@ -1,0 +1,26 @@
+# weights
+models/
+*.gguf
+
+# built / downloaded binaries
+bin/
+tooling/
+tmp/
+vendor/
+*.exe
+*.dll
+*.lib
+*.exp
+*.obj
+*.pdb
+*.zip
+
+# local state, secrets, raw traces
+artifacts/*
+!artifacts/receipt_*.json
+!artifacts/receipt_*.log
+!artifacts/core_sweep.txt
+!artifacts/depth_sweep_summary.md
+.codegraph/
+__pycache__/
+*.pyc

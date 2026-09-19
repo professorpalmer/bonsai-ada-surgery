@@ -1,0 +1,110 @@
+{
+  "gpu": "NVIDIA GeForce RTX 4070",
+  "model": "Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+  "kv": "q4_0",
+  "tag": "oc1500",
+  "date": "2026-09-19 00:21",
+  "clocks": "GDDR6X +1500 MHz (11751 MHz effective), core default",
+  "depth": [
+    {
+      "depth": 7168,
+      "tg_tps": 59.02,
+      "power_w": 162.8,
+      "power_max_w": 191.7,
+      "sm_mhz": 2770,
+      "mem_mhz": 11751,
+      "temp_c": 63,
+      "fan_pct": 32
+    },
+    {
+      "depth": 12288,
+      "tg_tps": 55.43,
+      "power_w": 163.9,
+      "power_max_w": 194.5,
+      "sm_mhz": 2772,
+      "mem_mhz": 11751,
+      "temp_c": 65,
+      "fan_pct": 35
+    },
+    {
+      "depth": 35840,
+      "tg_tps": 43.69,
+      "power_w": 171.0,
+      "power_max_w": 197.4,
+      "sm_mhz": 2775,
+      "mem_mhz": 11751,
+      "temp_c": 68,
+      "fan_pct": 43
+    },
+    {
+      "depth": 77824,
+      "tg_tps": 31.87,
+      "power_w": 172.5,
+      "power_max_w": 197.8,
+      "sm_mhz": 2738,
+      "mem_mhz": 11751,
+      "temp_c": 69,
+      "fan_pct": 46
+    }
+  ],
+  "prefill": [
+    {
+      "prompt": 2048,
+      "depth": 0,
+      "pp_tps": 617.1
+    },
+    {
+      "prompt": 2048,
+      "depth": 35840,
+      "pp_tps": 497.8
+    }
+  ],
+  "fresh_decode": {
+    "tg_tps": 64.74,
+    "power_w": 188.8,
+    "power_max_w": 192.8,
+    "sm_mhz": 2692,
+    "mem_mhz": 11751,
+    "temp_c": 66,
+    "fan_pct": 46,
+    "tps_per_watt": 0.343
+  },
+  "footprint": [
+    {
+      "ctx": 65536,
+      "resident_mib": 7305,
+      "gpu_used_mib": 7892,
+      "gpu_total_mib": 12282,
+      "live": {
+        "prompt_tokens": 1611,
+        "prefill_tps": 583.9,
+        "ttft_s": 2.76,
+        "decode_tps": 62.02
+      }
+    },
+    {
+      "ctx": 131072,
+      "resident_mib": 8815,
+      "gpu_used_mib": 9426,
+      "gpu_total_mib": 12282
+    },
+    {
+      "ctx": 196608,
+      "resident_mib": 10233,
+      "gpu_used_mib": 10897,
+      "gpu_total_mib": 12282
+    },
+    {
+      "ctx": 262144,
+      "resident_mib": 11269,
+      "gpu_used_mib": 11921,
+      "gpu_total_mib": 12282,
+      "live": {
+        "prompt_tokens": 1611,
+        "prefill_tps": 585.4,
+        "ttft_s": 2.75,
+        "decode_tps": 62.11
+      }
+    }
+  ]
+}
