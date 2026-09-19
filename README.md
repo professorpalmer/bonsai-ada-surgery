@@ -5,14 +5,19 @@ that makes 1.58-bit ternary (`PTQ1_0`) decode run at the DRAM ceiling on consume
 cards, measured and profiled on an RTX 4070 12 GB with Bonsai 2 27B.
 
 **Same weights, same 1.75 bits per weight, bit-identical math.** Nothing is re-quantized.
-Every kernel change is verified against the CPU reference (`test-backend-ops`, 153/153
-PTQ1_0 GEMV shapes) and by byte-identical greedy generations with each change on/off.
+Every kernel change is verified against the CPU reference (`test-backend-ops`, all 153
+PTQ1_0 GEMV / GEMM shapes), by byte-identical greedy generations with each change on/off,
+and by perplexity at batch 2048 (7.6740 vs 7.6742 stock).
 
 | RTX 4070 12 GB, Bonsai-2-27B PTQ1_0, TG128 | tok/s | vs stock |
 | --- | ---: | ---: |
 | Stock Prism CUDA build, stock clocks | 50.9 | - |
 | + kernel surgery (this repo), stock clocks | 60.1 | +18% |
 | + kernel surgery, GDDR6X +1500 MHz | 67.4 | **+32%** |
+
+Prefill doubled too: llama-bench pp2048 630 -> 1304 tok/s (**2.07x**), live server 2k-context
+prefill 617 -> 1275 tok/s, 35k-context prefill 498 -> 847, first token on a 1611-token
+prompt 2.75 s -> 1.39 s. Same +1500 memory clock either side; prefill is compute-bound.
 
 The card is one of the slowest "12 GB" parts for this workload (504 GB/s). The same
 patches should help any GPU that runs the small-K PTQ1 GEMV geometry: Ampere and Ada
@@ -47,6 +52,12 @@ Full write-up with measurements: [`surgery/ADA4070_PTQ1.md`](surgery/ADA4070_PTQ
    bandwidth, so the memory clock is the remaining lever. Swept with Afterburner: +1500
    MHz is stable and bit-exact on this card, +1750 is flat (GDDR6X EDR replay), +2000
    TDRs. 60.1 -> 67.4 tok/s. See `surgery/afterburner_apply.ps1`.
+6. **Prefill: branch-free PTQ1_0 MMQ tile loader + full tile table.** Prompts take the
+   int8 tensor-core MMQ path, and PTQ1_0 ran it at half PQ2_0's speed. Its Ampere tile
+   table stopped at `mmq_x = 64` (every other type goes to 128), and its shared-memory
+   tile loader split a block's 8 lanes into three divergent `if / else if` branches, so
+   each warp serialized 12 trit-unpack iterations for 5 of work. Uniform loop, per-lane
+   store offsets only. pp2048 630 -> 1304 tok/s (2.06x), bit-identical output.
 
 Things that were tried and did not help on Ada, with the measurements: a LUT trit unpack
 (0.29x), L2 prefetch, L2 persistence windows, nwarps changes, forcing MMQ, PDL off,
@@ -62,8 +73,8 @@ timing under WDDM is wrong for this (host-bound issue gaps), which is documented
 
 The kernel branch lives at
 [professorpalmer/llama.cpp-ada-ternary @ `ada-ptq1-surgery`](https://github.com/professorpalmer/llama.cpp-ada-ternary/tree/ada-ptq1-surgery)
-(PrismML `9a9394a` + one commit). The same commit is in [`patches/`](patches/) for
-`git am` onto PrismML-Eng/llama.cpp.
+(PrismML `9a9394a` + two commits: decode, then prefill). The same commits are in
+[`patches/`](patches/) for `git am` onto PrismML-Eng/llama.cpp.
 
 ```powershell
 git clone -b ada-ptq1-surgery https://github.com/professorpalmer/llama.cpp-ada-ternary vendor/prism-llama
@@ -87,7 +98,8 @@ CMake build of the branch with `-DGGML_CUDA=ON`.
 
 `Ternary-Bonsai-2-27B-PTQ1_0.gguf` (5.95 GB) from
 [PrismML on Hugging Face](https://huggingface.co/prism-ml). `PQ2_0` also works with these
-kernels (same trits, 2.13 bpw packing, better prefill, slower decode on Ada).
+kernels (same trits, 2.13 bpw packing) but with cut 6 it no longer prefills faster, and
+it decodes slower on Ada, so there is no reason to spend the extra 1.3 GB on it.
 
 ## Serve
 

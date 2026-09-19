@@ -1,0 +1,132 @@
+{
+  "gpu": "NVIDIA GeForce RTX 4070",
+  "model": "Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+  "kv": "q4_0",
+  "tag": "oc1500_v2",
+  "date": "2026-09-19 08:30",
+  "depth": [
+    {
+      "depth": 7168,
+      "tg_tps": 59.84,
+      "stddev": 0.44,
+      "power_w": 182.3,
+      "power_max_w": 200.0,
+      "sm_mhz": 2685,
+      "mem_mhz": 11751,
+      "temp_c": 65,
+      "fan_pct": 33,
+      "samples": 97
+    },
+    {
+      "depth": 12288,
+      "tg_tps": 56.72,
+      "stddev": 0.28,
+      "power_w": 193.0,
+      "power_max_w": 200.2,
+      "sm_mhz": 2654,
+      "mem_mhz": 11751,
+      "temp_c": 67,
+      "fan_pct": 40,
+      "samples": 133
+    },
+    {
+      "depth": 35840,
+      "tg_tps": 44.57,
+      "stddev": 0.0,
+      "power_w": 197.1,
+      "power_max_w": 199.9,
+      "sm_mhz": 2623,
+      "mem_mhz": 11751,
+      "temp_c": 69,
+      "fan_pct": 46,
+      "samples": 339
+    },
+    {
+      "depth": 77824,
+      "tg_tps": 32.22,
+      "stddev": 0.0,
+      "power_w": 194.3,
+      "power_max_w": 200.3,
+      "sm_mhz": 2562,
+      "mem_mhz": 11751,
+      "temp_c": 69,
+      "fan_pct": 49,
+      "samples": 896
+    }
+  ],
+  "prefill": [
+    {
+      "prompt": 2048,
+      "depth": 0,
+      "pp_tps": 1275.4,
+      "power_w": 189.9,
+      "power_max_w": 200.0,
+      "sm_mhz": 2639,
+      "mem_mhz": 11751,
+      "temp_c": 70,
+      "fan_pct": 49,
+      "samples": 41
+    },
+    {
+      "prompt": 2048,
+      "depth": 35840,
+      "pp_tps": 847.1,
+      "power_w": 197.6,
+      "power_max_w": 202.7,
+      "sm_mhz": 2606,
+      "mem_mhz": 11751,
+      "temp_c": 70,
+      "fan_pct": 50,
+      "samples": 348
+    }
+  ],
+  "footprint": [
+    {
+      "ctx": 65536,
+      "resident_mib": 7301,
+      "gpu_used_mib": 8030,
+      "gpu_total_mib": 12282,
+      "live": {
+        "prompt_tokens": 1611,
+        "prefill_tps": 1174.7,
+        "ttft_s": 1.37,
+        "decode_tps": 62.91
+      }
+    },
+    {
+      "ctx": 131072,
+      "resident_mib": 8773,
+      "gpu_used_mib": 9502,
+      "gpu_total_mib": 12282
+    },
+    {
+      "ctx": 196608,
+      "resident_mib": 10245,
+      "gpu_used_mib": 10974,
+      "gpu_total_mib": 12282
+    },
+    {
+      "ctx": 262144,
+      "resident_mib": 11174,
+      "gpu_used_mib": 11903,
+      "gpu_total_mib": 12282,
+      "live": {
+        "prompt_tokens": 1611,
+        "prefill_tps": 1158.9,
+        "ttft_s": 1.39,
+        "decode_tps": 61.45
+      }
+    }
+  ],
+  "fresh_decode": {
+    "tg_tps": 65.63,
+    "power_w": 189.9,
+    "power_max_w": 194.8,
+    "sm_mhz": 2684,
+    "mem_mhz": 11751,
+    "temp_c": 66,
+    "fan_pct": 50,
+    "samples": 104,
+    "tps_per_watt": 0.346
+  }
+}

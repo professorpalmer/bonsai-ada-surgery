@@ -1,0 +1,109 @@
+From 20c1662964376a9de90b78a9081ac102c34c4eb4 Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Sat, 19 Sep 2026 08:38:00 -0500
+Subject: [PATCH 2/2] CUDA: PTQ1_0 prefill, branch-free MMQ tile loader and
+ full Ampere tile table (2.07x pp2048)
+
+Prefill takes the MMQ path and PTQ1_0 ran it at half PQ2_0's speed from the same weights
+(RTX 4070: pp2048 630 vs ~1300 t/s). CUPTI put the whole gap in mul_mat_q<PTQ1_0>, 2.7x the
+per-call time of the PQ2_0 instantiation for identical shapes.
+
+- mmq-config-ampere.cuh: PTQ1_0 was the only type capped at mmq_x = 64; add the 80/96/112/128
+  entries every other type has. 630 -> 914 t/s.
+- mmq-load-tiles.cuh: load_tiles_ptq1_0 split a block's 8 lanes into three divergent branches
+  (lanes 0-3: 5 trit-unpack iterations, lanes 4-5: 5 more, lane 6: 2, lane 7 idle), so each warp
+  serialized 12 iterations for 5 of work. All lanes now run one identical 5-iteration loop on
+  their own 32-bit word of the block; lane 6 walks the two qh bytes in both 16-bit halves and
+  recombines adjacent digits with a single __byte_perm. Only smem store offsets differ per lane.
+  914 -> 1304 t/s.
+
+Decode untouched (66.9 t/s). test-backend-ops MUL_MAT 78/78, MUL_MAT_ID 75/75 PTQ1_0 shapes vs
+CPU; greedy 300-token generation identical; perplexity -c 2048 -b 2048 7.6740 vs 7.6742 stock.
+---
+ ggml/src/ggml-cuda/mmq-config-ampere.cuh |  6 ++++
+ ggml/src/ggml-cuda/mmq-load-tiles.cuh    | 42 ++++++++++++++++--------
+ 2 files changed, 35 insertions(+), 13 deletions(-)
+
+diff --git a/ggml/src/ggml-cuda/mmq-config-ampere.cuh b/ggml/src/ggml-cuda/mmq-config-ampere.cuh
+index 9261c67..3fa94d9 100644
+--- a/ggml/src/ggml-cuda/mmq-config-ampere.cuh
++++ b/ggml/src/ggml-cuda/mmq-config-ampere.cuh
+@@ -54,6 +54,7 @@ static constexpr __host__ __device__ ggml_cuda_mmq_config ggml_cuda_mmq_get_conf
+     CASE(GGML_TYPE_PTQ1_0, 256, 1, 128, 16, GGML_CUDA_MMQ_SRAM_LAYOUT_Q8_0, MMQ_ITER_K, true, true);
+     CASE(GGML_TYPE_PTQ1_0, 256, 1, 128, 32, GGML_CUDA_MMQ_SRAM_LAYOUT_Q8_0, MMQ_ITER_K, true, true);
+     CASE(GGML_TYPE_PTQ1_0, 256, 1, 128, 64, GGML_CUDA_MMQ_SRAM_LAYOUT_Q8_0, MMQ_ITER_K, true, true);
++    CASE(GGML_TYPE_PTQ1_0, 256, 1, 128, 128, GGML_CUDA_MMQ_SRAM_LAYOUT_Q8_0, MMQ_ITER_K, true, true);
+     CASE(GGML_TYPE_PTQ1_0, 256, 1, 128, 8, GGML_CUDA_MMQ_SRAM_LAYOUT_Q8_0, MMQ_ITER_K, true, false);
+     CASE(GGML_TYPE_PTQ1_0, 256, 1, 128, 16, GGML_CUDA_MMQ_SRAM_LAYOUT_Q8_0, MMQ_ITER_K, true, false);
+     CASE(GGML_TYPE_PTQ1_0, 256, 1, 128, 24, GGML_CUDA_MMQ_SRAM_LAYOUT_Q8_0, MMQ_ITER_K, true, false);
+@@ -61,6 +62,11 @@ static constexpr __host__ __device__ ggml_cuda_mmq_config ggml_cuda_mmq_get_conf
+     CASE(GGML_TYPE_PTQ1_0, 256, 1, 128, 40, GGML_CUDA_MMQ_SRAM_LAYOUT_Q8_0, MMQ_ITER_K, true, false);
+     CASE(GGML_TYPE_PTQ1_0, 256, 1, 128, 48, GGML_CUDA_MMQ_SRAM_LAYOUT_Q8_0, MMQ_ITER_K, true, false);
+     CASE(GGML_TYPE_PTQ1_0, 256, 1, 128, 64, GGML_CUDA_MMQ_SRAM_LAYOUT_Q8_0, MMQ_ITER_K, true, false);
++    // Ada surgery: PTQ1_0 was the only type capped at J=64; the wider tiles are what PQ2_0 uses for prefill.
++    CASE(GGML_TYPE_PTQ1_0, 256, 1, 128, 80, GGML_CUDA_MMQ_SRAM_LAYOUT_Q8_0, MMQ_ITER_K, true, false);
++    CASE(GGML_TYPE_PTQ1_0, 256, 1, 128, 96, GGML_CUDA_MMQ_SRAM_LAYOUT_Q8_0, MMQ_ITER_K, true, false);
++    CASE(GGML_TYPE_PTQ1_0, 256, 1, 128, 112, GGML_CUDA_MMQ_SRAM_LAYOUT_Q8_0, MMQ_ITER_K, true, false);
++    CASE(GGML_TYPE_PTQ1_0, 256, 1, 128, 128, GGML_CUDA_MMQ_SRAM_LAYOUT_Q8_0, MMQ_ITER_K, true, false);
+ 
+     CASE(GGML_TYPE_Q4_0, 256, 1, 128,   8, GGML_CUDA_MMQ_SRAM_LAYOUT_Q8_0, MMQ_ITER_K, true, true);
+     CASE(GGML_TYPE_Q4_0, 256, 1, 128,  16, GGML_CUDA_MMQ_SRAM_LAYOUT_Q8_0, MMQ_ITER_K, true, true);
+diff --git a/ggml/src/ggml-cuda/mmq-load-tiles.cuh b/ggml/src/ggml-cuda/mmq-load-tiles.cuh
+index 7f7192e..c0f8fd7 100644
+--- a/ggml/src/ggml-cuda/mmq-load-tiles.cuh
++++ b/ggml/src/ggml-cuda/mmq-load-tiles.cuh
+@@ -315,22 +315,38 @@ static __device__ __forceinline__ void ggml_cuda_mmq_load_tiles_ptq1_0(const cha
+         int * row = x_qs + i * (2 * MMQ_TILE_NE_K + 1) + kbx * (QK_PTQ1_0 / 4);
+ #    endif
+ 
+-        if (lane < 4) {
+-            ggml_cuda_mmq_decode_ptq1_0_qs4(get_int_b4(bxi->qs, lane), row + lane, 4);
+-        } else if (lane < 6) {
+-            const int g = lane - 4;
+-            ggml_cuda_mmq_decode_ptq1_0_qs4(get_int_b4(bxi->qs + 16, g), row + 20 + g, 2);
+-        } else if (lane == 6) {
+-            uint32_t v = (uint32_t) bxi->qh[0] | ((uint32_t) bxi->qh[1] << 16);
++        // Ada surgery: branch-free unpack. The stock loader split the 8 lanes of a block into three
++        // divergent branches (lanes 0-3: 5 unpack iterations, lanes 4-5: 5 more, lane 6: 2, lane 7
++        // idle), so a warp executed 12 serial *3 iterations per block where 5 suffice. This was the
++        // whole PTQ1_0-vs-PQ2_0 prefill gap (PQ2_0's loader is uniform). Here every lane runs the same
++        // 5-iteration loop on its own 32-bit word of the block: lanes 0-5 take qs words 0-5, lane 6
++        // takes word 6 (qh0 | qh1<<8 | d<<16) with its high half pre-advanced by one trit so that
++        // iterations 0 and 2 yield exactly the two qh ints the old code produced; lane 7 computes
++        // garbage and stores nothing. Only the smem store offsets differ per lane (predicated STS).
++        const uint32_t packed = get_int_b4(bxi->qs, lane < 7 ? lane : 6);
++        uint32_t       v_lo   = __byte_perm(packed, 0, 0x4140);   // bytes 0,1 as 16-bit lanes
++        uint32_t       v_hi   = __byte_perm(packed, 0, 0x4342);   // bytes 2,3
++        const bool     full_lane = lane < 6;
++        v_hi = full_lane ? v_hi : v_lo;                           // lane 6: both halves walk qh0/qh1
++        const int  dst_base   = lane < 4 ? lane : 16 + lane;      // lanes 4,5 -> 20,21
++        const int  dst_stride = lane < 4 ? 4 : 2;
++        int q[5];
+ #    pragma unroll
+-            for (int t = 0; t < 4; t += 2) {
+-                const uint32_t w0 = v * 3;
+-                v                 = w0 & 0x00FF00FF;
+-                const uint32_t w1 = v * 3;
+-                v                 = w1 & 0x00FF00FF;
+-                row[30 + t / 2]   = __vsub4(__byte_perm(w0, w1, 0x7531), 0x01010101);
++        for (int t = 0; t < 5; ++t) {
++            const uint32_t w_lo = v_lo * 3;
++            const uint32_t w_hi = v_hi * 3;
++            v_lo = w_lo & 0x00FF00FF;
++            v_hi = w_hi & 0x00FF00FF;
++            q[t] = __vsub4(__byte_perm(w_lo, w_hi, 0x7531), 0x01010101);
++            if (full_lane) {
++                row[dst_base + t * dst_stride] = q[t];
+             }
+         }
++        if (lane == 6) {
++            // q[t] = {qh0.t, qh1.t, qh0.t, qh1.t}; the old layout is {qh0.t, qh1.t, qh0.t+1, qh1.t+1}.
++            row[30] = __byte_perm(q[0], q[1], 0x5410);
++            row[31] = __byte_perm(q[2], q[3], 0x5410);
++        }
+     }
+ 
+     constexpr int scale_entries_per_block = QK_PTQ1_0 / QK8_1;
+-- 
+2.55.0.windows.3
+

@@ -224,6 +224,43 @@ Power cap on this card is fixed at 200 W by vBIOS (`power.max_limit`).
 | 3+4+5 kernel surgery | 60.1 | +18% |
 | 6: +1500 MHz memory | 67.4 | **+32%** |
 
+## Cut 7: prefill, the PTQ1_0 MMQ tile loader was divergent (shipped)
+
+Prefill takes the MMQ path (int8 tensor-core GEMM over shared-memory tiles), and PTQ1_0
+prefilled at half the speed of PQ2_0 from the same weights: llama-bench pp2048 630 vs
+~1300 t/s. CUPTI on a pp2048 run put the whole gap in `mul_mat_q<PTQ1_0>`: 2.7x the
+per-call time of the PQ2_0 instantiation for identical shapes. Two causes, both in code
+that never ran on a DGX Spark hot path:
+
+1. `mmq-config-ampere.cuh` capped PTQ1_0 at `mmq_x = 64`; every other type (PQ2_0
+   included) has 80/96/112/128 entries. So a 2048-token prompt ran twice the number of
+   K-passes over the weight tiles. Adding the four missing `CASE` lines: 630 -> 914 t/s.
+2. `ggml_cuda_mmq_load_tiles_ptq1_0` unpacked each 28-byte block with an
+   `if (lane < 4) ... else if (lane < 6) ... else if (lane == 6)` chain: lanes 0-3 ran five
+   `*3` trit-extraction iterations, lanes 4-5 five more, lane 6 two, lane 7 idle. Divergent
+   branches execute serially within a warp, so every warp paid 12 iterations for 5 of work
+   while PQ2_0's loader is uniform. Rewritten so all 8 lanes run the same 5-iteration loop
+   on their own 32-bit word of the block (lane 6 walks the two qh bytes in both 16-bit
+   halves and recombines adjacent digits with one `__byte_perm`); only the shared-memory
+   store offsets differ per lane. 914 -> 1304 t/s.
+
+| llama-bench, official PTQ1_0, -fa on, +1500 mem | pp512 | pp2048 | tg128 |
+| --- | ---: | ---: | ---: |
+| before cut 7 | 630 | 630 | 66.7 |
+| + wide MMQ tiles | 915 | 913 | 66.7 |
+| + branch-free loader | **1304** | **1297** | 66.9 |
+
+Correctness: test-backend-ops MUL_MAT 78/78 and MUL_MAT_ID 75/75 PTQ1_0 shapes vs CPU,
+greedy 300-token generation identical, `llama-perplexity -c 2048 -b 2048` on a 4-chunk
+text 7.6740 vs 7.6742 stock (float noise) at 1.80 vs 3.59 s per pass. PTQ1_0 now prefills
+at PQ2_0 speed while keeping its faster Ada decode, so there is no longer a reason to
+pick the 7.2 GB pack on this card.
+
+A first version of the loader that pre-advanced lane 6's high half by one trit and stored
+from inside the loop failed 21/78 shapes despite bit-identical arithmetic in emulation;
+the plain register-array form above is what shipped. Left as a note for anyone tempted
+by the shorter version.
+
 ## What is left (in-graph, per token, ~15 ms at +1500)
 
 Stock-clock breakdown (CUPTI): GEMV 13.3 ms (75%), ~1900 small kernels 2.8 ms (16%),

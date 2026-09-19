@@ -9,14 +9,20 @@ function Select-CompleteGguf([string]$Path, [int64]$MinBytes) {
     return $Path
 }
 $Model = $null
+if ($env:BONSAI_MODEL) {
+    # explicit pick, e.g. BONSAI_MODEL=Bonsai-2-27B-PTQ1_0-CRACK.gguf
+    $p = if ([IO.Path]::IsPathRooted($env:BONSAI_MODEL)) { $env:BONSAI_MODEL } else { Join-Path $Root "models\$($env:BONSAI_MODEL)" }
+    if (-not (Test-Path $p)) { throw "BONSAI_MODEL not found: $p" }
+    $Model = $p
+}
 foreach ($pair in @(
         @{ Path = (Join-Path $Root 'models\Ternary-Bonsai-2-27B-PTQ1_0.gguf'); Min = 5900000000 },
         @{ Path = (Join-Path $Root 'models\Bonsai-2-27B-PTQ1_0-CRACK.gguf'); Min = 5900000000 },
         @{ Path = (Join-Path $Root 'models\Ternary-Bonsai-2-27B-PQ2_0.gguf'); Min = 7100000000 },
         @{ Path = (Join-Path $Root 'models\Bonsai-2-27B-PQ2_0-CRACK.gguf'); Min = 7100000000 }
     )) {
-    $Model = Select-CompleteGguf $pair.Path $pair.Min
     if ($Model) { break }
+    $Model = Select-CompleteGguf $pair.Path $pair.Min
 }
 if (-not $Model) { throw 'No complete Bonsai 2 GGUF in models\' }
 if (-not (Test-Path (Join-Path $Bin 'llama-server.exe'))) { throw "llama-server.exe missing in $Bin" }
