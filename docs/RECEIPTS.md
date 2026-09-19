@@ -8,19 +8,25 @@ and add a column.
 
 | depth | RTX 3060 12 GB, stock Prism build (community) | RTX 4070 12 GB, stock Prism build | RTX 4070, this patch, stock clocks | RTX 4070, this patch, GDDR6X +1500 |
 | ---: | ---: | ---: | ---: | ---: |
-| fresh (0) | 26.1 | 50.9 | 58.1 | 64.7 |
-| 7k | 24.4 | - | 53.8 | 59.0 |
-| 12k | 21.9 | - | 51.1 | 55.4 |
-| 35k | 17.8 | - | 40.8 | 43.7 |
-| 77k | 13.0 | - | 30.0 | 31.9 |
+| fresh (0) | 26.1 | 50.7 | 58.1 (+15%) | 64.7 (+28%) |
+| 7k | 24.4 | 47.1 | 53.8 (+14%) | 59.0 (+25%) |
+| 12k | 21.9 | 44.7 | 51.1 (+14%) | 55.4 (+24%) |
+| 35k | 17.8 | 36.5 | 40.8 (+12%) | 43.7 (+20%) |
+| 77k | 13.0 | 27.3 | 30.0 (+10%) | 31.9 (+17%) |
 
-Prefill (tok/s): 3060 295 at 2k / 243 at 35k; 4070 patched 600 at 2k / 482 at 35k
-(617 / 498 at +1500). Prefill is compute-bound and untouched by this work (the patch
-targets the batch-1 GEMV; larger batches take the MMQ path).
+The three 4070 columns are the same card, same GGUF, same flags, same afternoon: only the
+`ggml-cuda.dll` (official Prism release vs this branch) and the memory clock change.
+Percentages are against the stock build. The gain shrinks with depth because the patch
+only touches the weight GEMVs; attention over the KV cache is an untouched, growing
+share of the token at depth (see below).
+
+Prefill (tok/s): 3060 295 at 2k / 243 at 35k; 4070 stock build 588 / 473, patched
+600 / 482, patched +1500 617 / 498. Prefill is compute-bound and essentially untouched
+(the patch targets the batch-1 GEMV; larger batches take the MMQ path).
 
 Power: 3060 pinned 149 of 150 W. 4070 pinned at its 200 W cap during fresh decode
-(189 W avg), 157-173 W at depth where attention kernels are latency-bound and let the
-card breathe. tok/s per watt at the fresh end: 3060 0.158, 4070 stock-build ~0.27,
+(187-189 W avg), 163-173 W at depth where attention kernels are latency-bound and let
+the card breathe. tok/s per watt at the fresh end: 3060 0.158, 4070 stock build 0.271,
 patched 0.308, patched +1500 0.343.
 
 ## What context costs (resident VRAM, server process)
@@ -52,5 +58,6 @@ the 3060 has the same ratio so it is not an Ada quirk.
 
 ## Raw data
 
+- `artifacts/receipt_stock_prism_build.json` (4070, official Prism CUDA release binaries)
 - `artifacts/receipt_stock.json`, `artifacts/receipt_oc1500.json` (4070, this build)
 - community 3060 sheet: [@sudoingX, 2026-09-18](https://x.com/sudoingX)
