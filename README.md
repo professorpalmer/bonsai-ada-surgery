@@ -1,4 +1,4 @@
-# Bonsai 2 27B: 262k context, 97 tok/s, on a 12 GB card
+# Bonsai 2 27B: 262k context, 97~105 tok/s on a 12 GB card
 
 The model's **full 262,144-token trained window** on consumer NVIDIA, plus the speed and
 serving recipe that make that window usable. Patched [PrismML llama.cpp](https://github.com/PrismML-Eng/llama.cpp)
