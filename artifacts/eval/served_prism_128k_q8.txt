@@ -1,0 +1,17 @@
+# prism_128k_q8  bin=C:\Users\pwall\Projects\bonsai-2-27b-serve\tooling\stock-bin  model=Ternary-Bonsai-2-27B-PTQ1_0.gguf  ctx=131072 kv=q8_0 spec=0 bs=False  2026-09-20T00:52:33
+## depth 0
+code   depth      0 (evaluated 32): prefill   195.0 tok/s  ttft   0.16s  decode   54.1 tok/s (400 tok)
+prose  depth      0 (evaluated 28): prefill   164.0 tok/s  ttft   0.17s  decode   54.0 tok/s (400 tok)
+bash   depth      0 (evaluated 32): prefill   193.5 tok/s  ttft   0.17s  decode   53.8 tok/s (400 tok)
+mean decode 54.0 tok/s
+## depth 32000
+code   depth  32000 (evaluated 32044): prefill   577.5 tok/s  ttft  55.49s  decode   40.7 tok/s (400 tok)
+prose  depth  32000 (evaluated 512): prefill   459.0 tok/s  ttft   1.12s  decode   40.6 tok/s (400 tok)
+bash   depth  32000 (evaluated 516): prefill   463.1 tok/s  ttft   1.11s  decode   40.6 tok/s (400 tok)
+mean decode 40.7 tok/s
+## depth 100000
+code   depth 100000 (evaluated 68405): prefill   431.2 tok/s  ttft 158.63s  decode   26.7 tok/s (400 tok)
+prose  depth 100000 (evaluated 512): prefill   324.6 tok/s  ttft   1.58s  decode   26.8 tok/s (400 tok)
+bash   depth 100000 (evaluated 516): prefill   330.5 tok/s  ttft   1.56s  decode   26.8 tok/s (400 tok)
+mean decode 26.8 tok/s
+vram_used_mib 11345

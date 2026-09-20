@@ -1,0 +1,47 @@
+[
+ {
+  "arm": "A_native_grammar",
+  "tool": "write_file",
+  "finish": "length",
+  "completion_tokens": 9000,
+  "reasoning_chars": 14911,
+  "seconds": 121.9,
+  "tps": 73.9,
+  "n_tool_calls": 0,
+  "parsed": false,
+  "why": "no tool_calls returned (content len 14882)",
+  "content_head": "\\s*(?:\\s*[;#].*|)$\"\n    ),\n```\n\nWait: `\\[+` matches `[` or `[[`. Section name is `[^\\[\\]]+`. Then `]\\s*` \u2014 allow whitespace after `]`? TOML no, but tolerant yes. Then optional trailing comment: `(?:\\s*[;#].*|$)`.\n\n\"key\" pattern:\n```python\n\"kv\": re.compile(r\"^\\s*(?P<key>[A-Za-z_][A-Za-z0-9_.\\-]*)\\s*[",
+  "rep": 0
+ },
+ {
+  "arm": "A_native_grammar",
+  "tool": "write_file",
+  "finish": "length",
+  "completion_tokens": 9000,
+  "reasoning_chars": 16126,
+  "seconds": 102.5,
+  "tps": 87.8,
+  "n_tool_calls": 1,
+  "called": "write_file",
+  "parsed": false,
+  "why": "server tool_calls arguments not JSON: Unterminated string starting at: line 1 column 36 (char 35)",
+  "rep": 0
+ },
+ {
+  "arm": "A_native_grammar",
+  "tool": "apply_edits",
+  "finish": "tool_calls",
+  "completion_tokens": 8949,
+  "reasoning_chars": 14486,
+  "seconds": 99.8,
+  "tps": 89.7,
+  "n_tool_calls": 1,
+  "called": "write_file",
+  "parsed": true,
+  "other_tool": true,
+  "payload_chars": 2237,
+  "payload_ok": true,
+  "why": "",
+  "rep": 0
+ }
+]

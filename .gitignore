@@ -26,3 +26,10 @@ __pycache__/
 *.pyc
 !artifacts/h2h_*.json
 !artifacts/h2h_*.log
+# quality / served-depth receipts cited by docs (small text); datasets and KL bins stay out
+!artifacts/eval/
+artifacts/eval/*
+!artifacts/eval/kl_*.log
+!artifacts/eval/served_*.txt
+!artifacts/eval/toolcall_stress.json
+!artifacts/eval/tc_*.json

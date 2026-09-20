@@ -1,0 +1,17 @@
+# bundle_262k_q4  bin=C:\Users\pwall\Projects\bonsai-2-27b-serve\bin  model=Ternary-Bonsai-2-27B-PTQ1_0-mtp-lean.gguf  ctx=262144 kv=q4_0 spec=2 bs=True  2026-09-20T01:16:29
+## depth 0
+code   depth      0 (evaluated 32): prefill   190.3 tok/s  ttft   0.17s  decode   97.7 tok/s (400 tok)
+prose  depth      0 (evaluated 28): prefill   171.9 tok/s  ttft   0.16s  decode   87.4 tok/s (400 tok)
+bash   depth      0 (evaluated 32): prefill   190.4 tok/s  ttft   0.17s  decode   96.8 tok/s (400 tok)
+mean decode 94.0 tok/s
+## depth 32000
+code   depth  32000 (evaluated 32044): prefill   876.2 tok/s  ttft  36.57s  decode   29.1 tok/s (400 tok)
+prose  depth  32000 (evaluated 512): prefill   559.1 tok/s  ttft   0.92s  decode   27.5 tok/s (400 tok)
+bash   depth  32000 (evaluated 516): prefill   562.1 tok/s  ttft   0.92s  decode   29.3 tok/s (400 tok)
+mean decode 28.6 tok/s
+## depth 64000
+code   depth  64000 (evaluated 32481): prefill   574.6 tok/s  ttft  56.52s  decode   17.3 tok/s (400 tok)
+prose  depth  64000 (evaluated 512): prefill   387.7 tok/s  ttft   1.32s  decode   14.9 tok/s (400 tok)
+bash   depth  64000 (evaluated 516): prefill   398.4 tok/s  ttft   1.30s  decode   17.2 tok/s (400 tok)
+mean decode 16.4 tok/s
+vram_used_mib 11962

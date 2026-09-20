@@ -168,11 +168,23 @@ void dump() {
 
 // Flushing CUPTI inside atexit deadlocks against driver teardown on Windows, so a worker thread
 // flushes periodically while the app runs and exit only writes what has already been delivered.
+// A server never exits cleanly on Windows (taskkill /F skips atexit), so the same thread also
+// dumps once when "<CUPTI_TRACE_OUT>.trigger" appears; records keep accumulating in memory but
+// the CSV is written exactly once.
 DWORD WINAPI flusher(LPVOID) {
+    const char *  out_env = getenv("CUPTI_TRACE_OUT");
+    const std::string trigger = std::string(out_env ? out_env : "cupti_trace.csv") + ".trigger";
     for (;;) {
         Sleep(250);
         if (p_flush) {
             p_flush(0);
+        }
+        if (GetFileAttributesA(trigger.c_str()) != INVALID_FILE_ATTRIBUTES) {
+            Sleep(300);
+            if (p_flush) {
+                p_flush(0);
+            }
+            dump();
         }
     }
     return 0;

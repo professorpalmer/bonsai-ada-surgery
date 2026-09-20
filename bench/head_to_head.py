@@ -21,7 +21,9 @@ import threading
 import time
 from pathlib import Path
 
-ROW = re.compile(r"\|\s*(pp\d+|tg\d+)\s*\|\s*([\d.]+)\s*[±]\s*([\d.]+)\s*\|")
+# "| pp512 | 1307.87 ± 21.18 |"; the separator is matched loosely because the binary prints UTF-8 and
+# the console code page may mangle the plus-minus sign
+ROW = re.compile(r"\|\s*(pp\d+|tg\d+)\s*\|\s*([\d.]+)\s*[^\d|]+?\s*([\d.]+)\s*\|")
 
 
 def sample_clocks(stop: threading.Event, out: list) -> None:
@@ -51,7 +53,7 @@ def run_arm(name: str, bindir: Path, model: Path, tests_p: str, n: int, reps: in
     t = threading.Thread(target=sample_clocks, args=(stop, samples), daemon=True)
     t.start()
     t0 = time.time()
-    p = subprocess.run(cmd, capture_output=True, text=True, errors="replace", env=env, cwd=str(bindir))
+    p = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, cwd=str(bindir))
     stop.set()
     t.join()
     res = {}

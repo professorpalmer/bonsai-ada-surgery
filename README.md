@@ -1,180 +1,174 @@
-# Bonsai 2 27B on a 12 GB card: CUDA decode surgery for ternary GEMV
+# Bonsai 2 27B on a 12 GB card: the fast, careful bundle
 
-Kernel-level work on the [PrismML llama.cpp fork](https://github.com/PrismML-Eng/llama.cpp)
-that makes 1.58-bit ternary (`PTQ1_0`) decode run at the DRAM ceiling on consumer NVIDIA
-cards, measured and profiled on an RTX 4070 12 GB with Bonsai 2 27B.
+A patched [PrismML llama.cpp](https://github.com/PrismML-Eng/llama.cpp) runtime plus a serving
+recipe for Bonsai 2 27B (1.58-bit ternary `PTQ1_0`, 5.9 GB) on consumer NVIDIA cards. Measured on
+an RTX 4070 12 GB; the kernels target the same small-K ternary GEMV geometry on any Turing, Ampere,
+Ada or Blackwell part.
 
-**Same weights, same 1.75 bits per weight, bit-identical math.** Nothing is re-quantized.
-Every kernel change is verified against the CPU reference (`test-backend-ops`, all 153
-PTQ1_0 GEMV / GEMM shapes), by byte-identical greedy generations with each change on/off,
-and by perplexity at batch 2048 (7.6740 vs 7.6742 stock).
+**Same weights, same 1.75 bits per weight.** Nothing is re-quantized. Every kernel is checked
+against the CPU reference (`test-backend-ops`, all PTQ1_0 shapes), greedy output is byte-identical
+with each optimization on and off, and the speculative draft is byte-identical to plain decoding.
 
-| RTX 4070 12 GB, Bonsai-2-27B PTQ1_0, TG128 | tok/s | vs stock |
+| RTX 4070 12 GB, original `Ternary-Bonsai-2-27B-PTQ1_0.gguf`, stock clocks, q8_0 KV | PrismML build | this bundle |
 | --- | ---: | ---: |
-| Stock Prism CUDA build, stock clocks | 50.9 | - |
-| + kernel surgery (this repo), stock clocks | 60.1 | +18% |
-| + kernel surgery, GDDR6X +1500 MHz | 67.4 | **+32%** |
+| decode, `llama-bench` tg128 (kernels only, no draft) | 54.3 tok/s | 67.6 tok/s |
+| decode, served, fresh context, code / prose / bash mean | 54.0 tok/s | **96.8 tok/s** (100.7 with the thinking budget off) |
+| decode, served, at 32k tokens of context | 40.7 tok/s | 47.6 tok/s |
+| decode, served, at 64k tokens of context | 31.9 tok/s | 36.9 tok/s |
+| prefill, `llama-bench` pp2048 | 632 tok/s | 1304 tok/s |
+| prefill, served, 32k prompt (time to first token) | 578 tok/s (55 s) | 1012 tok/s (32 s) |
+| VRAM in use, served recipe | 11.3 GB at 128k | 10.8 GB at 96k, with the draft context |
+| KV cache in the 12 GB recipe | q4_0 (community sheet) | **q8_0**: 12x lower KL, see below |
 
-Prefill doubled too: llama-bench pp2048 630 -> 1304 tok/s (**2.07x**), live server 2k-context
-prefill 617 -> 1275 tok/s, 35k-context prefill 498 -> 847, first token on a 1611-token
-prompt 2.75 s -> 1.39 s. Same +1500 memory clock either side; prefill is compute-bound.
+Served numbers are the server's own `timings`, 400-token answers, `bench/quick_tps.py`; the
+32k/64k rows put that much varied filler in front of the prompt. The draft head is worth +80% on
+a fresh context and nothing at depth, where a step is bound by reading the cache, so the bundle
+stops drafting past 24k tokens (`--spec-draft-depth-max`, added here) and runs on the kernels
+alone from there. Full method and every run: [`docs/RECEIPTS.md`](docs/RECEIPTS.md);
+`bench/served_depth.ps1` prints the served rows for your card.
 
-## Upstream status
+## Why a bundle and not "wait for the PRs"
 
-Everything here is submitted to PrismML's fork so it lands in their official binaries (and
-from there in whatever bundles their llama.cpp) without anyone needing this repo:
+Everything in here is submitted upstream ([#214](https://github.com/PrismML-Eng/llama.cpp/pull/214),
+[#215](https://github.com/PrismML-Eng/llama.cpp/pull/215), [#216](https://github.com/PrismML-Eng/llama.cpp/pull/216),
+[#220](https://github.com/PrismML-Eng/llama.cpp/pull/220), [#221](https://github.com/PrismML-Eng/llama.cpp/pull/221),
+and sudoingX's [#217](https://github.com/PrismML-Eng/llama.cpp/pull/217) / [#218](https://github.com/PrismML-Eng/llama.cpp/pull/218)).
+Review takes the time it takes. This repo ships the combined stack now: 20 commits on PrismML
+`prism@9a9394a`, as `git am`-able patches in [`patches/`](patches/), as a branch
+([`bonsai-combo`](https://github.com/professorpalmer/llama.cpp-ada-ternary/tree/bonsai-combo)),
+and as Windows binaries on the [Releases](../../releases) page.
 
-| PR | What | Gain on RTX 4070, stock clocks |
-| --- | --- | ---: |
-| [PrismML-Eng/llama.cpp#215](https://github.com/PrismML-Eng/llama.cpp/pull/215) | decode: SoA q8 activations + exact isum, warp-per-row small-K GEMV | +10.5% TG |
-| [PrismML-Eng/llama.cpp#220](https://github.com/PrismML-Eng/llama.cpp/pull/220) | decode: recurrent-state gather folded into the GDN kernel (per-context registry) | +3.8% TG on top |
-| [PrismML-Eng/llama.cpp#214](https://github.com/PrismML-Eng/llama.cpp/pull/214) | prefill: branch-free PTQ1_0 MMQ tile loader + full Ampere tile table | 2.1x pp512 |
-| [PrismML-Eng/llama.cpp#216](https://github.com/PrismML-Eng/llama.cpp/pull/216) | prefill: 4-column GDN warp layout on all Ampere+, not only GB10 | +6% pp2048 |
+| Commits | What | From |
+| --- | --- | --- |
+| 0001-0002 | planar-transposed q8 activations, dedicated 2-8 column PTQ1_0 mat-vec (speculative verify batches) | sudoingX #218 |
+| 0004-0006 | `GGML_CUDA_BATCH_INVARIANT`, bf16 small-row mat-vec, Hadamard inverse on token embeddings in the MTP graph | sudoingX #217/#218 |
+| 0007 | recurrent-state gather folded into the GatedDeltaNet kernel | ours #220 |
+| 0008-0009 | branch-free PTQ1_0 MMQ tile loader + full Ampere tile table (2x prefill), 4-column GDN warp layout on all Ampere+ | ours #214, #216 |
+| 0010-0011 | SoA q8 activations with exact integer sums, warp-per-row small-K GEMV, hybrid single/multi-column dispatch | ours #215, #221 |
+| 0012 | flash attention MMA reads q4_0/q8_0 K/V in place (no F16 scratch copy) | ours #221 |
+| 0013 | multi-column PTQ1_0 mat-vec: raw digits, exact activation sums, per-pair epilogue (+13-24% on verify batches) | ours #221 |
+| 0014-0015 | MTP graph publishes only the output rows; draft-mtp decodes catch-up rows with the first draft row | ours #221 |
+| 0016 | the Hadamard transform quantizes its own output when every consumer is a PTQ1_0 mat-vec (~390 fewer launches per step) | ours #221 |
+| 0017 | out-of-vocab ids from the backend sampler / draft are rejected, not fed to the tokenizer | ours #221 |
+| 0018-0019 | draft-mtp discards stale catch-up rows when a new task lands on the slot; FWHT-q8 pool blocks released LIFO before the pools (llama-bench teardown assert) | ours, new |
+| 0020 | `--spec-draft-depth-max`: stop drafting once the sequence is deep, where speculation costs more than it saves | ours, new |
 
-The four are independent and apply in any order. Until they merge, the branch below is
-exactly those four commits on top of Prism's `prism` branch. Revision 2 of #215/#216 and the
-split into #220 followed maintainer review (per-context gather registry; host/device GDN
-geometry derived from one predicate so HIP cannot mismatch).
+The write-up of how each cut was found (CUPTI traces, L1 wavefront counts, what did not work):
+[`surgery/ADA4070_PTQ1.md`](surgery/ADA4070_PTQ1.md).
 
-A parallel PR, [#218](https://github.com/PrismML-Eng/llama.cpp/pull/218) by sudoingX,
-attacks the same batch-1 wall with a different activation layout and adds a dedicated 2-8
-column kernel for speculative decoding. Paired on this card at stock clocks
-(`artifacts/h2h_215_vs_218_4070_stockclocks.json`, three alternating rounds): tg128 prism
-51.0, #218 54.9, #215 56.4, #215+#220 58.5; pp4 #218 148.9 vs #215 92.0. The two layouts
-are being reconciled on the PR threads: one-column decode from here, multi-column from there.
+## Quality: the recipe matters as much as the kernels
 
-The card is one of the slowest "12 GB" parts for this workload (504 GB/s). The same
-patches should help any GPU that runs the small-K PTQ1 GEMV geometry: Ampere and Ada
-consumer cards, and (untested) Blackwell. Please run the receipt and open an issue with
-your numbers.
+The complaint about Bonsai 2 is code and agentic work, and most of that gap is runtime, not
+compression. Measured on this card, on the original PrismML file, documented in
+[`docs/QUALITY.md`](docs/QUALITY.md):
 
-## What the patch does (and why)
+- **q4_0 KV cache flips the top token on 1 in 48 positions at depth; q8_0 on 1 in 160** (KL
+  0.00218 vs 0.00017 against f16 KV). Every published 12 GB recipe uses q4_0. The default here is
+  **96k context with q8_0 K/V** (10.8 GB in use; 128k/q8_0 allocates but Windows starts paging
+  the cache and decode at depth drops by a third). 128k/q4_0 and the full 262k/q4_0 window are one
+  variable away.
+- **Runaway thinking**: the template defaults to `xhigh` reasoning; even at `low` a tool-call
+  request spent 9,000 tokens thinking and never called the tool. The recipe caps thinking with
+  `--reasoning-budget 4096`, sets `low` by default, and `BONSAI_THINK=0` turns thinking off
+  server-wide for agent harnesses (with tools attached, thinking-off delivered a parseable call
+  9 of 9 times; thinking-on spent the whole budget first on 3 of 3).
+- **Tool-call syntax**: the model's native format is Qwen3-Coder XML with raw string parameters,
+  and this server grammar-constrains it. **9 of 9 calls parsed** through it, against **1 of 9**
+  when the model is asked to write Hermes-style JSON in content (the failure Killy measured:
+  one bracket short at the end of a 20k-character payload). Costs ~14% decode on requests that
+  carry tools.
 
-Full write-up with measurements: [`surgery/ADA4070_PTQ1.md`](surgery/ADA4070_PTQ1.md).
+## Quick start (Windows, NVIDIA)
 
-1. **Exact integer sums for the q8 activations.** `quantize_q8_1<exact_isum>` stores the
-   int16 sum of each 32-value block; the ternary vec-dot accumulates raw trits {0,1,2}
-   with DP4A and corrects once per block, deleting a `__vsub4` (no native SIMD byte
-   subtract on sm_89) from every 4-weight round. Throughput flat, 13 W less power.
-2. **Warp-transposed (SoA) activation layout.** In the small-K geometry every lane owns a
-   K-block and read 36 activation words from `block_q8_1` structs 144 B apart per lane:
-   ~36 L1 lines per warp load, ~1300 L1 wavefronts per K-iteration for activations vs
-   ~250 for the weights. That LSU pressure capped every GEMV at ~370 GB/s. Grouping
-   K-blocks by 32 and storing word *w* of the group contiguously makes the same load one
-   wavefront. Same bytes, no staging, no shuffles. 50.9 -> 55.7 tok/s.
-3. **Warp-per-row small-K geometry.** The stock loop strides K-blocks across the whole
-   128-thread block, so for K=5120 only threads 0..39 ever load anything; two of four
-   warps just hold SM slots. Each warp now owns a row and its lanes stride that row's
-   K-blocks (shuffle reduction, no shared memory, no barrier). qkv 391 -> 445 GB/s,
-   lm_head 414 -> 460 GB/s. 55.7 -> 58.1 tok/s.
-4. **GatedDeltaNet state gather folded into the recurrence kernel.** The per-layer
-   `GET_ROWS` of the 3 MB recurrent state left 3 MB dirty in L2 that was written back in
-   the middle of the FFN weight stream (gate/up GEMV 100 us in GDN layers vs 85 us in
-   attention layers, same kernel). The kernel now indexes the cache directly.
-   58.1 -> 60.1 tok/s. `GGML_CUDA_GDN_GATHER_FUSION=0` restores the old path.
-5. **Raise the DRAM ceiling.** After 1-4 the GEMV sits at ~93% of the P2-state memory
-   bandwidth, so the memory clock is the remaining lever. Swept with Afterburner: +1500
-   MHz is stable and bit-exact on this card, +1750 is flat (GDDR6X EDR replay), +2000
-   TDRs. 60.1 -> 67.4 tok/s. See `surgery/afterburner_apply.ps1`.
-6. **Prefill: branch-free PTQ1_0 MMQ tile loader + full tile table.** Prompts take the
-   int8 tensor-core MMQ path, and PTQ1_0 ran it at half PQ2_0's speed. Its Ampere tile
-   table stopped at `mmq_x = 64` (every other type goes to 128), and its shared-memory
-   tile loader split a block's 8 lanes into three divergent `if / else if` branches, so
-   each warp serialized 12 trit-unpack iterations for 5 of work. Uniform loop, per-lane
-   store offsets only. pp2048 630 -> 1304 tok/s (2.06x), bit-identical output.
-7. **GDN 4-column warp layout on Ada.** Prism's `cols_per_warp = 4` GatedDeltaNet path was
-   gated to GB10. Nothing in it is GB10-specific, and prefill runs the recurrence serially
-   over every token, so the kernel's per-step efficiency is prefill-critical. Neutral for
-   decode, +6% pp2048 on the 4070 (1220 -> 1297 with cut 6 in place).
+1. Download `bonsai-bundle-win-x64.zip` from [Releases](../../releases) and unzip into this repo
+   (it fills `bin\`), or build it yourself (below). Binaries carry sm_75 / 86 / 89 machine code
+   (RTX 20 / 30 / 40) plus compute_89 PTX that RTX 50 cards compile at first load, built with
+   CUDA 13; they need only the NVIDIA driver.
+2. Put `Ternary-Bonsai-2-27B-PTQ1_0.gguf` from [prism-ml on Hugging Face](https://huggingface.co/prism-ml)
+   in `models\`.
+3. Optional, recommended (+MTP speculative decoding, lossless): build the draft-head file.
 
-Things that were tried and did not help on Ada, with the measurements: a LUT trit unpack
-(0.29x), L2 prefetch, L2 persistence windows, nwarps changes, forcing MMQ, PDL off,
-`__stwt` write-through state stores. They are in the write-up so nobody repeats them.
+   ```powershell
+   git clone -b bonsai-combo https://github.com/professorpalmer/llama.cpp-ada-ternary vendor\prism-llama
+   .\build\make_mtp_lean.ps1     # ~1 GB download, writes models\Ternary-Bonsai-2-27B-PTQ1_0-mtp-lean.gguf
+   ```
 
-How the bottlenecks were found: `surgery/cupti_trace/` is a 200-line CUPTI injection
-profiler (`CUDA_INJECTION64_PATH`, no toolkit install, dynamically loads the CUPTI DLL
-from NVIDIA's pip wheel) that records GPU-side timestamps for every kernel including CUDA
-graph replays. `surgery/cupti_analyze.py` turns the CSV into per-GEMV GB/s. Event-pair
-timing under WDDM is wrong for this (host-bound issue gaps), which is documented too.
+   This grafts the Qwen 3.8 27B next-token head onto the ternary file with
+   [sudoingX's graft tools](https://github.com/sudoingX/bonsai2-small-gpu) (his idea and code;
+   this script only wires them up and fetches the 15 head tensors sparsely instead of the 16 GB
+   donor). The script proves the graft by stripping the head again and hashing the result against
+   the original.
+4. Serve:
 
-## Get the patched runtime
+   ```powershell
+   .\start-server.ps1
+   ```
 
-The kernel branch lives at
-[professorpalmer/llama.cpp-ada-ternary @ `ada-ptq1-surgery`](https://github.com/professorpalmer/llama.cpp-ada-ternary/tree/ada-ptq1-surgery)
-(PrismML `9a9394a` + the four PR commits above). The same commits are in
-[`patches/`](patches/) for `git am` onto PrismML-Eng/llama.cpp. The profiling
-instrumentation used during the investigation (`GGML_CUDA_OP_TIMING`, `GGML_CUDA_GRAPH_STATS`,
-`GGML_CUDA_MMVQ_DUMP`, the env-gated L2 persistence experiment) is kept out of the PRs; it
-lives on `ada-ptq1-surgery-diagnostics` if you want to reproduce the traces.
+   OpenAI-compatible API on `http://<host>:8080/v1`, bearer key in `artifacts\api_key.txt`, LAN
+   exposed. `start-remote.ps1` adds a Cloudflare tunnel for use from another machine.
 
-```powershell
-git clone -b ada-ptq1-surgery https://github.com/professorpalmer/llama.cpp-ada-ternary vendor/prism-llama
-```
+Knobs (environment variables) and defaults: `BONSAI_CTX` 98304, `BONSAI_CTK` q8_0, `BONSAI_SPEC`
+2 (draft n-max, 0 off), `BONSAI_SPEC_DEPTH` 24576 (stop drafting past this depth), `BONSAI_THINK`
+1 (0 = thinking off for every request), `BONSAI_EFFORT` low, `BONSAI_THINK_BUDGET` 4096 (-1
+unlimited; also re-enables GPU-side sampling, +4% decode), `BONSAI_PORT` 8080, `BONSAI_MODEL`.
 
-### Build on Windows without the CUDA toolkit
+| Card | Recipe | Notes |
+| --- | --- | --- |
+| 12 GB, default | 96k, q8_0, draft on | 10.8 GB in use, every number above |
+| 12 GB, longer window | `BONSAI_CTX=131072 BONSAI_CTK=q4_0` | 9.9 GB; q4_0 noise (see quality) |
+| 12 GB, full 262k | `BONSAI_CTX=262144 BONSAI_CTK=q4_0 BONSAI_SPEC=0` | the draft context pushes 262k over the paging line, so no draft |
+| 16 GB and up | `BONSAI_CTX=262144` | q8_0 at the full window |
+| 8 GB (2060 Super, 3060 Ti, 4060) | `BONSAI_CTX=32768` (q8_0, ~1.2 GB KV) or `65536 BONSAI_CTK=q4_0` | untested here; expect the ratio of your bandwidth to 504 GB/s |
 
-VS 2022 Build Tools (C++ workload) plus NVIDIA's pip wheels are enough; no admin, no
-3 GB installer.
+For agent harnesses (Cursor, Cline, OpenCode, aider): `BONSAI_THINK=0`, and let the harness send
+`tools`; do not have it prompt for JSON tool calls in content. Please run the receipt on other
+cards and post the numbers.
+
+### Build from source
+
+Windows without the CUDA toolkit (VS 2022 Build Tools C++ workload + NVIDIA's pip wheels):
 
 ```powershell
 python -m pip install cmake ninja nvidia-cuda-nvcc nvidia-cuda-runtime nvidia-cublas nvidia-cuda-nvrtc
-.\build\build_windows.ps1            # arch from nvidia-smi; -Arch 86 for RTX 30xx, -Arch "86;89" for both
+git clone -b bonsai-combo https://github.com/professorpalmer/llama.cpp-ada-ternary vendor\prism-llama
+.\build\build_windows.ps1                    # arch from nvidia-smi; -Arch "75;86;89;89-virtual" for a release build
 ```
 
-Produces `bin\llama-server.exe` and `bin\llama-bench.exe` with the DLLs they need. If an
-official toolkit is installed (`CUDA_PATH`) it is used instead. Linux: normal llama.cpp
-CMake build of the branch with `-DGGML_CUDA=ON`.
+Linux, or from PrismML's tree directly:
 
-### Model
+```bash
+git clone https://github.com/PrismML-Eng/llama.cpp && cd llama.cpp && git checkout 9a9394a
+git am ../bonsai-ada-surgery/patches/*.patch
+cmake -B build -DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES="86;89" && cmake --build build --target llama-server -j
+```
 
-`Ternary-Bonsai-2-27B-PTQ1_0.gguf` (5.95 GB) from
-[PrismML on Hugging Face](https://huggingface.co/prism-ml). `PQ2_0` also works with these
-kernels (same trits, 2.13 bpw packing) but with cut 6 it no longer prefills faster, and
-it decodes slower on Ada, so there is no reason to spend the extra 1.3 GB on it.
-
-## Serve
-
-`start-server.ps1` is the OpenAI-compatible server (64k context, q8 KV, LAN, bearer key
-in `artifacts/api_key.txt`). The community 12 GB receipt uses q4 KV and the full 262k
-window; that exact serve is:
+## Measure it yourself
 
 ```powershell
-bin\llama-server -m models\Ternary-Bonsai-2-27B-PTQ1_0.gguf -ngl 99 -fa on -c 262144 -np 1 -ctk q4_0 -ctv q4_0 --jinja --temp 1.0 --top-p 0.95 --top-k 20 --host 127.0.0.1 --port 8899
+python bench\receipt.py <tag>                 # decode by depth, prefill, TTFT, power, VRAM by window (~10 min)
+bench\served_depth.ps1 -Bin bin -Model models\Ternary-Bonsai-2-27B-PTQ1_0-mtp-lean.gguf -Spec 2 -SpecDepthMax 24576 -Tag mine
+python bench\quick_tps.py --key-file artifacts\api_key.txt --depth 32000   # served decode at depth, running server
+bench\kv_kl_sweep.ps1                         # KV precision KL table (needs wikitext-2 test set)
+python bench\toolcall_stress.py               # tool-call syntax, XML+grammar vs JSON-in-content
+python bench\head_to_head.py --model models\Ternary-Bonsai-2-27B-PTQ1_0.gguf --arm prism=<stock bin> --arm bundle=bin
 ```
-
-## Receipt: run it on your card
-
-```powershell
-python bench\receipt.py <tag>            # ~10 min; add --quick for a 2-minute version
-```
-
-Decode by depth (7k / 12k / 35k / 77k), prefill at 2k and at 35k, fresh decode with
-power and tok/s per watt, resident VRAM for 64k / 128k / 192k / 262k windows, live-server
-TTFT. Same serve flags as the community sheet (PTQ1_0, `-fa on`, q4_0 KV, one slot). It
-prints a markdown table and writes `artifacts/receipt_<tag>.json`; paste both in an issue.
-
-Results so far: [`docs/RECEIPTS.md`](docs/RECEIPTS.md).
 
 ## Layout
 
 | Path | What |
 | --- | --- |
-| `patches/` | the kernel commit as a `git am`-able patch |
-| `surgery/ADA4070_PTQ1.md` | the full investigation: what was measured, what worked, what did not |
-| `surgery/cupti_trace/` | CUPTI injection profiler (source + build.bat) |
-| `surgery/cupti_analyze.py` | trace -> per-kernel GB/s |
-| `surgery/afterburner_apply.ps1`, `core_clock_sweep.ps1` | memory offset / locked core clock sweeps |
-| `surgery/ab_generate.py` | greedy A/B of two env configs through llama-server |
-| `bench/receipt.py` | the receipt benchmark |
-| `build/` | portable Windows build (pip-wheel CUDA) |
+| `patches/` | the 20-commit stack on PrismML `9a9394a`, `git am`-able |
+| `start-server.ps1`, `start-remote.ps1` | the recipe (LAN / Cloudflare tunnel) |
+| `build/build_windows.ps1` | toolkit-free Windows CUDA build |
+| `build/make_mtp_lean.ps1` | MTP head graft (sudoingX's tools, sparse donor fetch) |
+| `docs/QUALITY.md` | KV precision, thinking budget, tool-call syntax: measurements and recipe |
+| `docs/RECEIPTS.md` | speed receipts, this card and others |
+| `bench/` | receipt, served depth ladder, KL sweep, tool-call stress, head-to-head, served TPS |
+| `surgery/` | the investigation: write-up, CUPTI injection profiler, clock sweeps, dead ends |
 
-## Status and next
+## Credits
 
-Per token at +1500 (~15 ms): GEMV ~11.6 ms at the DRAM limit; ~1900 small kernels ~2.8
-ms; ~1.6 ms idle (0.42 ms host turnaround between tokens). Memory clock does not touch
-the last two. Next surgery is collapsing the GDN layer's 27 small kernels into ~4 fused
-ones (norm+sign+FWHT+quantize feeding the GEMV; conv-state+ssm_conv+l2norm+dt/A
-projections feeding GDN; gated-norm+gate+FWHT+quantize), estimated ~1.9 ms/token.
-Design notes at the end of `surgery/ADA4070_PTQ1.md`.
-
-MIT. Weights are PrismML's (Apache 2.0). Not affiliated with PrismML.
+PrismML for the model and the fork. sudoingX for the planar-transposed layout, the batch-invariant
+mode, the Hadamard-inverse fix and the MTP graft. Killy (@net_termina) for the failure census that
+turned "quality is worse" into three fixable buckets. MIT for everything here; weights are
+PrismML's (Apache 2.0). Not affiliated with PrismML.

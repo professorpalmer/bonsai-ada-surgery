@@ -1,7 +1,7 @@
-From ee3a9b9cd9eda823f5d0da27f37866d475e4ba39 Mon Sep 17 00:00:00 2001
+From e6b40a990a272a7e76e867ea614f4025dc8f2301 Mon Sep 17 00:00:00 2001
 From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
 Date: Sat, 19 Sep 2026 09:20:25 -0500
-Subject: [PATCH 4/4] cuda: use the 4-column GDN warp layout on all Ampere+
+Subject: [PATCH 09/20] cuda: use the 4-column GDN warp layout on all Ampere+
  NVIDIA, not only GB10 (+6% prefill on Ada)
 
 The S_v == 128 GATED_DELTA_NET kernel has a 4-columns-per-warp variant that was gated to

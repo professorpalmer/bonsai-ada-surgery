@@ -1,0 +1,7 @@
+# prism_96k_q8_d64k  bin=C:\Users\pwall\Projects\bonsai-2-27b-serve\tooling\stock-bin  model=Ternary-Bonsai-2-27B-PTQ1_0.gguf  ctx=98304 kv=q8_0 spec=0 spec-depth-max=0 bs=False  2026-09-20T01:46:03
+## depth 64000
+code   depth  64000 (evaluated 64009): prefill   508.5 tok/s  ttft 125.89s  decode   31.9 tok/s (400 tok)
+prose  depth  64000 (evaluated 512): prefill   377.1 tok/s  ttft   1.36s  decode   31.9 tok/s (400 tok)
+bash   depth  64000 (evaluated 516): prefill   379.5 tok/s  ttft   1.36s  decode   31.9 tok/s (400 tok)
+mean decode 31.9 tok/s
+vram_used_mib 10094

@@ -1,0 +1,46 @@
+From 1e1409a29e6409bcd7dbc35b0d46b3f54078e6d7 Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Sat, 19 Sep 2026 20:48:10 -0500
+Subject: [PATCH 14/20] qwen35: MTP graph publishes only the output rows of
+ h_nextn when embeddings_nextn_masked
+
+llama_context::decode copies the first n_outputs rows of t_h_nextn when embeddings_nextn_masked is
+set, but the QWEN35 MTP builder assigned t_h_nextn before the inp_out_ids gather, so the tensor had
+n_tokens rows. Any MTP batch with more tokens than outputs (e.g. catch-up rows decoded together with
+a draft row) returned row 0's hidden state for the draft row and the next draft step ran on the
+wrong input. Never triggered before because every MTP decode had n_tokens == n_outputs or no outputs.
+
+Gather before publishing in the masked case, exactly as the trunk graph does at its last layer;
+the unmasked case is unchanged.
+---
+ src/models/qwen35.cpp | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/src/models/qwen35.cpp b/src/models/qwen35.cpp
+index 174f224..fa14559 100644
+--- a/src/models/qwen35.cpp
++++ b/src/models/qwen35.cpp
+@@ -756,9 +756,18 @@ llama_model_qwen35::graph_mtp::graph_mtp(const llama_model & model, const llm_gr
+     cur = build_norm(cur, head_norm_w, nullptr, LLM_NORM_RMS, -1);
+ 
+     cb(cur, "h_nextn", -1);
+-    res->t_h_nextn = cur;
+ 
+-    cur = ggml_get_rows(ctx0, cur, inp_out_ids);
++    // llama_context copies the first n_outputs rows of t_h_nextn when embeddings_nextn_masked is set,
++    // so publish the output rows only (as the trunk graph does); unmasked readers index by token.
++    // Matters as soon as an MTP batch has more tokens than outputs, e.g. catch-up rows decoded
++    // together with the first draft row.
++    if (cparams.embeddings_nextn_masked) {
++        cur = ggml_get_rows(ctx0, cur, inp_out_ids);
++        res->t_h_nextn = cur;
++    } else {
++        res->t_h_nextn = cur;
++        cur = ggml_get_rows(ctx0, cur, inp_out_ids);
++    }
+     cb(cur, "mtp_shared_head_norm", -1);
+ 
+     ggml_tensor * head_w = layer.nextn.shared_head_head ? layer.nextn.shared_head_head : model.output;
+-- 
+2.55.0.windows.3
+

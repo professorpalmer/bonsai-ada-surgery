@@ -1,0 +1,115 @@
+From 0974424fd78d46aa991699b133b06fb4f898610b Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Sun, 20 Sep 2026 01:43:18 -0500
+Subject: [PATCH 20/20] server: --spec-draft-depth-max stops drafting once the
+ sequence is deep
+
+Deep in the context a decode step is bound by reading the KV cache. The draft passes and the
+multi-column verify add to that read without shortening it, so past some depth speculation costs
+more than the accepted tokens save: with Bonsai 2 27B on an RTX 4070 the MTP draft is +85% at
+zero depth, even near 24-32k tokens and -27% at 64k. Past the cutoff the slot decodes one token
+per step and the process() hook is skipped for batches that sit entirely beyond it (by position,
+so the early ubatches of a long prompt still reach the draft context and remain reusable as a
+prefix). Default 0 keeps the old behaviour. 0 / 32k / 64k tokens: 101 / 48 / 37 tok/s with a 24k
+cutoff against 101 / 45 / 27 without.
+---
+ common/arg.cpp                  | 10 ++++++++++
+ common/common.h                 |  6 ++++++
+ tools/server/server-context.cpp | 22 +++++++++++++++++++++-
+ 3 files changed, 37 insertions(+), 1 deletion(-)
+
+diff --git a/common/arg.cpp b/common/arg.cpp
+index 63f3a7b..94dead3 100644
+--- a/common/arg.cpp
++++ b/common/arg.cpp
+@@ -4118,6 +4118,16 @@ common_params_context common_params_parser_init(common_params & params, llama_ex
+             params.speculative.draft.n_min = value;
+         }
+     ).set_spec().set_examples({LLAMA_EXAMPLE_SPECULATIVE, LLAMA_EXAMPLE_LOOKUP, LLAMA_EXAMPLE_SERVER, LLAMA_EXAMPLE_CLI}).set_env("LLAMA_ARG_SPEC_DRAFT_N_MIN"));
++    add_opt(common_arg(
++        {"--spec-draft-depth-max"}, "N",
++        string_format("stop drafting once the sequence is longer than N tokens, 0 = never (default: %d)", params.speculative.draft.n_depth_max),
++        [](common_params & params, int value) {
++            if (value < 0) {
++                throw std::invalid_argument("invalid value");
++            }
++            params.speculative.draft.n_depth_max = value;
++        }
++    ).set_spec().set_examples({LLAMA_EXAMPLE_SERVER}).set_env("LLAMA_ARG_SPEC_DRAFT_DEPTH_MAX"));
+ 
+     add_opt(common_arg(
+         {"--spec-draft-p-split", "--draft-p-split"}, "P",
+diff --git a/common/common.h b/common/common.h
+index eb50a6c..0ab2a3f 100644
+--- a/common/common.h
++++ b/common/common.h
+@@ -329,6 +329,12 @@ struct common_params_speculative_draft {
+     float p_split = 0.1f; // speculative decoding split probability
+     float p_min   = 0.0f; // minimum speculative decoding probability (greedy)
+ 
++    // stop drafting once the sequence is this long (0 = never). Deep in the context a step is bound
++    // by reading the KV cache, and the draft passes plus the multi-column verify add to that read
++    // without shortening it: on a 4070 with Bonsai 2 27B the draft is +85% at zero depth, breaks
++    // even near 24k tokens and costs 30% at 64k. Past the cutoff the slot decodes one token per step.
++    int32_t n_depth_max = 0;
++
+     bool backend_sampling = true; // offload draft sampling to the backend (default: on)
+ 
+     common_params_model mparams;
+diff --git a/tools/server/server-context.cpp b/tools/server/server-context.cpp
+index a9edbd7..b063810 100644
+--- a/tools/server/server-context.cpp
++++ b/tools/server/server-context.cpp
+@@ -205,6 +205,7 @@ struct server_slot {
+ 
+     // speculative decoding
+     common_speculative * spec;
++    int32_t spec_depth_max = 0; // no drafting once the sequence is longer than this (0 = always draft)
+ 
+     llama_tokens spec_draft;
+     llama_tokens spec_prompt;
+@@ -441,6 +442,12 @@ struct server_slot {
+             return 0;
+         }
+ 
++        // deep in the context the draft passes and the multi-column verify cost more than the
++        // accepted tokens save (see --spec-draft-depth-max); decode one token per step from here
++        if (spec_depth_max > 0 && prompt.n_tokens() > spec_depth_max) {
++            return 0;
++        }
++
+         // determine the max draft that fits the current slot state
+         // note: slot.prompt is not yet expanded with the `id` token sampled above
+         //       also, need to leave space for 1 extra token to allow context shifts
+@@ -1210,6 +1217,7 @@ private:
+             slot.ctx_dft = ctx_dft;
+             slot.mem.init(ctx_tgt, ctx_dft);
+             slot.spec    = spec.get();
++            slot.spec_depth_max = params_base.speculative.draft.n_depth_max;
+             slot.n_ctx   = n_ctx_slot;
+ 
+             slot.mctx                   = mctx;
+@@ -3625,7 +3633,19 @@ private:
+         // TODO: avoid restoring the draft context and re-evaluating the drafted tokens when not needed [TAG_SPEC_AVOID_DRAFT_REEVAL]
+         //       for now, always re-evaluate for simplicity
+         //       ref: https://github.com/ggml-org/llama.cpp/pull/22728#issuecomment-4400925384
+-        if (spec) {
++        // past --spec-draft-depth-max a slot does not draft, so its draft context has no use for
++        // these rows: skip the hook (and the draft-model decode it implies) when every token of this
++        // view sits beyond the cutoff. Positions, not the slot's token count, decide it, so the early
++        // ubatches of a long prompt still reach the draft context and stay reusable as a prefix.
++        bool spec_process = spec != nullptr;
++        if (spec_process && params_base.speculative.draft.n_depth_max > 0) {
++            spec_process = false;
++            for (int i = 0; i < batch_view.n_tokens && !spec_process; ++i) {
++                spec_process = batch_view.pos[i] <= params_base.speculative.draft.n_depth_max;
++            }
++        }
++
++        if (spec_process) {
+             bool ok = true;
+             queue_tasks.yield_to_queue([&]() {
+                 ok = common_speculative_process(spec.get(), batch_view);
+-- 
+2.55.0.windows.3
+

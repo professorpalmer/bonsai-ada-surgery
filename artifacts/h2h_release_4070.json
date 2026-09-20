@@ -1,0 +1,117 @@
+{
+  "model": "C:\\Users\\pwall\\Projects\\bonsai-2-27b-serve\\models\\Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+  "arms": [
+    {
+      "name": "prism",
+      "bindir": "C:\\Users\\pwall\\Projects\\bonsai-2-27b-serve\\tooling\\stock-bin",
+      "env": {}
+    },
+    {
+      "name": "bundle",
+      "bindir": "C:\\Users\\pwall\\Projects\\bonsai-2-27b-serve\\bin",
+      "env": {}
+    }
+  ],
+  "runs": {
+    "prism": [
+      {
+        "results": {
+          "pp512": [
+            636.04,
+            4.73
+          ],
+          "pp2048": [
+            632.63,
+            0.17
+          ],
+          "tg128": [
+            54.47,
+            0.04
+          ]
+        },
+        "clocks": {
+          "sm_mhz": 2790,
+          "mem_mhz": 11751,
+          "power_w": 175.1
+        }
+      },
+      {
+        "results": {
+          "pp512": [
+            634.18,
+            4.15
+          ],
+          "pp2048": [
+            631.44,
+            1.08
+          ],
+          "tg128": [
+            54.22,
+            0.1
+          ]
+        },
+        "clocks": {
+          "sm_mhz": 2775,
+          "mem_mhz": 11751,
+          "power_w": 178.2
+        }
+      }
+    ],
+    "bundle": [
+      {
+        "results": {
+          "pp512": [
+            1313.45,
+            17.33
+          ],
+          "pp2048": [
+            1303.86,
+            0.59
+          ],
+          "tg128": [
+            67.64,
+            0.2
+          ]
+        },
+        "clocks": {
+          "sm_mhz": 2640,
+          "mem_mhz": 11751,
+          "power_w": 195.8
+        }
+      },
+      {
+        "results": {
+          "pp512": [
+            1309.13,
+            14.53
+          ],
+          "pp2048": [
+            1304.37,
+            0.32
+          ],
+          "tg128": [
+            67.57,
+            0.15
+          ]
+        },
+        "clocks": {
+          "sm_mhz": 2670,
+          "mem_mhz": 11751,
+          "power_w": 197.4
+        }
+      }
+    ]
+  },
+  "summary": {
+    "prism": {
+      "pp512": 635.1099999999999,
+      "pp2048": 632.0350000000001,
+      "tg128": 54.345
+    },
+    "bundle": {
+      "pp512": 1311.29,
+      "pp2048": 1304.1149999999998,
+      "tg128": 67.60499999999999
+    }
+  }
+}

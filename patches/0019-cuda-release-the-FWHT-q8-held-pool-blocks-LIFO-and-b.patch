@@ -1,0 +1,50 @@
+From 2488ecd5bd70af5c4aa5ce56f347cd030872d5e2 Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Sun, 20 Sep 2026 01:43:18 -0500
+Subject: [PATCH 19/20] cuda: release the FWHT-q8 held pool blocks LIFO and
+ before the pools are destroyed
+
+The registry keeps pool blocks alive across a graph when the fused Hadamard quantize would
+otherwise write over its own input. Its implicit destructor released them oldest first, and it is
+declared before the pools, so at context teardown the frees hit a destroyed VMM pool:
+GGML_ASSERT(ptr == pool_addr + pool_used) at the end of llama-bench. Release newest first in a
+destructor, and reset() from the context destructor ahead of the pools.
+---
+ ggml/src/ggml-cuda/common.cuh   | 6 ++++++
+ ggml/src/ggml-cuda/ggml-cuda.cu | 3 +++
+ 2 files changed, 9 insertions(+)
+
+diff --git a/ggml/src/ggml-cuda/common.cuh b/ggml/src/ggml-cuda/common.cuh
+index 23a911d..cac6d3b 100644
+--- a/ggml/src/ggml-cuda/common.cuh
++++ b/ggml/src/ggml-cuda/common.cuh
+@@ -1586,6 +1586,12 @@ struct ggml_cuda_fwht_q8_context {
+     std::unordered_map<const ggml_tensor *, ggml_cuda_fwht_q8> entries;
+     std::vector<std::unique_ptr<ggml_cuda_pool_alloc<char>>> held; // released at reset(), newest first (VMM pool is LIFO)
+ 
++    // the implicit destructor would release `held` oldest first, which the VMM pool asserts on. The
++    // owning context also calls reset() before its pools go away (this member is declared before them).
++    ~ggml_cuda_fwht_q8_context() {
++        reset();
++    }
++
+     void reset() {
+         entries.clear();
+         while (!held.empty()) {
+diff --git a/ggml/src/ggml-cuda/ggml-cuda.cu b/ggml/src/ggml-cuda/ggml-cuda.cu
+index 5003445..0f56853 100644
+--- a/ggml/src/ggml-cuda/ggml-cuda.cu
++++ b/ggml/src/ggml-cuda/ggml-cuda.cu
+@@ -704,6 +704,9 @@ ggml_backend_cuda_context::~ggml_backend_cuda_context() {
+     std::unique_lock<std::mutex> lock(ggml_cuda_lock);
+     ggml_cuda_lock_cv.wait(lock, []{ return ggml_cuda_lock_counter.load(std::memory_order_relaxed) == 0; });
+ 
++    // pool blocks held across a graph go back to the pool before the pools are destroyed below
++    fwht_q8_context.reset();
++
+     if (copy_event != nullptr) {
+         CUDA_CHECK(cudaEventDestroy(copy_event));
+     }
+-- 
+2.55.0.windows.3
+

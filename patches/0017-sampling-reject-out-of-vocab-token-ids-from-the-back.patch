@@ -1,0 +1,87 @@
+From 5204d7798ff0afb66948b6f5b47803fd7874f572 Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Sat, 19 Sep 2026 22:16:51 -0500
+Subject: [PATCH 17/20] sampling: reject out-of-vocab token ids from the
+ backend sampler and the draft
+
+A backend-sampled id outside [0, n_vocab) (the CUDA argmax/top-k pad sentinel INT_MAX when a
+logits row is all NaN) used to travel as-is into the server, where the tokenizer's vector::at()
+threw "invalid vector subscript" and killed the request. Log the origin (idx, n_vocab, first
+candidate) and fall back to the CPU chain instead; the draft-mtp loop drops a draft whose top
+candidate id is out of vocab rather than feeding it to the verify decode.
+---
+ common/sampling.cpp    | 24 ++++++++++++++++++++++++
+ common/speculative.cpp |  8 ++++++++
+ 2 files changed, 32 insertions(+)
+
+diff --git a/common/sampling.cpp b/common/sampling.cpp
+index 06dea1e..dd5b148 100644
+--- a/common/sampling.cpp
++++ b/common/sampling.cpp
+@@ -9,6 +9,7 @@
+ 
+ #include <algorithm>
+ #include <cctype>
++#include <cinttypes>
+ #include <climits>
+ #include <cmath>
+ #include <cstring>
+@@ -614,6 +615,21 @@ llama_token common_sampler_sample(struct common_sampler * gsmpl, struct llama_co
+         if (id != LLAMA_TOKEN_NULL) {
+             LOG_DBG("%s: Backend sampler selected token: '%d'. Will not run any CPU samplers\n", __func__, id);
+ 
++            {
++                const int32_t n_vocab = llama_vocab_n_tokens(llama_model_get_vocab(llama_get_model(ctx)));
++                if (id < 0 || id >= n_vocab) {
++                    // diagnostic: a backend-sampled id outside the vocab would otherwise surface much later as a
++                    // std::vector::at() throw in the tokenizer ("invalid vector subscript"). log the origin and
++                    // fall back to the CPU chain on the (already fetched) logits/candidates.
++                    LOG_ERR("%s: backend sampler returned out-of-vocab token id %d (idx=%d, n_vocab=%d, cur_p.size=%zu, cur_p[0].id=%d) - falling back to CPU sampling\n",
++                            __func__, id, idx, n_vocab, cur_p.size, cur_p.size > 0 ? cur_p.data[0].id : -1);
++                    id = LLAMA_TOKEN_NULL;
++                }
++            }
++        }
++
++        if (id != LLAMA_TOKEN_NULL) {
++
+             GGML_ASSERT(!gsmpl->grmr    && "using grammar in combination with backend sampling is not supported");
+             GGML_ASSERT(!gsmpl->rbudget && "using reasoning budget in combination with backend sampling is not supported");
+ 
+@@ -639,6 +655,14 @@ llama_token common_sampler_sample(struct common_sampler * gsmpl, struct llama_co
+ 
+     id = cur_p.data[cur_p.selected].id;
+ 
++    {
++        const int32_t n_vocab = llama_vocab_n_tokens(llama_model_get_vocab(llama_get_model(ctx)));
++        if (id < 0 || id >= n_vocab) {
++            LOG_ERR("%s: CPU chain selected out-of-vocab token id %d (idx=%d, n_vocab=%d, selected=%" PRId64 ", cur_p.size=%zu) - candidate ids from the backend are corrupt\n",
++                    __func__, id, idx, n_vocab, cur_p.selected, cur_p.size);
++        }
++    }
++
+     if (grammar_first || !grammar_should_apply(gsmpl)) {
+         return id;
+     }
+diff --git a/common/speculative.cpp b/common/speculative.cpp
+index 4b4d90a..b568927 100644
+--- a/common/speculative.cpp
++++ b/common/speculative.cpp
+@@ -2520,6 +2520,14 @@ struct common_speculative_impl_draft_mtp : public common_speculative_impl {
+                 // add drafted token for each sequence
+                 const llama_token id = cur_p->data[0].id;
+ 
++                if (id < 0 || id >= llama_vocab_n_tokens(llama_model_get_vocab(llama_get_model(ctx_dft)))) {
++                    SPC_ERR("draft candidate id %d out of vocab (seq_id=%d, step=%d, i_last=%d, cur_p.size=%zu) - dropping draft\n",
++                            id, (int) seq_id, i, i_last[seq_id], (size_t) cur_p->size);
++                    drafting[seq_id] = false;
++                    n_drafting--;
++                    continue;
++                }
++
+                 // only collect very high-confidence draft tokens
+                 if (cur_p->data[0].p < params.p_min) {
+                     drafting[seq_id] = false;
+-- 
+2.55.0.windows.3
+

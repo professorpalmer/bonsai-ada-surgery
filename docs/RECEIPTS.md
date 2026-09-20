@@ -1,8 +1,50 @@
 # Receipts
 
 Same sheet for every card: Ternary Bonsai 2 27B `PTQ1_0` (1.75 bpw, 5.95 GB), PrismML
-llama.cpp fork, `-fa on`, q4_0 KV cache, one slot, `--jinja`. Run `python bench/receipt.py`
-and add a column.
+llama.cpp fork, `-fa on`, one slot, `--jinja`. Run `python bench/receipt.py` and add a column.
+
+## The bundle, 2026-09-20 (RTX 4070 12 GB, stock clocks, q8_0 KV)
+
+Final numbers for the shipped 20-patch stack (`bin/`, commit `0974424` on PrismML `9a9394a`)
+against PrismML's official Windows CUDA release binaries, same GGUF, same flags, same hour.
+Everything below q8_0 K/V, 96k window unless stated; the older sections of this page are the
+q4_0 / 262k receipts from the kernel work.
+
+`llama-bench`, `bench/head_to_head.py`, 2 rounds x 3 reps (`artifacts/h2h_release_4070.json`):
+
+| | PrismML | bundle |
+| --- | ---: | ---: |
+| pp512 | 635 | 1311 |
+| pp2048 | 632 | 1304 |
+| tg128 | 54.3 | 67.6 |
+| SM clock / power during tg | 2775 MHz / 178 W | 2670 MHz / 197 W |
+
+Served, `bench/served_depth.ps1` (server `timings`, 400-token answers, three prompts, filler
+sized with `/tokenize`; `artifacts/eval/served_*.txt`):
+
+| decode tok/s | fresh | 32k deep | 64k deep | 100k deep | VRAM in use |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| PrismML, 128k/q8_0 | 54.0 | 40.7 | 31.9 (96k window) | 26.8 | 11.3 GB |
+| bundle, no draft, 128k/q8_0 | 68.3 | 49.1 | | 30.3 | 10.9 GB |
+| bundle + draft, 128k/q8_0 | 96.7 | 30.1 (paging) | | 12.6 (paging) | 11.96 GB |
+| bundle + draft, 64k/q8_0 | | 47.3 | | | 9.6 GB |
+| bundle + draft, 96k/q8_0 | 101.2 | 45.3 | 27.2 | | 10.8 GB |
+| bundle + draft, 128k/q4_0 | 99.9 | 44.0 | 26.3 | | 9.9 GB |
+| bundle + draft, 262k/q4_0 | 94.0 | 28.6 (paging) | 16.4 (paging) | | 11.96 GB |
+| **bundle + draft to 24k, 96k/q8_0 (shipped)** | **100.7** | **47.6** | **36.9** | | 10.8 GB |
+| shipped, with the thinking budget on (default) | 96.8 | | | | |
+
+Prefill through the server on a 32k prompt: PrismML 578 tok/s (55 s to first token), bundle
+1012-1072 tok/s (30-32 s). Two rows carry the lesson of the day: anything at 11.96 GB in use
+runs the fresh probe at full speed and then pages at depth.
+
+Tool calls, `bench/toolcall_stress.py`, 3 tasks x 3 runs per arm, thinking off
+(`artifacts/eval/toolcall_stress.json`): native XML through the server grammar parsed **9/9**
+(66.9 tok/s); Hermes JSON written in content parsed **1/9** (77.5 tok/s, 4 of 9 hit the
+9,000-token cap). KV precision, `bench/kv_kl_sweep.ps1`, 16k-token chunks vs f16 KV
+(`artifacts/eval/kl_*_16k.log`): q8_0 KL 0.00017 / top-1 agreement 99.38%; q4_0 KL 0.00218 /
+97.93%; q8_0 K + q4_0 V 0.00094 / 98.59% (CPU fallback, 10x slower). Method and reading for
+both: [`QUALITY.md`](QUALITY.md).
 
 ## Decode speed by context depth (tok/s)
 

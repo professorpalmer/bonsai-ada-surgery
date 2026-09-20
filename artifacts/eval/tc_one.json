@@ -1,0 +1,18 @@
+[
+ {
+  "arm": "A_native_grammar",
+  "tool": "write_file",
+  "finish": "tool_calls",
+  "completion_tokens": 5869,
+  "reasoning_chars": 0,
+  "seconds": 83.1,
+  "tps": 70.6,
+  "n_tool_calls": 1,
+  "called": "write_file",
+  "parsed": true,
+  "payload_chars": 22257,
+  "payload_ok": false,
+  "why": "SyntaxError line 2: (unicode error) 'unicodeescape' codec can't decode bytes in position 1149-1150: truncated \\UXXXXXXXX escape",
+  "rep": 0
+ }
+]

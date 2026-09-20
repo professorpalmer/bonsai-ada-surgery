@@ -1,0 +1,688 @@
+From c4922e3233259b17b49ad8d5cd6409c8be970f10 Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Sat, 19 Sep 2026 22:16:39 -0500
+Subject: [PATCH 16/20] cuda: Hadamard transform quantizes its own output when
+ every consumer is a PTQ1_0 mat-vec
+
+A Hadamard-rotated activation ([MUL signs, RESHAPE,] MUL_MAT with GGML_HINT_SRC0_IS_HADAMARD)
+whose every use is src1 of a PTQ1_0 mat-vec on the mmvq path never needs to exist in F32: each
+consumer immediately quantizes it to q8_1. The transform kernel now quantizes as it goes and
+writes the q8_1 rows, in the layout the consumers expect (AoS / PT / SoA with exact integer sums
+and the same padding rule as ggml_cuda_mul_mat_vec_q), into its own output buffer; the mat-vecs
+find the rows through a per-context registry keyed by tensor identity and skip their quantize
+launch. On Bonsai 2 this removes ~390 launches per decode step.
+
+Safety rules the pass enforces:
+- every later node that reads the transform output (directly or via a whole-tensor reshape view)
+  must be a PTQ1_0 MUL_MAT that ggml_cuda_mul_mat routes to mmvq, and the graph use count must
+  match, so nothing ever reads the buffer as F32
+- the registry is keyed by ggml_tensor pointer, never by data pointer: ggml-alloc recycles a dead
+  output's block for later tensors in the same graph
+- when the output buffer aliases the input (ggml-alloc does this for the output-projection input
+  on every Bonsai layer: x is a reshape view of a cont, there is no in-place reuse through a view
+  parent, so the cont is released at the MUL and mm takes its block two nodes later) the rows go
+  to a pool block held until the next graph evaluation. Writing into the aliased buffer raced the
+  kernel's own input reads and produced sporadic garbage that, on a hybrid model, entered the
+  recurrent state and poisoned the rest of the sequence (surfaced as INT_MAX from the backend
+  argmax over an all-NaN logits row, about once per ~170 requests)
+- GGML_CUDA_FWHT_FUSION=0 disables the pass
+
+fwht.cuh: the block butterfly is a shared inline so fwht.cu and the fused quantizer stay one
+implementation.
+
+Validated: 340 consecutive requests (probe.py x 20 at 262144 ctx, q4_0 KV, draft-mtp n_max=2,
+backend sampling) with zero errors; output byte-identical to the unfused path.
+---
+ ggml/src/ggml-cuda/common.cuh   |  41 +++++++
+ ggml/src/ggml-cuda/fwht.cu      |  44 +-------
+ ggml/src/ggml-cuda/fwht.cuh     |  54 ++++++++++
+ ggml/src/ggml-cuda/ggml-cuda.cu | 186 +++++++++++++++++++++++++++++++-
+ ggml/src/ggml-cuda/mmvq.cu      |  17 ++-
+ ggml/src/ggml-cuda/quantize.cu  | 171 +++++++++++++++++++++++++++++
+ ggml/src/ggml-cuda/quantize.cuh |   8 ++
+ 7 files changed, 474 insertions(+), 47 deletions(-)
+
+diff --git a/ggml/src/ggml-cuda/common.cuh b/ggml/src/ggml-cuda/common.cuh
+index f13787d..23a911d 100644
+--- a/ggml/src/ggml-cuda/common.cuh
++++ b/ggml/src/ggml-cuda/common.cuh
+@@ -1565,6 +1565,44 @@ struct ggml_cuda_gdn_gather_context {
+     }
+ };
+ 
++// A Hadamard transform (MUL_MAT with GGML_HINT_SRC0_IS_HADAMARD, optionally preceded by the sign
++// flip) whose only consumers are PTQ1_0 mat-vecs writes the q8_1-quantized activation into its own
++// output buffer instead of the F32 result (the quantized rows are 9/8 bytes per element, so they
++// fit in the F32 allocation), and the mat-vecs skip their quantize launch. The output buffer's
++// lifetime is exactly the consumers' lifetime, so nothing about allocation changes. Keyed by tensor
++// identity (the transform output and every reshape view of it that a mat-vec consumes), never by
++// data pointer: ggml-alloc recycles a dead output's block for later tensors in the same graph, and a
++// later PTQ1_0 mat-vec whose src1 landed there must not mistake its F32 rows for q8_1. Valid for one
++// graph evaluation.
++struct ggml_cuda_fwht_q8 {
++    ggml_cuda_q8_1_layout layout = GGML_CUDA_Q8_1_AOS;
++    int64_t               ne0    = 0;       // padded row width the quantizer wrote (what the mat-vec expects)
++    int64_t               ncols  = 0;       // rows quantized (src1->ne[1] of every consumer)
++    const void *          data   = nullptr; // the q8_1 rows: the transform's own output buffer, or a pool block
++                                            // held for the rest of the graph when that buffer aliases the input
++};
++
++struct ggml_cuda_fwht_q8_context {
++    std::unordered_map<const ggml_tensor *, ggml_cuda_fwht_q8> entries;
++    std::vector<std::unique_ptr<ggml_cuda_pool_alloc<char>>> held; // released at reset(), newest first (VMM pool is LIFO)
++
++    void reset() {
++        entries.clear();
++        while (!held.empty()) {
++            held.pop_back();
++        }
++    }
++
++    void set(const ggml_tensor * out, const ggml_cuda_fwht_q8 & e) {
++        entries[out] = e;
++    }
++
++    const ggml_cuda_fwht_q8 * find(const ggml_tensor * out) const {
++        const auto it = entries.find(out);
++        return it == entries.end() ? nullptr : &it->second;
++    }
++};
++
+ struct ggml_backend_cuda_context {
+     int device;
+     std::string name;
+@@ -1636,6 +1674,7 @@ struct ggml_backend_cuda_context {
+ 
+     ggml_cuda_stream_context concurrent_stream_context;
+     ggml_cuda_gdn_gather_context gdn_gather_context;
++    ggml_cuda_fwht_q8_context    fwht_q8_context;
+ 
+     ~ggml_backend_cuda_context();
+ 
+@@ -1653,6 +1692,8 @@ struct ggml_backend_cuda_context {
+ 
+     ggml_cuda_gdn_gather_context & gdn_gathers() { return gdn_gather_context; }
+ 
++    ggml_cuda_fwht_q8_context & fwht_q8() { return fwht_q8_context; }
++
+     cublasHandle_t cublas_handle() {
+         if (cublas_handles[device][curr_stream_no] == nullptr) {
+             ggml_cuda_set_device(device);
+diff --git a/ggml/src/ggml-cuda/fwht.cu b/ggml/src/ggml-cuda/fwht.cu
+index 467a84a..6ff8b0b 100644
+--- a/ggml/src/ggml-cuda/fwht.cu
++++ b/ggml/src/ggml-cuda/fwht.cu
+@@ -167,49 +167,7 @@ __global__ void fwht_cuda_block(const T * src, float * dst, const int64_t n_rows
+         }
+     }
+ 
+-    // stages within a warp: partner differs in the lane bits
+-#pragma unroll
+-    for (int h = 1; h < warp_size; h *= 2) {
+-#pragma unroll
+-        for (int j = 0; j < NE; j++) {
+-            const float val  = reg[j];
+-            const float val2 = __shfl_xor_sync(0xFFFFFFFF, val, h, warp_size);
+-            reg[j] = (lane & h) == 0 ? val + val2 : val2 - val;
+-        }
+-    }
+-
+-    // stages across warps: partner differs in the thread-index bits above the lane
+-#pragma unroll
+-    for (int h = warp_size; h < NT; h *= 2) {
+-#pragma unroll
+-        for (int j = 0; j < NE; j++) {
+-            s[j * NT + tid] = reg[j];
+-        }
+-        __syncthreads();
+-#pragma unroll
+-        for (int j = 0; j < NE; j++) {
+-            const float val  = reg[j];
+-            const float val2 = s[j * NT + (tid ^ h)];
+-            reg[j] = (tid & h) == 0 ? val + val2 : val2 - val;
+-        }
+-        __syncthreads();
+-    }
+-
+-    // stages above the block width: partner is another register of the same thread
+-#pragma unroll
+-    for (int h = NT; h < N; h *= 2) {
+-        const int step = h / NT;
+-#pragma unroll
+-        for (int j = 0; j < NE; j += 2 * step) {
+-#pragma unroll
+-            for (int k = 0; k < step; k++) {
+-                const float x = reg[j + k];
+-                const float y = reg[j + k + step];
+-                reg[j + k]        = x + y;
+-                reg[j + k + step] = x - y;
+-            }
+-        }
+-    }
++    ggml_cuda_fwht_block_butterfly<N, NT>(reg, s, tid, lane);
+ 
+ #pragma unroll
+     for (int i = 0; i < NE; ++i) {
+diff --git a/ggml/src/ggml-cuda/fwht.cuh b/ggml/src/ggml-cuda/fwht.cuh
+index 62b2f28..dad45aa 100644
+--- a/ggml/src/ggml-cuda/fwht.cuh
++++ b/ggml/src/ggml-cuda/fwht.cuh
+@@ -1,5 +1,59 @@
+ #include "common.cuh"
+ 
++// In-register block FWHT over N floats held as NE = N/NT per thread, element i*NT + tid in reg[i].
++// Shared by the standalone kernel (fwht_cuda_block) and the fused FWHT + q8_1 quantizer so both
++// produce bit-identical transforms. `s` must hold N floats.
++template <int N, int NT>
++__device__ __forceinline__ void ggml_cuda_fwht_block_butterfly(float * reg, float * s, const int tid, const int lane) {
++    constexpr int warp_size = ggml_cuda_get_physical_warp_size();
++    constexpr int NE        = N / NT;
++    static_assert(NE >= 1 && N % NT == 0 && NT % warp_size == 0, "bad FWHT block shape");
++
++    // stages within a warp: partner differs in the lane bits
++#pragma unroll
++    for (int h = 1; h < warp_size; h *= 2) {
++#pragma unroll
++        for (int j = 0; j < NE; j++) {
++            const float val  = reg[j];
++            const float val2 = __shfl_xor_sync(0xFFFFFFFF, val, h, warp_size);
++            reg[j] = (lane & h) == 0 ? val + val2 : val2 - val;
++        }
++    }
++
++    // stages across warps: partner differs in the thread-index bits above the lane
++#pragma unroll
++    for (int h = warp_size; h < NT; h *= 2) {
++#pragma unroll
++        for (int j = 0; j < NE; j++) {
++            s[j * NT + tid] = reg[j];
++        }
++        __syncthreads();
++#pragma unroll
++        for (int j = 0; j < NE; j++) {
++            const float val  = reg[j];
++            const float val2 = s[j * NT + (tid ^ h)];
++            reg[j] = (tid & h) == 0 ? val + val2 : val2 - val;
++        }
++        __syncthreads();
++    }
++
++    // stages above the block width: partner is another register of the same thread
++#pragma unroll
++    for (int h = NT; h < N; h *= 2) {
++        const int step = h / NT;
++#pragma unroll
++        for (int j = 0; j < NE; j += 2 * step) {
++#pragma unroll
++            for (int k = 0; k < step; k++) {
++                const float x = reg[j + k];
++                const float y = reg[j + k + step];
++                reg[j + k]        = x + y;
++                reg[j + k + step] = x - y;
++            }
++        }
++    }
++}
++
+ // Returns whether the Fast Walsh-Hadamard transform could be used.
+ bool ggml_cuda_op_fwht(ggml_backend_cuda_context & ctx, const ggml_tensor * src, ggml_tensor * dst);
+ bool ggml_cuda_op_fwht_signed(ggml_backend_cuda_context & ctx, const ggml_tensor * src,
+diff --git a/ggml/src/ggml-cuda/ggml-cuda.cu b/ggml/src/ggml-cuda/ggml-cuda.cu
+index 575500f..5003445 100644
+--- a/ggml/src/ggml-cuda/ggml-cuda.cu
++++ b/ggml/src/ggml-cuda/ggml-cuda.cu
+@@ -1,4 +1,4 @@
+-#include "ggml-cuda.h"
++﻿#include "ggml-cuda.h"
+ #include "ggml-impl.h"
+ #include "ggml-backend-impl.h"
+ 
+@@ -2752,6 +2752,180 @@ static bool ggml_cuda_should_fuse_rms_norm_mul_rope(const ggml_tensor * rms_norm
+ // GDN kernel reads. In-graph the gather kernel is ~8 us/layer and its dirty output sits in L2 until
+ // the FFN weight stream evicts it, which made the gate/up GEMVs in GDN layers ~15% slower than the
+ // identical GEMVs in attention layers. When the gathered temp has no other consumer, skip the
++// A Hadamard rotation of an activation ([MUL signs, RESHAPE,] MUL_MAT with GGML_HINT_SRC0_IS_HADAMARD)
++// whose every use is a PTQ1_0 mat-vec on the mmvq path does not need to exist in F32: each of those
++// mat-vecs quantizes it to q8_1 straight away, so the transform kernel quantizes as it goes and writes
++// the q8_1 rows (in the layout the mat-vecs expect) into its own output buffer; the mat-vecs then skip
++// their quantize launch (ggml_cuda_fwht_q8). On Bonsai 2 that removes ~390 launches per decode step.
++// The check walks every later node, so any other use of the output (or of a view of it) keeps the
++// plain transform, and use counts guard against consumers outside this graph. Returns the number of
++// nodes consumed (3 or 1) or 0 to fall through. GGML_CUDA_FWHT_FUSION=0 disables it.
++static int ggml_cuda_try_fwht_q8(ggml_backend_cuda_context & ctx, const ggml_cgraph * cgraph, int node_idx) {
++    static const bool disabled = getenv("GGML_CUDA_FWHT_FUSION") != nullptr &&
++                                 atoi(getenv("GGML_CUDA_FWHT_FUSION")) == 0;
++    if (disabled) {
++        return 0;
++    }
++    const int cc = ggml_cuda_info().devices[ctx.device].cc;
++    if (!GGML_CUDA_CC_IS_NVIDIA(cc) || cc < GGML_CUDA_CC_TURING) {
++        return 0; // the PTQ1_0 mmvq predicate below is only meaningful there
++    }
++
++    const ggml_tensor * x     = nullptr;
++    const ggml_tensor * signs = nullptr;
++    ggml_tensor *       mm    = nullptr;
++    int consumed = 0;
++    int i_mm     = -1;
++
++    if (ggml_can_fuse_subgraph(cgraph, node_idx, { GGML_OP_MUL, GGML_OP_RESHAPE, GGML_OP_MUL_MAT }, { node_idx + 2 })) {
++        const ggml_tensor * mul     = cgraph->nodes[node_idx];
++        const ggml_tensor * reshape = cgraph->nodes[node_idx + 1];
++        mm    = cgraph->nodes[node_idx + 2];
++        x     = mul->src[0];
++        signs = mul->src[1];
++        const bool pattern_ok = ggml_get_op_params_i32(mm, 1) == GGML_HINT_SRC0_IS_HADAMARD &&
++            mm->src[1] == reshape && reshape->src[0] == mul &&
++            signs->ne[1] == 1 && signs->ne[2] == 1 && signs->ne[3] == 1 &&
++            signs->type == GGML_TYPE_F32 && mul->type == x->type &&
++            ggml_is_contiguous(x) && ggml_is_contiguous(signs) &&
++            signs->ne[0] == x->ne[0] && signs->ne[0] % mm->src[0]->ne[0] == 0;
++        if (!pattern_ok) {
++            return 0;
++        }
++        consumed = 3;
++        i_mm     = node_idx + 2;
++    } else {
++        mm = cgraph->nodes[node_idx];
++        if (mm->op != GGML_OP_MUL_MAT || ggml_get_op_params_i32(mm, 1) != GGML_HINT_SRC0_IS_HADAMARD) {
++            return 0;
++        }
++        x = mm->src[1];
++        if (!ggml_is_contiguous(x) || !ggml_are_same_shape(x, mm)) {
++            return 0;
++        }
++        consumed = 1;
++        i_mm     = node_idx;
++    }
++
++    const int n = (int) mm->src[0]->ne[0];
++    if (mm->type != GGML_TYPE_F32 || !ggml_is_contiguous(mm) || (mm->flags & GGML_TENSOR_FLAG_OUTPUT) ||
++            (x->type != GGML_TYPE_F32 && x->type != GGML_TYPE_F16) || ggml_nelements(mm) != ggml_nelements(x)) {
++        return 0;
++    }
++
++    // The fused kernel reads x (and signs) in the same launch that writes its output. The separate transform
++    // and quantize launches never needed those apart, and ggml-alloc does hand mm the block of x when x is a
++    // reshape view (no in-place reuse through a view parent, so the viewed tensor is released at the MUL and
++    // mm takes it two nodes later - the output-projection input on every Bonsai layer). Blocks storing q8_1
++    // rows early would then overwrite f32 input other blocks have not loaded yet: sporadic garbage that on a
++    // hybrid model lands in the recurrent state and poisons the rest of the sequence. In that case the rows
++    // go to a pool block held until the next graph evaluation instead of mm's buffer.
++    auto overlaps = [](const ggml_tensor * a, const ggml_tensor * b) {
++        const char * a0 = (const char *) a->data;
++        const char * a1 = a0 + ggml_nbytes(a);
++        const char * b0 = (const char *) b->data;
++        const char * b1 = b0 + ggml_nbytes(b);
++        return a0 < b1 && b0 < a1;
++    };
++    const bool out_aliases_in = overlaps(x, mm) || (signs && overlaps(signs, mm));
++
++    // every use of the transform output (directly or through a reshape view of the whole tensor)
++    // must be src1 of a PTQ1_0 MUL_MAT that ggml_cuda_mul_mat routes to ggml_cuda_mul_mat_vec_q.
++    // The consumers' src1 shape [K, ncols] is what gets quantized (x is only known to be
++    // contiguous with the same element count; in the unsigned pattern it is the [n, rows] reshape).
++    const ggml_tensor * aliases[8] = { mm };
++    int     n_aliases     = 1;
++    int     uses_expected = ggml_node_get_use_count(cgraph, i_mm);
++    int     uses_found    = 0;
++    int64_t K             = 0;
++    int64_t ncols         = 0;
++    int64_t ne0_padded    = 0;
++    ggml_cuda_q8_1_layout layout = GGML_CUDA_Q8_1_AOS;
++    for (int j = i_mm + 1; j < cgraph->n_nodes; ++j) {
++        ggml_tensor * t = cgraph->nodes[j];
++        for (int s = 0; s < GGML_MAX_SRC; ++s) {
++            const ggml_tensor * src = t->src[s];
++            if (!src) {
++                continue;
++            }
++            bool is_alias = false;
++            for (int a = 0; a < n_aliases; ++a) {
++                if (src == aliases[a]) {
++                    is_alias = true;
++                    break;
++                }
++            }
++            if (!is_alias) {
++                continue;
++            }
++            uses_found++;
++            if (t->op == GGML_OP_RESHAPE && t->view_src == mm && t->data == mm->data &&
++                    ggml_nelements(t) == ggml_nelements(mm) && ggml_is_contiguous(t)) {
++                if (n_aliases == 8) {
++                    return 0;
++                }
++                aliases[n_aliases++] = t;
++                uses_expected += ggml_node_get_use_count(cgraph, j);
++                continue;
++            }
++            if (t->op != GGML_OP_MUL_MAT || s != 1 || !t->src[0] || t->src[0]->type != GGML_TYPE_PTQ1_0 ||
++                    ggml_get_op_params_i32(t, 1) == GGML_HINT_SRC0_IS_HADAMARD ||
++                    t->type != GGML_TYPE_F32 || src->type != GGML_TYPE_F32 || !ggml_is_contiguous(src) ||
++                    src->ne[2] != 1 || src->ne[3] != 1 ||
++                    (K != 0 && (src->ne[0] != K || src->ne[1] != ncols)) ||
++                    !ggml_cuda_should_use_mmvq(GGML_TYPE_PTQ1_0, cc, src->ne[1])) {
++                return 0;
++            }
++            K     = src->ne[0];
++            ncols = src->ne[1];
++            // ggml_cuda_mul_mat sends a padded compute-buffer view to cuBLAS instead
++            const ggml_tensor * w = t->src[0];
++            if (ggml_backend_buffer_get_usage(w->buffer) == GGML_BACKEND_BUFFER_USAGE_COMPUTE &&
++                    ggml_nbytes(w) != ggml_backend_buffer_get_alloc_size(w->buffer, w) && w->view_src) {
++                return 0;
++            }
++        }
++    }
++    if (uses_found == 0 || uses_found != uses_expected || K == 0) {
++        return 0;
++    }
++    if (K % n != 0 || !ggml_cuda_fwht_quantize_supported(n, K) || (signs && signs->ne[0] != K)) {
++        return 0;
++    }
++
++    // same (type, ncols, ids) -> layout and padding as ggml_cuda_mul_mat_vec_q
++    layout     = ggml_cuda_q8_1_layout_host(GGML_TYPE_PTQ1_0, (int) ncols, false);
++    ne0_padded = GGML_PAD(K, MATRIX_ROW_PADDING);
++    if (layout == GGML_CUDA_Q8_1_SOA_ISUM) {
++        ne0_padded = GGML_PAD(ne0_padded, GGML_CUDA_PTQ1_K_PAD);
++    }
++    if (ne0_padded % n != 0) {
++        return 0; // the fused quantizer writes pad blocks in transform-width units
++    }
++    const size_t q8_bytes = (size_t) (ncols * ne0_padded) * sizeof(block_q8_1) / QK8_1;
++    void * out = mm->data;
++    if (out_aliases_in) {
++        auto blk = std::make_unique<ggml_cuda_pool_alloc<char>>(ctx.pool(), q8_bytes);
++        out = blk->get();
++        ctx.fwht_q8().held.push_back(std::move(blk));
++    } else if ((int64_t) q8_bytes > (int64_t) ggml_nbytes(mm)) {
++        return 0; // the quantized rows must fit in the F32 output allocation
++    }
++
++    fwht_quantize_row_q8_1_cuda(x->data, x->type, signs ? (const float *) signs->data : nullptr, n,
++                                out, layout, K, ne0_padded, ncols, ctx.stream());
++
++    ggml_cuda_fwht_q8 e;
++    e.layout = layout;
++    e.ne0    = ne0_padded;
++    e.ncols  = ncols;
++    e.data   = out;
++    for (int a = 0; a < n_aliases; ++a) {
++        ctx.fwht_q8().set(aliases[a], e);
++    }
++    return consumed;
++}
++
+ // GET_ROWS and let the kernel index the cache row directly. Single-sequence only: with several
+ // sequences a gathered row may alias a row another sequence writes in the same op.
+ // GGML_CUDA_GDN_GATHER_FUSION=0 disables it. The registration lives in the evaluating context
+@@ -4345,6 +4519,7 @@ static void ggml_cuda_graph_evaluate_and_capture(ggml_backend_cuda_context * cud
+             }
+ 
+             cuda_ctx->gdn_gathers().reset();
++            cuda_ctx->fwht_q8().reset();
+ 
+             for (int i = 0; i < cgraph->n_nodes; i++) {
+                 ggml_tensor * node = cgraph->nodes[i];
+@@ -4394,6 +4569,15 @@ static void ggml_cuda_graph_evaluate_and_capture(ggml_backend_cuda_context * cud
+                     continue;
+                 }
+ 
++                // Hadamard rotation that quantizes its own output; its PTQ1_0 mat-vecs skip quantize
++                if ((node->op == GGML_OP_MUL || node->op == GGML_OP_MUL_MAT) && !is_concurrent_event_active) {
++                    const int consumed = ggml_cuda_try_fwht_q8(*cuda_ctx, cgraph, i);
++                    if (consumed > 0) {
++                        i += consumed - 1;
++                        continue;
++                    }
++                }
++
+                 // The normalized pre-attention residual is consumed only by a
+                 // group of low-bit projections. Preserve residual + one scale per
+                 // row and let their shared Q8 quantizer apply the norm weight.
+diff --git a/ggml/src/ggml-cuda/mmvq.cu b/ggml/src/ggml-cuda/mmvq.cu
+index 2dcfdf8..6f22b88 100644
+--- a/ggml/src/ggml-cuda/mmvq.cu
++++ b/ggml/src/ggml-cuda/mmvq.cu
+@@ -1659,8 +1659,19 @@ void ggml_cuda_mul_mat_vec_q(
+         // Warp-transposed q8 layout needs whole 32-K-block groups per column.
+         ne10_padded = GGML_PAD(ne10_padded, GGML_CUDA_PTQ1_K_PAD);
+     }
+-    ggml_cuda_pool_alloc<char> src1_q8_1(ctx.pool(), ne13*ne12 * ne11*ne10_padded * sizeof(block_q8_1)/QK8_1);
+-    {
++    // src1 may be a Hadamard transform output whose producer already wrote the q8_1 rows in this
++    // exact layout (ggml_cuda_fwht_q8, into src1's buffer or a held pool block); nothing to quantize.
++    const ggml_cuda_fwht_q8 * pre_q8 = ids ? nullptr : ctx.fwht_q8().find(src1);
++    if (pre_q8) {
++        GGML_ASSERT(pre_q8->layout == y_layout && pre_q8->ne0 == ne10_padded && pre_q8->ncols == ne11 && ne12 == 1 && ne13 == 1);
++    }
++
++    ggml_cuda_pool_alloc<char> src1_q8_1(ctx.pool());
++    const char * src1_q8_1_d = nullptr;
++    if (pre_q8) {
++        src1_q8_1_d = (const char *) pre_q8->data;
++    } else {
++        src1_q8_1_d = src1_q8_1.alloc(ne13*ne12 * ne11*ne10_padded * sizeof(block_q8_1)/QK8_1);
+         const int64_t s11 = src1->nb[1] / ts_src1;
+         const int64_t s12 = src1->nb[2] / ts_src1;
+         const int64_t s13 = src1->nb[3] / ts_src1;
+@@ -1690,7 +1701,7 @@ void ggml_cuda_mul_mat_vec_q(
+     const int64_t ids_stride = ids ? ids->nb[1] / ggml_type_size(ids->type) : 0;
+ 
+     mul_mat_vec_q_switch_type(
+-        src0->data, src0->type, src1_q8_1.get(), ids_d, fusion_local, dst_d, ne00,
++        src0->data, src0->type, src1_q8_1_d, ids_d, fusion_local, dst_d, ne00,
+         ne01,              ncols_dst,     s01, stride_col_y,     stride_col_dst,
+         ne02, nchannels_y, nchannels_dst, s02, stride_channel_y, stride_channel_dst,
+         ne03,              ne3,           s03, s13,              s3,               ids_stride, stream);
+diff --git a/ggml/src/ggml-cuda/quantize.cu b/ggml/src/ggml-cuda/quantize.cu
+index b1b080c..b2a435f 100644
+--- a/ggml/src/ggml-cuda/quantize.cu
++++ b/ggml/src/ggml-cuda/quantize.cu
+@@ -1,4 +1,5 @@
+ #include "quantize.cuh"
++#include "fwht.cuh"
+ #include "mmvq-ptq1_0.cuh"
+ #include "unary.cuh"
+ #include <cstdint>
+@@ -150,6 +151,176 @@ static __global__ void quantize_q8_1(
+     y[ib].ds = make_half2(d, sum);
+ }
+ 
++// Hadamard transform folded into the activation quantizer (see ggml_cuda_fwht_skip): one block per
++// (transform width N, row), the same butterfly as fwht_cuda_block, then the same per-32 quantization
++// and stores as quantize_q8_1<layout> above. Element i*NT + tid of the transform sits in reg[i], so
++// warp w holds the complete 32-blocks kb = i*(NT/32) + w and reduces them with the usual warp reductions.
++// Rows of x are contiguous (ne00 elements); row index = ((i3*ne2 + i2)*ne1 + i1) like a contiguous src1.
++template <int N, int NT, ggml_cuda_q8_1_layout layout, typename T, bool has_signs>
++__launch_bounds__(NT, 1)
++static __global__ void fwht_quantize_q8_1(
++        const T * x_ptr, const float * signs, void * vy_ptr,
++        const int64_t ne00, const int64_t ne0, const uint32_t ne1, const uint3 ne2, const float scale) {
++    constexpr int warp_size = ggml_cuda_get_physical_warp_size();
++    constexpr int NE        = N / NT;
++    static_assert(NE >= 1 && N % NT == 0 && NT % warp_size == 0 && NT % QK8_1 == 0, "bad fused FWHT shape");
++    static_assert(QK8_1 == warp_size, "fused quantizer reduces one 32-block per warp");
++
++    __shared__ float s[N];
++
++    ggml_cuda_pdl_lc();
++
++    const int64_t blk = blockIdx.x;                 // transform block within the row
++    const int64_t i3  = fastdiv(blockIdx.z, ne2);
++    const int64_t i2  = blockIdx.z - i3*ne2.z;
++    const int64_t i1  = blockIdx.y;
++    const int64_t row = (i3*ne2.z + i2) * ne1 + i1;
++
++    const int tid  = threadIdx.x;
++    const int lane = tid % warp_size;
++
++    const int64_t base = blk * N;                   // first element of this transform in the row
++
++    float reg[NE];
++    ggml_cuda_pdl_sync();
++    if (base < ne00) {
++        const T *     src       = x_ptr + row * ne00 + base;
++        const float * signs_row = has_signs ? signs + base : nullptr; // (r % n_blk) * N with r = row*n_blk + blk
++#pragma unroll
++        for (int i = 0; i < NE; ++i) {
++            reg[i] = (float) src[i * NT + tid] * scale;
++            if (has_signs) {
++                reg[i] *= signs_row[i * NT + tid];
++            }
++        }
++        ggml_cuda_fwht_block_butterfly<N, NT>(reg, s, tid, lane);
++    } else {
++        // padding beyond the real row: zero blocks, same as the plain quantizer's x = 0 path
++#pragma unroll
++        for (int i = 0; i < NE; ++i) {
++            reg[i] = 0.0f;
++        }
++    }
++
++    void * GGML_CUDA_RESTRICT vy = vy_ptr;
++
++#pragma unroll
++    for (int i = 0; i < NE; ++i) {
++        const float xi = reg[i];
++        const int64_t i0 = base + i * NT + tid;   // element within the row (i0 % 32 == lane)
++
++        float amax = fabsf(xi);
++        float sum  = xi;
++        amax = warp_reduce_max<QK8_1>(amax);
++        sum  = warp_reduce_sum<QK8_1>(sum);
++
++        const float  d = amax / 127.0f;
++        const int8_t q = amax == 0.0f ? 0 : roundf(xi / d);
++
++        const int iqs = lane;
++
++        if constexpr (layout == GGML_CUDA_Q8_1_PT) {
++            char * ycol = (char *) vy + row * (ne0 * 9 / 8);
++            const int64_t nblk = ne0 / QK_PTQ1_0;
++            const int64_t kb   = i0 / QK_PTQ1_0;
++            const int     e    = i0 % QK_PTQ1_0;
++            ycol[((e / 16)*nblk + kb) * 16 + (e % 16)] = q;
++
++            int isum = q;
++            isum = warp_reduce_sum<QK8_1>(isum);
++            if (iqs == 0) {
++                half2 * ds = (half2 *) (ycol + 8*nblk*16) + kb*4 + e / QK8_1;
++                *ds = make_half2(__float2half(d), __short_as_half((short) isum));
++            }
++        } else if constexpr (layout == GGML_CUDA_Q8_1_SOA_ISUM) {
++            int isum = q;
++            isum = warp_reduce_sum<QK8_1>(isum);
++            int32_t *     yw       = (int32_t *) vy;
++            const int64_t col_base = row * (ne0 / QK8_1) * (int64_t) (sizeof(block_q8_1) / 4);
++            const int     ib_col   = (int) (i0 / QK8_1);
++            ((int8_t *) (yw + col_base + ggml_cuda_ptq1_q8_word(ib_col, iqs / 4)))[iqs % 4] = q;
++            if (iqs == 0) {
++                const half2 ds = make_half2(__float2half(d), __short_as_half((short) isum));
++                yw[col_base + ggml_cuda_ptq1_q8_word(ib_col, 8)] = *reinterpret_cast<const int32_t *>(&ds);
++            }
++        } else {
++            block_q8_1 * y = (block_q8_1 *) vy;
++            const int64_t ib = (row * ne0 + i0) / QK8_1;
++            y[ib].qs[iqs] = q;
++            if (iqs == 0) {
++                y[ib].ds = make_half2(d, sum);
++            }
++        }
++    }
++}
++
++template <int N, typename T>
++static void fwht_quantize_launch_layout(
++        const T * x, const float * signs, void * vy, const ggml_cuda_q8_1_layout layout,
++        const int64_t ne00, const int64_t ne0, const int64_t ne1, const int64_t ne2, const int64_t ne3,
++        const float scale, cudaStream_t stream) {
++    constexpr int NT = N < 256 ? N : 256;
++    const uint3 ne2_fastdiv = init_fastdiv_values(ne2);
++    const dim3 num_blocks((unsigned) (ne0 / N), (unsigned) ne1, (unsigned) (ne2*ne3));
++    const dim3 block_size(NT, 1, 1);
++    const ggml_cuda_kernel_launch_params lp = ggml_cuda_kernel_launch_params(num_blocks, block_size, 0, stream);
++#define FWHT_Q_LAUNCH(LAYOUT) \
++    if (signs) { \
++        ggml_cuda_kernel_launch(fwht_quantize_q8_1<N, NT, LAYOUT, T, true>,  lp, x, signs, vy, ne00, ne0, (uint32_t) ne1, ne2_fastdiv, scale); \
++    } else { \
++        ggml_cuda_kernel_launch(fwht_quantize_q8_1<N, NT, LAYOUT, T, false>, lp, x, signs, vy, ne00, ne0, (uint32_t) ne1, ne2_fastdiv, scale); \
++    }
++    switch (layout) {
++        case GGML_CUDA_Q8_1_PT:       FWHT_Q_LAUNCH(GGML_CUDA_Q8_1_PT);       break;
++        case GGML_CUDA_Q8_1_SOA_ISUM: FWHT_Q_LAUNCH(GGML_CUDA_Q8_1_SOA_ISUM); break;
++        default:                      FWHT_Q_LAUNCH(GGML_CUDA_Q8_1_AOS);      break;
++    }
++#undef FWHT_Q_LAUNCH
++}
++
++template <typename T>
++static void fwht_quantize_launch(
++        const T * x, const float * signs, void * vy, const ggml_cuda_q8_1_layout layout, const int n,
++        const int64_t ne00, const int64_t ne0, const int64_t ne1, const int64_t ne2, const int64_t ne3,
++        const float scale, cudaStream_t stream) {
++    switch (n) {
++        case   64: fwht_quantize_launch_layout<  64, T>(x, signs, vy, layout, ne00, ne0, ne1, ne2, ne3, scale, stream); break;
++        case  128: fwht_quantize_launch_layout< 128, T>(x, signs, vy, layout, ne00, ne0, ne1, ne2, ne3, scale, stream); break;
++        case  256: fwht_quantize_launch_layout< 256, T>(x, signs, vy, layout, ne00, ne0, ne1, ne2, ne3, scale, stream); break;
++        case  512: fwht_quantize_launch_layout< 512, T>(x, signs, vy, layout, ne00, ne0, ne1, ne2, ne3, scale, stream); break;
++        case 1024: fwht_quantize_launch_layout<1024, T>(x, signs, vy, layout, ne00, ne0, ne1, ne2, ne3, scale, stream); break;
++        case 2048: fwht_quantize_launch_layout<2048, T>(x, signs, vy, layout, ne00, ne0, ne1, ne2, ne3, scale, stream); break;
++        default: GGML_ABORT("fused FWHT quantizer: unsupported transform width %d", n);
++    }
++}
++
++bool ggml_cuda_fwht_quantize_supported(const int n, const int64_t ne00) {
++    switch (n) {
++        case 64: case 128: case 256: case 512: case 1024: case 2048:
++            break;
++        default:
++            return false;
++    }
++    return ne00 % n == 0 && ne00 % QK8_1 == 0;
++}
++
++void fwht_quantize_row_q8_1_cuda(
++        const void * x, const ggml_type x_type, const float * signs, const int n, void * vy,
++        const ggml_cuda_q8_1_layout layout, const int64_t ne00, const int64_t ne0, const int64_t ncols, cudaStream_t stream) {
++    GGML_ASSERT(ggml_cuda_fwht_quantize_supported(n, ne00));
++    GGML_ASSERT(ne0 % n == 0 && ne0 >= ne00);
++    if (layout == GGML_CUDA_Q8_1_PT) {
++        GGML_ASSERT(ne0 % QK_PTQ1_0 == 0);
++    }
++    const float scale = 1.0f / sqrtf((float) n);
++    if (x_type == GGML_TYPE_F16) {
++        fwht_quantize_launch<half>((const half *) x, signs, vy, layout, n, ne00, ne0, ncols, 1, 1, scale, stream);
++    } else {
++        GGML_ASSERT(x_type == GGML_TYPE_F32);
++        fwht_quantize_launch<float>((const float *) x, signs, vy, layout, n, ne00, ne0, ncols, 1, 1, scale, stream);
++    }
++}
++
+ __device__ __forceinline__ uint8_t compute_e8m0_scale(float amax) {
+     if (!(amax > 0.0f)) {
+         return 0;
+diff --git a/ggml/src/ggml-cuda/quantize.cuh b/ggml/src/ggml-cuda/quantize.cuh
+index 873a704..f9a80f2 100644
+--- a/ggml/src/ggml-cuda/quantize.cuh
++++ b/ggml/src/ggml-cuda/quantize.cuh
+@@ -23,6 +23,14 @@ void quantize_row_q8_1_cuda(
+         ggml_cuda_q8_1_layout layout, int64_t ne00, int64_t s01, int64_t s02, int64_t s03,
+         int64_t ne0, int64_t ne1, int64_t ne2, int64_t ne3, cudaStream_t stream);
+ 
++// Hadamard transform (width n, optional per-element signs, scale 1/sqrt(n)) + q8_1 quantization in one
++// kernel (ggml_cuda_fwht_q8). x holds ncols contiguous rows of ne00 elements; ne0 is the padded row
++// width the consuming mat-vec expects (pad blocks are written as zeros).
++bool ggml_cuda_fwht_quantize_supported(int n, int64_t ne00);
++void fwht_quantize_row_q8_1_cuda(
++        const void * x, ggml_type x_type, const float * signs, int n, void * vy,
++        ggml_cuda_q8_1_layout layout, int64_t ne00, int64_t ne0, int64_t ncols, cudaStream_t stream);
++
+ void quantize_mmq_q8_1_cuda(
+         const float * x, const int32_t * ids, void * vy,
+         ggml_type type_src0, int64_t ne00, int64_t s01, int64_t s02, int64_t s03,
+-- 
+2.55.0.windows.3
+

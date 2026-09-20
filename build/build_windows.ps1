@@ -6,7 +6,7 @@
 #   .\build\build_windows.ps1 -Arch 86        # RTX 30xx
 #   .\build\build_windows.ps1 -Arch "86;89"   # several
 #
-# Output: .\bin\llama-server.exe, .\bin\llama-bench.exe plus the DLLs they need.
+# Output: .\bin\llama-server.exe, llama-bench.exe, llama-perplexity.exe plus the DLLs they need.
 # If an official CUDA toolkit is installed (CUDA_PATH set, bin\nvcc.exe present) it is used instead.
 param(
     [string] $Arch = "",
@@ -21,7 +21,7 @@ if (-not $Src)   { $Src = Join-Path $Root 'vendor\prism-llama' }
 if (-not $Build) { $Build = Join-Path $Root 'tooling\build' }
 if (-not $Out)   { $Out = Join-Path $Root 'bin' }
 if (-not (Test-Path (Join-Path $Src 'CMakeLists.txt'))) {
-    throw "no llama.cpp source at $Src - clone professorpalmer/llama.cpp-ada-ternary (branch ada-ptq1-surgery) there, or apply patches\*.patch to PrismML-Eng/llama.cpp"
+    throw "no llama.cpp source at $Src - git clone -b bonsai-combo https://github.com/professorpalmer/llama.cpp-ada-ternary $Src, or git am patches\*.patch onto PrismML-Eng/llama.cpp"
 }
 
 # GPU arch
@@ -30,7 +30,9 @@ if (-not $Arch) {
     if (-not $cc) { throw 'nvidia-smi not found; pass -Arch' }
     $Arch = $cc.Replace('.', '')
 }
-$ArchList = ($Arch -split '[;,]' | ForEach-Object { "$($_.Trim())-real" }) -join ';'
+# "86;89" -> SASS for each; an entry with an explicit kind ("89-virtual") is kept as written, so a
+# release build can add PTX that newer cards JIT at load: -Arch "75;86;89;89-virtual"
+$ArchList = ($Arch -split '[;,]' | ForEach-Object { $a = $_.Trim(); if ($a -match '-') { $a } else { "$a-real" } }) -join ';'
 
 # Visual Studio (Build Tools or full)
 $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
@@ -42,9 +44,15 @@ if (-not (Test-Path $vcvars)) { throw "vcvars64.bat missing under $vs" }
 # CUDA: official toolkit if present, else the pip wheel tree
 $Cuda = $env:CUDA_PATH
 if (-not ($Cuda -and (Test-Path (Join-Path $Cuda 'bin\nvcc.exe')))) {
-    $sp = & python -c "import site; print(site.getsitepackages()[0])"
-    $Cuda = Join-Path $sp 'nvidia\cu13'
-    if (-not (Test-Path (Join-Path $Cuda 'bin\nvcc.exe'))) {
+    # the wheels unpack under <site-packages>\nvidia\cu13; on Windows getsitepackages() lists the
+    # interpreter prefix first, so scan every site dir (and the user site) for nvcc
+    $Cuda = & python -c @"
+import os, site
+dirs = site.getsitepackages() + [site.getusersitepackages()]
+hits = [os.path.join(d, 'nvidia', 'cu13') for d in dirs if os.path.exists(os.path.join(d, 'nvidia', 'cu13', 'bin', 'nvcc.exe'))]
+print(hits[0] if hits else '')
+"@
+    if (-not $Cuda) {
         throw 'no CUDA compiler: install the toolkit or `python -m pip install nvidia-cuda-nvcc nvidia-cuda-runtime nvidia-cublas nvidia-cuda-nvrtc`'
     }
     $pip = $true
@@ -63,7 +71,7 @@ $cmake = Find-Tool cmake
 $ninja = Find-Tool ninja
 
 New-Item -ItemType Directory -Force -Path $Build, $Out | Out-Null
-$targets = 'llama-server llama-bench'
+$targets = 'llama-server llama-bench llama-perplexity'
 $testFlag = 'OFF'
 if ($Tests) { $targets += ' test-backend-ops'; $testFlag = 'ON' }
 
