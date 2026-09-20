@@ -86,6 +86,7 @@ if ($Spec -gt 0) {
 }
 
 Write-Host "model  $(Split-Path $Model -Leaf)"
+Write-Host "window $Ctx / $Ctk  (trained max 262144; 12 GB default 98304/q8_0, full 262144/q4_0 with BONSAI_SPEC=0)"
 Write-Host "listen 0.0.0.0:$Port  ctx=$Ctx  kv=$Ctk/$Ctk  fa=on  ngl=99  spec=$Spec (to depth $SpecDepth)  think=$Think effort=$Effort budget=$ThinkBudget  backend-sampling=$($BsArgs.Count -gt 0)"
 Write-Host "api    Authorization: Bearer <artifacts/api_key.txt>"
 Set-Location $Bin

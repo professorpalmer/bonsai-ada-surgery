@@ -1,5 +1,10 @@
 # Bonsai 2 27B quality: what the runtime controls, measured
 
+**262,144 tokens is the trained maximum.** The bundle serves that window. Default on a 12 GB
+card is 98,304 with q8_0 K/V (10.8 GB, no paging). The same 12 GB card takes the full 262k at
+q4_0 with the draft head off; 16 GB and up take 262k at q8_0. Recipes and VRAM are in the
+memory table below and in the README headline.
+
 Kernel work made this model fast on a 12 GB card. This page is about the other complaint people
 have, that Bonsai 2 is worse than its 98% retention claim on code and agentic work, and about which
 part of that gap is *serving software* rather than compression. Every number here is measured on

@@ -1,24 +1,37 @@
-# Bonsai 2 27B on a 12 GB card: the fast, careful bundle
+# Bonsai 2 27B: 262k context, 97 tok/s, on a 12 GB card
 
-A patched [PrismML llama.cpp](https://github.com/PrismML-Eng/llama.cpp) runtime plus a serving
-recipe for Bonsai 2 27B (1.58-bit ternary `PTQ1_0`, 5.9 GB) on consumer NVIDIA cards. Measured on
-an RTX 4070 12 GB; the kernels target the same small-K ternary GEMV geometry on any Turing, Ampere,
-Ada or Blackwell part.
+The model's **full 262,144-token trained window** on consumer NVIDIA, plus the speed and
+serving recipe that make that window usable. Patched [PrismML llama.cpp](https://github.com/PrismML-Eng/llama.cpp)
+for Bonsai 2 27B (1.58-bit ternary `PTQ1_0`, 5.9 GB). Measured on an RTX 4070 12 GB; the kernels
+target the same small-K ternary GEMV geometry on any Turing, Ampere, Ada or Blackwell part.
+
+**262,144 tokens is the max this model was trained for.** Most 12 GB write-ups never say the
+window. This bundle serves it: **96k with q8_0 KV** as the 12 GB quality default (10.8 GB, no
+paging), **262k with q4_0 KV** on the same 12 GB card, **262k with q8_0 KV** on 16 GB and up.
+
+| | |
+| --- | --- |
+| **Context** | **262,144 trained max** · 96k / q8_0 default on 12 GB · 262k / q4_0 on 12 GB · 262k / q8_0 on 16 GB |
+| **Decode** | **96.8 tok/s** served fresh (100.7 thinking budget off) vs 54.0 stock |
+| **Prefill** | **1304 tok/s** `llama-bench` / **1012 tok/s** served 32k vs 632 / 578 |
+| **KV quality** | **q8_0** default: 12x lower KL than the community q4_0 12 GB sheet |
+| **Tools** | native XML grammar **9/9** parsed vs 1/9 JSON-in-content |
 
 **Same weights, same 1.75 bits per weight.** Nothing is re-quantized. Every kernel is checked
 against the CPU reference (`test-backend-ops`, all PTQ1_0 shapes), greedy output is byte-identical
 with each optimization on and off, and the speculative draft is byte-identical to plain decoding.
 
-| RTX 4070 12 GB, original `Ternary-Bonsai-2-27B-PTQ1_0.gguf`, stock clocks, q8_0 KV | PrismML build | this bundle |
+| RTX 4070 12 GB, original `Ternary-Bonsai-2-27B-PTQ1_0.gguf`, stock clocks | PrismML build | this bundle |
 | --- | ---: | ---: |
+| **context window** | not stated; community 12 GB sheets use q4_0 to squeeze 262k | **262,144 trained max**, served: **96k / q8_0** default, **262k / q4_0** on 12 GB |
 | decode, `llama-bench` tg128 (kernels only, no draft) | 54.3 tok/s | 67.6 tok/s |
 | decode, served, fresh context, code / prose / bash mean | 54.0 tok/s | **96.8 tok/s** (100.7 with the thinking budget off) |
 | decode, served, at 32k tokens of context | 40.7 tok/s | 47.6 tok/s |
 | decode, served, at 64k tokens of context | 31.9 tok/s | 36.9 tok/s |
 | prefill, `llama-bench` pp2048 | 632 tok/s | 1304 tok/s |
 | prefill, served, 32k prompt (time to first token) | 578 tok/s (55 s) | 1012 tok/s (32 s) |
-| VRAM in use, served recipe | 11.3 GB at 128k | 10.8 GB at 96k, with the draft context |
-| KV cache in the 12 GB recipe | q4_0 (community sheet) | **q8_0**: 12x lower KL, see below |
+| VRAM in use, served recipe | 11.3 GB at 128k | 10.8 GB at 96k / q8_0, with the draft context |
+| KV cache in the 12 GB quality recipe | q4_0 (community sheet) | **q8_0**: 12x lower KL, see below |
 
 Served numbers are the server's own `timings`, 400-token answers, `bench/quick_tps.py`; the
 32k/64k rows put that much varied filler in front of the prompt. The draft head is worth +80% on
@@ -56,6 +69,29 @@ and as Windows binaries on the [Releases](../../releases) page.
 The write-up of how each cut was found (CUPTI traces, L1 wavefront counts, what did not work):
 [`surgery/ADA4070_PTQ1.md`](surgery/ADA4070_PTQ1.md).
 
+## 262k context (the trained maximum)
+
+Bonsai 2 / Qwen3.8-27B is trained to **262,144 tokens**. That is the number. The bundle exposes it
+instead of silently serving an 8k–32k slice.
+
+| Card | Window | KV | Draft | VRAM in use (measured, 4070) |
+| --- | ---: | --- | --- | --- |
+| 12 GB, **default** | **98,304** | q8_0 | on, to 24k | **10.8 GB**, no paging at any depth |
+| 12 GB, longer | 131,072 | q4_0 | on | 9.9 GB |
+| 12 GB, **full trained max** | **262,144** | q4_0 | off | ~12 GB (draft context would page; `BONSAI_SPEC=0`) |
+| 16 GB and up | **262,144** | q8_0 | on | q8_0 at the full window |
+
+```powershell
+.\start-server.ps1
+# full 262k on 12 GB:
+$env:BONSAI_CTX=262144; $env:BONSAI_CTK='q4_0'; $env:BONSAI_SPEC=0; .\start-server.ps1
+# full 262k, q8_0 (16 GB+):
+$env:BONSAI_CTX=262144; .\start-server.ps1
+```
+
+q4_0 is how 12 GB holds 262k; it flips the top token 3.5x more often than q8_0 (see quality).
+16 GB cards should take the max window at q8_0 and stop thinking about it.
+
 ## Quality: the recipe matters as much as the kernels
 
 The complaint about Bonsai 2 is code and agentic work, and most of that gap is runtime, not
@@ -63,10 +99,10 @@ compression. Measured on this card, on the original PrismML file, documented in
 [`docs/QUALITY.md`](docs/QUALITY.md):
 
 - **q4_0 KV cache flips the top token on 1 in 48 positions at depth; q8_0 on 1 in 160** (KL
-  0.00218 vs 0.00017 against f16 KV). Every published 12 GB recipe uses q4_0. The default here is
-  **96k context with q8_0 K/V** (10.8 GB in use; 128k/q8_0 allocates but Windows starts paging
-  the cache and decode at depth drops by a third). 128k/q4_0 and the full 262k/q4_0 window are one
-  variable away.
+  0.00218 vs 0.00017 against f16 KV). Every published 12 GB recipe uses q4_0 *so the 262k
+  window fits*, and then never says the window. The default here is **96k with q8_0 K/V**
+  (10.8 GB; 128k/q8_0 allocates but Windows pages the cache and decode at depth drops by a
+  third). **262k / q4_0** on 12 GB and **262k / q8_0** on 16 GB are one variable away.
 - **Runaway thinking**: the template defaults to `xhigh` reasoning; even at `low` a tool-call
   request spent 9,000 tokens thinking and never called the tool. The recipe caps thinking with
   `--reasoning-budget 4096`, sets `low` by default, and `BONSAI_THINK=0` turns thinking off

@@ -1,14 +1,17 @@
 # Receipts
 
 Same sheet for every card: Ternary Bonsai 2 27B `PTQ1_0` (1.75 bpw, 5.95 GB), PrismML
-llama.cpp fork, `-fa on`, one slot, `--jinja`. Run `python bench/receipt.py` and add a column.
+llama.cpp fork, `-fa on`, one slot, `--jinja`. Trained context **262,144**. Shipped 12 GB
+recipe is **96k / q8_0**; 12 GB full window is **262k / q4_0** (`BONSAI_SPEC=0`); 16 GB+ is
+**262k / q8_0**. Run `python bench/receipt.py` and add a column.
 
 ## The bundle, 2026-09-20 (RTX 4070 12 GB, stock clocks, q8_0 KV)
 
 Final numbers for the shipped 20-patch stack (`bin/`, commit `0974424` on PrismML `9a9394a`)
 against PrismML's official Windows CUDA release binaries, same GGUF, same flags, same hour.
-Everything below q8_0 K/V, 96k window unless stated; the older sections of this page are the
-q4_0 / 262k receipts from the kernel work.
+Headline window: **262,144 trained max**, served here as **96k / q8_0** (quality default on
+12 GB). Everything below is q8_0 K/V, 96k unless stated; the older sections of this page are
+the q4_0 / 262k receipts from the kernel work.
 
 `llama-bench`, `bench/head_to_head.py`, 2 rounds x 3 reps (`artifacts/h2h_release_4070.json`):
 
