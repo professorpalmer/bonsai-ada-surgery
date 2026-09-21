@@ -16,6 +16,7 @@ if ($env:BONSAI_MODEL) {
     $Model = $p
 }
 foreach ($pair in @(
+        @{ Path = (Join-Path $Root 'models\Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf'); Min = 6390000000 },
         @{ Path = (Join-Path $Root 'models\Ternary-Bonsai-2-27B-PTQ1_0-mtp-lean.gguf'); Min = 6290000000 },
         @{ Path = (Join-Path $Root 'models\Ternary-Bonsai-2-27B-PTQ1_0.gguf'); Min = 5900000000 },
         @{ Path = (Join-Path $Root 'models\Bonsai-2-27B-PTQ1_0-CRACK-mtp-lean.gguf'); Min = 6290000000 },
@@ -70,7 +71,9 @@ $ThinkBudgetMsg = if ($null -ne $env:BONSAI_THINK_BUDGET_MSG) { $env:BONSAI_THIN
 [string[]]$BsArgs = @()
 if ($env:BONSAI_BS -ne '0') { $BsArgs += '--backend-sampling' }   # typed: a one-element array would otherwise collapse to a string and splat per character
 
-# Speculative decoding with the grafted Qwen 3.8 MTP head (files named *-mtp-*.gguf carry blk.64).
+# Speculative decoding with a grafted MTP head (files named *-mtp-*.gguf carry blk.64).
+# Prefers ProCreations' on-policy Q8 head (mtp-procreations) over the Qwen 3.8 teacher
+# graft (mtp-lean): +4.3 pp draft acceptance / +3.9% tok/s on the paired 4070 probe.
 # BONSAI_SPEC = draft n-max (0 = off). Default 2 for MTP files: on the RTX 4070 that is the best
 # mean over code/prose/bash (87.5 vs 64.2 tok/s). GGML_CUDA_BATCH_INVARIANT=1 makes the
 # one-column and multi-column PTQ1_0 kernels use identical arithmetic, so greedy output with the

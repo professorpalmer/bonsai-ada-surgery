@@ -37,6 +37,19 @@ sized with `/tokenize`; `artifacts/eval/served_*.txt`):
 | **bundle + draft to 24k, 96k/q8_0 (shipped)** | **100.7** | **47.6** | **36.9** | | 10.8 GB |
 | shipped, with the thinking budget on (default) | 96.8 | | | | |
 
+MTP head A/B, same PTQ1_0 trunk, 96k / q8_0, draft-mtp n-max 2, think off, sudo probe
+(3 prompts x 3 x 400 tokens; `artifacts/eval/mtp_head_ab.json`):
+
+| head | code | prose | bash | mean | accept | VRAM |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Qwen 3.8 teacher Q4_K graft (`mtp-lean`) | 108.2 | 80.1 | 91.1 | 93.5 | 66.3% (1594/2403) | 11061 |
+| **ProCreations on-policy Q8 (`mtp-procreations`, default)** | **114.5** | 79.5 | **98.3** | **97.1** | **70.6%** (1705/2416) | 11153 |
+
++3.9% mean tok/s, +4.3 pp acceptance, +92 MiB. Strip of the trained graft hashes equal the
+official PTQ1_0 file. Greedy draft-on vs draft-off matches on code and shows the same close-token
+mmap flip the teacher graft already had (`GGML_CUDA_BATCH_INVARIANT` does not make every
+near-tie identical). Their combined PQ2 GGUF was not used.
+
 Prefill through the server on a 32k prompt: PrismML 578 tok/s (55 s to first token), bundle
 1012-1072 tok/s (30-32 s). Two rows carry the lesson of the day: anything at 11.96 GB in use
 runs the fresh probe at full speed and then pages at depth.

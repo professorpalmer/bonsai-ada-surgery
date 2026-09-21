@@ -216,7 +216,8 @@ content, and do not run it behind a server that lacks the Qwen3-Coder XML gramma
 Cost: grammar-constrained sampling runs on the host, so decode with `tools` attached is slower
 than plain decode: 66.9 vs 77.5 tok/s above, about 14%, paid only on requests that carry tools.
 (Both arms are below the 93 tok/s plain-chat figure because these payloads are long code with
-speculative acceptance around 0.65 rather than the short-answer probe.)
+speculative acceptance around 0.66 on the teacher MTP graft / 0.71 on the ProCreations
+on-policy head, rather than the short-answer probe.)
 
 ## 4. Speed at depth, and where the draft head stops paying (measured, changed the default)
 

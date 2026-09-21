@@ -130,14 +130,18 @@ compression. Measured on this card, on the original PrismML file, documented in
 
    ```powershell
    git clone -b bonsai-combo https://github.com/professorpalmer/llama.cpp-ada-ternary vendor\prism-llama
-   .\build\make_mtp_lean.ps1     # ~1 GB download, writes models\Ternary-Bonsai-2-27B-PTQ1_0-mtp-lean.gguf
+   .\build\make_mtp_procreations.ps1   # default: ProCreations on-policy Q8 head on PTQ1_0
+   # fallback teacher graft: .\build\make_mtp_lean.ps1
    ```
 
-   This grafts the Qwen 3.8 27B next-token head onto the ternary file with
-   [sudoingX's graft tools](https://github.com/sudoingX/bonsai2-small-gpu) (his idea and code;
-   this script only wires them up and fetches the 15 head tensors sparsely instead of the 16 GB
-   donor). The script proves the graft by stripping the head again and hashing the result against
-   the original.
+   `make_mtp_procreations.ps1` sparse-fetches the 15 `blk.64` tensors from
+   [ProCreations/Ternary-Bonsai-2-27B-MTP](https://huggingface.co/ProCreations/Ternary-Bonsai-2-27B-MTP)
+   (their PQ2 combined file is not used) and grafts that on-policy head onto official PTQ1_0.
+   `make_mtp_lean.ps1` is the older Qwen 3.8 teacher-head graft. Both use
+   [sudoingX's graft tools](https://github.com/sudoingX/bonsai2-small-gpu) and prove the trunk
+   bytes by stripping the head and hashing against the original. On the 4070 the trained head
+   accepted 70.6% of drafts vs 66.3% for the teacher graft (+3.9% tok/s on the paired probe).
+   Do not load their combined PQ2 GGUF; that drops the PTQ1_0 Ada kernels.
 4. Serve:
 
    ```powershell
@@ -192,6 +196,8 @@ python bench\quick_tps.py --key-file artifacts\api_key.txt --depth 32000   # ser
 bench\kv_kl_sweep.ps1                         # KV precision KL table (needs wikitext-2 test set)
 python bench\toolcall_stress.py               # tool-call syntax, XML+grammar vs JSON-in-content
 python bench\reason_ab.py --key-file artifacts\api_key.txt   # think-off / low / medium / xhigh, SVG + code
+python bench\mtp_head_ab.py                  # teacher graft vs ProCreations head
+python bench\mtp_identity.py                 # greedy draft-on vs draft-off
 python bench\head_to_head.py --model models\Ternary-Bonsai-2-27B-PTQ1_0.gguf --arm prism=<stock bin> --arm bundle=bin
 ```
 
@@ -202,7 +208,8 @@ python bench\head_to_head.py --model models\Ternary-Bonsai-2-27B-PTQ1_0.gguf --a
 | `patches/` | the 21-commit stack on PrismML `9a9394a`, `git am`-able |
 | `start-server.ps1`, `start-remote.ps1` | the recipe (LAN / Cloudflare tunnel) |
 | `build/build_windows.ps1` | toolkit-free Windows CUDA build |
-| `build/make_mtp_lean.ps1` | MTP head graft (sudoingX's tools, sparse donor fetch) |
+| `build/make_mtp_procreations.ps1` | default MTP graft: ProCreations on-policy Q8 head on PTQ1_0 |
+| `build/make_mtp_lean.ps1` | fallback MTP graft: Qwen 3.8 teacher head |
 | `docs/QUALITY.md` | KV precision, thinking budget, tool-call syntax: measurements and recipe |
 | `docs/RECEIPTS.md` | speed receipts, this card and others |
 | `bench/` | receipt, served depth ladder, KL sweep, tool-call stress, head-to-head, served TPS |
@@ -211,6 +218,7 @@ python bench\head_to_head.py --model models\Ternary-Bonsai-2-27B-PTQ1_0.gguf --a
 ## Credits
 
 PrismML for the model and the fork. sudoingX for the planar-transposed layout, the batch-invariant
-mode, the Hadamard-inverse fix and the MTP graft. Killy (@net_termina) for the failure census that
+mode, the Hadamard-inverse fix and the MTP graft tools. ProCreations for the on-policy MTP head
+(Apache 2.0; independent of PrismML). Killy (@net_termina) for the failure census that
 turned "quality is worse" into three fixable buckets. MIT for everything here; weights are
 PrismML's (Apache 2.0). Not affiliated with PrismML.

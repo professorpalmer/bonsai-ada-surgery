@@ -53,4 +53,4 @@ $b = (Get-FileHash $check -Algorithm SHA256).Hash
 Remove-Item $check
 if ($a -ne $b) { throw "stripped file differs from the base: the graft changed Bonsai 2 bytes, do not use $out" }
 Write-Host "stripped sha256 == base sha256 ($($a.ToLower()))"
-Write-Host "done. start-server.ps1 picks *-mtp-lean.gguf first and enables --spec-type draft-mtp."
+Write-Host "done. start-server.ps1 prefers mtp-procreations if present, then this lean file."

@@ -1,0 +1,165 @@
+{
+  "ctx": 98304,
+  "kv": "q8_0",
+  "spec_n_max": 2,
+  "results": [
+    {
+      "name": "teacher Q4_K graft",
+      "model": "Ternary-Bonsai-2-27B-PTQ1_0-mtp-lean.gguf",
+      "vram_mib": 11061,
+      "probe": {
+        "code": 108.2,
+        "prose": 80.1,
+        "bash": 91.1,
+        "mean": 93.5,
+        "median": 91.1
+      },
+      "acceptance_last": 0.66334,
+      "accepted": 1594,
+      "proposed": 2403,
+      "acceptance_lines": [],
+      "log": "C:\\Users\\pwall\\Projects\\bonsai-2-27b-serve\\artifacts\\eval\\mtp_head_ab\\teacher_q4_k_graft.log",
+      "acceptance_rows": [
+        {
+          "task": 0,
+          "acc": 0.5,
+          "accepted": 6,
+          "generated": 12
+        },
+        {
+          "task": 9,
+          "acc": 0.87889,
+          "accepted": 254,
+          "generated": 289
+        },
+        {
+          "task": 157,
+          "acc": 0.80656,
+          "accepted": 246,
+          "generated": 305
+        },
+        {
+          "task": 312,
+          "acc": 0.8125,
+          "accepted": 247,
+          "generated": 304
+        },
+        {
+          "task": 466,
+          "acc": 0.45833,
+          "accepted": 77,
+          "generated": 168
+        },
+        {
+          "task": 553,
+          "acc": 0.34375,
+          "accepted": 44,
+          "generated": 128
+        },
+        {
+          "task": 619,
+          "acc": 0.47826,
+          "accepted": 66,
+          "generated": 138
+        },
+        {
+          "task": 690,
+          "acc": 0.57995,
+          "accepted": 214,
+          "generated": 369
+        },
+        {
+          "task": 878,
+          "acc": 0.58583,
+          "accepted": 215,
+          "generated": 367
+        },
+        {
+          "task": 1064,
+          "acc": 0.68955,
+          "accepted": 231,
+          "generated": 335
+        }
+      ]
+    },
+    {
+      "name": "procreations Q8 trained",
+      "model": "Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf",
+      "vram_mib": 11153,
+      "probe": {
+        "code": 114.5,
+        "prose": 79.5,
+        "bash": 98.3,
+        "mean": 97.1,
+        "median": 98.3
+      },
+      "acceptance_last": 0.70571,
+      "accepted": 1705,
+      "proposed": 2416,
+      "acceptance_lines": [],
+      "log": "C:\\Users\\pwall\\Projects\\bonsai-2-27b-serve\\artifacts\\eval\\mtp_head_ab\\procreations_q8_trained.log",
+      "acceptance_rows": [
+        {
+          "task": 0,
+          "acc": 0.83333,
+          "accepted": 10,
+          "generated": 12
+        },
+        {
+          "task": 9,
+          "acc": 0.86301,
+          "accepted": 252,
+          "generated": 292
+        },
+        {
+          "task": 159,
+          "acc": 0.89161,
+          "accepted": 255,
+          "generated": 286
+        },
+        {
+          "task": 305,
+          "acc": 0.90813,
+          "accepted": 257,
+          "generated": 283
+        },
+        {
+          "task": 449,
+          "acc": 0.40506,
+          "accepted": 64,
+          "generated": 158
+        },
+        {
+          "task": 531,
+          "acc": 0.45161,
+          "accepted": 84,
+          "generated": 186
+        },
+        {
+          "task": 626,
+          "acc": 0.53571,
+          "accepted": 105,
+          "generated": 196
+        },
+        {
+          "task": 726,
+          "acc": 0.69461,
+          "accepted": 232,
+          "generated": 334
+        },
+        {
+          "task": 896,
+          "acc": 0.71125,
+          "accepted": 234,
+          "generated": 329
+        },
+        {
+          "task": 1063,
+          "acc": 0.63068,
+          "accepted": 222,
+          "generated": 352
+        }
+      ]
+    }
+  ]
+}

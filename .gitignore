@@ -33,3 +33,4 @@ artifacts/eval/*
 !artifacts/eval/served_*.txt
 !artifacts/eval/toolcall_stress.json
 !artifacts/eval/tc_*.json
+!artifacts/eval/mtp_head_ab.json
