@@ -93,27 +93,70 @@ large KL improvement at identical memory. It is not implemented in the CUDA flas
 measured through the slow CPU fallback first. If it recovers most of the q4_0 gap it becomes the
 free 262k answer on 12 GB.
 
-## 2. Runaway thinking (reproduced, changed the default)
+## 2. Runaway thinking (the quality gap that is not compression)
 
-The chat template defaults `reasoning_effort` to `xhigh`. With tools attached, `reasoning_effort=low`
-and a 9,000-token budget, the first stress request ("write a 250-line Python module via
-`write_file`") spent all 9,000 tokens inside `<think>` and never emitted the call
-(`finish_reason: length`). That is one of Killy's 8 "ran out of steps" in a single request, at
-~60 tok/s for 2.5 minutes.
+The GGUF chat template (`tokenizer.chat_template`) is explicit:
 
-`start-server.ps1` now passes `--reasoning-budget 4096` (`BONSAI_THINK_BUDGET`, -1 to lift the cap)
-and `--chat-template-kwargs {"reasoning_effort":"low"}` (`BONSAI_EFFORT`). Per-request
-`chat_template_kwargs` still override the effort; the budget is a hard stop that closes the think
-block and lets the answer start.
+```
+if enable_thinking is undefined or true:
+    resolved_reasoning_effort = reasoning_effort|default('xhigh')
+    xhigh  -> extra system line "think carefully... prioritize correctness..."
+    low    -> extra system line "keep your thinking brief..."
+    medium -> thinking on, no extra line
+if enable_thinking is false:
+    emit <think></think>   # pre-closed; the model answers immediately
+```
 
-Measured with the cap in place and thinking on: on all three tool-call stress tasks the model used
-the full 4,096 tokens before starting its call (about 15k characters of reasoning about a
-250-line file), and two of the three then ran into the 9,000-token test cap before finishing the
-payload. With thinking off, 9 of 9 calls arrived (next section). So for agent harnesses the right
-setting is **`BONSAI_THINK=0`**, which sets `enable_thinking=false` for every request unless the
-request says otherwise; the budget stays as the safety net for chat use. Two costs to know: the
-budget is a host-side sampler, and llama.cpp disables GPU-side sampling when one is set, which is
-4% decode on this card (96.8 vs 100.7 tok/s); `BONSAI_THINK_BUDGET=-1` gets it back.
+`xhigh` is the silent default. That is Killy's "reasoning madness": no stop sign, the model
+fills half the KV with `<think>`, then either emits nothing (SVG plate: 10/12 subjects blank
+when thinking was off *and* the template still had no answer, red/thinking cells empty from
+budget blow-up) or a fragment. He also flagged that published Terminal-Bench / DeepSWE
+numbers may have been crushed the same way.
+
+His coding bake-off on the original ternary file, same output cap on both arms (pass counts
+as published; thinking-off is flat because it never spends the extra tokens):
+
+| cap | MBPP think-off | MBPP medium | HumanEval think-off | HumanEval medium |
+| ---: | ---: | ---: | ---: | ---: |
+| 10,224 | 37.72 | 35.44 | 14.77 | 12.77 |
+| 20,488 | 37.73 | 42.22 | 14.77 | 15.00 |
+| 40,966 | 37.73 | 44.11 | 14.77 | 15.88 |
+| 81,922 | 37.73 | 45.33 | 14.77 | 15.99 |
+
+Medium is *worse* than off at 10k and pulls ahead from 20k. That is the budget, not the
+weights: he said medium closed the gap to the 27B teacher, and that a single code prompt
+reasoned through ~50% of the KV before the first line of code. Omead (Prism) independently
+said medium is the setting they kept.
+
+`start-server.ps1` therefore:
+
+- chat default **`reasoning_effort=medium`** (`BONSAI_EFFORT`) — never leave it unset (xhigh)
+- **`--reasoning-budget 20480`** (`BONSAI_THINK_BUDGET`) — first cap in his table where medium
+  wins; 4096 was our old default and is below his break-even
+- **`--reasoning-budget-message "Now produce the complete answer."`** so a force-close still
+  writes the SVG/code instead of an empty content field
+- agent harnesses **`BONSAI_THINK=0`** (`enable_thinking=false`). With tools and thinking on,
+  even at `low` + 9k tokens, `write_file` spent the whole budget inside `<think>` and never
+  called (`finish_reason: length`). Thinking-off delivered a parseable call 9 of 9 times
+  (next section)
+
+Per-request `chat_template_kwargs` still override. The budget is a host-side sampler and
+turns off GPU-side sampling (~4% decode; `BONSAI_THINK_BUDGET=-1` gets it back).
+
+**Client `max_tokens` counts thinking.** A request with `max_tokens: 4096` and thinking on
+dies inside `<think>` before `</think>` — the server budget never gets a chance. Measured
+on this card, same four SVG prompts plus one short code task (`bench/reason_ab.py`):
+
+| arm | empty | SVG landed | code landed |
+| --- | ---: | ---: | ---: |
+| think-off | 0 | 4/4 | yes |
+| low | 4 | 0/4 | yes |
+| medium | 1 | 4/4 | no (thought through the 4096 cap) |
+| xhigh | 4 | 0/4 | yes |
+
+OpenAI clients that leave `max_tokens` at 4k will reproduce Killy's blanks even with the
+new server default. Chat needs `max_tokens` ≥ 20k when thinking is on. Agents should keep
+thinking off and can stay at a small cap.
 
 ## 3. Tool-call syntax (measured: format and grammar, not the model)
 

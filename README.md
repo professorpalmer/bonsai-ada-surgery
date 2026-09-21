@@ -103,11 +103,14 @@ compression. Measured on this card, on the original PrismML file, documented in
   window fits*, and then never says the window. The default here is **96k with q8_0 K/V**
   (10.8 GB; 128k/q8_0 allocates but Windows pages the cache and decode at depth drops by a
   third). **262k / q4_0** on 12 GB and **262k / q8_0** on 16 GB are one variable away.
-- **Runaway thinking**: the template defaults to `xhigh` reasoning; even at `low` a tool-call
-  request spent 9,000 tokens thinking and never called the tool. The recipe caps thinking with
-  `--reasoning-budget 4096`, sets `low` by default, and `BONSAI_THINK=0` turns thinking off
-  server-wide for agent harnesses (with tools attached, thinking-off delivered a parseable call
-  9 of 9 times; thinking-on spent the whole budget first on 3 of 3).
+- **Runaway thinking**: the GGUF template defaults to `xhigh` (an extra "think carefully..."
+  system line). That is Killy's "reasoning madness": no stop, empty SVG/code, Terminal-Bench
+  budgets blown. `medium` is thinking with **no** extra instruction and is the setting that
+  closed his MBPP/HumanEval gap to the 27B teacher — *if* the output cap is ≥ 20k. A 10k cap
+  makes medium *worse* than thinking off. The recipe is therefore **`medium` + 20,480 think
+  tokens** for chat, with a force-close message so a trip still yields the answer, and
+  **`BONSAI_THINK=0`** for agent harnesses (9/9 parseable tool calls; thinking-on spent the
+  whole budget first).
 - **Tool-call syntax**: the model's native format is Qwen3-Coder XML with raw string parameters,
   and this server grammar-constrains it. **9 of 9 calls parsed** through it, against **1 of 9**
   when the model is asked to write Hermes-style JSON in content (the failure Killy measured:
@@ -145,7 +148,8 @@ compression. Measured on this card, on the original PrismML file, documented in
 
 Knobs (environment variables) and defaults: `BONSAI_CTX` 98304, `BONSAI_CTK` q8_0, `BONSAI_SPEC`
 2 (draft n-max, 0 off), `BONSAI_SPEC_DEPTH` 24576 (stop drafting past this depth), `BONSAI_THINK`
-1 (0 = thinking off for every request), `BONSAI_EFFORT` low, `BONSAI_THINK_BUDGET` 4096 (-1
+1 (0 = thinking off for every request — use this in front of Cursor/Cline/aider), `BONSAI_EFFORT`
+medium (template default is xhigh; do not leave it unset), `BONSAI_THINK_BUDGET` 20480 (-1
 unlimited; also re-enables GPU-side sampling, +4% decode), `BONSAI_PORT` 8080, `BONSAI_MODEL`.
 
 | Card | Recipe | Notes |
@@ -186,6 +190,7 @@ bench\served_depth.ps1 -Bin bin -Model models\Ternary-Bonsai-2-27B-PTQ1_0-mtp-le
 python bench\quick_tps.py --key-file artifacts\api_key.txt --depth 32000   # served decode at depth, running server
 bench\kv_kl_sweep.ps1                         # KV precision KL table (needs wikitext-2 test set)
 python bench\toolcall_stress.py               # tool-call syntax, XML+grammar vs JSON-in-content
+python bench\reason_ab.py --key-file artifacts\api_key.txt   # think-off / low / medium / xhigh, SVG + code
 python bench\head_to_head.py --model models\Ternary-Bonsai-2-27B-PTQ1_0.gguf --arm prism=<stock bin> --arm bundle=bin
 ```
 
