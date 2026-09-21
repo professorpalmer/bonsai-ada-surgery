@@ -46,7 +46,7 @@ Everything in here is submitted upstream ([#214](https://github.com/PrismML-Eng/
 [#215](https://github.com/PrismML-Eng/llama.cpp/pull/215), [#216](https://github.com/PrismML-Eng/llama.cpp/pull/216),
 [#220](https://github.com/PrismML-Eng/llama.cpp/pull/220), [#221](https://github.com/PrismML-Eng/llama.cpp/pull/221),
 and sudoingX's [#217](https://github.com/PrismML-Eng/llama.cpp/pull/217) / [#218](https://github.com/PrismML-Eng/llama.cpp/pull/218)).
-Review takes the time it takes. This repo ships the combined stack now: 20 commits on PrismML
+Review takes the time it takes. This repo ships the combined stack now: 21 commits on PrismML
 `prism@9a9394a`, as `git am`-able patches in [`patches/`](patches/), as a branch
 ([`bonsai-combo`](https://github.com/professorpalmer/llama.cpp-ada-ternary/tree/bonsai-combo)),
 and as Windows binaries on the [Releases](../../releases) page.
@@ -65,6 +65,7 @@ and as Windows binaries on the [Releases](../../releases) page.
 | 0017 | out-of-vocab ids from the backend sampler / draft are rejected, not fed to the tokenizer | ours #221 |
 | 0018-0019 | draft-mtp discards stale catch-up rows when a new task lands on the slot; FWHT-q8 pool blocks released LIFO before the pools (llama-bench teardown assert) | ours, new |
 | 0020 | `--spec-draft-depth-max`: stop drafting once the sequence is deep, where speculation costs more than it saves | ours, new |
+| 0021 | `GGML_CUDA_RESTRICT` off the PTQ1_0 kernel signature (sm_120 C2912); Ampere 1-col uses the #218 PT kernel | ours, on #221 |
 
 The write-up of how each cut was found (CUPTI traces, L1 wavefront counts, what did not work):
 [`surgery/ADA4070_PTQ1.md`](surgery/ADA4070_PTQ1.md).
@@ -198,7 +199,7 @@ python bench\head_to_head.py --model models\Ternary-Bonsai-2-27B-PTQ1_0.gguf --a
 
 | Path | What |
 | --- | --- |
-| `patches/` | the 20-commit stack on PrismML `9a9394a`, `git am`-able |
+| `patches/` | the 21-commit stack on PrismML `9a9394a`, `git am`-able |
 | `start-server.ps1`, `start-remote.ps1` | the recipe (LAN / Cloudflare tunnel) |
 | `build/build_windows.ps1` | toolkit-free Windows CUDA build |
 | `build/make_mtp_lean.ps1` | MTP head graft (sudoingX's tools, sparse donor fetch) |
