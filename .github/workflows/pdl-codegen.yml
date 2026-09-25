@@ -1,0 +1,33 @@
+name: PTQ1 PDL code generation
+on:
+  push:
+    paths: ['patches/**', 'tests/check_pdl_codegen.py', '.github/workflows/pdl-codegen.yml']
+  pull_request:
+    paths: ['patches/**', 'tests/check_pdl_codegen.py', '.github/workflows/pdl-codegen.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  pdl:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    container: nvidia/cuda:13.0.2-devel-ubuntu24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: ['89', '90', '120a']
+    steps:
+      - name: Install dependencies
+        run: apt-get update && apt-get install -y git build-essential python3 ca-certificates
+      - uses: actions/checkout@v4
+      - name: Apply the complete bundle
+        run: |
+          git init /tmp/bonsai-pdl-source
+          git -C /tmp/bonsai-pdl-source fetch --depth 1 https://github.com/PrismML-Eng/llama.cpp.git 9a9394a895b96003ca842a6041cb28ac49a108f7
+          git -C /tmp/bonsai-pdl-source checkout --detach FETCH_HEAD
+          for patch in "$GITHUB_WORKSPACE"/patches/*.patch; do
+            git -C /tmp/bonsai-pdl-source apply --check "$patch"
+            git -C /tmp/bonsai-pdl-source apply "$patch"
+          done
+      - name: Check unfixed and fixed real-kernel PTX
+        run: python3 tests/check_pdl_codegen.py /tmp/bonsai-pdl-source --arch '${{ matrix.arch }}'
