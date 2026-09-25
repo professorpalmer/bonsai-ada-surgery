@@ -46,7 +46,7 @@ Everything in here is submitted upstream ([#214](https://github.com/PrismML-Eng/
 [#215](https://github.com/PrismML-Eng/llama.cpp/pull/215), [#216](https://github.com/PrismML-Eng/llama.cpp/pull/216),
 [#220](https://github.com/PrismML-Eng/llama.cpp/pull/220), [#221](https://github.com/PrismML-Eng/llama.cpp/pull/221),
 and sudoingX's [#217](https://github.com/PrismML-Eng/llama.cpp/pull/217) / [#218](https://github.com/PrismML-Eng/llama.cpp/pull/218)).
-Review takes the time it takes. This repo ships the combined stack now: 22 patches on PrismML
+Review takes the time it takes. This repo ships the combined stack now: 23 patches on PrismML
 `prism@9a9394a`, as `git am`-able patches in [`patches/`](patches/), as a branch
 ([`bonsai-combo`](https://github.com/professorpalmer/llama.cpp-ada-ternary/tree/bonsai-combo)),
 and as Windows binaries on the [Releases](../../releases) page.
@@ -67,6 +67,7 @@ and as Windows binaries on the [Releases](../../releases) page.
 | 0020 | `--spec-draft-depth-max`: stop drafting once the sequence is deep, where speculation costs more than it saves | ours, new |
 | 0021 | `GGML_CUDA_RESTRICT` off the PTQ1_0 kernel signature (sm_120 C2912); Ampere 1-col uses the #218 PT kernel | ours, on #221 |
 | 0022 | define the host layout helper after the CUDA device declarations; fixes clean-build undefined identifiers | ours, `32842f6` |
+| 0023 | Wait for the PDL activation dependency in the planar PTQ1_0 mat-vec on Hopper/Blackwell | ours, from LamplighterPaul's #218 finding |
 
 The write-up of how each cut was found (CUPTI traces, L1 wavefront counts, what did not work):
 [`surgery/ADA4070_PTQ1.md`](surgery/ADA4070_PTQ1.md).
@@ -122,8 +123,8 @@ compression. Measured on this card, on the original PrismML file, documented in
 ## Quick start (Linux, NVIDIA)
 
 This repository is the patch and serving bundle. It now includes a Linux build
-script that fetches the pinned PrismML source and applies **all 22 bundled patches**,
-including the `common.cuh` header fix. No manual patch application or Git author
+script that fetches the pinned PrismML source and applies **all 23 bundled patches**,
+including the `common.cuh` header fix and the Hopper/Blackwell PDL dependency wait. No manual patch application or Git author
 configuration is needed. There is no prebuilt Linux binary yet.
 
 Prerequisites: NVIDIA driver, CUDA toolkit (`nvcc` on PATH), Git, CMake >=3.24,
@@ -306,7 +307,7 @@ python bench\head_to_head.py --model models\Ternary-Bonsai-2-27B-PTQ1_0.gguf --a
 
 | Path | What |
 | --- | --- |
-| `patches/` | the 22-patch stack on PrismML `9a9394a`, `git am`-able |
+| `patches/` | the 23-patch stack on PrismML `9a9394a`, `git am`-able |
 | `start-server.ps1`, `start-remote.ps1` | the recipe (LAN / Cloudflare tunnel) |
 | `build/build_windows.ps1` | toolkit-free Windows CUDA build |
 | `build/make_mtp_procreations.ps1` | default MTP graft: ProCreations on-policy Q8 head on PTQ1_0 |
@@ -323,3 +324,19 @@ mode, the Hadamard-inverse fix and the MTP graft tools. ProCreations for the on-
 (Apache 2.0; independent of PrismML). Killy (@net_termina) for the failure census that
 turned "quality is worse" into three fixable buckets. MIT for everything here; weights are
 PrismML's (Apache 2.0). Not affiliated with PrismML.
+
+### Hopper/Blackwell PDL fix
+
+Patch `0023` carries `09b6cce` from the combo branch. The planar PTQ1_0
+mat-vec now calls `ggml_cuda_pdl_sync()` before reading activations produced
+by the q8_1 quantization kernel. Without that wait, programmatic dependent
+launch can let the consumer read unfinished output on Hopper/Blackwell.
+LamplighterPaul reported corrupt `llama-server` output on an RTX 5080,
+including the `GGML_CUDA_PDL=0` isolation, in
+[Prism #218](https://github.com/PrismML-Eng/llama.cpp/pull/218#issuecomment-5833071266).
+This is a synchronization bug, separate from KV-cache quantization quality.
+The helper is a no-op on Ampere/Ada. After updating this bundle, rerun the
+build script to include the fix. Existing downloaded Windows binaries are
+not updated by pulling patches; rebuild or use a binary explicitly containing
+this commit. The reporter's hardware result is not a new hardware test of
+this bundle.
