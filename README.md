@@ -146,7 +146,7 @@ bash start-linux.sh /absolute/path/to/Ternary-Bonsai-2-27B-PTQ1_0.gguf
 ```
 
 Use the official original `Ternary-Bonsai-2-27B-PTQ1_0.gguf` from
-[PrismML on Hugging Face](https://huggingface.co/prism-ml); the model download is
+[the official model download](https://huggingface.co/prism-ml/Ternary-Bonsai-2-27B-gguf/blob/main/Ternary-Bonsai-2-27B-PTQ1_0.gguf); the model download is
 separate. If you already have it, pass its existing path. The scripts do not
 install system packages, download weights, or change your existing
 `vendor/prism-llama` checkout.
