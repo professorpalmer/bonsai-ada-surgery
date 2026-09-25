@@ -15,11 +15,16 @@ jobs:
     steps:
       - name: Install build dependencies
         run: apt-get update && apt-get install -y git cmake build-essential libcurl4-openssl-dev libssl-dev python3 ca-certificates
+      - name: Provide driver stub for GPU-less linking
+        run: |
+          mkdir -p /tmp/bonsai-cuda-stubs
+          ln -s /usr/local/cuda/lib64/stubs/libcuda.so /tmp/bonsai-cuda-stubs/libcuda.so.1
       - uses: actions/checkout@v4
       - name: Setup and launcher checks
         run: python3 -m unittest discover -s tests -v
       - name: Compile the bundled patch stack for Ada
         env:
           BONSAI_CUDA_ARCH: '89'
-          BONSAI_BUILD_JOBS: '2'
+          BONSAI_BUILD_JOBS: '4'
+          LDFLAGS: '-Wl,-rpath-link,/tmp/bonsai-cuda-stubs'
         run: bash build/build_linux.sh
