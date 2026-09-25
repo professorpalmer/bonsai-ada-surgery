@@ -340,3 +340,15 @@ build script to include the fix. Existing downloaded Windows binaries are
 not updated by pulling patches; rebuild or use a binary explicitly containing
 this commit. The reporter's hardware result is not a new hardware test of
 this bundle.
+
+The [PDL code-generation check](https://github.com/professorpalmer/bonsai-ada-surgery/actions/workflows/pdl-codegen.yml)
+compiles the actual planar kernel for sm_89, sm_90, and sm_120a. It checks all
+24 column/fusion template variants. On Hopper/Blackwell, removing the fix must
+fail the ordering check; with the fix, one unconditional `griddepcontrol.wait`
+must precede global-memory loads. Ada must emit no wait in either case. This
+is a compiler regression check, not a GPU runtime or performance benchmark.
+To reproduce with CUDA 13 and an already-patched source checkout:
+
+```bash
+python3 tests/check_pdl_codegen.py /path/to/patched/llama.cpp --arch 120a
+```
