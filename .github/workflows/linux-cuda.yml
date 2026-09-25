@@ -1,0 +1,25 @@
+name: Linux CUDA build
+on:
+  push:
+    paths: ['patches/**', 'build/build_linux.sh', 'start-linux.sh', 'tests/test_linux_setup.py', '.github/workflows/linux-cuda.yml']
+  pull_request:
+    paths: ['patches/**', 'build/build_linux.sh', 'start-linux.sh', 'tests/test_linux_setup.py', '.github/workflows/linux-cuda.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    container: nvidia/cuda:13.0.2-devel-ubuntu24.04
+    steps:
+      - name: Install build dependencies
+        run: apt-get update && apt-get install -y git cmake build-essential libcurl4-openssl-dev libssl-dev python3 ca-certificates
+      - uses: actions/checkout@v4
+      - name: Setup and launcher checks
+        run: python3 -m unittest discover -s tests -v
+      - name: Compile the bundled patch stack for Ada
+        env:
+          BONSAI_CUDA_ARCH: '89'
+          BONSAI_BUILD_JOBS: '2'
+        run: bash build/build_linux.sh
