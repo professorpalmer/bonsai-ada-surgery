@@ -1,5 +1,7 @@
 # Bonsai 2 27B: the full 262k window at q8_0 on a 12 GB card
 
+![Scorecard: 262k window at q8_0, 100 tok/s at 32k, HumanEval 161/164, effort "high" 0 to 160](docs/img/summary.png)
+
 The model's **full 262,144-token trained window with q8_0 KV cache on a 12 GB RTX 4070**, and the
 speed and serving recipe that make that window usable. Patched [PrismML llama.cpp](https://github.com/PrismML-Eng/llama.cpp)
 for Bonsai 2 27B (1.58-bit ternary `PTQ1_0`, 5.9 GB) with the MTP draft head. Same weights, nothing
@@ -26,6 +28,8 @@ number in this repo since #221), display on the CPU's iGPU. What those numbers r
 | KV precision at 262k | q4_0: 1 flipped top token in 48 | q8_0: **1 in 160** |
 | apps that send `effort: "high"` | HTTP 500 on every request | answered (normalized to medium) |
 | apps with a 256-4096 token cap, thinking on | cut off mid-think | answered (cap raised to the think budget) |
+
+![Decode by context depth: this bundle vs the previous recipe](docs/img/decode.png)
 
 How, and every receipt: [`docs/Q8_FULL_CONTEXT.md`](docs/Q8_FULL_CONTEXT.md). Short version:
 
@@ -94,7 +98,7 @@ Every GB of VRAM the desktop does not use is ~30k more q8_0 positions at full sp
 CPU's integrated graphics (monitor on the motherboard output, iGPU enabled in the BIOS) and set GPU-accelerated
 apps (browser, Discord, remote-desktop host) to the iGPU in Windows **Settings > System > Display > Graphics**.
 Measured on this 4070: desktop VRAM 930 -> 285 MiB, the safe margin 1300 -> 1000 MiB, VRAM line 95k -> 113k
-positions, decode at 112k from PCIe-bound to 70 tok/s. (Estimated beforehand: ~1 GB and ~30k positions. Windows
+positions, decode at 112k from PCIe-bound to 70 tok/s. ([chart](docs/img/igpu.png)) (Estimated beforehand: ~1 GB and ~30k positions. Windows
 keeps ~220-275 MiB of compositor surfaces on the discrete card regardless, so the real gain was ~17k.)
 
 ### Other cards
@@ -109,12 +113,14 @@ Past the VRAM line decode is bound by PCIe (4.0 x16 here, ~23 GB/s). PCIe 3.0 or
 
 ## Quality: the recipe matters as much as the kernels
 
+![HumanEval 164 by client setup: Killy's plates vs this server](docs/img/killy.png)
+
 The complaint about Bonsai 2 is code and agentic work, and most of that gap is runtime, not compression.
 Details and every measurement: [`docs/QUALITY.md`](docs/QUALITY.md).
 
 - **KV precision.** q4_0 KV flips the top token on 1 in 48 positions at depth, q8_0 on 1 in 160 (KL 0.00218 vs
   0.00017 against f16 KV). Every published 12 GB recipe used q4_0 to fit the window; this one keeps q8_0 across
-  all of it.
+  all of it. ([chart](docs/img/kv.png))
 - **Reasoning effort.** The GGUF template defaults to `xhigh` (an extra "think carefully" line: runaway thinking,
   empty answers). `low` behaves close to `xhigh`. `medium` is the model's natural thinking and beats both, and
   thinking off, at every output cap from 2k up (Killy's HumanEval grid: 160-161 of 164). Default: `medium` with a

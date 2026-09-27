@@ -19,6 +19,10 @@ since #221), i7-13700K with 32 GB, Bonsai 2 27B `PTQ1_0` with the ProCreations M
 | 180k | 298 | 27 | q8_0 did not fit |
 | 258k | 229 | 14.7 | q8_0 did not fit |
 
+![Decode by context depth](img/decode.png)
+
+![Prefill by context depth](img/prefill.png)
+
 KV precision (docs/QUALITY.md, wikitext-2 KL against f16 K/V at 8-16k depth): q8_0 mean KLD 0.00017, top-1
 agreement 99.38%; q4_0 0.00218, 97.93%. The previous 12 GB routes to 262k all used q4_0.
 
@@ -62,6 +66,8 @@ depends on what the desktop holds.
 | display on the 4070 | ~930 MiB (dwm 648) | 1300 MiB (800 held for minutes, then 79.9 -> 56.8 tok/s) | 95,488 | 84.8 / 108.5 |
 | display on the iGPU, apps on the iGPU | ~285 MiB (dwm 219) | 1000 MiB (600 paged at once: 78 / 90) | **112,896** | 83.7 / 107.0 -> 82.9 / 106.8 |
 
+![Display on the iGPU: desktop VRAM, positions in VRAM, decode at 131k](img/igpu.png)
+
 `start-server.ps1` picks the margin from `nvidia-smi` (`display_active`). **Correction to our own estimate:** before
 the swap we expected ~1 GB back and ~30k more positions. Measured: ~650 MiB less desktop VRAM and +17.4k positions,
 because Windows keeps ~220-275 MiB of compositor surfaces on the discrete card in a hybrid setup and the demotion
@@ -77,6 +83,8 @@ the line (PCIe-bound) to 70 tok/s in VRAM, and 131k from 34.3 to 41.2.
 | draft on vs off, vector attention below 32k (pre-product gate) | = | = | differs |
 | draft on vs off, MMA decode route at every depth (default) | differs | = | differs |
 
+![Identity matrix](img/identity.png)
+
 The tiered cache is exact. Drafting is not bit-identical to not drafting, stock kernels included: attention's KV
 split follows the kernel instance (1-query decode and a 3-5 query verify use different MMA tiles) and the padded KV
 length (a verify batch can push it one 256-tile ahead of a later single decode). The differences are rounding-level;
@@ -90,6 +98,8 @@ this server with `bench\killy_suite.ps1`, 2026-09-27: `Ternary-Bonsai-2-27B-PTQ1
 KV (tiered), `start-server.ps1` defaults. His plates ran `Ternary-Bonsai-2-27B-PQ2_0` (2-bit weights) on PrismML's
 build with a 64k window, so the weights differ; his numbers are the reference for the *client setup*, not a
 same-weights comparison.
+
+![HumanEval 164 by client setup](img/killy.png)
 
 | Client setup (Killy's row) | Killy (PQ2_0) | This server, harness-proofing **off** | This server (default) |
 | --- | ---: | ---: | ---: |
