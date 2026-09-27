@@ -5,7 +5,9 @@
 The model's **full 262,144-token trained window with q8_0 KV cache on a 12 GB RTX 4070**, and the
 speed and serving recipe that make that window usable. Patched [PrismML llama.cpp](https://github.com/PrismML-Eng/llama.cpp)
 for Bonsai 2 27B (1.58-bit ternary `PTQ1_0`, 5.9 GB) with the MTP draft head. Same weights, nothing
-re-quantized; every kernel checked against the CPU reference.
+re-quantized; every kernel checked against the CPU reference. The 12 GB card holds the first ~113k
+positions; the rest of the cache (~5.2 GB) sits in pinned system RAM, so decode slows past 112k
+(table below) and the box needs ~8 GB of free RAM.
 
 | RTX 4070 12 GB, served, one slot | decode (tok/s) | prefill (tok/s) |
 | --- | ---: | ---: |

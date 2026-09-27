@@ -2,8 +2,11 @@
 
 Same sheet for every card: Ternary Bonsai 2 27B `PTQ1_0` (1.75 bpw, 5.95 GB), PrismML
 llama.cpp fork, `-fa on`, one slot, `--jinja`. Trained context **262,144**. Shipped 12 GB
-recipe is **96k / q8_0**; 12 GB full window is **262k / q4_0** (`BONSAI_SPEC=0`); 16 GB+ is
-**262k / q8_0**. Run `python bench/receipt.py` and add a column.
+recipe (since bundle-20260927) is **262k / q8_0 with tiered KV**: ~113k positions in VRAM, the
+rest (~5.2 GB) in pinned system RAM; receipts in [`Q8_FULL_CONTEXT.md`](Q8_FULL_CONTEXT.md).
+16 GB+ holds the whole q8_0 window in VRAM. The sections below are dated and record the recipes
+current at the time (96k / q8_0 all-VRAM, then 262k / q4_0). Run `python bench/receipt.py` and
+add a column.
 
 ## The bundle, 2026-09-20 (RTX 4070 12 GB, stock clocks, q8_0 KV)
 
