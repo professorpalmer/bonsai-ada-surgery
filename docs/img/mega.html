@@ -1,0 +1,34 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Bonsai scorecard slab</title>
+<!-- One tall image of every card (bench/render_cards.ps1 -Mega): the summary as a hero, the rest two per row. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap">
+<style>
+:root { --ground: #E9EEE7; --ink: #17211B; --muted: #5E6D63; --line: #CFD8CC; --green: #2E7A57; }
+html, body { margin: 0; background: var(--ground); color: var(--ink); }
+.slab { width: 2488px; box-sizing: border-box; padding: 40px 32px 30px; display: flex; flex-direction: column; gap: 24px; }
+.head { display: flex; justify-content: space-between; align-items: flex-end; padding: 0 8px; }
+.head h1 { margin: 0; font-family: "IBM Plex Sans Condensed", Arial, sans-serif; font-size: 64px; line-height: 1; font-weight: 700; }
+.head span { font-family: "IBM Plex Mono", monospace; font-size: 24px; color: var(--muted); }
+.hero { width: 2424px; height: 1363px; overflow: hidden; border-radius: 18px; border: 1px solid var(--line); }
+.hero iframe { width: 1200px; height: 675px; border: 0; transform: scale(2.02); transform-origin: 0 0; }
+.grid { display: grid; grid-template-columns: 1200px 1200px; gap: 24px; }
+.grid iframe { width: 1200px; height: 675px; border: 0; border-radius: 14px; outline: 1px solid var(--line); background: #F3F5F1; }
+.foot { display: flex; justify-content: space-between; font-family: "IBM Plex Mono", monospace; font-size: 26px; color: var(--muted); padding: 6px 8px 0; }
+.foot b { color: var(--ink); font-weight: 500; }
+</style>
+<div class="slab">
+  <div class="head"><h1>Bonsai 2 27B on a 12 GB RTX 4070</h1><span>q8_0 KV · full 262k window · 2026-09-27</span></div>
+  <div class="hero"><iframe src="cards.html?c=summary&nofoot"></iframe></div>
+  <div class="grid">
+    <iframe src="cards.html?c=upgrades&nofoot"></iframe>
+    <iframe src="cards.html?c=decode&nofoot"></iframe>
+    <iframe src="cards.html?c=prefill&nofoot"></iframe>
+    <iframe src="cards.html?c=kv&nofoot"></iframe>
+    <iframe src="cards.html?c=igpu&nofoot"></iframe>
+    <iframe src="cards.html?c=identity&nofoot"></iframe>
+    <iframe src="cards.html?c=killy&nofoot"></iframe>
+    <iframe src="cards.html?c=pagoda&nofoot"></iframe>
+  </div>
+  <div class="foot"><span>RTX 4070 12 GB · Bonsai 2 27B PTQ1_0 + MTP · q8_0 KV · every number has a receipt in the repo</span><span><b>github.com/professorpalmer/bonsai-ada-surgery</b></span></div>
+</div>

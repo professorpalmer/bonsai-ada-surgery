@@ -40,7 +40,7 @@ svg .cat { font-family: var(--body); font-size: 17px; fill: var(--ink); }
 var NS = 'http://www.w3.org/2000/svg';
 function el(tag, attrs, text) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); if (text !== undefined) e.textContent = text; return e; }
 function svg(w, h) { return el('svg', { viewBox: '0 0 ' + w + ' ' + h, preserveAspectRatio: 'xMidYMid meet' }); }
-var FOOT = '<div class="foot"><span>RTX 4070 12 GB · Bonsai 2 27B PTQ1_0 + MTP · q8_0 KV · 2026-09-27</span><span><b>github.com/professorpalmer/bonsai-ada-surgery</b></span></div>';
+var FOOT = /nofoot/.test(location.search) ? '' : '<div class="foot"><span>RTX 4070 12 GB · Bonsai 2 27B PTQ1_0 + MTP · q8_0 KV · 2026-09-27</span><span><b>github.com/professorpalmer/bonsai-ada-surgery</b></span></div>';
 function card(eyebrow, title, sub, legend, body) {
   document.getElementById('card').innerHTML = '<div class="eyebrow">' + eyebrow + '</div><h1>' + title + '</h1>' + (sub ? '<p class="sub">' + sub + '</p>' : '') + (legend || '') + '<div class="chart" id="chart"></div>' + FOOT;
   if (body) document.getElementById('chart').appendChild(body);
@@ -136,6 +136,25 @@ cards.pagoda = function () {
     fig('pagoda_t06_20260927/pagoda_medium_s1_r0.png', 'first try', true, 'temp 0.6 · 1,414 cubes, none floating') +
     fig('pagoda_t06_20260927/pagoda_medium_s2_r1.png', '1 repair', true, 'temp 0.6 · import map fixed after one round') +
     '</div>' + FOOT;
+};
+cards.upgrades = function () {
+  var rows = [
+    ['Tiered KV cache', 'VRAM head + pinned-host tail in one CUDA VMM range', '262k window at q8_0'],
+    ['Copy-engine staging', 'host tail streamed through a second VMM alias', 'deep decode off the SMs'],
+    ['MMA decode for quantized KV', 'GQA decode on the tensor-core flash-attention kernel', '100 tok/s at 32k (was 47.6)'],
+    ['MTP drafting at every depth', 'draft window 16k, shorter drafts past the VRAM line', '106 tok/s at 16k'],
+    ['Batch-invariant kernels', 'FA split and PTQ1_0 mat-vec independent of batch shape', 'tiered cache bit-identical'],
+    ['Harness-proofing', 'unknown effort words fall back to medium; small caps raised', 'effort "high": 0 → 160 / 164'],
+    ['Display on the iGPU', 'frees the card’s desktop VRAM for KV', 'VRAM line 95k → 113k'],
+    ['Render-check-repair', 'run generated pages, report what broke, ask for a fix', 'pagoda 6 / 6'],
+  ];
+  document.getElementById('card').innerHTML = '<div class="eyebrow">What changed · 6 kernel/runtime commits + recipe</div><h1>The upgrades behind the numbers</h1>' +
+    '<div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:12px 28px;align-content:center">' +
+    rows.map(function (r) {
+      return '<div style="border-left:4px solid var(--green);padding:6px 0 6px 14px"><div style="display:flex;justify-content:space-between;gap:12px;align-items:baseline">' +
+        '<b style="font-family:var(--display);font-size:22px">' + r[0] + '</b><span style="font-family:var(--mono);font-size:14px;color:var(--green);white-space:nowrap">' + r[2] + '</span></div>' +
+        '<div style="font-size:15px;color:var(--muted);margin-top:3px">' + r[1] + '</div></div>';
+    }).join('') + '</div>' + FOOT;
 };
 var c = (location.search.match(/c=(\w+)/) || [])[1] || 'summary';
 (cards[c] || cards.summary)();
