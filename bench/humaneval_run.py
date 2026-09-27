@@ -150,12 +150,16 @@ def run_program(program: str, timeout: float) -> str:
         shutil.rmtree(work, ignore_errors=True)
 
 
-def chat(base: str, key: str, prompt: str, arm: str, max_tokens: int, timeout: float) -> dict:
+def chat(base: str, key: str, prompt: str, arm: str, max_tokens: int, timeout: float,
+         temp: float = 0.0, effort: str = "") -> dict:
+    # arm "app": what a chat app or harness sends. No chat_template_kwargs, the OpenAI top-level
+    # reasoning_effort field if --effort is given, and the server's own sampling unless --temp >= 0.
+    kwargs = None
     if arm == "off":
         kwargs = {"enable_thinking": False, "reasoning_effort": "medium"}
     elif arm == "medium":
         kwargs = {"enable_thinking": True, "reasoning_effort": "medium"}
-    else:
+    elif arm != "app":
         raise SystemExit(f"unknown arm {arm}")
     user = (
         "Complete this Python function so it passes its docstring examples. "
@@ -166,11 +170,16 @@ def chat(base: str, key: str, prompt: str, arm: str, max_tokens: int, timeout: f
     body = {
         "model": "bonsai-2-27b",
         "messages": [{"role": "user", "content": user}],
-        "temperature": 0,
-        "top_p": 1,
         "max_tokens": max_tokens,
-        "chat_template_kwargs": kwargs,
     }
+    if kwargs is not None:
+        body["chat_template_kwargs"] = kwargs
+    if effort:
+        body["reasoning_effort"] = effort
+    if temp >= 0:
+        body["temperature"] = temp
+        if temp == 0:
+            body["top_p"] = 1
     headers = {"Content-Type": "application/json"}
     if key:
         headers["Authorization"] = "Bearer " + key
@@ -231,7 +240,9 @@ def main() -> None:
         "--problems",
         default=os.path.join(os.environ.get("TEMP", "."), "human-eval", "data", "HumanEval.jsonl.gz"),
     )
-    parser.add_argument("--arm", choices=("off", "medium"), default="off")
+    parser.add_argument("--arm", choices=("off", "medium", "app"), default="off")
+    parser.add_argument("--temp", type=float, default=0.0, help="request temperature; < 0 = server sampling (Killy's plates: the model's own)")
+    parser.add_argument("--effort", default="", help="top-level reasoning_effort to send (e.g. high, as Cline/Kilo/Open WebUI do)")
     parser.add_argument("--max-tokens", type=int, default=0)
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--timeout", type=float, default=8.0)
@@ -272,6 +283,8 @@ def main() -> None:
                     args.arm,
                     args.max_tokens,
                     args.request_timeout,
+                    args.temp,
+                    args.effort,
                 )
             except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
                 gen = {
@@ -316,7 +329,8 @@ def main() -> None:
         "n": len(problems),
         "passed": passed,
         "pass_at_1": round(100.0 * passed / len(problems), 2) if problems else 0,
-        "temperature": 0,
+        "temperature": args.temp if args.temp >= 0 else "server",
+        "effort": args.effort or None,
         "max_tokens": args.max_tokens,
         "seconds": elapsed,
     }
@@ -324,7 +338,7 @@ def main() -> None:
         json.dump({"summary": summary, "rows": rows}, handle, indent=2)
     print(
         f"\npass@1 {summary['pass_at_1']}%  ({passed}/{len(problems)})  "
-        f"arm={args.arm} max_tokens={args.max_tokens}  {elapsed}s",
+        f"arm={args.arm} effort={args.effort or '-'} temp={args.temp if args.temp >= 0 else 'server'} max_tokens={args.max_tokens}  {elapsed}s",
         flush=True,
     )
     print(f"wrote {summary_path}", flush=True)

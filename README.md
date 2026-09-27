@@ -1,194 +1,182 @@
-# Bonsai 2 27B: 262k context, 97~105 tok/s on a 12 GB card
+# Bonsai 2 27B: the full 262k window at q8_0 on a 12 GB card
 
-The model's **full 262,144-token trained window** on consumer NVIDIA, plus the speed and
-serving recipe that make that window usable. Patched [PrismML llama.cpp](https://github.com/PrismML-Eng/llama.cpp)
-for Bonsai 2 27B (1.58-bit ternary `PTQ1_0`, 5.9 GB). Measured on an RTX 4070 12 GB; the kernels
-target the same small-K ternary GEMV geometry on any Turing, Ampere, Ada or Blackwell part.
+The model's **full 262,144-token trained window with q8_0 KV cache on a 12 GB RTX 4070**, and the
+speed and serving recipe that make that window usable. Patched [PrismML llama.cpp](https://github.com/PrismML-Eng/llama.cpp)
+for Bonsai 2 27B (1.58-bit ternary `PTQ1_0`, 5.9 GB) with the MTP draft head. Same weights, nothing
+re-quantized; every kernel checked against the CPU reference.
 
-**262,144 tokens is the max this model was trained for.** Most 12 GB write-ups never say the
-window. This bundle serves it **with q8_0 KV on the 12 GB card**: a tiered KV cache keeps the first
-~94k positions in VRAM (full speed) and the rest in pinned system RAM mapped into the same CUDA range,
-bit-identical to an all-VRAM cache. With MTP drafting at every depth: **87 tok/s fresh, 105 at 32k,
-90 at 64k, 34 at 131k, 14 at 258k**. Receipts, mechanisms and rejected ideas:
-[docs/Q8_FULL_CONTEXT.md](docs/Q8_FULL_CONTEXT.md). The previous 96k all-VRAM recipe is `BONSAI_TIER=0`.
-
-| | |
-| --- | --- |
-| **Context** | **262,144 trained max, q8_0 KV, on 12 GB** (tiered KV) · `BONSAI_TIER=0`: 96k / q8_0 all-VRAM |
-| **Decode** | **96.8 tok/s** served fresh (100.7 thinking budget off) vs 54.0 stock |
-| **Prefill** | **1304 tok/s** `llama-bench` / **1012 tok/s** served 32k vs 632 / 578 |
-| **KV quality** | **q8_0** default: 12x lower KL than the community q4_0 12 GB sheet |
-| **Tools** | native XML grammar **9/9** parsed vs 1/9 JSON-in-content |
-
-**Same weights, same 1.75 bits per weight.** Nothing is re-quantized. Every kernel is checked
-against the CPU reference (`test-backend-ops`, all PTQ1_0 shapes). `GGML_CUDA_BATCH_INVARIANT=1`
-(the serve default) keeps the mat-vec warp-reduce epilogue, so the weight path of a verified token
-matches a token decoded alone. Attention does not give the same guarantee: its stream-k KV split
-follows the padded KV length, so greedy draft-on can differ from draft-off at the rounding level
-(measured at 40k with the stock kernels too; see docs/Q8_FULL_CONTEXT.md, Caveats).
-
-| RTX 4070 12 GB, original `Ternary-Bonsai-2-27B-PTQ1_0.gguf`, stock clocks | PrismML build | this bundle |
+| RTX 4070 12 GB, served, one slot | decode (tok/s) | prefill (tok/s) |
 | --- | ---: | ---: |
-| **context window** | not stated; community 12 GB sheets use q4_0 to squeeze 262k | **262,144 trained max**, served: **96k / q8_0** default, **262k / q4_0** on 12 GB |
-| decode, `llama-bench` tg128 (kernels only, no draft) | 54.3 tok/s | 67.6 tok/s |
-| decode, served, fresh context, code / prose / bash mean | 54.0 tok/s | **96.8 tok/s** (100.7 with the thinking budget off) |
-| decode, served, at 32k tokens of context | 40.7 tok/s | 47.6 tok/s |
-| decode, served, at 64k tokens of context | 31.9 tok/s | 36.9 tok/s |
-| prefill, `llama-bench` pp2048 | 632 tok/s | 1304 tok/s |
-| prefill, served, 32k prompt (time to first token) | 578 tok/s (55 s) | 1012 tok/s (32 s) |
-| VRAM in use, served recipe | 11.3 GB at 128k | 10.8 GB at 96k / q8_0, with the draft context |
-| KV cache in the 12 GB quality recipe | q4_0 (community sheet) | **q8_0**: 12x lower KL, see below |
+| 4k tokens of context | **83** | 1,100 |
+| 16k | **106** | 1,100 |
+| 32k | **100** | 918 |
+| 64k | **87** | 724 |
+| 112k (last position in VRAM) | **70** | 539 |
+| 131k | **41** | 374 |
+| 180k | 27 | 298 |
+| 258k (the window's end) | 14.7 | 229 |
 
-Served numbers are the server's own `timings`, 400-token answers, `bench/quick_tps.py`; the
-32k/64k rows put that much varied filler in front of the prompt. The draft head is worth +80% on
-a fresh context and nothing at depth, where a step is bound by reading the cache, so the bundle
-stops drafting past 24k tokens (`--spec-draft-depth-max`, added here) and runs on the kernels
-alone from there. Full method and every run: [`docs/RECEIPTS.md`](docs/RECEIPTS.md);
-`bench/served_depth.ps1` prints the served rows for your card.
+Greedy code continuation, 256 tokens, MTP draft head on, cumulative prefill; GDDR6X +1500 MHz (as in every
+number in this repo since #221), display on the CPU's iGPU. What those numbers replace:
 
-## Why a bundle and not "wait for the PRs"
-
-Everything in here is submitted upstream ([#214](https://github.com/PrismML-Eng/llama.cpp/pull/214),
-[#215](https://github.com/PrismML-Eng/llama.cpp/pull/215), [#216](https://github.com/PrismML-Eng/llama.cpp/pull/216),
-[#220](https://github.com/PrismML-Eng/llama.cpp/pull/220), [#221](https://github.com/PrismML-Eng/llama.cpp/pull/221),
-and sudoingX's [#217](https://github.com/PrismML-Eng/llama.cpp/pull/217) / [#218](https://github.com/PrismML-Eng/llama.cpp/pull/218)).
-Review takes the time it takes. This repo ships the combined stack now: 21 commits on PrismML
-`prism@9a9394a`, as `git am`-able patches in [`patches/`](patches/), as a branch
-([`bonsai-combo`](https://github.com/professorpalmer/llama.cpp-ada-ternary/tree/bonsai-combo)),
-and as Windows binaries on the [Releases](../../releases) page.
-
-| Commits | What | From |
+| | before (this repo, Sep 2026) | now |
 | --- | --- | --- |
-| 0001-0002 | planar-transposed q8 activations, dedicated 2-8 column PTQ1_0 mat-vec (speculative verify batches) | sudoingX #218 |
-| 0004-0006 | `GGML_CUDA_BATCH_INVARIANT`, bf16 small-row mat-vec, Hadamard inverse on token embeddings in the MTP graph | sudoingX #217/#218 |
-| 0007 | recurrent-state gather folded into the GatedDeltaNet kernel | ours #220 |
-| 0008-0009 | branch-free PTQ1_0 MMQ tile loader + full Ampere tile table (2x prefill), 4-column GDN warp layout on all Ampere+ | ours #214, #216 |
-| 0010-0011 | SoA q8 activations with exact integer sums, warp-per-row small-K GEMV, hybrid single/multi-column dispatch | ours #215, #221 |
-| 0012 | flash attention MMA reads q4_0/q8_0 K/V in place (no F16 scratch copy) | ours #221 |
-| 0013 | multi-column PTQ1_0 mat-vec: raw digits, exact activation sums, per-pair epilogue (+13-24% on verify batches) | ours #221 |
-| 0014-0015 | MTP graph publishes only the output rows; draft-mtp decodes catch-up rows with the first draft row | ours #221 |
-| 0016 | the Hadamard transform quantizes its own output when every consumer is a PTQ1_0 mat-vec (~390 fewer launches per step) | ours #221 |
-| 0017 | out-of-vocab ids from the backend sampler / draft are rejected, not fed to the tokenizer | ours #221 |
-| 0018-0019 | draft-mtp discards stale catch-up rows when a new task lands on the slot; FWHT-q8 pool blocks released LIFO before the pools (llama-bench teardown assert) | ours, new |
-| 0020 | `--spec-draft-depth-max`: stop drafting once the sequence is deep, where speculation costs more than it saves | ours, new |
-| 0021 | `GGML_CUDA_RESTRICT` off the PTQ1_0 kernel signature (sm_120 C2912); Ampere 1-col uses the #218 PT kernel | ours, on #221 |
+| window on 12 GB with q8_0 KV | 96k (q4_0 for 262k) | **262,144** |
+| decode at 32k / 64k | 47.6 / 36.9 | **100 / 87** |
+| KV precision at 262k | q4_0: 1 flipped top token in 48 | q8_0: **1 in 160** |
+| apps that send `effort: "high"` | HTTP 500 on every request | answered (normalized to medium) |
+| apps with a 256-4096 token cap, thinking on | cut off mid-think | answered (cap raised to the think budget) |
 
-The write-up of how each cut was found (CUPTI traces, L1 wavefront counts, what did not work):
-[`surgery/ADA4070_PTQ1.md`](surgery/ADA4070_PTQ1.md).
+How, and every receipt: [`docs/Q8_FULL_CONTEXT.md`](docs/Q8_FULL_CONTEXT.md). Short version:
 
-## 262k context (the trained maximum)
-
-Bonsai 2 / Qwen3.8-27B is trained to **262,144 tokens**. That is the number. The bundle exposes it
-instead of silently serving an 8k–32k slice.
-
-| Card | Window | KV | Draft | VRAM in use (measured, 4070) |
-| --- | ---: | --- | --- | --- |
-| 12 GB, **default** | **98,304** | q8_0 | on, to 24k | **10.8 GB**, no paging at any depth |
-| 12 GB, longer | 131,072 | q4_0 | on | 9.9 GB |
-| 12 GB, **full trained max** | **262,144** | q4_0 | off | ~12 GB (draft context would page; `BONSAI_SPEC=0`) |
-| 16 GB and up | **262,144** | q8_0 | on | q8_0 at the full window |
-
-```powershell
-.\start-server.ps1
-# full 262k on 12 GB:
-$env:BONSAI_CTX=262144; $env:BONSAI_CTK='q4_0'; $env:BONSAI_SPEC=0; .\start-server.ps1
-# full 262k, q8_0 (16 GB+):
-$env:BONSAI_CTX=262144; .\start-server.ps1
-```
-
-q4_0 is how 12 GB holds 262k; it flips the top token 3.5x more often than q8_0 (see quality).
-16 GB cards should take the max window at q8_0 and stop thinking about it.
-
-## Quality: the recipe matters as much as the kernels
-
-The complaint about Bonsai 2 is code and agentic work, and most of that gap is runtime, not
-compression. Measured on this card, on the original PrismML file, documented in
-[`docs/QUALITY.md`](docs/QUALITY.md):
-
-- **q4_0 KV cache flips the top token on 1 in 48 positions at depth; q8_0 on 1 in 160** (KL
-  0.00218 vs 0.00017 against f16 KV). Every published 12 GB recipe uses q4_0 *so the 262k
-  window fits*, and then never says the window. The default here is **96k with q8_0 K/V**
-  (10.8 GB; 128k/q8_0 allocates but Windows pages the cache and decode at depth drops by a
-  third). **262k / q4_0** on 12 GB and **262k / q8_0** on 16 GB are one variable away.
-- **Runaway thinking**: the GGUF template defaults to `xhigh` (an extra "think carefully..."
-  system line). That is Killy's "reasoning madness": no stop, empty SVG/code, Terminal-Bench
-  budgets blown. `medium` is thinking with **no** extra instruction and is the setting that
-  closed his MBPP/HumanEval gap to the 27B teacher — *if* the output cap is ≥ 20k. A 10k cap
-  makes medium *worse* than thinking off. The recipe is therefore **`medium` + 20,480 think
-  tokens** for chat, with a force-close message so a trip still yields the answer, and
-  **`BONSAI_THINK=0`** for agent harnesses (9/9 parseable tool calls; thinking-on spent the
-  whole budget first).
-- **Tool-call syntax**: the model's native format is Qwen3-Coder XML with raw string parameters,
-  and this server grammar-constrains it. **9 of 9 calls parsed** through it, against **1 of 9**
-  when the model is asked to write Hermes-style JSON in content (the failure Killy measured:
-  one bracket short at the end of a 20k-character payload). Costs ~14% decode on requests that
-  carry tools.
+- **Tiered KV cache** (`--kv-vram-cells`): the first ~113k positions of each layer's K/V live in VRAM, the rest
+  in pinned system RAM mapped into the same CUDA address range. Kernels are unchanged and output is
+  **bit-identical** to an all-VRAM cache. Past the line, attention copies the used RAM rows into VRAM with the
+  copy engine first.
+- **MTP drafting at every depth** (`--spec-draft-window`): the draft head only needs recent context, so its cache
+  keeps the last 16k rows and stays small. With quantized-KV decode on the tensor-core attention kernel (one K/V
+  read per verify batch), drafting now pays at every depth; the old 24k cutoff is gone.
+- **Harness-proofing** (`--reasoning-effort-allow`, `--reasoning-max-tokens-floor`): the same weights score 0 to
+  160 of 164 on HumanEval depending on what the client sends. The server absorbs both causes.
 
 ## Quick start (Windows, NVIDIA)
 
-1. Download `bonsai-bundle-win-x64.zip` from [Releases](../../releases) and unzip into this repo
-   (it fills `bin\`), or build it yourself (below). Binaries carry sm_75 / 86 / 89 machine code
-   (RTX 20 / 30 / 40) plus compute_89 PTX that RTX 50 cards compile at first load, built with
-   CUDA 13; they need only the NVIDIA driver.
-2. Put `Ternary-Bonsai-2-27B-PTQ1_0.gguf` from [prism-ml on Hugging Face](https://huggingface.co/prism-ml)
-   in `models\`.
-3. Optional, recommended (+MTP speculative decoding, lossless): build the draft-head file.
+1. Download `bonsai-bundle-win-x64.zip` from [Releases](../../releases) and unzip into this repo (it fills
+   `bin\`), or build it (below). Binaries carry sm_75 / 86 / 89 machine code (RTX 20 / 30 / 40) plus compute_89
+   PTX that RTX 50 cards compile at first load; they need only the NVIDIA driver.
+2. Put `Ternary-Bonsai-2-27B-PTQ1_0.gguf` from [prism-ml on Hugging Face](https://huggingface.co/prism-ml) in
+   `models\`.
+3. Recommended: build the MTP draft-head file (lossless speculative decoding, +50-100% decode).
 
    ```powershell
-   git clone -b bonsai-combo https://github.com/professorpalmer/llama.cpp-ada-ternary vendor\prism-llama
-   .\build\make_mtp_procreations.ps1   # default: ProCreations on-policy Q8 head on PTQ1_0
-   # fallback teacher graft: .\build\make_mtp_lean.ps1
+   git clone -b bonsai-q8-product https://github.com/professorpalmer/llama.cpp-ada-ternary vendor\prism-llama
+   .\build\make_mtp_procreations.ps1   # ProCreations on-policy Q8 head grafted onto PTQ1_0
    ```
 
-   `make_mtp_procreations.ps1` sparse-fetches the 15 `blk.64` tensors from
-   [ProCreations/Ternary-Bonsai-2-27B-MTP](https://huggingface.co/ProCreations/Ternary-Bonsai-2-27B-MTP)
-   (their PQ2 combined file is not used) and grafts that on-policy head onto official PTQ1_0.
-   `make_mtp_lean.ps1` is the older Qwen 3.8 teacher-head graft. Both use
-   [sudoingX's graft tools](https://github.com/sudoingX/bonsai2-small-gpu) and prove the trunk
-   bytes by stripping the head and hashing against the original. On the 4070 the trained head
-   accepted 70.6% of drafts vs 66.3% for the teacher graft (+3.9% tok/s on the paired probe).
-   Do not load their combined PQ2 GGUF; that drops the PTQ1_0 Ada kernels.
+   It sparse-fetches the `blk.64` tensors from
+   [ProCreations/Ternary-Bonsai-2-27B-MTP](https://huggingface.co/ProCreations/Ternary-Bonsai-2-27B-MTP), grafts
+   them with [sudoingX's tools](https://github.com/sudoingX/bonsai2-small-gpu) and proves the trunk bytes by
+   hashing against the original. `make_mtp_lean.ps1` is the older teacher-head graft (-4.3 pp acceptance).
 4. Serve:
 
    ```powershell
    .\start-server.ps1
    ```
 
-   OpenAI-compatible API on `http://<host>:8080/v1`, bearer key in `artifacts\api_key.txt`, LAN
-   exposed. `start-remote.ps1` adds a Cloudflare tunnel for use from another machine.
+   OpenAI-compatible API on `http://<host>:8080/v1`, bearer key in `artifacts\api_key.txt` (created on first
+   run), LAN exposed. `start-remote.ps1` adds a Cloudflare tunnel.
 
-Knobs (environment variables) and defaults: `BONSAI_CTX` 98304, `BONSAI_CTK` q8_0, `BONSAI_SPEC`
-2 (draft n-max, 0 off), `BONSAI_SPEC_DEPTH` 24576 (stop drafting past this depth), `BONSAI_THINK`
-1 (0 = thinking off for every request — use this in front of Cursor/Cline/aider), `BONSAI_EFFORT`
-medium (template default is xhigh; do not leave it unset), `BONSAI_THINK_BUDGET` 20480 (-1
-unlimited; also re-enables GPU-side sampling, +4% decode), `BONSAI_PORT` 8080, `BONSAI_MODEL`.
+`start-server.ps1` sizes everything at launch: it reads free VRAM, keeps a safety margin below the point where
+Windows demotes a background process's memory, and puts as many positions in VRAM as fit. Binaries from before
+the tiered-KV runtime are detected and get the previous 96k all-VRAM recipe.
+
+### Knobs (environment variables)
+
+| Variable | Default | |
+| --- | --- | --- |
+| `BONSAI_CTX` | 262144 | context window |
+| `BONSAI_CTK` | q8_0 | K/V cache type (q4_0: 12x the flipped tokens, see Quality) |
+| `BONSAI_TIER` | 1 | 0 = all-VRAM cache (then 96k window) |
+| `BONSAI_KV_VRAM_CELLS` | auto | pin the VRAM line |
+| `BONSAI_VRAM_MARGIN` | 1000 (display on iGPU) / 1300 | MiB kept free below the demotion point |
+| `BONSAI_SPEC` / `BONSAI_SPEC_DEEP` | 2 / 4 | draft size, and past the VRAM line |
+| `BONSAI_DRAFT_WINDOW` | 16384 | rows the draft head keeps |
+| `BONSAI_EFFORT` | medium | server default reasoning effort |
+| `BONSAI_THINK` | 1 | 0 = thinking off for every request |
+| `BONSAI_THINK_BUDGET` | 20480 | thinking tokens before a forced close (-1 unlimited) |
+| `BONSAI_HARNESS_PROOF` | 1 | 0 = pass effort words and output caps through unchanged |
+| `BONSAI_EFFORT_ALLOWED` | medium | effort words the template sees; others become medium |
+| `BONSAI_PORT`, `BONSAI_MODEL` | 8080, auto | |
+
+### Getting more positions into VRAM
+
+Every GB of VRAM the desktop does not use is ~30k more q8_0 positions at full speed. Run the display from the
+CPU's integrated graphics (monitor on the motherboard output, iGPU enabled in the BIOS) and set GPU-accelerated
+apps (browser, Discord, remote-desktop host) to the iGPU in Windows **Settings > System > Display > Graphics**.
+Measured on this 4070: desktop VRAM 930 -> 285 MiB, the safe margin 1300 -> 1000 MiB, VRAM line 95k -> 113k
+positions, decode at 112k from PCIe-bound to 70 tok/s. (Estimated beforehand: ~1 GB and ~30k positions. Windows
+keeps ~220-275 MiB of compositor surfaces on the discrete card regardless, so the real gain was ~17k.)
+
+### Other cards
 
 | Card | Recipe | Notes |
 | --- | --- | --- |
-| 12 GB, default | 96k, q8_0, draft on | 10.8 GB in use, every number above |
-| 12 GB, longer window | `BONSAI_CTX=131072 BONSAI_CTK=q4_0` | 9.9 GB; q4_0 noise (see quality) |
-| 12 GB, full 262k | `BONSAI_CTX=262144 BONSAI_CTK=q4_0 BONSAI_SPEC=0` | the draft context pushes 262k over the paging line, so no draft |
-| 16 GB and up | `BONSAI_CTX=262144` | q8_0 at the full window |
-| 8 GB (2060 Super, 3060 Ti, 4060) | `BONSAI_CTX=32768` (q8_0, ~1.2 GB KV) or `65536 BONSAI_CTK=q4_0` | untested here; expect the ratio of your bandwidth to 504 GB/s |
+| 12 GB | defaults | this README |
+| 16 GB and up | defaults | the whole q8_0 window fits: the tier switches itself off |
+| 8 GB (2060 Super, 3060 Ti, 4060) | defaults, or `BONSAI_CTX=65536` | tiered KV keeps q8_0; expect speed in the ratio of your bandwidth to 504 GB/s. Untested here |
 
-For agent harnesses (Cursor, Cline, OpenCode, aider): `BONSAI_THINK=0`, and let the harness send
-`tools`; do not have it prompt for JSON tool calls in content. Please run the receipt on other
-cards and post the numbers.
+Past the VRAM line decode is bound by PCIe (4.0 x16 here, ~23 GB/s). PCIe 3.0 or x8 slots halve those rows.
 
-### Build from source
+## Quality: the recipe matters as much as the kernels
+
+The complaint about Bonsai 2 is code and agentic work, and most of that gap is runtime, not compression.
+Details and every measurement: [`docs/QUALITY.md`](docs/QUALITY.md).
+
+- **KV precision.** q4_0 KV flips the top token on 1 in 48 positions at depth, q8_0 on 1 in 160 (KL 0.00218 vs
+  0.00017 against f16 KV). Every published 12 GB recipe used q4_0 to fit the window; this one keeps q8_0 across
+  all of it.
+- **Reasoning effort.** The GGUF template defaults to `xhigh` (an extra "think carefully" line: runaway thinking,
+  empty answers). `low` behaves close to `xhigh`. `medium` is the model's natural thinking and beats both, and
+  thinking off, at every output cap from 2k up (Killy's HumanEval grid: 160-161 of 164). Default: `medium` with a
+  20k thinking budget and a force-close message so a trip still yields the answer.
+- **Harness-proofing.** Cline, Kilo and Open WebUI send `effort: "high"`, which the template rejects: HTTP 500,
+  0 of 164. Apps with 256-4096 token caps end a thinking model mid-thought (17-137 of 164). The server maps
+  unknown effort words to medium and raises small caps to the thinking budget. Replays of Killy's rows against
+  this server: [Killy's plates, replayed](docs/Q8_FULL_CONTEXT.md#killys-plates-replayed): `effort: "high"` 0 -> **160** of 164 (the same server with harness-proofing off: HTTP 500, 0), a 4096-token cap 137 -> **157**, medium **161**.
+- **Tool calls.** The native format is Qwen3-Coder XML with raw string parameters, grammar-constrained by the
+  server: 9 of 9 parsed vs 1 of 9 for JSON-in-content. For file-writing agents, thinking off parsed 8 of 9 vs 6
+  of 9 at medium (which spent 10-17k tokens thinking first): send `enable_thinking: false` per request.
+
+### For agents and apps
+
+- Send `tools` and let the server format and parse calls; do not prompt for JSON tool calls in content.
+- Tool-heavy agents: `chat_template_kwargs: {"enable_thinking": false}` per request. Chat and coding answers:
+  leave the server default (medium).
+- Clients that cap `max_tokens` low are fine: with thinking on the server raises the cap (disable with
+  `BONSAI_HARNESS_PROOF=0`).
+
+## The patch stack
+
+Everything is submitted upstream to PrismML; this repo ships the combined stack now: 33 commits on
+`prism@adfffbe`, as `git am`-able patches in [`patches/`](patches/), as the branch
+[`bonsai-q8-product`](https://github.com/professorpalmer/llama.cpp-ada-ternary/tree/bonsai-q8-product), and as
+Windows binaries on [Releases](../../releases). Merged upstream already: #214 (branch-free PTQ1_0 MMQ tile loader,
+2x prefill) and #216 (4-column GDN warp layout); the MTP Hadamard-embedding fix of sudoingX's #217 landed through
+#205. Open: #215, #218, #220, #221, #285.
+
+| Patches | What | Upstream |
+| --- | --- | --- |
+| 0001-0005 | planar-transposed q8 activations, 2-8 column PTQ1_0 mat-vec, `GGML_CUDA_BATCH_INVARIANT`, bf16 small-row mat-vec | sudoingX #218 |
+| 0006 | recurrent-state gather folded into the GatedDeltaNet kernel | #220 |
+| 0007-0008 | SoA q8 activations with exact integer sums, small-K GEMV, hybrid single/multi-column dispatch | #215, #221 |
+| 0009 | flash attention reads q4_0/q8_0 K/V in place (no F16 scratch copy) | #221 |
+| 0010 | multi-column PTQ1_0 mat-vec: raw digits, exact activation sums, per-pair epilogue | #221 |
+| 0011-0016 | MTP graph and catch-up fixes, Hadamard self-quantization, out-of-vocab guard, pool teardown order | #221 |
+| 0017-0027 | `--spec-draft-depth-max`, sm_120 build fix, #221 review round (PDL wait, BATCH_INVARIANT epilogue, ...) | #221 |
+| 0028 | tiered KV cache (`--kv-vram-cells`) with copy-engine staging of the host tail | [#285](https://github.com/PrismML-Eng/llama.cpp/pull/285) |
+| 0029 | quantized-KV GQA decode on the in-place MMA attention kernel | #285 |
+| 0030 | `BATCH_INVARIANT`: occupancy-independent attention split, PTQ1_0 mat-vec up to 8 columns | #285 |
+| 0031 | `--spec-draft-window`, `--spec-draft-n-max-tail` | #285 |
+| 0032 | `--reasoning-effort-allow/-fallback`, `--reasoning-max-tokens-floor` | #285 |
+| 0033 | `GGML_CUDA_OP_TIMING` per-node GPU time (diagnostics) | #285 |
+
+How each cut was found (CUPTI traces, L1 wavefront counts, what did not work):
+[`surgery/ADA4070_PTQ1.md`](surgery/ADA4070_PTQ1.md) and [`docs/Q8_FULL_CONTEXT.md`](docs/Q8_FULL_CONTEXT.md).
+
+## Build from source
 
 Windows without the CUDA toolkit (VS 2022 Build Tools C++ workload + NVIDIA's pip wheels):
 
 ```powershell
 python -m pip install cmake ninja nvidia-cuda-nvcc nvidia-cuda-runtime nvidia-cublas nvidia-cuda-nvrtc
-git clone -b bonsai-combo https://github.com/professorpalmer/llama.cpp-ada-ternary vendor\prism-llama
+git clone -b bonsai-q8-product https://github.com/professorpalmer/llama.cpp-ada-ternary vendor\prism-llama
 .\build\build_windows.ps1                    # arch from nvidia-smi; -Arch "75;86;89;89-virtual" for a release build
 ```
 
 Linux, or from PrismML's tree directly:
 
 ```bash
-git clone https://github.com/PrismML-Eng/llama.cpp && cd llama.cpp && git checkout 9a9394a
+git clone https://github.com/PrismML-Eng/llama.cpp && cd llama.cpp && git checkout adfffbe
 git am ../bonsai-ada-surgery/patches/*.patch
 cmake -B build -DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES="86;89" && cmake --build build --target llama-server -j
 ```
@@ -196,35 +184,32 @@ cmake -B build -DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES="86;89" && cmake --buil
 ## Measure it yourself
 
 ```powershell
-python bench\receipt.py <tag>                 # decode by depth, prefill, TTFT, power, VRAM by window (~10 min)
-bench\served_depth.ps1 -Bin bin -Model models\Ternary-Bonsai-2-27B-PTQ1_0-mtp-lean.gguf -Spec 2 -SpecDepthMax 24576 -Tag mine
-python bench\quick_tps.py --key-file artifacts\api_key.txt --depth 32000   # served decode at depth, running server
-bench\kv_kl_sweep.ps1                         # KV precision KL table (needs wikitext-2 test set)
-python bench\toolcall_stress.py               # tool-call syntax, XML+grammar vs JSON-in-content
-python bench\reason_ab.py --key-file artifacts\api_key.txt   # think-off / low / medium / xhigh, SVG + code
-python bench\mtp_head_ab.py                  # teacher graft vs ProCreations head
-python bench\mtp_identity.py                 # greedy draft-on vs draft-off
-python bench\head_to_head.py --model models\Ternary-Bonsai-2-27B-PTQ1_0.gguf --arm prism=<stock bin> --arm bundle=bin
+bench\killy_suite.ps1                          # HumanEval replays of Killy's plates + the voxel pagoda (~5 h)
+python bench\receipt.py <tag>                  # decode by depth, prefill, TTFT, power, VRAM by window
+python bench\quick_tps.py --key-file artifacts\api_key.txt --depth 32000   # served decode at depth
+bench\kv_kl_sweep.ps1                          # KV precision KL table (needs wikitext-2)
+bench\kv_mean_center_kl.ps1                    # K mean-centering on top of the Hadamard KV rotation (no gain)
+python bench\toolcall_stress.py                # tool-call syntax, XML+grammar vs JSON-in-content
+python bench\humaneval_run.py --arm medium     # HumanEval 164, tests executed
+python bench\mtp_identity.py                   # greedy draft-on vs draft-off
 ```
 
 ## Layout
 
 | Path | What |
 | --- | --- |
-| `patches/` | the 21-commit stack on PrismML `9a9394a`, `git am`-able |
+| `patches/` | the 33-commit stack on PrismML `adfffbe`, `git am`-able |
 | `start-server.ps1`, `start-remote.ps1` | the recipe (LAN / Cloudflare tunnel) |
-| `build/build_windows.ps1` | toolkit-free Windows CUDA build |
-| `build/make_mtp_procreations.ps1` | default MTP graft: ProCreations on-policy Q8 head on PTQ1_0 |
-| `build/make_mtp_lean.ps1` | fallback MTP graft: Qwen 3.8 teacher head |
-| `docs/QUALITY.md` | KV precision, thinking budget, tool-call syntax: measurements and recipe |
+| `build/` | toolkit-free Windows CUDA build, MTP head grafts |
+| `docs/Q8_FULL_CONTEXT.md` | q8_0 at 262k on 12 GB: mechanisms, receipts, identity matrix, rejected ideas |
+| `docs/QUALITY.md` | KV precision, reasoning effort, tool-call syntax, harness-proofing |
 | `docs/RECEIPTS.md` | speed receipts, this card and others |
-| `bench/` | receipt, served depth ladder, KL sweep, tool-call stress, head-to-head, served TPS |
-| `surgery/` | the investigation: write-up, CUPTI injection profiler, clock sweeps, dead ends |
+| `bench/` | receipts, KL sweeps, tool-call stress, HumanEval runner and Killy replays |
+| `surgery/` | the kernel investigation: write-up, CUPTI injection profiler, clock sweeps, dead ends |
 
 ## Credits
 
-PrismML for the model and the fork. sudoingX for the planar-transposed layout, the batch-invariant
-mode, the Hadamard-inverse fix and the MTP graft tools. ProCreations for the on-policy MTP head
-(Apache 2.0; independent of PrismML). Killy (@net_termina) for the failure census that
-turned "quality is worse" into three fixable buckets. MIT for everything here; weights are
-PrismML's (Apache 2.0). Not affiliated with PrismML.
+PrismML for the model and the fork. sudoingX for the planar-transposed layout, the batch-invariant mode, the
+Hadamard-inverse fix and the MTP graft tools. ProCreations for the on-policy MTP head (Apache 2.0; independent
+of PrismML). Killy (@net_termina) for the failure census and the HumanEval plates that turned "quality is worse"
+into fixable buckets. MIT for everything here; weights are PrismML's (Apache 2.0). Not affiliated with PrismML.

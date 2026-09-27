@@ -1,7 +1,7 @@
-From 98ea4108097bc345baf3970178f7927a5b77011d Mon Sep 17 00:00:00 2001
+From 24c7f90889bc8ed1eae0187198e3cd17a5683441 Mon Sep 17 00:00:00 2001
 From: sudoingX <200180104+sudoingX@users.noreply.github.com>
 Date: Sat, 19 Sep 2026 07:08:01 +0000
-Subject: [PATCH 01/20] Add: planar-transposed activation layout for the PTQ1_0
+Subject: [PATCH 01/33] Add: planar-transposed activation layout for the PTQ1_0
  mat-vec path
 
 The mmvq path gave every thread one 128-weight PTQ1_0 block and read the
@@ -27,7 +27,7 @@ PTQ1_0 up to 8 columns (MMQ took 395 us at 8). HIP keeps the old layout.
 
 diff --git a/ggml/src/ggml-cuda/mmvq-ptq1_0.cuh b/ggml/src/ggml-cuda/mmvq-ptq1_0.cuh
 new file mode 100644
-index 0000000..dfe9e28
+index 000000000..dfe9e2882
 --- /dev/null
 +++ b/ggml/src/ggml-cuda/mmvq-ptq1_0.cuh
 @@ -0,0 +1,224 @@
@@ -256,7 +256,7 @@ index 0000000..dfe9e28
 +    }
 +}
 diff --git a/ggml/src/ggml-cuda/mmvq.cu b/ggml/src/ggml-cuda/mmvq.cu
-index bf51b61..5044cd7 100644
+index bf51b61e1..5044cd77c 100644
 --- a/ggml/src/ggml-cuda/mmvq.cu
 +++ b/ggml/src/ggml-cuda/mmvq.cu
 @@ -1,4 +1,5 @@
@@ -417,7 +417,7 @@ index bf51b61..5044cd7 100644
      const dim3 block_nums(nblocks, nchannels_dst, nsamples_or_ntokens);
      const dim3 block_dims(warp_size, nwarps, 1);
 diff --git a/ggml/src/ggml-cuda/quantize.cu b/ggml/src/ggml-cuda/quantize.cu
-index fbbc631..5c66128 100644
+index fbbc6314a..5c661286a 100644
 --- a/ggml/src/ggml-cuda/quantize.cu
 +++ b/ggml/src/ggml-cuda/quantize.cu
 @@ -1,4 +1,5 @@

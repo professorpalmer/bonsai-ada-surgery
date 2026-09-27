@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voxel Pagoda</title>
+<style>
+  html, body { margin:0; padding:0; overflow:hidden; width:100%; height:100%; background:#10141f; }
+  canvas { display:block; }
+</style>
+</head>
+<body>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from "three";
+
+/* ---------- scene ---------- */
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x10141f);
+scene.fog = new THREE.Fog(0x10141f, 38, 72);
+
+const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+/* ---------- lights ---------- */
+const ambient = new THREE.AmbientLight(0x9fb0d0, 0.35);
+scene.add(ambient);
+
+const sun = new THREE.DirectionalLight(0xfff2d0, 1.25);
+sun.position.set(40, 60, 28);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.bias = -0.0018;
+sun.shadow.camera.near = 1;
+sun.shadow.camera.far = 220;
+scene.add(sun);
+
+const fill = new THREE.DirectionalLight(0x6fa0e0, 0.45);
+fill.position.set(-50, 30, -20);
+scene.add(fill);
+
+const warm = new THREE.PointLight(0xffb357, 0.6, 140, 0.6);
+warm.position.set(0, 2.2, 0);
+scene.add(warm);
+
+/* ---------- helpers ---------- */
+const GEO = new THREE.BoxGeometry(1, 1, 1);
+
+const MAT = (c) => new THREE.MeshStandardMaterial({ color:c, roughness:0.6, metalness:0.05 });
+const MAT_ROOF = (c) => new THREE.MeshStandardMaterial({ color:c, roughness:0.28, metalness:0.0 });
+const MAT_WARM = (c) => new THREE.MeshStandardMaterial({ color:c, emissive:c, emissiveIntensity:0.55, roughness:0.3 });
+
+const addVox = (x, y, z, size, mat) => {
+  const mesh = new THREE.Mesh(GEO, mat);
+  mesh.position.set(x, y, z);
+  mesh.scale.set(size, size, size);
+  mesh.rotation.y = 0;
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  pagodaGroup.add(mesh);
+};
+
+const addRoofVox = (x, y, z, size, mat) => {
+  const mesh = new THREE.Mesh(GEO, mat);
+  mesh.position.set(x, y, z);
+  mesh.scale.set(size, size, size);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  pagodaGroup.add(mesh);
+};
+
+/* ---------- palette ---------- */
+const C = {
+  stone : 0xc9c0b0,
+  stoneD: 0x9c9384,
+  stoneL: 0xdcd5c8,
+  wood  : 0x8a4f2a,
+  woodD : 0x5f3320,
+  woodL : 0xa76b3d,
+  roof  : 0x7c1f1f,
+  roofD : 0x521515,
+  roofL : 0xa03a30,
+  trim  : 0xd3a24a,
+  trimD : 0x9a7330,
+  glow  : 0xffb357
+};
+
+const baseStone = MAT(C.stone);
+const baseStoneD = MAT(C.stoneD);
+const baseStoneL = MAT(C.stoneL);
+const roofMat = MAT_ROOF(C.roof);
+const roofMatD = MAT_ROOF(C.roofD);
+const roofMatL = MAT_ROOF(C.roofL);
+const roofTrim = MAT_ROOF(C.trim);
+const roofTrimD = MAT_ROOF(C.trimD);
+const wallMat = MAT(C.wood);
+const wallMatD = MAT(C.woodD);
+const wallMatL = MAT(C.woodL);
+
+/* ---------- ground ---------- */
+const groundGeo = new THREE.BoxGeometry(46, 0.4, 46);
+const groundMat = new THREE.MeshStandardMaterial({ color:0x2a3a2e, roughness:0.85, metalness:0.05 });
+const ground = new THREE.Mesh(groundGeo, groundMat);
+ground.position.y = -0.2;
+ground.receiveShadow = true;
+scene.add(ground);
+
+/* grass tufts (small cubes) scattered around */
+for (let i = 0; i < 140; i++) {
+  const r = 12 + Math.random() * 22;
+  const a = Math.random() * Math.PI * 2;
+  const x = Math.cos(a) * r;
+  const z = Math.sin(a) * r;
+  if (Math.abs(x) < 8 && Math.abs(z) < 8) continue;
+  addVoxGround(x, 0.02, z, 0.18, new THREE.MeshStandardMaterial({ color: 0x3a6b4a, roughness: 0.9 }));
+}
+function addVoxGround(x, y, z, size, mat){
+  const mesh = new THREE.Mesh(GEO, mat);
+  mesh.position.set(x, y + size*0.5, z);
+  mesh.scale.set(size, size, size);
+  mesh.receiveShadow = true;
+  scene.add(mesh);
+}
+
+/* ---------- pagoda group (for orbit) ---------- */
+const pagodaGroup = new THREE.Group();
+scene.add(pagodaGroup);
+
+/* ---------- base platform (3 steps) ---------- */
+// bottom step 20x20 at y 0.4
+addVox(0, 0.4, 0, 20, baseStone);
+addVox(0, 1.0, 0, 16, baseStoneD);
+addVox(0, 1.6, 0, 12, baseStoneL);
+
+/* corner pillars on base platform */
+const ppos = [];
+for (const s of [-1, 1]) for (const d of [-1, 1]) ppos.push([s*5.4, d*5.4]);
+for (const [px, pz] of ppos) {
+  addVox(px, 2.2, pz, 0.8, baseStoneL);
+}
+
+/* ---------- five tiers ---------- */
+// Each tier: 4 pillars + roof (stacked cubes)
+// tier height = 1 (wall) + roof (1) = 2; but we stack roof on top of wall, so
+// top of wall = base_y + 1; roof cubes from y = base_y+1 to base_y+2.
+// next tier base = base_y + 2 + small offset.
+
+function makeRoof(cx, cz, yBase, size, overhang, layers){
+  // size = base footprint of roof (including overhang from wall)
+  // We draw a roof with overhang:
+  //   layer 0: full footprint size
+  //   layer 1: size - 2 (one inset)
+  //   ...
+  const over = overhang; // number of layers beyond the wall footprint
+  // We'll build:
+  //   row 0 (bottom): size x size, at yBase
+  //   row 1: (size-2) x (size-2), at yBase+1
+  //   ...
+  for (let i = 0; i < layers; i++){
+    const s = size - 2*i;
+    if (s <= 1) break;
+    // corner cube for ridge accent on the first layer
+    if (i === 0){
+      addRoofVox(cx - s/2 + 0.4, yBase + 0.5, cz - s/2 + 0.4, 1.0, roofTrim);
+      addRoofVox(cx + s/2 - 0.4, yBase + 0.5, cz - s/2 + 0.4, 1.0, roofTrim);
+      addRoofVox(cx - s/2 + 0.4, yBase + 0.5, cz + s/2 - 0.4, 1.0, roofTrim);
+      addRoofVox(cx + s/2 - 0.4, yBase + 0.5, cz + s/2 - 0.4, 1.0, roofTrim);
+    }
+    const isTop = (i === layers - 1);
+    addRoofVox(cx, yBase + i + 0.5, cz, s, isTop ? roofMatL : (i === 0 ? roofMatD : roofMat));
+    // center ridge on top layer
+  }
+  // ridge line: a strip of small cubes along the x-axis on top
+  const ridgeY = yBase + layers + 0.5;
+  const ridgeLen = Math.max(1, Math.floor(size - 4*(layers-1)));
+  for (let rx = -(ridgeLen>>1); rx <= ridgeLen>>1; rx++) {
+    addRoofVox(cx + rx, ridgeY, cz, 0.6, roofTrimD);
+  }
+}
+
+function makeTier(cx, cz, yBase, wallW, wallH, roofOverhang, roofLayers, wallMat, roofMat, roofTrimMat){
+  // pillars at 4 corners
+  const p = wallW/2 - 0.45;
+  addVox(cx - p, yBase + wallH/2, cz - p, 0.8, wallMatD);
+  addVox(cx + p, yBase + wallH/2, cz - p, 0.8, wallMatD);
+  addVox(cx - p, yBase + wallH/2, cz + p, 0.8, wallMatD);
+  addVox(cx + p, yBase + wallH/2, cz + p, 0.8, wallMatD);
+  // wall panels (simpler: 4 thin panels)
+  const wp = wallW/2 - 0.4;
+  const wh = wallH - 0.4;
+  addVox(cx, yBase + 0.2 + wh/2 - 0.0, cz - wp, 0.3, wallMat);
+  addVox(cx, yBase + 0.2 + wh/2 - 0.0, cz + wp, 0.3, wallMat);
+  addVox(cx - wp, yBase + 0.2 + wh/2 - 0.0, cz, 0.3, wallMat);
+  addVox(cx + wp, yBase + 0.2 + wh/2 - 0.0, cz, 0.3, wallMat);
+  // roof
+  const roofW = wallW + roofOverhang * 2;
+  makeRoof(cx, cz, yBase + wallH, roofW, roofOverhang, roofLayers);
+  // return top of roof for next tier base
+  return yBase + wallH + roofLayers;
+}
+
+/* tiers configuration: wallW, wallH, roofOverhang, roofLayers */
+const tiers = [
+  { wallW: 10.4, wallH: 2.0, over: 2.0, layers: 3 },
+  { wallW: 8.4,  wallH: 1.8, over: 1.8, layers: 3 },
+  { wallW: 6.6,  wallH: 1.6, over: 1.6, layers: 2 },
+  { wallW: 5.0,  wallH: 1.4, over: 1.4, layers: 2 },
+  { wallW: 3.6,  wallH: 1.2, over: 1.2, layers: 1 },
+];
+
+let curY = 1.6; // top of base platform
+for (const t of tiers){
+  const curYtop = makeTier(0, 0, curY, t.wallW, t.wallH, t.over, t.layers, wallMat, roofMat, roofTrim);
+  curY = curYtop + 0.1; // small gap so next tier sits cleanly
+}
+
+/* ---------- spire ---------- */
+// small cube stack with a glowing tip
+let sy = curY;
+const spireSteps = [2.0, 1.4, 0.8, 0.4];
+for (const s of spireSteps){
+  addVox(0, sy + s*0.5, 0, s, roofTrim);
+  sy += s * 0.8 + 0.1;
+}
+// glowing orb
+const orbMat = MAT_WARM(C.glow);
+const orb = new THREE.Mesh(GEO, orbMat);
+orb.position.set(0, sy + 0.25, 0);
+orb.scale.set(0.45, 0.45, 0.45);
+orb.rotation.set(0.5, 0.5, 0.5);
+orb.receiveShadow = true;
+pagodaGroup.add(orb);
+
+// small glowing accents on tier walls
+for (let tierIdx = 0; tierIdx < 5; tierIdx++){
+  // place 4 small glowing cubes on each tier's front/back/left/right
+  const t = tiers[tierIdx];
+  const py = 0; // we'll place relative to each tier's wall center
+  const pw = t.wallW/2 - 0.6;
+  const ph = 0.6;
+  // approximate y positions of each tier's walls
+  let yBase = 1.6;
+  for (let i = 0; i <= tierIdx; i++){
+    const ti = tiers[i];
+    yBase += ti.wallH + ti.layers + 0.1;
+  }
+  const midY = yBase - (i === tierIdx ? 0 : 0);
+  // simpler: use curY tracking from before; we can recompute:
+  let yy = 1.6;
+  for (let i = 0; i < tierIdx; i++){
+    const ti = tiers[i];
+    yy += ti.wallH + ti.layers + 0.1;
+  }
+  const wallCenterY = yy + tiers[tierIdx].wallH * 0.5;
+  addVox(-pw, wallCenterY, -pw, 0.25, orbMat);
+  addVox(pw, wallCenterY, -pw, 0.25, orbMat);
+  addVox(-pw, wallCenterY, pw, 0.25, orbMat);
+  addVox(pw, wallCenterY, pw, 0.25, orbMat);
+}
+
+/* ---------- camera orbit ---------- */
+const camDist = 26;
+const camHeight = 12;
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 400);
+camera.position.set(0, camHeight, camDist);
+camera.lookAt(0, 4, 0);
+
+const orbit = new THREE.Group();
+orbit.add(camera);
+camera.lookAt(0, 4, 0);
+orbit.position.copy(camera.position);
+scene.add(orbit);
+
+function animate(t, now){
+  const theta = now * 0.0006;
+  orbit.rotation.y = theta;
+  camera.lookAt(new THREE.Vector3(0, 4, 0));
+  renderer.render(scene, camera);
+}
+
+function resize(){
+  const h = window.innerHeight;
+  const w = window.innerWidth;
+  renderer.setSize(w, h);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', resize);
+
+let startT = null;
+function loop(now){
+  if (startT === null) startT = now;
+  animate(null, now - startT);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

@@ -1,7 +1,7 @@
-From a4344b545eb9dc4d889c50da8d52500954b2993f Mon Sep 17 00:00:00 2001
+From 423418ea6e0ed81aa1e8eb9a704624551c0bc06c Mon Sep 17 00:00:00 2001
 From: sudoingX <200180104+sudoingX@users.noreply.github.com>
 Date: Sat, 19 Sep 2026 07:42:22 +0000
-Subject: [PATCH 03/20] Test: add Bonsai 2 projection shapes to the mul_mat
+Subject: [PATCH 03/33] Test: add Bonsai 2 projection shapes to the mul_mat
  perf cases
 
 ---
@@ -9,10 +9,10 @@ Subject: [PATCH 03/20] Test: add Bonsai 2 projection shapes to the mul_mat
  1 file changed, 17 insertions(+)
 
 diff --git a/tests/test-backend-ops.cpp b/tests/test-backend-ops.cpp
-index b28bc29..955d0d7 100644
+index 72e580d89..7a05165bb 100644
 --- a/tests/test-backend-ops.cpp
 +++ b/tests/test-backend-ops.cpp
-@@ -10451,6 +10451,23 @@ static std::vector<std::unique_ptr<test_case>> make_test_cases_perf() {
+@@ -10507,6 +10507,23 @@ static std::vector<std::unique_ptr<test_case>> make_test_cases_perf() {
          }
      }
  

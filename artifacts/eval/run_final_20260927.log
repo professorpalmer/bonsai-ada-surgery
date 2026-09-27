@@ -1,0 +1,68 @@
+== depth sweep (final recipe, iGPU display, margin 1000)  2026-09-27T03:14:17
+corpus 261958 tokens
+depth    4096  prefill      4 tok @      9.8 t/s   decode 256 @  83.03 t/s   wall    3.5s
+depth   16384  prefill  12292 tok @   1100.6 t/s   decode 256 @ 106.18 t/s   wall   13.6s
+depth   32768  prefill  16388 tok @    917.9 t/s   decode 256 @  99.78 t/s   wall   20.4s
+depth   65536  prefill  32772 tok @    723.5 t/s   decode 256 @  87.05 t/s   wall   48.2s
+depth  112000  prefill  46468 tok @    538.7 t/s   decode 256 @  69.63 t/s   wall   90.0s
+depth  131072  prefill  19076 tok @    373.5 t/s   decode 256 @  41.21 t/s   wall   57.3s
+depth  180000  prefill  48932 tok @    297.8 t/s   decode 256 @  26.90 t/s   wall  173.8s
+depth  258000  prefill  78004 tok @    228.8 t/s   decode 256 @  14.69 t/s   wall  358.4s
+== killy suite  2026-09-27T03:27:03
+== HumanEval medium
+ 84/164 HumanEval/83     FAIL failed: AssertionError                                                           tok=4185 51.1s
+117/164 HumanEval/116    FAIL failed: AssertionError                                                           tok=20504 266.6s
+146/164 HumanEval/145    FAIL failed: AssertionError                                                           tok=20695 260.0s
+pass@1 98.17%  (161/164)  arm=medium effort=- temp=server max_tokens=24576  4468.8s
+== HumanEval off
+ 33/164 HumanEval/32     FAIL failed: SyntaxError: invalid syntax                                              tok=547 6.3s
+ 47/164 HumanEval/46     FAIL failed: AssertionError                                                           tok=306 3.0s
+ 55/164 HumanEval/54     FAIL failed: AssertionError                                                           tok=161 1.7s
+ 56/164 HumanEval/55     FAIL failed: AssertionError                                                           tok=113 1.4s
+ 68/164 HumanEval/67     FAIL failed: IndexError: list index out of range                                      tok=40 0.9s
+ 76/164 HumanEval/75     FAIL failed: RecursionError: maximum recursion depth exceeded                         tok=405 4.3s
+ 77/164 HumanEval/76     FAIL failed: AssertionError: This prints if this assert fails 2 (also good for debugg tok=225 2.5s
+ 84/164 HumanEval/83     FAIL failed: AssertionError                                                           tok=39 0.7s
+ 90/164 HumanEval/89     FAIL failed: AssertionError: This prints if this assert fails 1 (good for debugging!) tok=157 1.8s
+ 92/164 HumanEval/91     FAIL failed: AssertionError: Test 2                                                   tok=158 1.8s
+ 94/164 HumanEval/93     FAIL failed: AssertionError: This prints if this assert fails 1 (good for debugging!) tok=1552 17.1s
+101/164 HumanEval/100    FAIL failed: AssertionError: Test 4                                                   tok=671 6.9s
+102/164 HumanEval/101    FAIL failed: AssertionError                                                           tok=148 1.8s
+109/164 HumanEval/108    FAIL failed: AssertionError                                                           tok=47 1.0s
+114/164 HumanEval/113    FAIL failed: TypeError: unsupported operand type(s) for +: 'int' and 'list'           tok=255 2.8s
+116/164 HumanEval/115    FAIL failed: AssertionError: Error                                                    tok=365 3.9s
+121/164 HumanEval/120    FAIL failed: AssertionError                                                           tok=23 0.8s
+123/164 HumanEval/122    FAIL failed: AssertionError                                                           tok=50 0.9s
+130/164 HumanEval/129    FAIL failed: AssertionError                                                           tok=1691 19.5s
+131/164 HumanEval/130    FAIL failed: IndexError: list index out of range                                      tok=316 3.4s
+133/164 HumanEval/132    FAIL failed: IndexError: pop from empty list                                          tok=84 1.3s
+135/164 HumanEval/134    FAIL failed: IndexError: string index out of range                                    tok=49 1.0s
+140/164 HumanEval/139    FAIL failed: AssertionError: Test 4                                                   tok=143 1.7s
+146/164 HumanEval/145    FAIL failed: AssertionError                                                           tok=55 1.0s
+161/164 HumanEval/160    FAIL failed: AssertionError                                                           tok=140 1.8s
+164/164 HumanEval/163    FAIL failed: AssertionError: Test 1                                                   tok=145 1.7s
+pass@1 84.15%  (138/164)  arm=off effort=- temp=server max_tokens=24576  339.7s
+== HumanEval app-high
+ 37/164 HumanEval/36     FAIL failed: AssertionError                                                           tok=17234 216.8s
+ 48/164 HumanEval/47     FAIL failed: AssertionError                                                           tok=11366 145.8s
+ 94/164 HumanEval/93     FAIL failed: AssertionError: This prints if this assert fails 1 (good for debugging!) tok=2328 24.1s
+117/164 HumanEval/116    FAIL failed: AssertionError                                                           tok=7212 92.7s
+pass@1 97.56%  (160/164)  arm=app effort=high temp=server max_tokens=256  3776.5s
+== HumanEval app-4096
+ 33/164 HumanEval/32     FAIL failed: AssertionError                                                           tok=21492 285.6s
+ 48/164 HumanEval/47     FAIL failed: AssertionError                                                           tok=20665 268.7s
+ 64/164 HumanEval/63     FAIL failed: AssertionError                                                           tok=686 8.0s
+117/164 HumanEval/116    FAIL failed: AssertionError                                                           tok=20672 273.0s
+130/164 HumanEval/129    FAIL failed: AssertionError                                                           tok=13939 177.0s
+146/164 HumanEval/145    FAIL failed: AssertionError                                                           tok=20674 271.2s
+161/164 HumanEval/160    FAIL failed: AssertionError                                                           tok=4967 63.8s
+pass@1 95.73%  (157/164)  arm=app effort=- temp=server max_tokens=4096  4051.7s
+== pagoda plate
+medium finish=stop tokens=7037 81.7s html=4609 chars render=ok
+off    finish=stop tokens=3953 43.8s html=10078 chars render=ok
+== summary
+app-4096  157/164  (95.73%)  max_tokens=4096 effort= 4051.7s
+app-high  160/164  (97.56%)  max_tokens=256 effort=high 3776.5s
+medium    161/164  (98.17%)  max_tokens=24576 effort= 4468.8s
+off       138/164  (84.15%)  max_tokens=24576 effort= 339.7s
+== done  2026-09-27T06:59:49

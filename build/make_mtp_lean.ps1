@@ -20,7 +20,7 @@ $ErrorActionPreference = 'Stop'
 $Root = Split-Path -Parent $PSScriptRoot
 Set-Location $Root
 if (-not (Test-Path $Base)) { throw "base model not found: $Base (download Ternary-Bonsai-2-27B-PTQ1_0.gguf from prism-ml on Hugging Face)" }
-if (-not (Test-Path "vendor\prism-llama\gguf-py")) { throw "vendor\prism-llama missing (git clone -b bonsai-combo https://github.com/professorpalmer/llama.cpp-ada-ternary vendor\prism-llama)" }
+if (-not (Test-Path "vendor\prism-llama\gguf-py")) { throw "vendor\prism-llama missing (git clone -b bonsai-q8-product https://github.com/professorpalmer/llama.cpp-ada-ternary vendor\prism-llama)" }
 New-Item -ItemType Directory -Force $Work | Out-Null
 
 $graft = Join-Path $Work "bonsai2-small-gpu"

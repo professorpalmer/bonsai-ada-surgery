@@ -1,0 +1,166 @@
+From d8fa9565ab85f83ab6efc8c25d26e51a86236156 Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Sun, 27 Sep 2026 02:34:55 -0500
+Subject: [PATCH 32/33] server: --reasoning-effort-allow/-fallback and
+ --reasoning-max-tokens-floor
+
+--reasoning-effort-allow LIST: reasoning_effort values passed to the chat template; any other value (from
+the request's reasoning_effort or chat_template_kwargs) becomes --reasoning-effort-fallback instead of
+reaching a template that raises on it. Bonsai 2's template accepts xhigh/medium/low and raises on "high",
+which Cline, Kilo and Open WebUI send: every request failed with HTTP 500.
+
+--reasoning-max-tokens-floor N: with thinking on, a client max_tokens below N is raised to N. A thinking
+model spends its first thousands of tokens inside the thinking block; 256-4096 token app caps (PrismML's
+quickstart, SillyTavern, AnythingLLM, Continue) end the request there with no answer. --reasoning-budget
+still bounds the thinking. Both are off by default.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ common/arg.cpp                  | 27 +++++++++++++++++++++++++
+ common/common.h                 |  6 ++++++
+ tools/server/server-common.cpp  | 35 +++++++++++++++++++++++++++++++++
+ tools/server/server-common.h    |  3 +++
+ tools/server/server-context.cpp |  5 ++++-
+ 5 files changed, 75 insertions(+), 1 deletion(-)
+
+diff --git a/common/arg.cpp b/common/arg.cpp
+index 08979aa92..128130f0d 100644
+--- a/common/arg.cpp
++++ b/common/arg.cpp
+@@ -3713,6 +3713,33 @@ common_params_context common_params_parser_init(common_params & params, llama_ex
+             params.sampling.reasoning_budget_message = value;
+         }
+     ).set_examples({LLAMA_EXAMPLE_SERVER, LLAMA_EXAMPLE_COMPLETION, LLAMA_EXAMPLE_CLI}).set_env("LLAMA_ARG_THINK_BUDGET_MESSAGE"));
++    add_opt(common_arg(
++        {"--reasoning-effort-allow"}, "LIST",
++        "comma-separated reasoning_effort values to pass to the chat template; any other value in a request (or\n"
++        "chat_template_kwargs) is replaced by --reasoning-effort-fallback instead of reaching a template that\n"
++        "raises on it (e.g. \"high\" -> HTTP 500). Empty = pass everything (default)",
++        [](common_params & params, const std::string & value) {
++            params.reasoning_effort_allow = string_split<std::string>(value, ',');
++        }
++    ).set_examples({LLAMA_EXAMPLE_SERVER}).set_env("LLAMA_ARG_REASONING_EFFORT_ALLOW"));
++    add_opt(common_arg(
++        {"--reasoning-effort-fallback"}, "WORD",
++        string_format("reasoning_effort used in place of a value --reasoning-effort-allow rejects (default: %s)", params.reasoning_effort_fallback.c_str()),
++        [](common_params & params, const std::string & value) {
++            params.reasoning_effort_fallback = value;
++        }
++    ).set_examples({LLAMA_EXAMPLE_SERVER}).set_env("LLAMA_ARG_REASONING_EFFORT_FALLBACK"));
++    add_opt(common_arg(
++        {"--reasoning-max-tokens-floor"}, "N",
++        "with thinking on, raise a client max_tokens below N to N, so a small app cap does not end the request\n"
++        "inside the thinking block with no answer; --reasoning-budget still bounds the thinking. 0 = off (default)",
++        [](common_params & params, int value) {
++            if (value < 0) {
++                throw std::invalid_argument("invalid value");
++            }
++            params.reasoning_max_tokens_floor = value;
++        }
++    ).set_examples({LLAMA_EXAMPLE_SERVER}).set_env("LLAMA_ARG_REASONING_MAX_TOKENS_FLOOR"));
+     add_opt(common_arg(
+         {"--reasoning-preserve"},
+         {"--no-reasoning-preserve"},
+diff --git a/common/common.h b/common/common.h
+index 17a5189a8..506456ec8 100644
+--- a/common/common.h
++++ b/common/common.h
+@@ -656,6 +656,12 @@ struct common_params {
+     bool force_pure_content_parser = false;
+     common_reasoning_format reasoning_format = COMMON_REASONING_FORMAT_DEEPSEEK;
+     int enable_reasoning = -1; // -1 = auto, 0 = disable, 1 = enable
++
++    // server: reasoning_effort words passed to the chat template (empty = any); others become the fallback
++    std::vector<std::string> reasoning_effort_allow;
++    std::string              reasoning_effort_fallback = "medium";
++    // server: with thinking on, raise a client output cap below this (0 = off)
++    int32_t reasoning_max_tokens_floor = 0;
+     bool prefill_assistant = true; // if true, any trailing assistant message will be prefilled into the response
+     int sleep_idle_seconds = -1;   // if >0, server will sleep after this many seconds of idle time
+ 
+diff --git a/tools/server/server-common.cpp b/tools/server/server-common.cpp
+index b5e052a9e..48466405e 100644
+--- a/tools/server/server-common.cpp
++++ b/tools/server/server-common.cpp
+@@ -1321,6 +1321,26 @@ json oaicompat_chat_params_parse(
+         }
+     }
+ 
++    // --reasoning-effort-allow: an effort word the chat template does not accept (from the request or from
++    // chat_template_kwargs) becomes --reasoning-effort-fallback instead of reaching the template. Bonsai 2's
++    // template raises on "high", which Cline, Kilo and Open WebUI send: HTTP 500 on every request.
++    if (!opt.reasoning_effort_allow.empty()) {
++        auto it = inputs.chat_template_kwargs.find("reasoning_effort");
++        if (it != inputs.chat_template_kwargs.end()) {
++            std::string effort;
++            try {
++                effort = json::parse(it->second).get<std::string>();
++            } catch (...) {
++                effort = it->second;
++            }
++            const auto & allow = opt.reasoning_effort_allow;
++            if (std::find(allow.begin(), allow.end(), effort) == allow.end()) {
++                SRV_INF("reasoning_effort \"%s\" is not in --reasoning-effort-allow: using \"%s\"\n", effort.c_str(), opt.reasoning_effort_fallback.c_str());
++                it->second = json(opt.reasoning_effort_fallback).dump();
++            }
++        }
++    }
++
+     inputs.force_pure_content = opt.force_pure_content;
+ 
+     // Apply chat template to the list of messages
+@@ -1388,6 +1408,21 @@ json oaicompat_chat_params_parse(
+         }
+     }
+ 
++    // --reasoning-max-tokens-floor: with thinking on, a client output cap below the floor is raised to it. A
++    // thinking model spends its first thousands of tokens inside the thinking block; a 256-4096 token app cap
++    // ends the request there with no answer. The reasoning budget still bounds the thinking.
++    if (opt.reasoning_max_tokens_floor > 0 && inputs.enable_thinking && !chat_params.thinking_end_tags.empty()) {
++        for (const char * key : {"n_predict", "max_tokens", "max_completion_tokens"}) {
++            if (llama_params.contains(key) && llama_params.at(key).is_number_integer()) {
++                const int v = llama_params.at(key).get<int>();
++                if (v > 0 && v < opt.reasoning_max_tokens_floor) {
++                    SRV_INF("%s %d raised to %d (thinking on, --reasoning-max-tokens-floor)\n", key, v, opt.reasoning_max_tokens_floor);
++                    llama_params[key] = opt.reasoning_max_tokens_floor;
++                }
++            }
++        }
++    }
++
+     return llama_params;
+ }
+ 
+diff --git a/tools/server/server-common.h b/tools/server/server-common.h
+index a624ae6a0..9f697ce25 100644
+--- a/tools/server/server-common.h
++++ b/tools/server/server-common.h
+@@ -310,6 +310,9 @@ struct server_chat_params {
+     std::string reasoning_budget_message;
+     std::string media_path;
+     bool force_pure_content = false;
++    std::vector<std::string> reasoning_effort_allow;    // --reasoning-effort-allow (empty = pass everything)
++    std::string              reasoning_effort_fallback; // --reasoning-effort-fallback
++    int                      reasoning_max_tokens_floor = 0; // --reasoning-max-tokens-floor (0 = off)
+ };
+ 
+ // used by /completions endpoint
+diff --git a/tools/server/server-context.cpp b/tools/server/server-context.cpp
+index 5ee7316bb..5e3420509 100644
+--- a/tools/server/server-context.cpp
++++ b/tools/server/server-context.cpp
+@@ -1463,7 +1463,10 @@ private:
+                 /* reasoning_budget      */ params_base.sampling.reasoning_budget_tokens,
+                 /* reasoning_budget_msg  */ params_base.sampling.reasoning_budget_message,
+                 /* media_path            */ params_base.media_path,
+-                /* force_pure_content    */ params_base.force_pure_content_parser
++                /* force_pure_content    */ params_base.force_pure_content_parser,
++                /* reasoning_effort_allow    */ params_base.reasoning_effort_allow,
++                /* reasoning_effort_fallback */ params_base.reasoning_effort_fallback,
++                /* reasoning_max_tok_floor   */ params_base.reasoning_max_tokens_floor
+             };
+ 
+             {
+-- 
+2.55.0.windows.3
+

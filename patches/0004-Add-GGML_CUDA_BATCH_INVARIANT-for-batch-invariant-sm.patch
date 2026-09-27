@@ -1,7 +1,7 @@
-From a55badae9f0e5a0d609127c0406e9a8d20ef9b83 Mon Sep 17 00:00:00 2001
+From cee4fa6b0da04ee34c1e4b7b88833c72a5875797 Mon Sep 17 00:00:00 2001
 From: sudoingX <200180104+sudoingX@users.noreply.github.com>
 Date: Sat, 19 Sep 2026 08:22:44 +0000
-Subject: [PATCH 04/20] Add: GGML_CUDA_BATCH_INVARIANT for batch-invariant
+Subject: [PATCH 04/33] Add: GGML_CUDA_BATCH_INVARIANT for batch-invariant
  small-batch kernels
 
 Off by default, nothing changes. When set, kernels are picked so that the
@@ -26,7 +26,7 @@ throughput at depth (the vector attention kernel at 3 queries over 42K keys).
  4 files changed, 23 insertions(+), 1 deletion(-)
 
 diff --git a/ggml/src/ggml-cuda/common.cuh b/ggml/src/ggml-cuda/common.cuh
-index ef929d3..2600e6d 100644
+index ef929d3d7..2600e6d86 100644
 --- a/ggml/src/ggml-cuda/common.cuh
 +++ b/ggml/src/ggml-cuda/common.cuh
 @@ -173,6 +173,14 @@ static int ggml_cuda_highest_compiled_arch(const int arch) {
@@ -45,7 +45,7 @@ index ef929d3..2600e6d 100644
  
  #define GGML_CUDA_MAX_STREAMS 8
 diff --git a/ggml/src/ggml-cuda/fattn-common.cuh b/ggml/src/ggml-cuda/fattn-common.cuh
-index e67cc7f..ae4318c 100644
+index e67cc7fdf..ae4318cbc 100644
 --- a/ggml/src/ggml-cuda/fattn-common.cuh
 +++ b/ggml/src/ggml-cuda/fattn-common.cuh
 @@ -1154,11 +1154,14 @@ void launch_fattn(
@@ -65,7 +65,7 @@ index e67cc7f..ae4318c 100644
              const int efficiency_percent = 100 * nblocks_total / (nwaves*blocks_per_wave);
  
 diff --git a/ggml/src/ggml-cuda/fattn.cu b/ggml/src/ggml-cuda/fattn.cu
-index ab7a3b2..dacbe48 100644
+index ab7a3b297..dacbe4884 100644
 --- a/ggml/src/ggml-cuda/fattn.cu
 +++ b/ggml/src/ggml-cuda/fattn.cu
 @@ -460,6 +460,11 @@ static best_fattn_kernel ggml_cuda_get_best_fattn_kernel(const int device, const
@@ -81,7 +81,7 @@ index ab7a3b2..dacbe48 100644
                  if (cc >= GGML_CUDA_CC_ADA_LOVELACE && Q->ne[1] == 1 && Q->ne[3] == 1 && !(gqa_ratio > 4 && K->ne[1] >= 8192)) {
                      return BEST_FATTN_KERNEL_VEC;
 diff --git a/ggml/src/ggml-cuda/mmvf.cu b/ggml/src/ggml-cuda/mmvf.cu
-index d7dbc8b..9810f3e 100644
+index d7dbc8b99..9810f3edc 100644
 --- a/ggml/src/ggml-cuda/mmvf.cu
 +++ b/ggml/src/ggml-cuda/mmvf.cu
 @@ -821,6 +821,9 @@ bool ggml_cuda_should_use_mmvf(enum ggml_type type, int cc, const int64_t * src0

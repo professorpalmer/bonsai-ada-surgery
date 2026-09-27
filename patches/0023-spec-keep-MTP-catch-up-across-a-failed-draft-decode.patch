@@ -1,0 +1,129 @@
+From 8ee1aad69ede4efe980a68db975537b246c482d6 Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Tue, 22 Sep 2026 20:29:18 -0500
+Subject: [PATCH 23/33] spec: keep MTP catch-up across a failed draft decode
+
+catchup_failed was set on a flush failure and never cleared, so one bad decode disabled that slot for every later task. begin() now resets it with the rest of the per-task state.
+
+draft() also cleared pending while building the batch, so a failed llama_decode dropped those rows from both the stash and ctx_dft. pending stays set until that first decode succeeds, and a failure marks the slot so it is not drafted again until the next begin(). flush_deferred waits for success the same way.
+
+The layout_for comment now says it is the column-count helper. ggml_cuda_q8_1_layout_host is the decision both sides call.
+---
+ common/speculative.cpp        | 36 ++++++++++++++++++++++++++++-------
+ ggml/src/ggml-cuda/common.cuh |  8 ++++----
+ 2 files changed, 33 insertions(+), 11 deletions(-)
+
+diff --git a/common/speculative.cpp b/common/speculative.cpp
+index a2ca677d6..6c6c1fbd5 100644
+--- a/common/speculative.cpp
++++ b/common/speculative.cpp
+@@ -2160,8 +2160,8 @@ struct common_speculative_impl_draft_mtp : public common_speculative_impl {
+         if (!d.pending) {
+             return true;
+         }
+-        d.pending = false;
+         if (d.n_valid <= 0) {
++            d.pending = false;
+             return true;
+         }
+         const size_t row_bytes = (size_t) n_embd * sizeof(float);
+@@ -2176,6 +2176,7 @@ struct common_speculative_impl_draft_mtp : public common_speculative_impl {
+             d.catchup_failed = true;
+             return false;
+         }
++        d.pending = false;
+         return true;
+     }
+ 
+@@ -2287,6 +2288,10 @@ struct common_speculative_impl_draft_mtp : public common_speculative_impl {
+         }
+ 
+         auto * ctx_dft = this->params.ctx_dft;
++        if (seq_id >= 0 && seq_id < (llama_seq_id) n_seq) {
++            // A failed catch-up used to stick for the life of the slot. This task is a new prompt.
++            deferred[seq_id].catchup_failed = false;
++        }
+         if (seq_id >= 0 && seq_id < (llama_seq_id) n_seq && deferred[seq_id].pending) {
+             // rows left over from the previous task on this slot. They are only worth decoding when they
+             // are the tail of a prefix the new prompt reuses: the same tokens at the same positions, and
+@@ -2523,11 +2528,11 @@ struct common_speculative_impl_draft_mtp : public common_speculative_impl {
+             }
+         }
+ 
+-        // Catch-up that leads into this draft rides in the same decode as the anchors. The stash
+-        // can already be llama_n_batch(ctx_dft) rows (n_tokens == n_max+1 == n_batch); the extra
+-        // anchor then overflows both the host batch and llama_decode. Flush first when the
+-        // combined count would not fit; llama_decode enforces the same limit, so growing the
+-        // host allocation alone is not enough.
++        // Catch-up that leads into this draft rides in the same decode as the anchors. batch is
++        // allocated at exactly llama_n_batch(ctx_dft); a full stash (n_tokens == n_max+1 == n_batch)
++        // plus the anchor is a one-row heap overflow, and llama_decode enforces the same limit.
++        // Flush first when the combined count would not fit. Growing only the host allocation
++        // would still abort in decode.
+         {
+             const int32_t n_b = (int32_t) llama_n_batch(ctx_dft);
+             int32_t catchup_rows = 0;
+@@ -2560,6 +2565,7 @@ struct common_speculative_impl_draft_mtp : public common_speculative_impl {
+         // keep track of which sequences are still drafting
+         int n_drafting = 0;
+         std::vector<bool> drafting(n_seq);
++        std::vector<char> catchup_in_batch(n_seq, 0);
+ 
+         for (llama_seq_id seq_id = 0; seq_id < (llama_seq_id) n_seq; ++seq_id) {
+             auto & dp = dparams[seq_id];
+@@ -2579,7 +2585,9 @@ struct common_speculative_impl_draft_mtp : public common_speculative_impl {
+                     common_batch_add(batch, d.tokens[k], d.pos[k], { seq_id }, false);
+                     std::memcpy(batch.embd + (size_t) (batch.n_tokens - 1) * n_embd, d.h.data() + (size_t) k * n_embd, row_bytes);
+                 }
+-                d.pending = false;
++                // Leave pending set until this decode succeeds. Clearing it here dropped the
++                // rows on a failed llama_decode: they were in neither the stash nor ctx_dft.
++                catchup_in_batch[seq_id] = 1;
+             }
+ 
+             common_batch_add(batch, dp.id_last, dp.n_past, { seq_id }, true);
+@@ -2614,8 +2622,22 @@ struct common_speculative_impl_draft_mtp : public common_speculative_impl {
+             int ret = llama_decode(ctx_dft, batch);
+             if (ret != 0) {
+                 SPC_ERR("llama_decode[%d] returned %d\n", i, ret);
++                if (i == 0) {
++                    for (llama_seq_id seq_id = 0; seq_id < (llama_seq_id) n_seq; ++seq_id) {
++                        if (catchup_in_batch[seq_id]) {
++                            deferred[seq_id].catchup_failed = true;
++                        }
++                    }
++                }
+                 break;
+             }
++            if (i == 0) {
++                for (llama_seq_id seq_id = 0; seq_id < (llama_seq_id) n_seq; ++seq_id) {
++                    if (catchup_in_batch[seq_id]) {
++                        deferred[seq_id].pending = false;
++                    }
++                }
++            }
+ 
+             // rebuild the batch for the next step: the growing-KV paths re-add only the
+             // new token (the KV already holds the prefix), while chained heads re-add the
+diff --git a/ggml/src/ggml-cuda/common.cuh b/ggml/src/ggml-cuda/common.cuh
+index 14660e955..f69dbf8a8 100644
+--- a/ggml/src/ggml-cuda/common.cuh
++++ b/ggml/src/ggml-cuda/common.cuh
+@@ -1057,10 +1057,10 @@ enum ggml_cuda_q8_1_layout : int {
+     GGML_CUDA_Q8_1_PT       = 2, // PTQ1_0, 2-8 columns or MoE ids: planar-transposed (mmvq-ptq1_0.cuh)
+ };
+ 
+-// The single decision both sides (quantizer, kernel) must agree on. Column count is the first
+-// cut: 2-8 columns and MoE (ids) always take the planar-transposed kernel. One-column decode
+-// is architecture-specific and is resolved on the host (ggml_cuda_q8_1_layout_host): this
+-// constexpr helper only knows column count, so it reports the Ada default (SOA_ISUM at 1-col).
++// Column-count helper, not the layout decision. 2-8 columns and MoE (ids) take the planar
++// kernel. One column returns the Ada default (SOA_ISUM). Ampere and GGML_CUDA_BATCH_INVARIANT
++// override that to PT in ggml_cuda_q8_1_layout_host, which is what the quantizer and the kernel
++// switch both call. This helper does not consult the compute capability.
+ static constexpr __host__ __device__ ggml_cuda_q8_1_layout ggml_cuda_q8_1_layout_for(ggml_type type_src0, int ncols_dst, bool has_ids) {
+ #if defined(GGML_USE_HIP)
+     GGML_UNUSED(type_src0); GGML_UNUSED(ncols_dst); GGML_UNUSED(has_ids);
+-- 
+2.55.0.windows.3
+

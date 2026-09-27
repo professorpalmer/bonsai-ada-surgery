@@ -1,7 +1,7 @@
-From c7551241a12bef59adc4fe6adf0928a28f0fcf25 Mon Sep 17 00:00:00 2001
+From 118445b08f6a4531b9be9e590f11ce1e8d9548b2 Mon Sep 17 00:00:00 2001
 From: sudoingX <200180104+sudoingX@users.noreply.github.com>
 Date: Sat, 19 Sep 2026 07:42:22 +0000
-Subject: [PATCH 02/20] Add: dedicated PTQ1_0 mat-vec kernel with full lane
+Subject: [PATCH 02/33] Add: dedicated PTQ1_0 mat-vec kernel with full lane
  utilization
 
 With 128-element blocks the generic kernel's 128 threads cover 128 K blocks
@@ -30,7 +30,7 @@ pp3 33.3 to 72.0.
  2 files changed, 231 insertions(+), 2 deletions(-)
 
 diff --git a/ggml/src/ggml-cuda/mmvq-ptq1_0.cuh b/ggml/src/ggml-cuda/mmvq-ptq1_0.cuh
-index dfe9e28..76604a6 100644
+index dfe9e2882..76604a6c3 100644
 --- a/ggml/src/ggml-cuda/mmvq-ptq1_0.cuh
 +++ b/ggml/src/ggml-cuda/mmvq-ptq1_0.cuh
 @@ -24,10 +24,17 @@
@@ -281,7 +281,7 @@ index dfe9e28..76604a6 100644
 +    return true;
  }
 diff --git a/ggml/src/ggml-cuda/mmvq.cu b/ggml/src/ggml-cuda/mmvq.cu
-index 5044cd7..5915485 100644
+index 5044cd77c..59154856f 100644
 --- a/ggml/src/ggml-cuda/mmvq.cu
 +++ b/ggml/src/ggml-cuda/mmvq.cu
 @@ -1059,6 +1059,17 @@ static void mul_mat_vec_q_switch_ncols_dst(

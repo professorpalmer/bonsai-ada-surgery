@@ -82,7 +82,11 @@ has begun paging the cache to system memory: decode at 32k depth measured 30.1 t
 11.35 GB did not page. The line is somewhere between 11.4 and 11.9 GB in use, and a recipe has
 to stay under it at *every* depth, not just on the probe that gets screenshotted.
 
-**Default: 98,304 tokens with q8_0 K/V, 10.8 GB in use, no paging at any depth.** On 12 GB:
+**Superseded 2026-09-27:** the default is now the full 262,144 window with q8_0 K/V on 12 GB, through a tiered KV
+cache (first ~113k positions in VRAM, the rest in pinned system RAM, bit-identical output); see
+[Q8_FULL_CONTEXT.md](Q8_FULL_CONTEXT.md). What follows is the all-VRAM recipe it replaced (`BONSAI_TIER=0`).
+
+**Default until then: 98,304 tokens with q8_0 K/V, 10.8 GB in use, no paging at any depth.** On 12 GB:
 `BONSAI_CTX=131072 BONSAI_CTK=q4_0` for a longer window with the q4_0 noise;
 `BONSAI_CTX=262144 BONSAI_CTK=q4_0 BONSAI_SPEC=0` for the full window (the draft context is what
 pushes 262k over the line). 16 GB and up: 262k with q8_0.

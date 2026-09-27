@@ -1,0 +1,132 @@
+From 5421dac4668a762f64e5fcded89485d29caad1b6 Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Mon, 21 Sep 2026 10:43:22 -0500
+Subject: [PATCH 21/33] spec: flush MTP catch-up when it plus anchors would
+ overflow n_batch
+
+process() can stash n_batch rows; draft() then added one more anchor.
+Flush first when the combined count would exceed llama_n_batch.
+---
+ common/speculative.cpp           | 39 ++++++++++++++++++++++++++++++++
+ common/speculative.h             |  4 ++++
+ tests/CMakeLists.txt             |  1 +
+ tests/test-mtp-catchup-batch.cpp | 23 +++++++++++++++++++
+ 4 files changed, 67 insertions(+)
+ create mode 100644 tests/test-mtp-catchup-batch.cpp
+
+diff --git a/common/speculative.cpp b/common/speculative.cpp
+index 6a1009fcf..a2ca677d6 100644
+--- a/common/speculative.cpp
++++ b/common/speculative.cpp
+@@ -2523,6 +2523,38 @@ struct common_speculative_impl_draft_mtp : public common_speculative_impl {
+             }
+         }
+ 
++        // Catch-up that leads into this draft rides in the same decode as the anchors. The stash
++        // can already be llama_n_batch(ctx_dft) rows (n_tokens == n_max+1 == n_batch); the extra
++        // anchor then overflows both the host batch and llama_decode. Flush first when the
++        // combined count would not fit; llama_decode enforces the same limit, so growing the
++        // host allocation alone is not enough.
++        {
++            const int32_t n_b = (int32_t) llama_n_batch(ctx_dft);
++            int32_t catchup_rows = 0;
++            int32_t n_anchors = 0;
++            for (llama_seq_id seq_id = 0; seq_id < (llama_seq_id) n_seq; ++seq_id) {
++                auto & dp = dparams[seq_id];
++                auto & d = deferred[seq_id];
++                if (d.catchup_failed || !dp.drafting) {
++                    continue;
++                }
++                if (d.pending) {
++                    catchup_rows += d.n_valid;
++                }
++                n_anchors++;
++            }
++            if (!common_speculative_mtp_first_decode_fits(n_b, catchup_rows, n_anchors)) {
++                for (llama_seq_id seq_id = 0; seq_id < (llama_seq_id) n_seq; ++seq_id) {
++                    if (!dparams[seq_id].drafting || !deferred[seq_id].pending) {
++                        continue;
++                    }
++                    if (!flush_deferred(seq_id)) {
++                        dparams[seq_id].drafting = false;
++                    }
++                }
++            }
++        }
++
+         common_batch_clear(batch);
+ 
+         // keep track of which sequences are still drafting
+@@ -3455,6 +3487,13 @@ common_speculative_init_result_ptr common_speculative_init_from_params(common_pa
+     return std::make_unique<common_speculative_init_result>(params, model_tgt, ctx_tgt);
+ }
+ 
++bool common_speculative_mtp_first_decode_fits(int32_t n_batch, int32_t catchup_rows, int32_t n_anchors) {
++    if (n_batch <= 0 || catchup_rows < 0 || n_anchors < 0) {
++        return false;
++    }
++    return (int64_t) catchup_rows + (int64_t) n_anchors <= (int64_t) n_batch;
++}
++
+ common_speculative_output_limits common_speculative_get_output_limits(
+         int32_t n_batch, int32_t n_parallel, int32_t n_draft) {
+     const int64_t per_seq = 1 + (int64_t) std::max(0, n_draft);
+diff --git a/common/speculative.h b/common/speculative.h
+index a7a4775ab..12d166660 100644
+--- a/common/speculative.h
++++ b/common/speculative.h
+@@ -37,6 +37,10 @@ struct common_speculative_output_limits {
+ common_speculative_output_limits common_speculative_get_output_limits(
+         int32_t n_batch, int32_t n_parallel, int32_t n_draft);
+ 
++// True if deferred catch-up rows plus one first-draft anchor per sequence fit in one llama_decode.
++// Used by draft-mtp so a full-prefill stash (n_tokens == n_batch) does not add a 33rd row.
++bool common_speculative_mtp_first_decode_fits(int32_t n_batch, int32_t catchup_rows, int32_t n_anchors);
++
+ common_speculative * common_speculative_init(common_params_speculative & params, uint32_t n_seq);
+ 
+ void common_speculative_free(common_speculative * spec);
+diff --git a/tests/CMakeLists.txt b/tests/CMakeLists.txt
+index f1f117950..89c1b8c60 100644
+--- a/tests/CMakeLists.txt
++++ b/tests/CMakeLists.txt
+@@ -305,6 +305,7 @@ llama_build_and_test(test-thread-safety.cpp ARGS -m "${MODEL_DEST}" -ngl 99 -p "
+ set_tests_properties(test-thread-safety PROPERTIES FIXTURES_REQUIRED test-download-model)
+ 
+ llama_build_and_test(test-arg-parser.cpp)
++llama_build_and_test(test-mtp-catchup-batch.cpp)
+ llama_build_and_test(test-model-resolution.cpp)
+ # the test serves its repos from an httplib server, and the library links it privately
+ target_link_libraries(test-model-resolution PRIVATE cpp-httplib)
+diff --git a/tests/test-mtp-catchup-batch.cpp b/tests/test-mtp-catchup-batch.cpp
+new file mode 100644
+index 000000000..5de04e828
+--- /dev/null
++++ b/tests/test-mtp-catchup-batch.cpp
+@@ -0,0 +1,23 @@
++// Host-only bounds for draft-mtp's first decode: deferred catch-up plus one
++// anchor per drafting sequence must fit in llama_n_batch(ctx_dft).
++#include "speculative.h"
++
++#undef NDEBUG
++#include <cassert>
++#include <cstdio>
++
++int main() {
++    // full-prefill boundary: n_max=31, n_batch=32, one 32-token prompt stash
++    assert(common_speculative_mtp_first_decode_fits(32, 31, 1));
++    assert(!common_speculative_mtp_first_decode_fits(32, 32, 1));
++
++    // two sequences, combined catch-up plus two anchors
++    assert(common_speculative_mtp_first_decode_fits(32, 15 + 15, 2));
++    assert(!common_speculative_mtp_first_decode_fits(32, 16 + 16, 2));
++
++    assert(!common_speculative_mtp_first_decode_fits(0, 0, 0));
++    assert(!common_speculative_mtp_first_decode_fits(32, -1, 1));
++
++    printf("ok\n");
++    return 0;
++}
+-- 
+2.55.0.windows.3
+

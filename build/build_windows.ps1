@@ -21,7 +21,7 @@ if (-not $Src)   { $Src = Join-Path $Root 'vendor\prism-llama' }
 if (-not $Build) { $Build = Join-Path $Root 'tooling\build' }
 if (-not $Out)   { $Out = Join-Path $Root 'bin' }
 if (-not (Test-Path (Join-Path $Src 'CMakeLists.txt'))) {
-    throw "no llama.cpp source at $Src - git clone -b bonsai-combo https://github.com/professorpalmer/llama.cpp-ada-ternary $Src, or git am patches\*.patch onto PrismML-Eng/llama.cpp"
+    throw "no llama.cpp source at $Src - git clone -b bonsai-q8-product https://github.com/professorpalmer/llama.cpp-ada-ternary $Src, or git am patches\*.patch onto PrismML-Eng/llama.cpp at adfffbe"
 }
 
 # GPU arch

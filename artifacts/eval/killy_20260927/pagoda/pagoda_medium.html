@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Voxel Pagoda</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #10243d; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<script src="https://unpkg.com/three@0.158.0/build/three.min.js"></script>
+<script>
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x10243d);
+scene.fog = new THREE.Fog(0x10243d, 35, 90);
+
+const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 200);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+document.body.appendChild(renderer.domElement);
+
+// Lighting
+scene.add(new THREE.AmbientLight(0x8fb6e8, 0.45));
+scene.add(new THREE.HemisphereLight(0x9fc9ff, 0x33402f, 0.6));
+const sun = new THREE.DirectionalLight(0xffeeda, 1.6);
+sun.position.set(28, 42, 18);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.near = 0.5;
+sun.shadow.camera.far = 80;
+sun.shadow.camera.left = -30;
+sun.shadow.camera.right = 30;
+sun.shadow.camera.top = 30;
+sun.shadow.camera.bottom = -30;
+sun.shadow.bias = -0.0005;
+scene.add(sun);
+
+// Materials
+const mStone = new THREE.MeshStandardMaterial({ color: 0x9aa0a6 });
+const mStoneD = new THREE.MeshStandardMaterial({ color: 0x7d858c });
+const mGround = new THREE.MeshStandardMaterial({ color: 0x2f4032 });
+const mWood = new THREE.MeshStandardMaterial({ color: 0x9c6229 });
+const mWoodD = new THREE.MeshStandardMaterial({ color: 0x6b3f18 });
+const mRoof = new THREE.MeshStandardMaterial({ color: 0x9e1b24 });
+const mRoofD = new THREE.MeshStandardMaterial({ color: 0x73141b });
+const mGold = new THREE.MeshStandardMaterial({ color: 0xd9a441, metalness: 0.85, roughness: 0.25 });
+
+// Ground plane
+const ground = new THREE.Mesh(new THREE.BoxGeometry(60, 0.2, 60), mGround);
+ground.position.set(0, -0.1, 0);
+ground.receiveShadow = true;
+scene.add(ground);
+
+// Pagoda
+const pagoda = new THREE.Group();
+scene.add(pagoda);
+let y = 0;
+
+function cube(x, z, w, h, mat) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, w), mat);
+  m.position.set(x, y, z);
+  m.castShadow = true;
+  m.receiveShadow = true;
+  pagoda.add(m);
+  y += h;
+}
+
+// Base: stacked stone terraces and wooden deck
+cube(0, 0, 11, 0.9, mStone);
+cube(0, 0, 9, 0.8, mStoneD);
+cube(0, 0, 7, 0.5, mWoodD);
+
+// Five tiers: column span and column height, tallest at the bottom
+const tiers = [
+  { w: 6.4, h: 2.4 },
+  { w: 4.8, h: 2.1 },
+  { w: 3.6, h: 1.8 },
+  { w: 2.7, h: 1.5 },
+  { w: 2.0, h: 1.3 },
+];
+
+for (const t of tiers) {
+  // Floor slab of the tier
+  cube(0, 0, t.w, 0.5, mWood);
+  // Four corner columns
+  const c = 0.7, o = t.w / 2 - 0.35;
+  cube(o, o, c, t.h, mWoodD);
+  cube(o, -o, c, t.h, mWoodD);
+  cube(-o, o, c, t.h, mWoodD);
+  cube(-o, -o, c, t.h, mWoodD);
+  // Roof: broad eave stepping down toward a dark ridge
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(t.w + 2.0, 0.5, t.w + 2.0), mRoof);
+  roof.position.set(0, y, 0);
+  roof.castShadow = roof.receiveShadow = true;
+  pagoda.add(roof);
+  y += 0.5;
+  const r2 = new THREE.Mesh(new THREE.BoxGeometry(t.w + 0.6, 0.5, t.w + 0.6), mRoof);
+  r2.position.set(0, y, 0);
+  r2.castShadow = r2.receiveShadow = true;
+  pagoda.add(r2);
+  y += 0.5;
+  const r3 = new THREE.Mesh(new THREE.BoxGeometry(t.w - 0.6, 0.5, t.w - 0.6), mRoof);
+  r3.position.set(0, y, 0);
+  r3.castShadow = r3.receiveShadow = true;
+  pagoda.add(r3);
+  y += 0.5;
+  const ridge = new THREE.Mesh(
+    new THREE.BoxGeometry(Math.max(t.w - 1.8, 0.4), 0.55, Math.max(t.w - 1.8, 0.4)),
+    mRoofD
+  );
+  ridge.position.set(0, y, 0);
+  ridge.castShadow = ridge.receiveShadow = true;
+  pagoda.add(ridge);
+  y += 0.55;
+}
+
+// Spire / finial (gold cube pyramid)
+cube(0, 0, 1.2, 0.5, mGold);
+cube(0, 0, 0.7, 0.5, mGold);
+cube(0, 0, 0.4, 0.6, mGold);
+cube(0, 0, 0.2, 0.5, mGold);
+cube(0, 0, 0.45, 0.2, mGold);
+
+// Slow orbiting camera
+let t = 0;
+const clock = new THREE.Clock();
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = clock.getDelta();
+  t += dt * 0.12;
+  const R = 28, HY = 12;
+  camera.position.set(Math.cos(t) * R, HY, Math.sin(t) * R);
+  camera.lookAt(0, 12, 0);
+  renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+</script>
+</body>
+</html>

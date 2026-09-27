@@ -1,7 +1,7 @@
-From 588318660c5076795ad43487c3410f1a44970bf8 Mon Sep 17 00:00:00 2001
+From 9e2449be657280becdc6912ac839d60aff7e4b19 Mon Sep 17 00:00:00 2001
 From: sudoingX <200180104+sudoingX@users.noreply.github.com>
 Date: Sat, 19 Sep 2026 08:22:44 +0000
-Subject: [PATCH 05/20] Fix: use the mat-vec kernel for bf16 matrices under 64
+Subject: [PATCH 05/33] Fix: use the mat-vec kernel for bf16 matrices under 64
  rows at 2 to 8 columns
 
 The qwen35 gated-delta-net gate projections are bf16 [5120 x 48]. At 2 to 8
@@ -13,7 +13,7 @@ mul_mat_vec_f (3.3 us). 96 calls per token on the 27B model.
  1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/ggml/src/ggml-cuda/mmvf.cu b/ggml/src/ggml-cuda/mmvf.cu
-index 9810f3e..b12245e 100644
+index 9810f3edc..b12245e71 100644
 --- a/ggml/src/ggml-cuda/mmvf.cu
 +++ b/ggml/src/ggml-cuda/mmvf.cu
 @@ -850,7 +850,9 @@ bool ggml_cuda_should_use_mmvf(enum ggml_type type, int cc, const int64_t * src0

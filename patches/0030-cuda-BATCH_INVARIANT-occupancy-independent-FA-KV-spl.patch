@@ -1,0 +1,69 @@
+From efe20ad51af0f2f7ab41205a8e554940463b3fc6 Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Sun, 27 Sep 2026 02:34:54 -0500
+Subject: [PATCH 30/33] cuda: BATCH_INVARIANT: occupancy-independent FA KV
+ split, PTQ1_0 mat-vec up to 8 columns
+
+Under GGML_CUDA_BATCH_INVARIANT:
+- the non-stream-k flash-attention KV split is sized from a fixed blocks-per-SM value instead of the
+  occupancy of the template instance that runs; the 1-query and multi-query instances differ in registers
+  and shared memory, so their splits (and combine order) differed.
+- PTQ1_0 batches up to MMVQ_MAX_BATCH_SIZE stay on the PT mat-vec, whose per-column arithmetic does not
+  depend on the column count; a 5-column speculative verify on MMQ did not match the same tokens decoded
+  alone. Measured cost: pp5 172 -> 162 tok/s, only on 5-8 column batches.
+GGML_CUDA_PTQ1_MMVQ_MAX overrides the mat-vec / MMQ crossover (default 4, confirmed: MMQ wins from 5).
+
+Not covered: the stream-k split of the MMA kernel follows the padded KV length (and the tile instance
+follows the query count), so attention in a verify batch is not bit-identical to single-token decode past
+~32k, or at any depth on the MMA decode route. Measured at 4k/20k/40k: the weight path matches, a few
+continuations diverge at the rounding level.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ ggml/src/ggml-cuda/fattn-common.cuh |  7 +++++++
+ ggml/src/ggml-cuda/mmvq.cu          | 11 +++++++++--
+ 2 files changed, 16 insertions(+), 2 deletions(-)
+
+diff --git a/ggml/src/ggml-cuda/fattn-common.cuh b/ggml/src/ggml-cuda/fattn-common.cuh
+index ae4318cbc..85d34024f 100644
+--- a/ggml/src/ggml-cuda/fattn-common.cuh
++++ b/ggml/src/ggml-cuda/fattn-common.cuh
+@@ -1112,6 +1112,13 @@ void launch_fattn(
+     int max_blocks_per_sm = 1; // Max. number of active blocks limited by occupancy.
+     CUDA_CHECK(cudaOccupancyMaxActiveBlocksPerMultiprocessor(&max_blocks_per_sm, fattn_kernel, block_dim.x * block_dim.y * block_dim.z, nbytes_shared));
+     GGML_ASSERT(max_blocks_per_sm > 0);
++    // Batch-invariant mode: the KV split must not depend on which template instance runs. Occupancy differs
++    // between the 1-query and the multi-query instances (registers, shared memory), so size the split from a
++    // fixed blocks-per-SM instead; that only shifts work between waves.
++    // (Stream-k launches keep the real occupancy: their instance is fixed per batch size range already.)
++    if (ggml_cuda_batch_invariant() && !stream_k) {
++        max_blocks_per_sm = 4;
++    }
+     int parallel_blocks = max_blocks_per_sm;
+ 
+     const int ntiles_KV = (K->ne[1] + nbatch_fa - 1) / nbatch_fa; // Max. number of parallel blocks limited by KV cache length.
+diff --git a/ggml/src/ggml-cuda/mmvq.cu b/ggml/src/ggml-cuda/mmvq.cu
+index b8279e40a..8b39c2fd6 100644
+--- a/ggml/src/ggml-cuda/mmvq.cu
++++ b/ggml/src/ggml-cuda/mmvq.cu
+@@ -299,8 +299,15 @@ bool ggml_cuda_should_use_mmvq(enum ggml_type type, int cc, int64_t ne11) {
+     if (type == GGML_TYPE_PTQ1_0 && GGML_CUDA_CC_IS_NVIDIA(cc) && cc >= GGML_CUDA_CC_TURING) {
+         // The PT mat-vec path shares the weight decode across columns; with the branch-free PTQ1_0
+         // MMQ tile loader the tile path overtakes it at 5+ columns on Ada (RTX 4070, Bonsai 2 27B:
+-        // mat-vec 155 t/s vs MMQ 244 t/s at n=8).
+-        return ne11 <= 4;
++        // mat-vec 155 t/s vs MMQ 244 t/s at n=8; at n=5 172 vs 162). Under GGML_CUDA_BATCH_INVARIANT every
++        // batch up to MMVQ_MAX_BATCH_SIZE stays on the PT mat-vec, whose per-column arithmetic does not depend
++        // on the column count: a 5-column speculative verify on MMQ would not match the same tokens decoded
++        // alone. GGML_CUDA_PTQ1_MMVQ_MAX overrides the crossover.
++        static const int max_cols = [] {
++            const char * e = getenv("GGML_CUDA_PTQ1_MMVQ_MAX");
++            return e ? atoi(e) : (ggml_cuda_batch_invariant() ? MMVQ_MAX_BATCH_SIZE : 4);
++        }();
++        return ne11 <= max_cols;
+     }
+ #endif
+     // k-quants cost more to decode and mvq redoes that per column, so MMQ wins sooner.
+-- 
+2.55.0.windows.3
+

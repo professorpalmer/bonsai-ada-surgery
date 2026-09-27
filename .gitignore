@@ -34,3 +34,9 @@ artifacts/eval/*
 !artifacts/eval/toolcall_stress.json
 !artifacts/eval/tc_*.json
 !artifacts/eval/mtp_head_ab.json
+!artifacts/eval/killy_*/
+!artifacts/eval/final_sweep_*.txt
+!artifacts/eval/run_final_*.log
+!artifacts/eval/run_final_*.ps1
+!artifacts/eval/control_*.ps1
+!artifacts/eval/control_*_2026*.log
