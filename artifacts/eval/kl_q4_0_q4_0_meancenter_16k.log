@@ -1,0 +1,60 @@
+﻿llama-perplexity.exe : 0.02.527.458 I cmn          init: llama threadpool init, n_threads = 16
+At C:\Users\pwall\Projects\bonsai-2-27b-serve\bench\kv_mean_center_kl.ps1:28 char:5
++     & "$Bin\llama-perplexity.exe" @common -ctk $t -ctv $t --kv-mean-c ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (0.02.527.458 I ... n_threads = 16:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+0.02.605.141 I 
+0.02.605.168 I system_info: n_threads = 16 (n_threads_batch = 16) / 24 | CUDA : ARCHS = 890 | USE_GRAPHS = 1 | CPU : 
+SSE3 = 1 | SSSE3 = 1 | AVX = 1 | AVX2 = 1 | F16C = 1 | FMA = 1 | BMI2 = 1 | LLAMAFILE = 1 | OPENMP = 1 | REPACK = 1 | 
+0.03.420.267 I kl_divergence: computing over 4 chunks, n_ctx=16384, batch_size=2048, n_seq=1
+1.08 minutes
+
+chunk             PPL               ln(PPL(Q)/PPL(base))          KL Divergence              Δp RMS            Same top p
+   1       4.6907 ±    0.1178       0.00097 ±    0.00074       0.00169 ±    0.00004     1.233 ±  0.047 %    98.034 ±  0.153 %
+   2       6.2809 ±    0.1208       0.00158 ±    0.00056       0.00185 ±    0.00003     1.211 ±  0.041 %    97.839 ±  0.114 %
+   3       6.9311 ±    0.1114       0.00253 ±    0.00046       0.00188 ±    0.00003     1.163 ±  0.030 %    97.888 ±  0.092 %
+   4       6.9926 ±    0.0982       0.00191 ±    0.00041       0.00206 ±    0.00009     1.260 ±  0.077 %    97.870 ±  0.080 %
+
+====== Perplexity statistics ======
+Mean PPL(Q)                   :   6.992586 ±   0.098168
+Mean PPL(base)                :   6.979270 ±   0.097870
+Cor(ln(PPL(Q)), ln(PPL(base))):  99.96%
+Mean ln(PPL(Q)/PPL(base))     :   0.001906 ±   0.000406
+Mean PPL(Q)/PPL(base)         :   1.001908 ±   0.000407
+Mean PPL(Q)-PPL(base)         :   0.013315 ±   0.002849
+
+====== KL divergence statistics ======
+Mean    KLD:   0.002059 ±   0.000094
+Maximum KLD:   2.873120
+99.9%   KLD:   0.050416
+99.0%   KLD:   0.014938
+95.0%   KLD:   0.006279
+90.0%   KLD:   0.004326
+Median  KLD:   0.000993
+10.0%   KLD:   0.000039
+ 5.0%   KLD:   0.000010
+ 1.0%   KLD:  -0.000018
+ 0.1%   KLD:  -0.000092
+Minimum KLD:  -0.000366
+
+====== Token probability statistics ======
+Mean    Δp: -0.012 ± 0.007 %
+Maximum Δp: 77.260%
+99.9%   Δp:  7.718%
+99.0%   Δp:  3.380%
+95.0%   Δp:  1.588%
+90.0%   Δp:  0.943%
+75.0%   Δp:  0.207%
+Median  Δp: -0.000%
+25.0%   Δp: -0.240%
+10.0%   Δp: -0.965%
+ 5.0%   Δp: -1.645%
+ 1.0%   Δp: -3.499%
+ 0.1%   Δp: -7.825%
+Minimum Δp: -34.810%
+RMS Δp    :  1.260 ± 0.077 %
+Same top p: 97.870 ± 0.080 %
+
+0.19.777.323 I kl_divergence: 16.36 seconds per pass - ETA 

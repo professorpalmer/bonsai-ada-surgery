@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Order confirmed — Sandbox Market</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="banner">Sandbox Market — fake checkout only. No real card is charged.</div>
+  <header>
+    <div class="brand">Sandbox <span>Market</span></div>
+    <nav>
+      <a href="/">Shop</a>
+    </nav>
+  </header>
+  <main class="success" style="padding: 2.4rem 0 3rem;">
+    <p class="kicker">Confirmation</p>
+    <h1>Sandbox order placed</h1>
+    <p class="note">No charge was sent. Copy the order id below.</p>
+    <p class="order" id="order-id">ORDER PENDING</p>
+    <section class="card">
+      <div class="cart-line"><span>Item</span><strong id="ok-item">Harbor Mug</strong></div>
+      <div class="cart-line"><span>Total</span><strong id="ok-total">$36.00</strong></div>
+      <div class="cart-line"><span>Card last4</span><strong id="ok-last4">4242</strong></div>
+      <div class="cart-line"><span>Buyer</span><strong id="ok-name">Ada Lovelace</strong></div>
+    </section>
+  </main>
+  <footer>Local loopback store for Bonsai browser-use. Not a merchant.</footer>
+  <script src="/app.js"></script>
+</body>
+</html>

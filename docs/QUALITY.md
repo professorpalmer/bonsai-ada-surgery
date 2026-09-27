@@ -249,9 +249,16 @@ the next thing to open up; nothing in this bundle touches it beyond the in-place
 
 - No evidence of a numerics problem in the CUDA path that would degrade the model relative to
   CPU reference: every kernel in the bundle is checked against the CPU implementation
-  (`test-backend-ops`, all PTQ1_0 shapes), greedy output is byte-identical with each optimization
-  on and off, and the speculative draft is byte-identical to non-speculative decoding under
-  `GGML_CUDA_BATCH_INVARIANT=1`.
+  (`test-backend-ops`, all PTQ1_0 shapes). Greedy output with each optimization on and off
+  matches on this 4070. `GGML_CUDA_BATCH_INVARIANT=1` is what makes a token verified in an
+  MTP batch use the same layout and the warp-reduce epilogue as a token decoded alone.
+  Without the flag, the faster four-accumulator epilogue can flip a late near-tie
+  (5080: "coastal waters" vs "coastal areas") while staying coherent. The flag does not
+  make every mmap near-tie identical, and it does not cover attention: past ~32k (and at every
+  depth with `GGML_CUDA_FA_DEEP_MMA=256`, the current serve default) the stream-k KV split follows
+  the padded KV length, which a verify batch can move one tile ahead of a later single-token decode.
+  Measured 2026-09-26 at 40k: a code continuation matched, a prose one diverged, both coherent. See
+  docs/Q8_FULL_CONTEXT.md.
 - Nothing here changes the 4-of-19 "understood the task, got it wrong" bucket. That is the
   compression, and the only lever on it is training against the real teacher, which is out of
   scope for a runtime.

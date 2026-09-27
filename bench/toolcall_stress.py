@@ -263,18 +263,22 @@ def main():
     ap.add_argument("--think", action="store_true",
                     help="leave thinking on (default off: the question is call syntax, and with thinking on the "
                          "model spent the whole 9000-token budget reasoning about a 250-line file)")
+    ap.add_argument("--temp", type=float, default=1.0, help="request temperature; < 0 leaves it to the server")
+    ap.add_argument("--top-p", type=float, default=0.95, help="request top_p; < 0 leaves it to the server")
     ap.add_argument("--out", default="artifacts/eval/toolcall_stress.json")
     a = ap.parse_args()
 
     kwargs = {"reasoning_effort": a.effort} if a.think else {"enable_thinking": False}
     common = {
         "model": "bonsai",
-        "temperature": 1.0,
-        "top_p": 0.95,
         "top_k": 20,
         "max_tokens": a.max_tokens,
         "chat_template_kwargs": kwargs,
     }
+    if a.temp >= 0:
+        common["temperature"] = a.temp
+    if a.top_p >= 0:
+        common["top_p"] = a.top_p
     arms = [s.strip() for s in a.arms.split(",")]
     results = []
     for rep in range(a.n):

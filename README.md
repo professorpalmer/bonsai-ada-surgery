@@ -6,20 +6,26 @@ for Bonsai 2 27B (1.58-bit ternary `PTQ1_0`, 5.9 GB). Measured on an RTX 4070 12
 target the same small-K ternary GEMV geometry on any Turing, Ampere, Ada or Blackwell part.
 
 **262,144 tokens is the max this model was trained for.** Most 12 GB write-ups never say the
-window. This bundle serves it: **96k with q8_0 KV** as the 12 GB quality default (10.8 GB, no
-paging), **262k with q4_0 KV** on the same 12 GB card, **262k with q8_0 KV** on 16 GB and up.
+window. This bundle serves it **with q8_0 KV on the 12 GB card**: a tiered KV cache keeps the first
+~94k positions in VRAM (full speed) and the rest in pinned system RAM mapped into the same CUDA range,
+bit-identical to an all-VRAM cache. With MTP drafting at every depth: **87 tok/s fresh, 105 at 32k,
+90 at 64k, 34 at 131k, 14 at 258k**. Receipts, mechanisms and rejected ideas:
+[docs/Q8_FULL_CONTEXT.md](docs/Q8_FULL_CONTEXT.md). The previous 96k all-VRAM recipe is `BONSAI_TIER=0`.
 
 | | |
 | --- | --- |
-| **Context** | **262,144 trained max** · 96k / q8_0 default on 12 GB · 262k / q4_0 on 12 GB · 262k / q8_0 on 16 GB |
+| **Context** | **262,144 trained max, q8_0 KV, on 12 GB** (tiered KV) · `BONSAI_TIER=0`: 96k / q8_0 all-VRAM |
 | **Decode** | **96.8 tok/s** served fresh (100.7 thinking budget off) vs 54.0 stock |
 | **Prefill** | **1304 tok/s** `llama-bench` / **1012 tok/s** served 32k vs 632 / 578 |
 | **KV quality** | **q8_0** default: 12x lower KL than the community q4_0 12 GB sheet |
 | **Tools** | native XML grammar **9/9** parsed vs 1/9 JSON-in-content |
 
 **Same weights, same 1.75 bits per weight.** Nothing is re-quantized. Every kernel is checked
-against the CPU reference (`test-backend-ops`, all PTQ1_0 shapes), greedy output is byte-identical
-with each optimization on and off, and the speculative draft is byte-identical to plain decoding.
+against the CPU reference (`test-backend-ops`, all PTQ1_0 shapes). `GGML_CUDA_BATCH_INVARIANT=1`
+(the serve default) keeps the mat-vec warp-reduce epilogue, so the weight path of a verified token
+matches a token decoded alone. Attention does not give the same guarantee: its stream-k KV split
+follows the padded KV length, so greedy draft-on can differ from draft-off at the rounding level
+(measured at 40k with the stock kernels too; see docs/Q8_FULL_CONTEXT.md, Caveats).
 
 | RTX 4070 12 GB, original `Ternary-Bonsai-2-27B-PTQ1_0.gguf`, stock clocks | PrismML build | this bundle |
 | --- | ---: | ---: |

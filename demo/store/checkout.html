@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Checkout — Sandbox Market</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="banner">Sandbox Market — fake checkout only. No real card is charged.</div>
+  <header>
+    <div class="brand">Sandbox <span>Market</span></div>
+    <nav>
+      <a href="/">Shop</a>
+      <a href="/checkout.html">Checkout</a>
+    </nav>
+  </header>
+  <main style="padding: 2rem 0 3rem;">
+    <p class="kicker">Sandbox checkout</p>
+    <h1>Pay with test card</h1>
+    <p class="lede">Use the provided demo buyer. The store accepts only the 4242 test number and never talks to a payment network.</p>
+
+    <section class="card" id="cart-box">
+      <p class="kicker">Order</p>
+      <div class="cart-line">
+        <div>
+          <strong id="line-name">Harbor Mug</strong>
+          <div class="note" id="line-sku">SKU harbor-mug</div>
+        </div>
+        <div id="line-total">$36.00</div>
+      </div>
+    </section>
+
+    <form id="checkout-form" action="/api/checkout" method="post">
+      <label for="full-name">Full name
+        <input id="full-name" name="full_name" autocomplete="name" required placeholder="Ada Lovelace">
+      </label>
+      <label for="email">Email
+        <input id="email" name="email" type="email" autocomplete="email" required placeholder="ada@sandbox.local">
+      </label>
+      <label for="address">Address
+        <input id="address" name="address" autocomplete="street-address" required placeholder="12 Demo Street, Austin TX 78701">
+      </label>
+      <label for="card-number">Card number
+        <input id="card-number" name="card_number" inputmode="numeric" autocomplete="cc-number" required placeholder="4242424242424242">
+      </label>
+      <div class="row">
+        <label for="expiry">Expiry
+          <input id="expiry" name="expiry" autocomplete="cc-exp" required placeholder="12/30">
+        </label>
+        <label for="cvc">CVC
+          <input id="cvc" name="cvc" inputmode="numeric" autocomplete="cc-csc" required placeholder="123">
+        </label>
+      </div>
+      <p class="warn">This is a sandbox. The card is not charged and no goods ship.</p>
+      <div class="actions">
+        <button type="submit" id="place-order">Place sandbox order</button>
+      </div>
+      <p class="note" id="form-status"></p>
+    </form>
+  </main>
+  <footer>Local loopback store for Bonsai browser-use. Not a merchant.</footer>
+  <script src="/app.js"></script>
+</body>
+</html>
