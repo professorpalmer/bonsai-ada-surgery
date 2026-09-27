@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Voxel Pagoda</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #bfe0ee; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0xcfe8f2, 45, 140);
+scene.background = new THREE.Color(0xcfe8f2);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 300);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+const hemi = new THREE.HemisphereLight(0xcfe8ff, 0x4c4438, 0.7);
+scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xfff3d6, 1.5);
+sun.position.set(22, 32, 14);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024);
+sun.shadow.camera.left = -25;
+sun.shadow.camera.right = 25;
+sun.shadow.camera.top = 25;
+sun.shadow.camera.bottom = -25;
+sun.shadow.camera.far = 160;
+scene.add(sun);
+
+const GROUND = new THREE.Mesh(
+  new THREE.PlaneGeometry(120, 120),
+  new THREE.MeshStandardMaterial({ color: 0x4a7244, roughness: 1 })
+);
+GROUND.rotation.x = -Math.PI / 2;
+GROUND.position.y = -0.5;
+GROUND.receiveShadow = true;
+scene.add(GROUND);
+
+const palette = {
+  stone: 0x9a938a,
+  wood:  0x7a4326,
+  tile:  0x9e2f2c,
+  gold:  0xd8b44b
+};
+const mats = {};
+for (const k in palette) mats[k] = new THREE.MeshStandardMaterial({ color: palette[k], roughness: 0.85 });
+
+const GEO = new THREE.BoxGeometry(1, 1, 1);
+const pagoda = new THREE.Group();
+
+function cube(x, y, z, kind) {
+  const m = new THREE.Mesh(GEO, mats[kind]);
+  m.position.set(x, y + 0.5, z);
+  m.castShadow = true;
+  m.receiveShadow = true;
+  pagoda.add(m);
+}
+
+function block(width, height, y, kind) {
+  const n = Math.floor(width / 2);
+  for (let h = 0; h < height; h++)
+    for (let i = -n; i <= n; i++)
+      for (let k = -n; k <= n; k++)
+        cube(i, y + h, k, kind);
+}
+
+// Base steps
+block(11, 1, 0, 'stone');
+block(9, 1, 1, 'stone');
+
+// Tier 1
+block(7, 2, 2, 'wood');
+block(9, 1, 4, 'tile');
+block(7, 1, 5, 'tile');
+
+// Tier 2
+block(5, 1, 6, 'wood');
+block(7, 1, 7, 'tile');
+block(5, 1, 8, 'tile');
+
+// Tier 3
+block(3, 1, 9, 'wood');
+block(5, 1, 10, 'tile');
+block(3, 1, 11, 'tile');
+
+// Tier 4
+block(3, 1, 12, 'wood');
+block(5, 1, 13, 'tile');
+block(3, 1, 14, 'tile');
+
+// Tier 5
+block(1, 1, 15, 'wood');
+block(3, 1, 16, 'tile');
+block(1, 1, 17, 'tile');
+
+// Spire + finial
+block(1, 2, 18, 'gold');
+block(1, 1, 20, 'gold');
+
+scene.add(pagoda);
+
+const R = 26, H = 10;
+function animate(time) {
+  const a = time * 0.00035;
+  camera.position.set(Math.cos(a) * R, H, Math.sin(a) * R);
+  camera.lookAt(0, 8, 0);
+  renderer.render(scene, camera);
+  requestAnimationFrame(animate);
+}
+requestAnimationFrame(animate);
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Voxel Pagoda</title>
+<style>
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x8ec6e8);
+scene.fog = new THREE.Fog(0x8ec6e8, 60, 140);
+
+const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 300);
+camera.position.set(0, 22, 45);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(devicePixelRatio);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+// Lighting
+scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+const sun = new THREE.DirectionalLight(0xfff2d8, 1.3);
+sun.position.set(25, 50, 20);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.left = -40;
+sun.shadow.camera.right = 40;
+sun.shadow.camera.top = 50;
+sun.shadow.camera.bottom = -40;
+scene.add(sun);
+
+// Ground plane
+const groundMat = new THREE.MeshStandardMaterial({ color: 0x4a7c3f });
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(120, 120), groundMat);
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -0.05;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// Voxel helper — every element is a cube (BoxGeometry)
+const pagoda = new THREE.Group();
+function box(x, y, z, w, h, d, color) {
+  const mesh = new THREE.Mesh(
+    new THREE.BoxGeometry(w, h, d),
+    new THREE.MeshStandardMaterial({ color, roughness: 0.85 })
+  );
+  mesh.position.set(x, y + h / 2, z);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  pagoda.add(mesh);
+}
+
+const STONE = 0x9e9e9e;
+const WOOD  = 0x8b5a2b;
+const ROOF  = 0x8c1f2b;
+const GOLD  = 0xd4af37;
+
+// Base platform
+box(0, 0, 0, 16, 2, 16, STONE);
+
+// Five tiers: body column, then a three-step overhanging roof
+const tierWidths = [10, 8, 6, 5, 4];
+let y = 2;
+for (const w of tierWidths) {
+  box(0, y, 0, w, 3, w, WOOD);   y += 3;
+  box(0, y, 0, w + 4, 1, w + 4, ROOF); y += 1;
+  box(0, y, 0, w + 2, 1, w + 2, ROOF); y += 1;
+  box(0, y, 0, w, 1, w, ROOF);   y += 1;
+}
+
+// Spire
+box(0, y, 0, 2, 3, 2, GOLD);  y += 3;
+box(0, y, 0, 1, 1, 1, GOLD);  y += 1;
+box(0, y, 0, 1, 1, 1, GOLD);
+
+scene.add(pagoda);
+
+// Slow orbit
+const ORBIT_SPEED = 0.0025;
+const ORBIT_RADIUS = 45;
+const ORBIT_HEIGHT = 22;
+let theta = 0;
+
+function animate() {
+  requestAnimationFrame(animate);
+  theta += ORBIT_SPEED;
+  camera.position.set(
+    ORBIT_RADIUS * Math.sin(theta),
+    ORBIT_HEIGHT,
+    ORBIT_RADIUS * Math.cos(theta)
+  );
+  camera.lookAt(0, 16, 0);
+  renderer.render(scene, camera);
+}
+animate();
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+</script>
+</body>
+</html>

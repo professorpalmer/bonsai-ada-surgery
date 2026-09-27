@@ -132,6 +132,13 @@ Details and every measurement: [`docs/QUALITY.md`](docs/QUALITY.md).
 - **Tool calls.** The native format is Qwen3-Coder XML with raw string parameters, grammar-constrained by the
   server: 9 of 9 parsed vs 1 of 9 for JSON-in-content. For file-writing agents, thinking off parsed 8 of 9 vs 6
   of 9 at medium (which spent 10-17k tokens thinking first): send `enable_thinking: false` per request.
+- **Generated pages: run them.** Killy's voxel pagoda at medium, 6 samples: 3 correct on the first try, and all 6
+  after `bench/pagoda_plate.py --repair` rendered each page headless and sent back what it saw (console errors,
+  voxels floating, structure out of view). The first-try misses were one-token slips (a space inside a hex
+  literal, an import map missing its `imports` key). Agents that run their output get this for free.
+  ([pagoda details](docs/Q8_FULL_CONTEXT.md#the-voxel-pagoda))
+
+![Voxel pagoda, medium reasoning: 6 of 6 samples build it, 3 on the first try](docs/img/pagoda.png)
 
 ### For agents and apps
 

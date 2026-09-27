@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Voxel Pagoda</title>
+<style>
+  body { margin: 0; overflow: hidden; }
+</style>
+</head>
+<body>
+<script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+<script>
+(function () {
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x8fb8e8);
+
+  const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 500);
+  camera.lookAt(0, 12, 0);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  document.body.appendChild(renderer.domElement);
+
+  // ---- lighting ----
+  scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+  const sun = new THREE.DirectionalLight(0xfff2d0, 1.0);
+  sun.position.set(20, 40, 15);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(1024, 1024);
+  sun.shadow.camera.left = -30;
+  sun.shadow.camera.right = 30;
+  sun.shadow.camera.top = 40;
+  sun.shadow.camera.bottom = -20;
+  scene.add(sun);
+  scene.add(new THREE.HemisphereLight(0xa8d0ff, 0x6a5a3a, 0.4));
+
+  // ---- palette ----
+  const COLORS = {
+    base1:  0x7f858a,
+    base2:  0x8f959a,
+    base3:  0x9ea0a5,
+    floor:  0xc9b27a,
+    pillar: 0x7d4a2a,
+    beam:   0x5e3416,
+    roof:   0x8e2a2a,
+    gold:   0xe0b64d,
+    tip:    0xf2d578,
+    ground: 0x4f7a42
+  };
+
+  const boxGeo = (w, h, d) => new THREE.BoxGeometry(w, h, d);
+
+  function addBox(x, y, z, w, h, d, color) {
+    const mesh = new THREE.Mesh(
+      boxGeo(w, h, d),
+      new THREE.MeshStandardMaterial({ color: color, roughness: 0.8 })
+    );
+    mesh.position.set(x, y + h / 2, z + d / 2);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    scene.add(mesh);
+  }
+
+  // ---- ground plane ----
+  addBox(0, 0, 0, 60, 0.2, 60, COLORS.ground);
+
+  // ---- base platform (stacked slabs) ----
+  addBox(0, 0, 0, 16, 1, 16, COLORS.base1);
+  addBox(0, 1, 0, 14, 1, 14, COLORS.base2);
+  addBox(0, 2, 0, 12, 1, 12, COLORS.base3);
+  let y = 3;
+
+  // ---- five tiers: 10, 8, 6, 4, 2 ----
+  const tiers = [10, 8, 6, 4, 2];
+  for (const W of tiers) {
+    // floor slab
+    addBox(0, y, 0, W, 0.6, W, COLORS.floor);
+    y += 0.6;
+
+    // four pillars at the corners
+    const off = W / 2 - 0.55;
+    for (const [px, pz] of [[-off, -off], [off, -off], [off, off], [-off, off]]) {
+      addBox(px, y, pz, 1, 1.5, 1, COLORS.pillar);
+    }
+    y += 1.5;
+
+    // eave beam
+    addBox(0, y, 0, W - 0.2, 0.5, W - 0.2, COLORS.beam);
+    y += 0.5;
+
+    // stepped overhanging roof: widths W+2, W, W-2
+    for (let i = 0; i < 3; i++) {
+      const s = W + 2 - i * 2;
+      if (s <= 0.4) break;
+      addBox(0, y, 0, s, 0.6, s, COLORS.roof);
+      y += 0.6;
+    }
+  }
+
+  // ---- spire ----
+  addBox(0, y, 0, 2,   1,   2,   COLORS.gold);
+  y += 1;
+  addBox(0, y, 0, 1,   1.4, 1,   COLORS.gold);
+  y += 1.4;
+  addBox(0, y, 0, 0.5, 2.5, 0.5, COLORS.tip);
+  y += 2.5;
+  addBox(0, y, 0, 0.4, 0.5, 0.4, COLORS.tip);
+
+  // ---- slow orbit ----
+  let t = 0;
+  function animate() {
+    requestAnimationFrame(animate);
+    t += 0.0025;
+    const radius = 34;
+    const height = 15;
+    camera.position.set(Math.cos(t) * radius, height, Math.sin(t) * radius);
+    camera.lookAt(0, 12, 0);
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  window.addEventListener('resize', () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+})();
+</script>
+</body>
+</html>

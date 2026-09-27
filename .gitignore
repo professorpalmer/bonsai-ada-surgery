@@ -40,3 +40,4 @@ artifacts/eval/*
 !artifacts/eval/run_final_*.ps1
 !artifacts/eval/control_*.ps1
 !artifacts/eval/control_*_2026*.log
+!artifacts/eval/pagoda_*_20260927/

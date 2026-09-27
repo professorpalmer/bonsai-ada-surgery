@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Voxel Pagoda</title>
+<style>
+  body { margin: 0; overflow: hidden; }
+</style>
+</head>
+<body>
+<script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+<script>
+(function () {
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x8fb8e8);
+
+  const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 500);
+  camera.lookAt(0, 9, 0);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  document.body.appendChild(renderer.domElement);
+
+  // ---- lighting ----
+  scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+  const sun = new THREE.DirectionalLight(0xfff2d0, 1.0);
+  sun.position.set(20, 40, 15);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(1024, 1024);
+  sun.shadow.camera.left = -20;
+  sun.shadow.camera.right = 20;
+  sun.shadow.camera.top = 30;
+  sun.shadow.camera.bottom = -10;
+  scene.add(sun);
+  scene.add(new THREE.HemisphereLight(0xa8d0ff, 0x6a5a3a, 0.4));
+
+  // ---- build from unit voxels on an integer grid ----
+  // Each layer's footprint is strictly contained in the layer below it,
+  // so every voxel rests on a voxel directly beneath it (no floaters).
+  const unitGeo = new THREE.BoxGeometry(1, 1, 1);
+
+  function addVoxel(x, y, z, color) {
+    const mesh = new THREE.Mesh(
+      unitGeo,
+      new THREE.MeshStandardMaterial({ color: color, roughness: 0.8 })
+    );
+    mesh.position.set(x, y + 0.5, z + 0.5);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    scene.add(mesh);
+  }
+
+  function colorFor(y) {
+    if (y === 0)        return 0x4f7a42; // ground
+    if (y === 1 || y === 2) return 0x9ea0a5; // base
+    if (y === 5 || y === 8 || y === 11 || y === 14) return 0x8e2a2a; // roof caps
+    if (y >= 15)        return 0xe0b64d; // spire
+    return 0x7d4a2a;                  // tier bodies
+  }
+
+  // half-width per layer (index = y). nested => fully supported.
+  const R = [6,5,5, 4,4,3, 3,3,2, 2,2,1, 1,1,0, 0,0];
+  for (let y = 0; y < R.length; y++) {
+    const r = R[y], c = colorFor(y);
+    for (let x = -r; x <= r; x++)
+      for (let z = -r; z <= r; z++)
+        addVoxel(x, y, z, c);
+  }
+
+  // ---- slow orbit ----
+  let t = 0;
+  function animate() {
+    requestAnimationFrame(animate);
+    t += 0.0025;
+    const radius = 22, height = 10;
+    camera.position.set(Math.cos(t) * radius, height, Math.sin(t) * radius);
+    camera.lookAt(0, 9, 0);
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  window.addEventListener('resize', () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+})();
+</script>
+</body>
+</html>

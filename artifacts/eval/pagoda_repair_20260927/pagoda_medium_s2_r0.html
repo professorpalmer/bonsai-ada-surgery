@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Voxel Pagoda</title>
+<style>
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #1a1e2e; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x1a1e2e);
+scene.fog = new THREE.FogExp2(0x1a1e2e, 0.004);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 500);
+
+/* ---------- lights ---------- */
+scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+const sun = new THREE.DirectionalLight(0xffe6c8, 1.6);
+sun.position.set(35, 50, 25);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.left = -60;
+sun.shadow.camera.right = 60;
+sun.shadow.camera.top = 60;
+sun.shadow.camera.bottom = -60;
+sun.shadow.camera.far = 250;
+sun.shadow.bias = -0.0005;
+scene.add(sun);
+const fill = new THREE.DirectionalLight(0x8fa8ff, 0.4);
+fill.position.set(-30, 30, -20);
+scene.add(fill);
+scene.add(new THREE.PointLight(0xffd26e, 0.6, 80, 0.5));
+scene.position = new THREE.PointLight(0xffd26e, 0.6, 80, 0.5);
+
+/* ---------- voxel builder ---------- */
+const C = {
+  stoneBase: 0x7a7c82, stoneBase2: 0x8f9196,
+  wood: 0xb08968, woodDark: 0x8a6a4b,
+  roof: 0x7a2e1f, roofRim: 0x9c4428,
+  gold: 0xe6c06a,
+  grass: 0x3f7a45
+};
+
+function addVoxel(x, y, z, w, h, d, color, receiveShadow = true) {
+  const geo = new THREE.BoxGeometry(w, h, d);
+  const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.85, metalness: 0.0 });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set(x, y + h / 2, z);
+  mesh.rotation.y = 0;
+  mesh.castShadow = true;
+  mesh.receiveShadow = receiveShadow;
+  scene.add(mesh);
+  return y + h;
+}
+
+/* ---------- ground ---------- */
+addVoxel(0, 0, 0, 90, 2, 90, C.grass, false);
+
+/* ---------- base ---------- */
+let yTop = addVoxel(0, 2, 0, 26, 2, 26, C.stoneBase2);
+yTop = addVoxel(0, yTop, 0, 20, 1.5, 20, C.stoneBase);
+
+/* ---------- tiers ---------- */
+const tiers = [
+  { size: 16,  wallH: 6 },
+  { size: 13,  wallH: 5 },
+  { size: 10,  wallH: 4 },
+  { size: 7.5, wallH: 3 },
+  { size: 5,   wallH: 2 }
+];
+
+tiers.forEach(tier => {
+  const { size: s, wallH: hw } = tier;
+  const half = s / 2;
+  const t = 1.2;
+
+  // four walls
+  addVoxel(0, yTop, half - t / 2, s, hw, t, C.wood);            // +z
+  addVoxel(0, yTop, -half + t / 2, s, hw, t, C.wood);           // -z
+  addVoxel(half - t / 2, yTop, 0, t, hw, s, C.wood);            // +x
+  addVoxel(-half + t / 2, yTop, 0, t, hw, s, C.wood);           // -x
+
+  // interior floor slab
+  addVoxel(0, yTop, 0, s - t * 2, 0.5, s - t * 2, C.woodDark);
+
+  // corner posts that carry the overhanging roof
+  for (const sx of [half, -half]) {
+    for (const sz of [half, -half]) {
+      addVoxel(sx * 0.97, yTop, sz * 0.97, 0.9, hw + 1.4, 0.9, C.woodDark);
+    }
+  }
+
+  yTop += hw;
+
+  // main roof slab (wide overhang)
+  yTop = addVoxel(0, yTop, 0, s + 4, 1.8, s + 4, C.roof);
+  // secondary roof slab
+  yTop = addVoxel(0, yTop, 0, s + 1.2, 1.0, s + 1.2, C.roofRim);
+});
+
+/* ---------- spire ---------- */
+yTop = addVoxel(0, yTop, 0, 2.8, 2.4, 2.8, C.gold);
+yTop = addVoxel(0, yTop, 0, 1.8, 1.6, 1.8, C.gold);
+yTop = addVoxel(0, yTop, 0, 0.8, 0.6, 0.8, 0x8a6a4b);
+yTop = addVoxel(0, yTop, 0, 0.45, 3.2, 0.45, C.gold);          // finial needle
+
+/* ---------- orbiting camera ---------- */
+const ORBIT_RADIUS = 48;
+const ORBIT_SPEED = 0.06;    // radians per second
+const CAM_HEIGHT = 22;
+const TARGET_Y = 18;
+let angle = Math.PI / 3;
+
+function animate() {
+  requestAnimationFrame(animate);
+  angle += ORBIT_SPEED * 0.0016; // approx 60fps scale -> slow
+  angle += ORBIT_SPEED * 0.0000 * 0; // placeholder kept simple below
+  const t = performance.now() * ORBIT_SPEED * 1e-3 / 1000 * 60 / 60;
+  const a = (angle + t);
+  camera.position.set(Math.sin(a) * ORBIT_RADIUS, CAM_HEIGHT, Math.cos(a) * ORBIT_RADIUS);
+  camera.lookAt(0, TARGET_Y, 0);
+  renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>

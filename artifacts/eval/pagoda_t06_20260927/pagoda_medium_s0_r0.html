@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voxel Pagoda</title>
+<style>
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #10151d; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<script src="https://unpkg.com/three@0.150.0/build/three.min.js"></script>
+<script>
+(function () {
+  var scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x10151d);
+  scene.fog = new THREE.FogExp2(0x10151d, 0.012);
+
+  var camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 200);
+
+  var renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  document.body.appendChild(renderer.domElement);
+
+  // --- Lighting ---
+  scene.add(new THREE.AmbientLight(0x667080, 0.7));
+  scene.add(new THREE.HemisphereLight(0x90b0ff, 0x3c4a3a, 0.6));
+  var sun = new THREE.DirectionalLight(0xfff2d8, 1.1);
+  sun.position.set(28, 45, 22);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.camera.left = -25;
+  sun.shadow.camera.right = 25;
+  sun.shadow.camera.top = 35;
+  sun.shadow.camera.bottom = -5;
+  sun.shadow.camera.near = 1;
+  sun.shadow.camera.far = 120;
+  scene.add(sun);
+
+  // --- Voxel helper: everything is a BoxGeometry cube ---
+  var boxGeo = new THREE.BoxGeometry(1, 1, 1);
+  var matCache = {};
+  function mat(color) {
+    if (!matCache[color]) {
+      matCache[color] = new THREE.MeshStandardMaterial({ color: color, roughness: 0.85 });
+    }
+    return matCache[color];
+  }
+  function addVoxel(x, y, z, w, h, d, color) {
+    var m = new THREE.Mesh(boxGeo, mat(color));
+    m.position.set(x, y, z);
+    m.scale.set(w, h, d);
+    m.castShadow = true;
+    m.receiveShadow = true;
+    scene.add(m);
+  }
+
+  // --- Ground plane (a single flat voxel slab) ---
+  addVoxel(0, 0.25, 0, 40, 0.5, 40, 0x3b5a3e);
+
+  // --- Base platform ---
+  addVoxel(0, 1.0, 0, 17, 1, 17, 0x9a9a9a);
+
+  // Corner pillars on the base
+  var pillarX = 7.5;
+  addVoxel(pillarX, 2.5, pillarX, 1, 3, 1, 0x8b5a2b);
+  addVoxel(-pillarX, 2.5, pillarX, 1, 3, 1, 0x8b5a2b);
+  addVoxel(pillarX, 2.5, -pillarX, 1, 3, 1, 0x8b5a2b);
+  addVoxel(-pillarX, 2.5, -pillarX, 1, 3, 1, 0x8b5a2b);
+
+  // --- Five tiers: each is a body block plus an overhanging roof slab ---
+  var tiers = [
+    { w: 12, roofW: 17, body: 0x8b5a2b, roof: 0x7a1f1f },
+    { w: 8,  roofW: 13, body: 0x96642e, roof: 0x7a1f1f },
+    { w: 5,  roofW: 9,  body: 0xa06e36, roof: 0x6d1b1b },
+    { w: 3,  roofW: 7,  body: 0xa8743d, roof: 0x6d1b1b },
+    { w: 2,  roofW: 6,  body: 0xb07b44, roof: 0x5e1717 }
+  ];
+  var y = 1.5; // top of base platform
+  for (var i = 0; i < tiers.length; i++) {
+    var t = tiers[i];
+    addVoxel(0, y + 1.5, 0, t.w, 3, t.w, t.body);      // tier body
+    addVoxel(0, y + 3.5, 0, t.roofW, 1, t.roofW, t.roof); // overhanging roof
+    y += 4.0; // body (3) + roof (1)
+  }
+
+  // --- Spire on top (y is now 21.5, top of the last roof) ---
+  addVoxel(0, 22.0, 0, 1, 1, 1, 0xd4af37);
+  addVoxel(0, 23.0, 0, 1, 1, 1, 0xd4af37);
+  addVoxel(0, 24.0, 0, 1, 1, 1, 0xd4af37);
+  addVoxel(0, 24.75, 0, 1, 1.5, 1, 0xf0c94c);
+
+  // --- Slow orbiting camera ---
+  var ORBIT_RADIUS = 28;
+  var ORBIT_HEIGHT = 13;
+  var TARGET = new THREE.Vector3(0, 11, 0);
+
+  function resize() {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  }
+  addEventListener('resize', resize);
+
+  var clock = new THREE.Clock();
+  function animate() {
+    requestAnimationFrame(animate);
+    var t = clock.getElapsedTime();
+    var angle = t * 0.15; // slow orbit
+    camera.position.set(
+      ORBIT_RADIUS * Math.sin(angle),
+      ORBIT_HEIGHT,
+      ORBIT_RADIUS * Math.cos(angle)
+    );
+    camera.lookAt(TARGET);
+    renderer.render(scene, camera);
+  }
+  animate();
+})();
+</script>
+</body>
+</html>

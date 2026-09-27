@@ -120,12 +120,28 @@ same-weights comparison.
   runtime change. Keep medium for code; the thinking-off recommendation is for tool-call payloads (docs/QUALITY.md).
 - Noise: one seed per row; Killy measured 1-3 problems of movement between seeds at a 16k cap.
 
-The voxel pagoda (plate 037P's prompt, one sample each, rendered headless after 6 s):
+### The voxel pagoda
 
-| medium | thinking off |
-| --- | --- |
-| ![medium](../artifacts/eval/killy_20260927/pagoda/pagoda_medium.png) | ![off](../artifacts/eval/killy_20260927/pagoda/pagoda_off.png) |
-| a five-tier scene: stone base, platform, pillars, stacked red roofs (the tiers float apart) | the scene background only: "drew nothing" in the plate's terms |
+![Voxel pagoda: 6 of 6 samples build it](img/pagoda.png)
+
+Plate 037P's prompt, rendered headless (SwiftShader, 6 s). The suite's single samples: medium drew a five-tier
+scene with the tiers floating apart; thinking off drew nothing (the script throws `ReferenceError: i is not
+defined` before the first frame).
+
+`bench/pagoda_plate.py --repair 3` adds a render-check-repair loop. A probe runs each page and reports only facts:
+console errors, dead CDN URLs, whether a scene rendered, voxels not connected to the grounded structure (with the
+gap under them), and whether the structure is in the camera's view. Any finding goes back to the model as a
+follow-up turn, and the model returns a fixed page.
+
+| Medium, 3 samples each | Clean on the first try | Clean after repair | First-try failure |
+| --- | --- | --- | --- |
+| temp 1.0 (server default, Killy's sampling) | 1 / 3 | 3 / 3 (rounds: 0, 2, 1) | `0x9e a0a5` (space inside a hex literal); `scene.position = new PointLight(...)` |
+| temp 0.6 | 2 / 3 | 3 / 3 (rounds: 0, 0, 1) | import map without its `"imports"` key |
+
+Every first-try failure is a slip in the model's own code; the same page fails in a desktop browser. Three
+samples per row cannot separate the two temperatures. The repair loop is the lever that measured: 6 of 6.
+Artifacts: `artifacts/eval/pagoda_repair_20260927/` (temp 1.0; the run was stopped after the medium arm) and
+`artifacts/eval/pagoda_t06_20260927/`, each with `log.jsonl` holding the probe report for every round.
 
 ## Measured and not adopted
 

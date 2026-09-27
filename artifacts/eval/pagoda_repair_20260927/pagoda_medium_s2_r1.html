@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Voxel Pagoda</title>
+<style>
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #1a1e2e; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x1a1e2e);
+scene.fog = new THREE.FogExp2(0x1a1e2e, 0.004);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 500);
+
+/* ---------- lights ---------- */
+const ambient = new THREE.AmbientLight(0xffffff, 0.55);
+scene.add(ambient);
+
+const sun = new THREE.DirectionalLight(0xffe6c8, 1.6);
+sun.position.set(35, 50, 25);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.left = -60;
+sun.shadow.camera.right = 60;
+sun.shadow.camera.top = 60;
+sun.shadow.camera.bottom = -60;
+sun.shadow.camera.far = 250;
+sun.shadow.bias = -0.0005;
+scene.add(sun);
+
+const fill = new THREE.DirectionalLight(0x8fa8ff, 0.4);
+fill.position.set(-30, 30, -20);
+scene.add(fill);
+
+const glow = new THREE.PointLight(0xffd26e, 0.6, 80, 0.5);
+scene.add(glow);
+
+/* ---------- voxel builder (cubes only) ---------- */
+const C = {
+  stone:  0x7a7c82, stone2: 0x8f9196,
+  wood:   0xb08968, woodDark: 0x8a6a4b,
+  roof:   0x7a2e1f, roofRim: 0x9c4428,
+  gold:   0xe6c06a,
+  grass:  0x3f7a45
+};
+
+function addVoxel(x, y, z, w, h, d, color, receiveShadow = true) {
+  const mesh = new THREE.Mesh(
+    new THREE.BoxGeometry(w, h, d),
+    new THREE.MeshStandardMaterial({ color, roughness: 0.85, metalness: 0.0 })
+  );
+  mesh.position.set(x, y + h / 2, z);
+  mesh.castShadow = true;
+  mesh.receiveShadow = receiveShadow;
+  scene.add(mesh);
+  return y + h;
+}
+
+/* ---------- ground plane ---------- */
+addVoxel(0, 0, 0, 90, 2, 90, C.grass, false);
+
+/* ---------- base ---------- */
+let yTop = addVoxel(0, 2, 0, 26, 2, 26, C.stone2);
+yTop = addVoxel(0, yTop, 0, 20, 1.5, 20, C.stone);
+
+/* ---------- five tiers with stacked overhanging roofs ---------- */
+const tiers = [
+  { size: 16,  wallH: 6 },
+  { size: 13,  wallH: 5 },
+  { size: 10,  wallH: 4 },
+  { size: 7.5, wallH: 3 },
+  { size: 5,   wallH: 2 }
+];
+
+for (const { size: s, wallH: hw } of tiers) {
+  const half = s / 2;
+  const t = 1.2;
+
+  addVoxel(0, yTop, half - t / 2, s, hw, t, C.wood);
+  addVoxel(0, yTop, -half + t / 2, s, hw, t, C.wood);
+  addVoxel(half - t / 2, yTop, 0, t, hw, s, C.wood);
+  addVoxel(-half + t / 2, yTop, 0, t, hw, s, C.wood);
+
+  addVoxel(0, yTop, 0, s - t * 2, 0.5, s - t * 2, C.woodDark); // interior floor
+
+  for (const sx of [half * 0.97, -half * 0.97])
+    for (const sz of [half * 0.97, -half * 0.97])
+      addVoxel(sx, yTop, sz, 0.9, hw + 1.4, 0.9, C.woodDark);   // corner roof posts
+
+  yTop += hw;
+  yTop = addVoxel(0, yTop, 0, s + 4,   1.8, s + 4,   C.roof);   // main roof
+  yTop = addVoxel(0, yTop, 0, s + 1.2, 1.0, s + 1.2, C.roofRim); // upper roof
+}
+
+/* ---------- spire ---------- */
+yTop = addVoxel(0, yTop, 0, 2.8,  2.4, 2.8, C.gold);
+yTop = addVoxel(0, yTop, 0, 1.8,  1.6, 1.8, C.gold);
+yTop = addVoxel(0, yTop, 0, 0.8,  0.6, 0.8, C.woodDark);
+yTop = addVoxel(0, yTop, 0, 0.45, 3.2, 0.45, C.gold);           // finial needle
+
+/* ---------- slow orbit ---------- */
+const ORBIT_RADIUS = 48, CAM_HEIGHT = 22, TARGET_Y = 18, SPEED = 0.0015;
+
+function animate(now) {
+  requestAnimationFrame(animate);
+  const a = (now * SPEED) % (Math.PI * 2);
+  camera.position.set(Math.sin(a) * ORBIT_RADIUS, CAM_HEIGHT, Math.cos(a) * ORBIT_RADIUS);
+  camera.lookAt(0, TARGET_Y, 0);
+  renderer.render(scene, camera);
+}
+requestAnimationFrame(animate);
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>

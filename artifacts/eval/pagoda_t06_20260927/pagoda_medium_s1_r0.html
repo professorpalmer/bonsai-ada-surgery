@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voxel Pagoda</title>
+<style>
+  html, body { margin: 0; padding: 0; overflow: hidden; height: 100%; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<script src="https://unpkg.com/three@0.150.0/build/three.min.js"></script>
+<script>
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x8ecae6);
+scene.fog = new THREE.FogExp2(0x8ecae6, 0.012);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 500);
+
+// Materials
+const mats = {
+  stone: new THREE.MeshStandardMaterial({ color: 0x9aa0a6, flatShading: true }),
+  wood:  new THREE.MeshStandardMaterial({ color: 0xb5783a, flatShading: true }),
+  roof:  new THREE.MeshStandardMaterial({ color: 0x9e2b25, flatShading: true }),
+  gold:  new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.7, roughness: 0.3, flatShading: true }),
+  grass: new THREE.MeshStandardMaterial({ color: 0x4a6b3a, flatShading: true })
+};
+
+const geo = new THREE.BoxGeometry(1, 1, 1);
+
+function block(x, y, z, mat) {
+  const m = new THREE.Mesh(geo, mat);
+  m.position.set(x, y + 0.5, z);
+  m.castShadow = true;
+  m.receiveShadow = true;
+  scene.add(m);
+}
+
+// A centered slab of width w at layer y (w must be even or odd; both work)
+function slab(w, y, mat) {
+  const half = w / 2;
+  for (let i = -half; i < half; i++) {
+    for (let j = -half; j < half; j++) {
+      block(i, y, j, mat);
+    }
+  }
+}
+
+// Ground plane
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), mats.grass);
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -0.5;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// Base platform (two layers of stone)
+slab(12, 0, mats.stone);
+slab(12, 1, mats.stone);
+
+// Five tiers: body height, then a stepped roof that overhangs the body
+const tiers = [
+  { w: 8, h: 3, roof: [12, 10, 8] },
+  { w: 6, h: 2, roof: [10, 8, 6] },
+  { w: 4, h: 2, roof: [8, 6, 4] },
+  { w: 3, h: 2, roof: [7, 5, 3] },
+  { w: 3, h: 2, roof: [7, 5, 3] }
+];
+
+let y = 2; // top of base
+for (const t of tiers) {
+  for (let k = 0; k < t.h; k++) slab(t.w, y + k, mats.wood);
+  y += t.h;
+  for (let k = 0; k < t.roof.length; k++) slab(t.roof[k], y + k, mats.roof);
+  y += t.roof.length;
+}
+
+// Spire: a small golden finial on top of the last roof
+block(0, y, 0, mats.gold);
+block(0, y + 1, 0, mats.gold);
+block(0, y + 2, 0, mats.gold);
+
+// Lighting
+scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+
+const sun = new THREE.DirectionalLight(0xffffff, 1.1);
+sun.position.set(20, 35, 15);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024);
+sun.shadow.camera.left = -20;
+sun.shadow.camera.right = 20;
+sun.shadow.camera.top = 25;
+sun.shadow.camera.bottom = -20;
+sun.shadow.bias = -0.001;
+scene.add(sun);
+
+// Rim light for a bit of depth
+const fill = new THREE.DirectionalLight(0xbfd6ff, 0.35);
+fill.position.set(-15, 15, -12);
+scene.add(fill);
+
+// Slow orbiting camera
+const target = new THREE.Vector3(0, 9, 0);
+let angle = 0;
+
+function animate() {
+  requestAnimationFrame(animate);
+  angle += 0.004;
+  camera.position.set(Math.cos(angle) * 22, 14, Math.sin(angle) * 22);
+  camera.lookAt(target);
+  renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+</script>
+</body>
+</html>

@@ -6,7 +6,7 @@ $Browser = @("${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe", "
     "$env:ProgramFiles\Google\Chrome\Application\chrome.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
 if (-not $Browser) { throw 'Edge or Chrome is needed for headless rendering' }
 $ErrorActionPreference = 'Continue'   # the browser reports "bytes written" on stderr
-foreach ($c in 'summary', 'decode', 'prefill', 'kv', 'killy', 'igpu', 'identity') {
+foreach ($c in 'summary', 'decode', 'prefill', 'kv', 'killy', 'igpu', 'identity', 'pagoda') {
     $png = Join-Path $Root "docs\img\$c.png"
     & $Browser --headless=new --hide-scrollbars --force-device-scale-factor=2 --window-size=1200,675 --virtual-time-budget=4000 `
         "--screenshot=$png" ("file:///" + ($Html -replace '\\', '/') + "?c=$c") 2>$null | Out-Null

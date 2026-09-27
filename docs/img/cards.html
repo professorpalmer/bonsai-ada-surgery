@@ -122,6 +122,21 @@ var cards = {
     card('Greedy output identity (256-token code and prose continuations)', 'The tiered KV cache is bit-identical to all-VRAM', 'Drafting differs from not drafting at the rounding level, stock kernels included: attention’s KV split follows the batch width.', '', s);
   }
 };
+cards.pagoda = function () {
+  var dir = '../../artifacts/eval/';
+  function fig(src, chip, ok, body) {
+    return '<figure style="margin:0;display:flex;flex-direction:column;gap:10px;width:330px">' +
+      '<img src="' + dir + src + '" alt="" style="width:330px;height:330px;object-fit:cover;border-radius:10px;border:1px solid var(--line);background:#10141f">' +
+      '<div style="font-size:16px;line-height:1.35"><span style="font-family:var(--mono);font-size:13px;padding:2px 9px;border-radius:99px;border:1.5px solid ' + (ok ? 'var(--green)' : 'var(--rust)') + ';color:' + (ok ? 'var(--green)' : 'var(--rust)') + '">' + chip + '</span> ' + body + '</div></figure>';
+  }
+  document.getElementById('card').innerHTML = '<div class="eyebrow">Killy’s plate 037P · voxel pagoda · medium reasoning</div><h1>6 of 6 samples build the pagoda</h1>' +
+    '<div style="font-size:19px;color:var(--muted);margin-top:-6px">3 on the first try; a render-check-repair loop fixed the other 3 in one or two rounds</div>' +
+    '<div style="flex:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;align-content:center;justify-items:center">' +
+    fig('pagoda_repair_20260927/pagoda_medium_s0_r0.png', 'first try', true, 'temp 1.0 · 630 cubes, none floating') +
+    fig('pagoda_t06_20260927/pagoda_medium_s1_r0.png', 'first try', true, 'temp 0.6 · 1,414 cubes, none floating') +
+    fig('pagoda_t06_20260927/pagoda_medium_s2_r1.png', '1 repair', true, 'temp 0.6 · import map fixed after one round') +
+    '</div>' + FOOT;
+};
 var c = (location.search.match(/c=(\w+)/) || [])[1] || 'summary';
 (cards[c] || cards.summary)();
 document.fonts && document.fonts.ready.then(function () { document.body.setAttribute('data-ready', '1'); });
