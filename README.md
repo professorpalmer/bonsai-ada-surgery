@@ -163,6 +163,96 @@ Windows binaries on [Releases](../../releases). Merged upstream already: #214 (b
 How each cut was found (CUPTI traces, L1 wavefront counts, what did not work):
 [`surgery/ADA4070_PTQ1.md`](surgery/ADA4070_PTQ1.md) and [`docs/Q8_FULL_CONTEXT.md`](docs/Q8_FULL_CONTEXT.md).
 
+## Quick start (Linux, NVIDIA)
+
+`build/build_linux.sh` fetches the pinned PrismML source (`adfffbe`) and applies **all 33 bundled patches**,
+including the `common.cuh` header fix (0024) and the Hopper/Blackwell PDL dependency wait (0026). No manual patch
+application or Git author configuration is needed. There is no prebuilt Linux binary yet.
+
+Prerequisites: NVIDIA driver, CUDA toolkit (`nvcc` on PATH), Git, CMake >= 3.24, and a C++ compiler supported by
+your CUDA toolkit. On Ubuntu/Debian, the ordinary build dependencies are:
+
+```bash
+sudo apt-get update
+sudo apt-get install -y git cmake build-essential libcurl4-openssl-dev libssl-dev
+```
+
+Install the NVIDIA CUDA toolkit separately if `nvcc --version` is unavailable. CUDA 13.x is not the cause of the
+undefined `ggml_cuda_info` error below.
+
+```bash
+git clone https://github.com/professorpalmer/bonsai-ada-surgery.git
+cd bonsai-ada-surgery
+bash build/build_linux.sh
+bash start-linux.sh /absolute/path/to/Ternary-Bonsai-2-27B-PTQ1_0.gguf
+```
+
+Use the official original `Ternary-Bonsai-2-27B-PTQ1_0.gguf` from
+[the official model download](https://huggingface.co/prism-ml/Ternary-Bonsai-2-27B-gguf/blob/main/Ternary-Bonsai-2-27B-PTQ1_0.gguf);
+the model download is separate. If you already have it, pass its existing path. The scripts do not install system
+packages, download weights, or change your existing `vendor/prism-llama` checkout.
+
+Open **http://127.0.0.1:8080** on the same machine. The API is at `http://127.0.0.1:8080/v1`. Ctrl-C stops it.
+`start-linux.sh` is a first-run configuration: 8k context, full GPU offload, flash attention, no speculative draft.
+It is not the Windows recipe behind the headline numbers. The same runtime flags work on Linux; for the full window
+with q8_0 KV on a 12 GB card, launch the built server directly, for example:
+
+```bash
+llama-server -m Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf -ngl 99 -fa on -c 262144 -np 1 \
+  -ctk q8_0 -ctv q8_0 --kv-vram-cells 110000 \
+  --spec-type draft-mtp --spec-draft-n-max 2 --spec-draft-n-max-tail 4 --spec-draft-window 16384 -ctkd q8_0 -ctvd q8_0 \
+  --reasoning-effort-allow medium --reasoning-max-tokens-floor 24576 --reasoning-budget 20480 \
+  --chat-template-kwargs '{"reasoning_effort":"medium"}' --jinja --host 127.0.0.1 --port 8080
+```
+
+(`--kv-vram-cells`: as many positions as fit in VRAM next to the weights, ~34.8 KB per q8_0 position for this model;
+Linux has no WDDM demotion, so less margin is needed than on Windows. Untested on Linux here.)
+
+Set `BONSAI_CTX` and `BONSAI_PORT` to change the `start-linux.sh` defaults. The build uses four jobs by default;
+lower `BONSAI_BUILD_JOBS` on low-memory hosts. CMake detects the GPU by default. For a headless build without an
+attached GPU, pass its target architecture, e.g. `BONSAI_CUDA_ARCH=89 bash build/build_linux.sh` for Ada.
+
+The build uses a separate source directory keyed by the base commit and patch contents. Repeating the command reuses
+its build; changed patches get a new source directory. It refuses to overwrite tracked edits in an existing
+generated source tree. After pulling updates to this bundle, rerun the build script.
+
+The [Linux CUDA build workflow](.github/workflows/linux-cuda.yml) compiles the patch stack with CUDA 13 for Ada
+without a GPU. A successful compile does not establish GPU inference correctness or Linux benchmark results.
+
+### Direct fork build (alternative)
+
+The buildable llama.cpp fork is
+[llama.cpp-ada-ternary, branch `bonsai-q8-product`](https://github.com/professorpalmer/llama.cpp-ada-ternary/tree/bonsai-q8-product)
+(the same tree as the patch series). `bonsai-combo` is #221 alone, without the tiered KV cache and the newer flags.
+
+```bash
+git clone --branch bonsai-q8-product https://github.com/professorpalmer/llama.cpp-ada-ternary
+cd llama.cpp-ada-ternary
+cmake -S . -B build-linux -DGGML_CUDA=ON \
+  -DCMAKE_BUILD_TYPE=Release -DCMAKE_CUDA_ARCHITECTURES=native
+cmake --build build-linux --target llama-server -j4
+```
+
+### Updating an existing source checkout
+
+Run these inside the **llama.cpp fork**, such as `vendor/prism-llama`, rather than in the outer
+`bonsai-ada-surgery` directory:
+
+```bash
+git fetch origin
+git switch bonsai-q8-product
+git pull --ff-only
+```
+
+Then rerun the configure and build commands above. Preserve any local changes; if Git cannot fast-forward, use a
+separate fresh clone instead of resetting it.
+
+The `common.cuh` errors saying `ggml_cuda_info` and `ggml_cuda_get_device` are undefined come from a
+declaration-order bug fixed in
+[`32842f6`](https://github.com/professorpalmer/llama.cpp-ada-ternary/commit/32842f6cf208187d1624da5d968e410e117772d8).
+Patch `0024` carries that fix for patch-series users. Downgrading CUDA does not address this source-order error.
+Updating only the outer bundle does not update an already cloned `vendor/prism-llama` checkout.
+
 ## Build from source
 
 Windows without the CUDA toolkit (VS 2022 Build Tools C++ workload + NVIDIA's pip wheels):
@@ -173,13 +263,24 @@ git clone -b bonsai-q8-product https://github.com/professorpalmer/llama.cpp-ada-
 .\build\build_windows.ps1                    # arch from nvidia-smi; -Arch "75;86;89;89-virtual" for a release build
 ```
 
-Linux, or from PrismML's tree directly:
+### Alternative: apply the bundled patches to PrismML source
+
+Use a fresh checkout at the exact base below. Do not apply this series on top of `bonsai-q8-product` or
+`bonsai-combo`, which already include the changes. From this bundle's root:
 
 ```bash
-git clone https://github.com/PrismML-Eng/llama.cpp && cd llama.cpp && git checkout adfffbe
-git am ../bonsai-ada-surgery/patches/*.patch
-cmake -B build -DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES="86;89" && cmake --build build --target llama-server -j
+BONSAI_PATCH_DIR="$PWD/patches"
+git clone https://github.com/PrismML-Eng/llama.cpp vendor/prism-patched
+cd vendor/prism-patched
+git checkout adfffbe
+git am "$BONSAI_PATCH_DIR"/*.patch
+cmake -S . -B build-linux -DGGML_CUDA=ON \
+  -DCMAKE_BUILD_TYPE=Release -DCMAKE_CUDA_ARCHITECTURES=native
+cmake --build build-linux --target llama-server -j4
 ```
+
+`git am` requires your Git author name and email to be configured. The series is verified to reproduce the
+`bonsai-q8-product` tree exactly on a fresh `adfffbe` checkout.
 
 ## Measure it yourself
 
@@ -200,6 +301,8 @@ python bench\mtp_identity.py                   # greedy draft-on vs draft-off
 | --- | --- |
 | `patches/` | the 33-commit stack on PrismML `adfffbe`, `git am`-able |
 | `start-server.ps1`, `start-remote.ps1` | the recipe (LAN / Cloudflare tunnel) |
+| `build/build_linux.sh`, `start-linux.sh` | Linux build from the pinned base + patches, first-run launcher |
+| `tests/`, `.github/workflows/` | Linux setup tests, Linux CUDA compile and PDL code-generation CI |
 | `build/` | toolkit-free Windows CUDA build, MTP head grafts |
 | `docs/Q8_FULL_CONTEXT.md` | q8_0 at 262k on 12 GB: mechanisms, receipts, identity matrix, rejected ideas |
 | `docs/QUALITY.md` | KV precision, reasoning effort, tool-call syntax, harness-proofing |
@@ -213,3 +316,25 @@ PrismML for the model and the fork. sudoingX for the planar-transposed layout, t
 Hadamard-inverse fix and the MTP graft tools. ProCreations for the on-policy MTP head (Apache 2.0; independent
 of PrismML). Killy (@net_termina) for the failure census and the HumanEval plates that turned "quality is worse"
 into fixable buckets. MIT for everything here; weights are PrismML's (Apache 2.0). Not affiliated with PrismML.
+
+### Hopper/Blackwell PDL fix
+
+Patch `0026` carries `09b6cce`. The planar PTQ1_0 mat-vec calls `ggml_cuda_pdl_sync()` before reading activations
+produced by the q8_1 quantization kernel. Without that wait, programmatic dependent launch can let the consumer
+read unfinished output on Hopper/Blackwell. LamplighterPaul reported corrupt `llama-server` output on an RTX 5080,
+including the `GGML_CUDA_PDL=0` isolation, in
+[Prism #218](https://github.com/PrismML-Eng/llama.cpp/pull/218#issuecomment-5833071266). This is a synchronization
+bug, separate from KV-cache quantization quality. The helper is a no-op on Ampere/Ada. Windows Release bundles from
+2026-09-27 on contain it; older downloaded binaries are not updated by pulling patches. The reporter's hardware
+result is not a new hardware test of this bundle.
+
+The [PDL code-generation check](https://github.com/professorpalmer/bonsai-ada-surgery/actions/workflows/pdl-codegen.yml)
+compiles the actual planar kernel for sm_89, sm_90, and sm_120a. It checks all 24 column/fusion template variants.
+On Hopper/Blackwell, removing the fix must fail the ordering check; with the fix, one unconditional
+`griddepcontrol.wait` must precede global-memory loads. Ada must emit no wait in either case. This is a compiler
+regression check, not a GPU runtime or performance benchmark. To reproduce with CUDA 13 and an already-patched
+source checkout:
+
+```bash
+python3 tests/check_pdl_codegen.py /path/to/patched/llama.cpp --arch 120a
+```
