@@ -69,7 +69,10 @@ $Port = if ($env:BONSAI_PORT) { [int]$env:BONSAI_PORT } else { 8080 }
 # (bench\toolcall_stress.py: 8/9 parsed thinking-off vs 6/9 at medium, which spent 10-17k tokens thinking).
 $Effort = if ($env:BONSAI_EFFORT) { $env:BONSAI_EFFORT } else { 'medium' }
 $Think = $env:BONSAI_THINK -ne '0'
-$TemplateKwargs = if ($Think) { "{\`"reasoning_effort\`":\`"$Effort\`"}" } else { "{\`"reasoning_effort\`":\`"$Effort\`",\`"enable_thinking\`":false}" }
+# Passed through the environment, not the command line: Windows PowerShell 5.1 and PowerShell 7.3+ quote
+# embedded double quotes differently for native programs, and no single escaping of a JSON argument works
+# on both (issue #1). llama-server reads LLAMA_ARG_CHAT_TEMPLATE_KWARGS verbatim.
+$env:LLAMA_ARG_CHAT_TEMPLATE_KWARGS = if ($Think) { '{"reasoning_effort":"' + $Effort + '"}' } else { '{"reasoning_effort":"' + $Effort + '","enable_thinking":false}' }
 $ThinkBudget = if ($env:BONSAI_THINK_BUDGET) { [int]$env:BONSAI_THINK_BUDGET } else { 20480 }
 # injected before </think> when the budget trips, so a force-close still yields the answer
 $ThinkBudgetMsg = if ($null -ne $env:BONSAI_THINK_BUDGET_MSG) { $env:BONSAI_THINK_BUDGET_MSG } else { 'Now produce the complete answer.' }
@@ -166,7 +169,6 @@ Write-Host "listen 0.0.0.0:$Port  think=$Think effort=$Effort budget=$ThinkBudge
 Write-Host "api    Authorization: Bearer <artifacts/api_key.txt>"
 Set-Location $Bin
 & .\llama-server.exe @TierArgs @SpecArgs @BsArgs @BudgetMsgArgs @HarnessArgs `
-    --chat-template-kwargs $TemplateKwargs `
     --reasoning-budget $ThinkBudget `
     -n 24576 `
     -m $Model `
