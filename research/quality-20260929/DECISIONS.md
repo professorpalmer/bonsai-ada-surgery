@@ -452,3 +452,14 @@ the system message before ~5k tokens of contract.
 E9b bench/E9b-plan.json sha256 49878b50269d0a6cdec21211a16c2b0045713fdf95c15b1cf0d9915062cbd4c8: v2 cards at the end of the user message
 (C2U), same + one generic "use the library functions listed above instead of implementing by hand" sentence
 (C2P), vs DOC; dev-bundle-01 seeds 171-176; same gate.
+
+## 2026-10-01 15:20 - E9b result: automatic cards PASS with placement + one generic sentence; layer updated; P1d launched
+E9b (dev-bundle-01 seeds 171-176, 18/18): functional C2U 4/6, C2P 6/6, DOC 6/6; solutions using tarfile+addfile
+5/6, 6/6, 6/6. Gate (>=4/6 and within 1 of DOC): C2P adopted; C2U not (2 below DOC).
+Reading: placement was the main factor (same v2 cards: system message 2/6 in E9, end of user message 4/6), and
+one task-independent sentence ("Use the library functions listed above instead of implementing these formats or
+algorithms by hand; they already implement them correctly.") closed the rest. Fully automatic (cards introspected
+from the runtime), no hand-written content. One task family so far: transfer to other libraries is untested.
+Layer (tooling/interpreter_proxy.py): apply_cards now uses apicards_v2 and appends cards + sentence to the end of
+the FIRST user message; verified byte-identical to the C2P prompt, idempotent across turns, plain chat untouched.
+Product benchmark relaunched with this layer: same frozen plan P1-plan.json, output bench/P1d/.

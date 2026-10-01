@@ -151,10 +151,10 @@ API check, sandboxed Python tool) and started a raw-vs-layer product benchmark (
 | API linter | 0 warnings on 19 functionally correct solutions; flags invented names (10 of 30 baseline bundle attempts contain one). A false positive on local imports (`import solution`) was found and fixed; it voided a partial P1 run |
 | Auto-generated API cards v1 / v2 vs hand-written notes (E9) | functional 1/6, 2/6 vs 5/6: neither card design adopted. With notes the model uses `tarfile`; with cards it still hand-rolls the format |
 | Hand-written notes, cumulative (E8, E8R, E9) | 16/18 functional vs ~1/30 without help |
-| E9b: cards at the end of the user message, with and without one generic "use the library" sentence | running |
+| E9b: same v2 cards at the END of the user message, without / with one generic "use the library" sentence | 4/6 and **6/6** vs notes 6/6: the automatic version with the sentence is adopted (placement was the main factor) |
 | P1 product benchmark | paused until the card design is settled; partial runs kept, not scored |
 
-Status: the docs lever is real for curated notes and not yet reproduced by automatic cards. The interpreter
+Status: the docs lever is now automatic: cards introspected from the runtime, appended to the end of the first user message with one task-independent sentence, matched hand-written notes (6/6) on the bundle task. Transfer to other libraries is untested. The product benchmark (P1d) runs with this design. The interpreter
 lever stands as before (3 gated passes, off by default for requests that bring their own tools).
 Deliverables this round: `PRISM-REPORT.md` (failure traces for PrismML), `layer/` snapshot (proxy with cards,
 linter, interpreter, streaming passthrough), launcher integration on a local branch (not merged).

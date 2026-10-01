@@ -27,7 +27,7 @@ import urllib.request
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import sandbox_path  # noqa: E402,F401
 import sandbox  # noqa: E402
-import apicards  # noqa: E402
+import apicards_v2 as apicards  # noqa: E402  (E9b: v2 docstring cards adopted)
 import apilint  # noqa: E402
 
 TOOL_NAME = "run_python"
@@ -89,14 +89,25 @@ def apply_lint(msgs):
     return out, n
 
 
+PREFER = ("Use the library functions listed above instead of implementing these formats or algorithms by hand; "
+          "they already implement them correctly.")
+
+
 def apply_cards(body, msgs):
-    """Inject API cards for the modules a coding request involves into the system message."""
+    """Append API cards for the modules a coding request involves to the END of the first user message, followed by
+    one generic sentence. Measured (E9/E9b): the same cards in the system message did not help (2/6); at the end of
+    the user message with the sentence they matched hand-written notes (6/6). The first user message is used so the
+    rendered prefix stays stable across the turns of a tool loop."""
     text = apicards.cards_for_request(dict(body, messages=msgs))
     if not text:
         return msgs, 0
-    if msgs and msgs[0].get("role") == "system" and isinstance(msgs[0].get("content"), str):
-        return [dict(msgs[0], content=msgs[0]["content"] + chr(10) + chr(10) + text)] + msgs[1:], len(text)
-    return [{"role": "system", "content": text}] + msgs, len(text)
+    for i, m in enumerate(msgs):
+        if m.get("role") == "user" and isinstance(m.get("content"), str):
+            if "Reference: exact APIs of the Python modules" in m["content"]:
+                return msgs, 0
+            add = chr(10) + chr(10) + text + chr(10) + chr(10) + PREFER
+            return msgs[:i] + [dict(m, content=m["content"] + add)] + msgs[i + 1:], len(add)
+    return msgs, 0
 
 
 class Proxy(http.server.BaseHTTPRequestHandler):
