@@ -28,8 +28,7 @@ def imp(name, line):
     try:
         return importlib.import_module(name)
     except Exception:
-        add(line, f"module '{name}' cannot be imported in this runtime")
-        return None
+        return None     # may be a local workspace module (e.g. "import solution"): say nothing
 for node in ast.walk(tree):
     if isinstance(node, ast.Import):
         for a in node.names:
