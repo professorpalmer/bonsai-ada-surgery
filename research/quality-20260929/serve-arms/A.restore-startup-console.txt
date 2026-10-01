@@ -1,0 +1,29 @@
+﻿Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+arm A  --kv-vram-cells 113152 --spec-type draft-mtp --spec-draft-n-max 2 -ctkd q8_0 -ctvd q8_0 --spec-draft-window 16384
+ --spec-draft-n-max-tail 4 --backend-sampling --reasoning-budget-message Now produce the complete answer. --reasoning-ef
+fort-allow medium --reasoning-effort-fallback medium --reasoning-max-tokens-floor 24576 --chat-template-kwargs {\"reason
+ing_effort\":\"medium\"} --reasoning-budget 20480 -n 24576 -m C:\Users\pwall\Projects\bonsai-2-27b-serve\models\Ternary-
+Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf -ngl 99 -fa on -c 262144 -np 1 -b 2048 -ub 512 -ctk q8_0 -ctv q8_0 --host 0.0.
+0.0 --port 8080 --alias bonsai-2-27b --jinja --prio 2 --poll 100 --metrics --api-key <REDACTED> --temp 1.0 --top-p 0.95
+--top-k 20
+0.00.020.550 I cmn  common_param: common_params_print_info: verbosity = 3 (adjust with the `-lv N` CLI arg)
+0.00.022.778 I srv    load_model: loading model 'C:\Users\pwall\Projects\bonsai-2-27b-serve\models\Ternary-Bonsai-2-27B-
+PTQ1_0-mtp-procreations.gguf'
+0.00.905.215 W common_fit_params: failed to fit params to free device memory: n_gpu_layers already set by user to 99, ab
+ort
+0.04.850.181 I cmn          init: llama threadpool init, n_threads = 16
+0.05.126.708 I common_speculative_init_result: draft context sized to 20736 tokens (spec-draft-window 16384, target 2621
+44)
+0.05.126.712 I common_speculative_init_result: creating MTP draft context against the target model 'C:\Users\pwall\Proje
+cts\bonsai-2-27b-serve\models\Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf'
+0.05.569.981 I srv    load_model: initializing, n_slots = 1, n_ctx_slot = 262144, kv_unified = 'false'
+0.05.586.779 I srv    load_model: speculative decoding enabled: draft-mtp
+0.05.591.206 I srv          init: chat template supports preserving reasoning, consider enabling it via --reasoning-pres
+erve
+0.05.591.223 I srv  llama_server: model loaded
+0.05.591.225 I srv  llama_server: listening on http://0.0.0.0:8080
+0.05.591.225 W srv  llama_server: NOTICE: server default port will be changed to :9931 in a future release
+0.05.591.225 W srv  llama_server:         ref: https://github.com/ggml-org/llama.cpp/pull/26508
+

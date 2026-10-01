@@ -1,0 +1,103 @@
+{
+ "id": "E2-agentic-budget-v1",
+ "hypothesis": "on the real agentic coding cases, budget 40960 rescues functional failures caused by the forced design-turn closure",
+ "changed": "reasoning_budget_tokens 20480 (B20) vs 40960 (B40)",
+ "fixed": "pinned A server; frozen Codex prompts+schemas (spec-ab-v1/inputs); A sampling; max_tokens 49152 both; 12 responses; history without reasoning (as Codex); cache_prompt true (deviation from Codex's false: speed only)",
+ "tools": "write_file (in-memory workspace) / run_python (WASI sandbox, 8 s, 128 MB)",
+ "grader": "contract_grade.grade = original oracles; port validated 4/4 against Codex receipts",
+ "tasks": "dev-bundle-01 seeds 101-106, dev-checklist-01 seeds 101-103 (fresh)",
+ "primary": "functional_result_correct paired: >=2 false/None->true and 0 true->false/None",
+ "secondary": "task_success, forced turns, tokens, wall time (no time limit; latency reported)",
+ "order": [
+  [
+   "dev-bundle-01",
+   101,
+   "B20"
+  ],
+  [
+   "dev-bundle-01",
+   101,
+   "B40"
+  ],
+  [
+   "dev-bundle-01",
+   102,
+   "B40"
+  ],
+  [
+   "dev-bundle-01",
+   102,
+   "B20"
+  ],
+  [
+   "dev-bundle-01",
+   103,
+   "B20"
+  ],
+  [
+   "dev-bundle-01",
+   103,
+   "B40"
+  ],
+  [
+   "dev-bundle-01",
+   104,
+   "B40"
+  ],
+  [
+   "dev-bundle-01",
+   104,
+   "B20"
+  ],
+  [
+   "dev-bundle-01",
+   105,
+   "B20"
+  ],
+  [
+   "dev-bundle-01",
+   105,
+   "B40"
+  ],
+  [
+   "dev-bundle-01",
+   106,
+   "B40"
+  ],
+  [
+   "dev-bundle-01",
+   106,
+   "B20"
+  ],
+  [
+   "dev-checklist-01",
+   101,
+   "B20"
+  ],
+  [
+   "dev-checklist-01",
+   101,
+   "B40"
+  ],
+  [
+   "dev-checklist-01",
+   102,
+   "B40"
+  ],
+  [
+   "dev-checklist-01",
+   102,
+   "B20"
+  ],
+  [
+   "dev-checklist-01",
+   103,
+   "B20"
+  ],
+  [
+   "dev-checklist-01",
+   103,
+   "B40"
+  ]
+ ]
+}

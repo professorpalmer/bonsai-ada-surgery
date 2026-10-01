@@ -1,0 +1,74 @@
+{
+ "id": "H6-budget80-v1",
+ "hypothesis": "doubling the budget again (40960 -> 81920) closes digits near-misses",
+ "changed": "reasoning_budget_tokens (B40=40960, B80=81920)",
+ "fixed": "A server, temp 1.0, top_p .95, top_k 20, min_p .05, max_tokens 90112 BOTH, cache_prompt false",
+ "tasks": "digits seeds 61-66 (fresh)",
+ "pass_gate": ">=2 wrong->correct and 0 correct->wrong",
+ "order": [
+  [
+   "digits",
+   61,
+   "B40"
+  ],
+  [
+   "digits",
+   61,
+   "B80"
+  ],
+  [
+   "digits",
+   62,
+   "B80"
+  ],
+  [
+   "digits",
+   62,
+   "B40"
+  ],
+  [
+   "digits",
+   63,
+   "B40"
+  ],
+  [
+   "digits",
+   63,
+   "B80"
+  ],
+  [
+   "digits",
+   64,
+   "B80"
+  ],
+  [
+   "digits",
+   64,
+   "B40"
+  ],
+  [
+   "digits",
+   65,
+   "B40"
+  ],
+  [
+   "digits",
+   65,
+   "B80"
+  ],
+  [
+   "digits",
+   66,
+   "B80"
+  ],
+  [
+   "digits",
+   66,
+   "B40"
+  ]
+ ],
+ "limits": {
+  "max_tokens": 90112,
+  "timeout": 3600
+ }
+}

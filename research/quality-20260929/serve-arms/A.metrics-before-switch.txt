@@ -1,0 +1,18 @@
+﻿# HELP llamacpp:tokens_predicted_total Number of generation tokens processed
+# TYPE llamacpp:tokens_predicted_total counter
+llamacpp:tokens_predicted_total 2.37718e+06
+# HELP llamacpp:spec_decode_num_draft_tokens_total Speculative: Total draft tokens generated
+# TYPE llamacpp:spec_decode_num_draft_tokens_total counter
+llamacpp:spec_decode_num_draft_tokens_total 1.99016e+06
+# HELP llamacpp:spec_decode_num_accepted_tokens_total Speculative: Total draft tokens accepted by the target model
+# TYPE llamacpp:spec_decode_num_accepted_tokens_total counter
+llamacpp:spec_decode_num_accepted_tokens_total 1.38568e+06
+# HELP llamacpp:spec_decode_num_drafts_total Speculative: Total speculative decoding verification steps
+# TYPE llamacpp:spec_decode_num_drafts_total counter
+llamacpp:spec_decode_num_drafts_total 991396
+# HELP llamacpp:spec_decode_num_accepted_tokens_per_pos_total Accepted tokens per draft position
+# TYPE llamacpp:spec_decode_num_accepted_tokens_per_pos_total counter
+llamacpp:spec_decode_num_accepted_tokens_per_pos_total{position="0"} 773935
+llamacpp:spec_decode_num_accepted_tokens_per_pos_total{position="1"} 609251
+llamacpp:spec_decode_num_accepted_tokens_per_pos_total{position="2"} 1401
+llamacpp:spec_decode_num_accepted_tokens_per_pos_total{position="3"} 1096

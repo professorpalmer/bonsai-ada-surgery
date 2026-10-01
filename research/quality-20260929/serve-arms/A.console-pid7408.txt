@@ -1,0 +1,51 @@
+2314.01.787.086 I slot print_timing: id  0 | task 995076 |        eval time =   63122.61 ms /  5095 tokens (   12.39 ms per token,    80.70 tokens per second)
+2314.01.787.086 I slot print_timing: id  0 | task 995076 |       total time =   71296.79 ms / 14614 tokens
+2314.01.787.087 I slot print_timing: id  0 | task 995076 |    graphs reused =     980187
+2314.01.787.090 I slot print_timing: id  0 | task 995076 | draft acceptance = 0.62027 ( 2821 accepted /  4548 generated), mean len =  2.24
+2314.01.787.302 I slot      release: id  0 | task 995076 | stop processing: n_tokens = 14614, truncated = 0
+2314.02.091.163 I slot get_availabl: id  0 | task -1 | selected slot by LCP similarity, f_sim_best = 0.877 (> 0.100 thold), f_keep = 0.651
+2314.02.091.350 W common_sampler_init: backend sampling is not compatible with grammar, disabling
+2314.02.091.560 I slot launch_slot_: id  0 | task 997360 | processing task, is_child = 0
+2314.05.882.526 I slot print_timing: id  0 | task 997360 | prompt processing, n_tokens =   4584, progress = 0.42, t =   3.60 s / 1271.99 tokens per second
+2314.07.617.607 I slot print_timing: id  0 | task 997360 | prompt processing, n_tokens =   6632, progress = 0.61, t =   5.32 s / 1245.55 tokens per second
+2314.09.397.760 I slot print_timing: id  0 | task 997360 | prompt processing, n_tokens =   8680, progress = 0.80, t =   7.11 s / 1221.61 tokens per second
+2314.10.888.282 I slot print_timing: id  0 | task 997360 | prompt processing, n_tokens =  10338, progress = 0.95, t =   8.72 s / 1186.03 tokens per second
+2314.11.385.634 I slot print_timing: id  0 | task 997360 | prompt processing, n_tokens =  10850, progress = 1.00, t =   9.12 s / 1189.38 tokens per second
+2314.12.906.918 I slot print_timing: id  0 | task 997360 | prompt eval time =    9370.65 ms / 10854 tokens (    0.86 ms per token,  1158.30 tokens per second)
+2314.12.906.921 I slot print_timing: id  0 | task 997360 |        eval time =    1444.53 ms /   140 tokens (   10.39 ms per token,    96.23 tokens per second)
+2314.12.906.922 I slot print_timing: id  0 | task 997360 |       total time =   10815.19 ms / 10994 tokens
+2314.12.906.922 I slot print_timing: id  0 | task 997360 |    graphs reused =     980238
+2314.12.906.929 I slot print_timing: id  0 | task 997360 | draft acceptance = 0.83654 (   87 accepted /   104 generated), mean len =  2.67
+2314.12.907.187 I slot      release: id  0 | task 997360 | stop processing: n_tokens = 10993, truncated = 0
+2314.18.863.784 I slot get_availabl: id  0 | task -1 | selected slot by LCP similarity, f_sim_best = 0.981 (> 0.100 thold), f_keep = 0.987
+2314.18.863.892 W common_sampler_init: backend sampling is not compatible with grammar, disabling
+2314.18.863.999 I slot launch_slot_: id  0 | task 997421 | processing task, is_child = 0
+2314.22.813.904 I slot print_timing: id  0 | task 997421 | prompt processing, n_tokens =   4584, progress = 0.41, t =   3.75 s / 1220.82 tokens per second
+2314.24.542.713 I slot print_timing: id  0 | task 997421 | prompt processing, n_tokens =   6632, progress = 0.60, t =   5.49 s / 1208.90 tokens per second
+2314.26.318.317 I slot print_timing: id  0 | task 997421 | prompt processing, n_tokens =   8680, progress = 0.78, t =   7.25 s / 1197.25 tokens per second
+2314.27.988.248 I slot print_timing: id  0 | task 997421 | prompt processing, n_tokens =  10545, progress = 0.95, t =   8.97 s / 1175.05 tokens per second
+2314.28.486.768 I slot print_timing: id  0 | task 997421 | prompt processing, n_tokens =  11057, progress = 1.00, t =   9.45 s / 1169.60 tokens per second
+2314.29.127.289 I slot print_timing: id  0 | task 997421 | prompt eval time =    9697.72 ms / 11061 tokens (    0.88 ms per token,  1140.58 tokens per second)
+2314.29.127.292 I slot print_timing: id  0 | task 997421 |        eval time =     565.40 ms /    57 tokens (   10.10 ms per token,    99.04 tokens per second)
+2314.29.127.293 I slot print_timing: id  0 | task 997421 |       total time =   10263.12 ms / 11118 tokens
+2314.29.127.293 I slot print_timing: id  0 | task 997421 |    graphs reused =     980257
+2314.29.127.296 I slot print_timing: id  0 | task 997421 | draft acceptance = 0.92500 (   37 accepted /    40 generated), mean len =  2.85
+2314.29.127.539 I slot      release: id  0 | task 997421 | stop processing: n_tokens = 11118, truncated = 0
+2314.29.428.954 I slot get_availabl: id  0 | task -1 | selected slot by LCP similarity, f_sim_best = 0.937 (> 0.100 thold), f_keep = 0.995
+2314.29.429.268 W common_sampler_init: backend sampling is not compatible with grammar, disabling
+2314.29.429.388 I slot launch_slot_: id  0 | task 997450 | processing task, is_child = 0
+2314.33.208.668 I slot print_timing: id  0 | task 997450 | prompt processing, n_tokens =   4584, progress = 0.39, t =   3.59 s / 1276.00 tokens per second
+2314.34.941.734 I slot print_timing: id  0 | task 997450 | prompt processing, n_tokens =   6632, progress = 0.56, t =   5.31 s / 1249.19 tokens per second
+2314.36.718.051 I slot print_timing: id  0 | task 997450 | prompt processing, n_tokens =   8680, progress = 0.74, t =   7.08 s / 1225.91 tokens per second
+2314.38.538.275 I slot print_timing: id  0 | task 997450 | prompt processing, n_tokens =  10728, progress = 0.91, t =   8.90 s / 1205.05 tokens per second
+2314.39.069.720 I slot print_timing: id  0 | task 997450 | prompt processing, n_tokens =  11286, progress = 0.96, t =   9.61 s / 1174.65 tokens per second
+2314.39.572.541 I slot print_timing: id  0 | task 997450 | prompt processing, n_tokens =  11798, progress = 1.00, t =   9.98 s / 1182.67 tokens per second
+2314.42.661.656 I slot print_timing: id  0 | task 997450 | n_gen =    240, tg =  79.41 t/s, tg_3s =  79.74 t/s
+2314.45.685.393 I slot print_timing: id  0 | task 997450 | n_gen =    505, tg =  83.53 t/s, tg_3s =  87.64 t/s
+2314.48.142.652 I slot print_timing: id  0 | task 997450 | prompt eval time =   10222.37 ms / 11802 tokens (    0.87 ms per token,  1154.53 tokens per second)
+2314.48.142.656 I slot print_timing: id  0 | task 997450 |        eval time =    8490.68 ms /   705 tokens (   12.06 ms per token,    82.91 tokens per second)
+2314.48.142.656 I slot print_timing: id  0 | task 997450 |       total time =   18713.05 ms / 12507 tokens
+2314.48.142.656 I slot print_timing: id  0 | task 997450 |    graphs reused =     980560
+2314.48.142.659 I slot print_timing: id  0 | task 997450 | draft acceptance = 0.65196 (  399 accepted /   612 generated), mean len =  2.30
+2314.48.142.932 I slot      release: id  0 | task 997450 | stop processing: n_tokens = 12507, truncated = 0
+PS C:\Users\pwall\Projects\bonsai-2-27b-serve\bin>

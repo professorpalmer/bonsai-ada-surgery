@@ -1,0 +1,71 @@
+{
+ "id": "H10-consumer-check-v1",
+ "hypothesis": "a public-example consumer check (the real grader, public example only) lets the model find its archive-format bugs within 12 responses",
+ "changed": "tools: frozen write_file+run_python (B20) vs same + check_solution (CK). Prompt text unchanged.",
+ "fixed": "pinned A; frozen Codex prompt; A sampling; budget 20480; max_tokens 49152; 12 responses; history without reasoning",
+ "checker": "agent_contract.check_solution: sandbox, 2 runs, original oracle on the disclosed public example; validated: flags Codex's 2 failed candidates, passes a reference solution",
+ "tasks": "dev-bundle-01 seeds 111-116 (fresh)",
+ "primary": "functional_result_correct paired: >=2 rescues and 0 losses",
+ "order": [
+  [
+   "dev-bundle-01",
+   111,
+   "B20"
+  ],
+  [
+   "dev-bundle-01",
+   111,
+   "CK"
+  ],
+  [
+   "dev-bundle-01",
+   112,
+   "CK"
+  ],
+  [
+   "dev-bundle-01",
+   112,
+   "B20"
+  ],
+  [
+   "dev-bundle-01",
+   113,
+   "B20"
+  ],
+  [
+   "dev-bundle-01",
+   113,
+   "CK"
+  ],
+  [
+   "dev-bundle-01",
+   114,
+   "CK"
+  ],
+  [
+   "dev-bundle-01",
+   114,
+   "B20"
+  ],
+  [
+   "dev-bundle-01",
+   115,
+   "B20"
+  ],
+  [
+   "dev-bundle-01",
+   115,
+   "CK"
+  ],
+  [
+   "dev-bundle-01",
+   116,
+   "CK"
+  ],
+  [
+   "dev-bundle-01",
+   116,
+   "B20"
+  ]
+ ]
+}

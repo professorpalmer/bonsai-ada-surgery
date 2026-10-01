@@ -1,0 +1,70 @@
+{
+ "id": "E6-bundle-turns-v1",
+ "question": "is the bundle coding task turn-limited? 12 vs 24 model responses",
+ "changed": "response allowance 12 (R12) vs 24 (R24), stated in the prompt's two limit sentences; nothing else",
+ "fixed": "pinned A; frozen Codex prompt/tools; budget 20480; max_tokens 49152; oracle grading (validated)",
+ "tasks": "dev-bundle-01 seeds 121-126 (fresh)",
+ "gate": "functional: >=2 rescues and 0 losses",
+ "order": [
+  [
+   "dev-bundle-01",
+   121,
+   "R12"
+  ],
+  [
+   "dev-bundle-01",
+   121,
+   "R24"
+  ],
+  [
+   "dev-bundle-01",
+   122,
+   "R24"
+  ],
+  [
+   "dev-bundle-01",
+   122,
+   "R12"
+  ],
+  [
+   "dev-bundle-01",
+   123,
+   "R12"
+  ],
+  [
+   "dev-bundle-01",
+   123,
+   "R24"
+  ],
+  [
+   "dev-bundle-01",
+   124,
+   "R24"
+  ],
+  [
+   "dev-bundle-01",
+   124,
+   "R12"
+  ],
+  [
+   "dev-bundle-01",
+   125,
+   "R12"
+  ],
+  [
+   "dev-bundle-01",
+   125,
+   "R24"
+  ],
+  [
+   "dev-bundle-01",
+   126,
+   "R24"
+  ],
+  [
+   "dev-bundle-01",
+   126,
+   "R12"
+  ]
+ ]
+}

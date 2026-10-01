@@ -1,0 +1,49 @@
+{
+ "id": "C1-teacher-reference-v1",
+ "question": "is compression to blame? same prompts (Bonsai template, byte-identical tokens), same budget 20480, teacher Qwen3.8-27B UD-Q4_K_M vs Bonsai PTQ1_0",
+ "teacher_config": "experiments/spec-ab-20260928/run-teacher.ps1 (-c 32768, no MTP, no tier, loader fit offload)",
+ "bonsai_reference": "existing H2 records (B20 and B40) for the same (kind, seed): identical request bytes except model",
+ "tasks": "knapsack+digits seeds 11-14 (knapsack-11 already run as the pilot, T-pilot/)",
+ "declared_test": "compression costs efficiency if teacher median completion tokens < 0.5x Bonsai B20 median AND teacher B20 accuracy >= Bonsai B20 accuracy on the same 8",
+ "order": [
+  [
+   "knapsack",
+   12,
+   "B20"
+  ],
+  [
+   "digits",
+   12,
+   "B20"
+  ],
+  [
+   "knapsack",
+   13,
+   "B20"
+  ],
+  [
+   "digits",
+   13,
+   "B20"
+  ],
+  [
+   "knapsack",
+   14,
+   "B20"
+  ],
+  [
+   "digits",
+   14,
+   "B20"
+  ],
+  [
+   "digits",
+   11,
+   "B20"
+  ]
+ ],
+ "limits": {
+  "max_tokens": 49152,
+  "timeout": 7200
+ }
+}

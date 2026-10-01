@@ -41,3 +41,13 @@ artifacts/eval/*
 !artifacts/eval/control_*.ps1
 !artifacts/eval/control_*_2026*.log
 !artifacts/eval/pagoda_*_20260927/
+
+# sandbox runtime binaries and caches (tooling/wasi-python/fetch_runtime.ps1 re-creates them)
+tooling/wasi-python312/
+tooling/wasi-python/python.wasm
+tooling/wasi-python/python-wasi.zip
+tooling/wasi-python/lib/
+tooling/wasi-python/LICENSE
+tooling/apicards-cache.json
+bin-rc*/
+__pycache__/

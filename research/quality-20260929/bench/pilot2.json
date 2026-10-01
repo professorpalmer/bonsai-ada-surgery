@@ -1,0 +1,1 @@
+{"order": [["invoice", 1, "P0"], ["dedupe", 1, "P0"], ["ledger", 1, "P0"], ["copy", 1, "P0"], ["invoice", 3, "P0"], ["dedupe", 3, "P0"], ["ledger", 3, "P0"], ["copy", 3, "P0"], ["chain", 3, "P0"]], "limits": {}}

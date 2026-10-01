@@ -1,0 +1,69 @@
+{
+ "id": "E8R-api-notes-transfer-v1",
+ "question": "does the API-notes gain hold on a different hidden bundle case with fresh seeds?",
+ "changed": "verified stdlib notes appended (DOC) vs frozen prompt (B20); identical to E8 otherwise",
+ "tasks": "dev-bundle-02 (different hidden request; same family prompt) seeds 141-146",
+ "gate": "functional: >=2 rescues and 0 losses",
+ "order": [
+  [
+   "dev-bundle-02",
+   141,
+   "B20"
+  ],
+  [
+   "dev-bundle-02",
+   141,
+   "DOC"
+  ],
+  [
+   "dev-bundle-02",
+   142,
+   "DOC"
+  ],
+  [
+   "dev-bundle-02",
+   142,
+   "B20"
+  ],
+  [
+   "dev-bundle-02",
+   143,
+   "B20"
+  ],
+  [
+   "dev-bundle-02",
+   143,
+   "DOC"
+  ],
+  [
+   "dev-bundle-02",
+   144,
+   "DOC"
+  ],
+  [
+   "dev-bundle-02",
+   144,
+   "B20"
+  ],
+  [
+   "dev-bundle-02",
+   145,
+   "B20"
+  ],
+  [
+   "dev-bundle-02",
+   145,
+   "DOC"
+  ],
+  [
+   "dev-bundle-02",
+   146,
+   "DOC"
+  ],
+  [
+   "dev-bundle-02",
+   146,
+   "B20"
+  ]
+ ]
+}

@@ -1,0 +1,71 @@
+{
+ "id": "E8-api-notes-v1",
+ "question": "is the bundle failure an API-knowledge gap? frozen prompt vs same + verified stdlib notes (api_notes_tar_gzip.md)",
+ "changed": "user message + appended notes (facts verified in the sandbox Python)",
+ "fixed": "pinned A; frozen tools; budget 20480; 12 responses; oracle grading",
+ "notes_sha256": "467f3b82762543e1885a235e8701156058762795e6142a6246fc10f3d4c1de4a",
+ "tasks": "dev-bundle-01 seeds 131-136 (fresh)",
+ "gate": "functional: >=2 rescues and 0 losses",
+ "order": [
+  [
+   "dev-bundle-01",
+   131,
+   "B20"
+  ],
+  [
+   "dev-bundle-01",
+   131,
+   "DOC"
+  ],
+  [
+   "dev-bundle-01",
+   132,
+   "DOC"
+  ],
+  [
+   "dev-bundle-01",
+   132,
+   "B20"
+  ],
+  [
+   "dev-bundle-01",
+   133,
+   "B20"
+  ],
+  [
+   "dev-bundle-01",
+   133,
+   "DOC"
+  ],
+  [
+   "dev-bundle-01",
+   134,
+   "DOC"
+  ],
+  [
+   "dev-bundle-01",
+   134,
+   "B20"
+  ],
+  [
+   "dev-bundle-01",
+   135,
+   "B20"
+  ],
+  [
+   "dev-bundle-01",
+   135,
+   "DOC"
+  ],
+  [
+   "dev-bundle-01",
+   136,
+   "DOC"
+  ],
+  [
+   "dev-bundle-01",
+   136,
+   "B20"
+  ]
+ ]
+}

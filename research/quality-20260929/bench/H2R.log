@@ -1,0 +1,16 @@
+{"kind": "knapsack", "seed": 31, "arm": "B20", "truth": 232, "answer": 232, "correct": true, "forced": true, "finish": "stop", "completion_tokens": 20495, "wall_s": 254.5}
+{"kind": "knapsack", "seed": 31, "arm": "B40", "truth": 232, "answer": 232, "correct": true, "forced": true, "finish": "stop", "completion_tokens": 41555, "wall_s": 528.5}
+{"kind": "digits", "seed": 31, "arm": "B40", "truth": 28537, "answer": 28429, "correct": false, "forced": true, "finish": "stop", "completion_tokens": 41475, "wall_s": 494.4}
+{"kind": "digits", "seed": 31, "arm": "B20", "truth": 28537, "answer": 19447, "correct": false, "forced": true, "finish": "stop", "completion_tokens": 20917, "wall_s": 258.4}
+{"kind": "knapsack", "seed": 32, "arm": "B40", "truth": 174, "answer": 174, "correct": true, "forced": true, "finish": "stop", "completion_tokens": 41906, "wall_s": 511.2}
+{"kind": "knapsack", "seed": 32, "arm": "B20", "truth": 174, "answer": 174, "correct": true, "forced": true, "finish": "stop", "completion_tokens": 20862, "wall_s": 255.8}
+{"kind": "digits", "seed": 32, "arm": "B20", "truth": 91899, "answer": 91566, "correct": false, "forced": true, "finish": "stop", "completion_tokens": 20497, "wall_s": 239.8}
+{"kind": "digits", "seed": 32, "arm": "B40", "truth": 91899, "answer": 91918, "correct": false, "forced": true, "finish": "stop", "completion_tokens": 42240, "wall_s": 487.0}
+{"kind": "knapsack", "seed": 33, "arm": "B20", "truth": 227, "answer": 227, "correct": true, "forced": true, "finish": "stop", "completion_tokens": 20495, "wall_s": 238.4}
+{"kind": "knapsack", "seed": 33, "arm": "B40", "truth": 227, "answer": 227, "correct": true, "forced": true, "finish": "stop", "completion_tokens": 41147, "wall_s": 502.1}
+{"kind": "digits", "seed": 33, "arm": "B40", "truth": 39626, "answer": 39536, "correct": false, "forced": true, "finish": "stop", "completion_tokens": 40977, "wall_s": 493.9}
+{"kind": "digits", "seed": 33, "arm": "B20", "truth": 39626, "answer": 9673, "correct": false, "forced": true, "finish": "stop", "completion_tokens": 21633, "wall_s": 268.1}
+{"kind": "knapsack", "seed": 34, "arm": "B40", "truth": 222, "answer": 222, "correct": true, "forced": true, "finish": "stop", "completion_tokens": 41719, "wall_s": 506.8}
+{"kind": "knapsack", "seed": 34, "arm": "B20", "truth": 222, "answer": 222, "correct": true, "forced": true, "finish": "stop", "completion_tokens": 20867, "wall_s": 241.2}
+{"kind": "digits", "seed": 34, "arm": "B20", "truth": 42371, "answer": 37118, "correct": false, "forced": true, "finish": "stop", "completion_tokens": 22177, "wall_s": 272.4}
+{"kind": "digits", "seed": 34, "arm": "B40", "truth": 42371, "answer": 42486, "correct": false, "forced": true, "finish": "stop", "completion_tokens": 42854, "wall_s": 523.2}

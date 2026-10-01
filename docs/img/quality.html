@@ -1,0 +1,87 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Bonsai quality research card</title>
+<!-- 1200x675 share card; rendered at 2x into docs/img/quality.png with headless Edge. Numbers: artifacts/quality-20260929/REPORT.md -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root {
+  --ground: #F3F5F1; --surface: #FFFFFF; --ink: #17211B; --muted: #5E6D63; --line: #DCE2DA;
+  --green: #2E7A57; --amber: #A86F16; --rust: #B5473A; --base: #B9C3BB;
+  --display: "IBM Plex Sans Condensed", "Arial Narrow", Arial, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", Arial, sans-serif;
+  --mono: "IBM Plex Mono", Consolas, monospace;
+}
+html, body { margin: 0; width: 1200px; height: 675px; overflow: hidden; background: var(--ground); color: var(--ink); font-family: var(--body); }
+.card { box-sizing: border-box; width: 1200px; height: 675px; padding: 38px 56px 28px; display: flex; flex-direction: column; gap: 12px; }
+.eyebrow { font-family: var(--mono); font-size: 15px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 0; font-family: var(--display); font-size: 41px; line-height: 1.08; font-weight: 700; }
+.sub { font-size: 18px; color: var(--muted); margin: 0; }
+.cols { flex: 1; display: grid; grid-template-columns: 1.55fr 1fr; gap: 26px; min-height: 0; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px 22px; display: flex; flex-direction: column; gap: 12px; }
+.panel h2 { margin: 0; font-family: var(--mono); font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 500; }
+.win h2 { color: var(--green); } .lose h2 { color: var(--rust); }
+.row { display: grid; grid-template-columns: 1fr; gap: 5px; }
+.row .what { font-size: 17px; font-weight: 600; }
+.row .how { font-size: 14px; color: var(--muted); margin-top: -3px; }
+.bars { display: grid; grid-template-columns: 92px 1fr 62px; align-items: center; gap: 4px 10px; font-family: var(--mono); font-size: 14px; color: var(--muted); }
+.bar { height: 15px; border-radius: 3px; background: var(--base); }
+.bar.g { background: var(--green); }
+.track { background: #EEF1EC; border-radius: 3px; }
+.val { color: var(--ink); font-weight: 500; text-align: right; }
+.val.g { color: var(--green); }
+ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 7px; font-size: 15.5px; }
+li { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: baseline; }
+li span { font-family: var(--mono); font-size: 13.5px; color: var(--muted); white-space: nowrap; }
+.note { font-size: 14px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 9px; margin-top: auto; }
+.foot { display: flex; justify-content: space-between; gap: 20px; font-family: var(--mono); font-size: 13.5px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 10px; }
+.foot b { color: var(--ink); font-weight: 500; }
+</style>
+<div class="card">
+  <div class="eyebrow">Bonsai 2 27B · 1.58-bit · quality research, 3 days, 20+ pre-registered experiments</div>
+  <h1>What makes a ternary 27B smarter? Not more thinking. Facts and a calculator.</h1>
+  <p class="sub">Paired runs on one RTX 4070, plans and gates frozen before results. Most ideas failed. Two did not.</p>
+  <div class="cols">
+    <div class="panel win">
+      <h2>What worked</h2>
+      <div class="row">
+        <div class="what">Real coding task (build a tar+gzip archive)</div>
+        <div class="how">one page of accurate library API facts in the prompt</div>
+        <div class="bars">
+          <span>without</span><div class="track"><div class="bar" style="width:1%"></div></div><span class="val">0 / 12</span>
+          <span>with</span><div class="track"><div class="bar g" style="width:91.7%"></div></div><span class="val g">11 / 12</span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="what">Long computations (knapsack, digit DP, LCS)</div>
+        <div class="how">a sandboxed Python tool the model can call</div>
+        <div class="bars">
+          <span>without</span><div class="track"><div class="bar" style="width:45.8%"></div></div><span class="val">11 / 24</span>
+          <span>with</span><div class="track"><div class="bar g" style="width:87.5%"></div></div><span class="val g">21 / 24</span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="what">Questions about a 150-200 row table</div>
+        <div class="how">same Python tool, plain chat request</div>
+        <div class="bars">
+          <span>without</span><div class="track"><div class="bar" style="width:66.7%"></div></div><span class="val">8 / 12</span>
+          <span>with</span><div class="track"><div class="bar g" style="width:100%"></div></div><span class="val g">12 / 12</span>
+        </div>
+      </div>
+    </div>
+    <div class="panel lose">
+      <h2>What did not</h2>
+      <ul>
+        <li>2x thinking budget, real coding <span>3/9 → 4/9</span></li>
+        <li>2x turns, real coding <span>1/6 → 0/6</span></li>
+        <li>Grader-feedback tool <span>0/6 → 0/6</span></li>
+        <li>Temperature 0.6 <span>10/12 → 9/12</span></li>
+        <li>Vote of 3 short answers <span>9/12 → 6/12</span></li>
+        <li>Gentler think cutoff <span>8/12 → 7/12</span></li>
+        <li>Telling it the budget <span>6/12 → 4/12</span></li>
+        <li>Python tool, log questions <span>+2, −1 (gate: 0 losses)</span></li>
+      </ul>
+      <div class="note">Cleared as causes: tokenizer, tool parser, sampler, q8 KV cache. The gap is knowledge and long bookkeeping, not the runtime.</div>
+    </div>
+  </div>
+  <div class="foot"><span>RTX 4070 12 GB · Bonsai 2 27B PTQ1_0 · model code runs in a WASI sandbox · 2026-10-01</span><span><b>professorpalmer/bonsai-ada-surgery</b></span></div>
+</div>

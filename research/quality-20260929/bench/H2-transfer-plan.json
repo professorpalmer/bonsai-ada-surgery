@@ -1,0 +1,93 @@
+{
+ "id": "H2-transfer-v1",
+ "hypothesis": "H2 gain transfers to problem families not used in development",
+ "changed": "reasoning_budget_tokens (B20=20480, B40=40960)",
+ "fixed": "identical to H2-plan (max_tokens 49152 both)",
+ "tasks": "lcs seeds 21-26 (trips the budget in pilot), grid seeds 23,25 (does not trip: no-harm control)",
+ "pass_gate": "at least 2 wrong->correct and 0 correct->wrong on lcs; grid unchanged",
+ "order": [
+  [
+   "lcs",
+   21,
+   "B20"
+  ],
+  [
+   "lcs",
+   21,
+   "B40"
+  ],
+  [
+   "lcs",
+   22,
+   "B40"
+  ],
+  [
+   "lcs",
+   22,
+   "B20"
+  ],
+  [
+   "lcs",
+   23,
+   "B20"
+  ],
+  [
+   "lcs",
+   23,
+   "B40"
+  ],
+  [
+   "lcs",
+   24,
+   "B40"
+  ],
+  [
+   "lcs",
+   24,
+   "B20"
+  ],
+  [
+   "lcs",
+   25,
+   "B20"
+  ],
+  [
+   "lcs",
+   25,
+   "B40"
+  ],
+  [
+   "lcs",
+   26,
+   "B40"
+  ],
+  [
+   "lcs",
+   26,
+   "B20"
+  ],
+  [
+   "grid",
+   23,
+   "B20"
+  ],
+  [
+   "grid",
+   23,
+   "B40"
+  ],
+  [
+   "grid",
+   25,
+   "B40"
+  ],
+  [
+   "grid",
+   25,
+   "B20"
+  ]
+ ],
+ "limits": {
+  "max_tokens": 49152
+ }
+}

@@ -1,0 +1,1 @@
+{"order": [["rx-date", 1, "P0"], ["rx-ipv4", 1, "P0"], ["rx-semver", 1, "P0"], ["rx-time", 1, "P0"], ["rx-date", 2, "P0"], ["rx-ipv4", 2, "P0"], ["rx-semver", 2, "P0"], ["rx-time", 2, "P0"]], "limits": {"max_responses": 16}}

@@ -1,0 +1,16 @@
+{"kind": "lcs", "seed": 21, "arm": "B20", "truth": 15003, "answer": 16007, "correct": false, "forced": true, "finish": "stop", "completion_tokens": 20726, "wall_s": 230.1}
+{"kind": "lcs", "seed": 21, "arm": "B40", "truth": 15003, "answer": 16064, "correct": false, "forced": true, "finish": "stop", "completion_tokens": 40977, "wall_s": 459.1}
+{"kind": "lcs", "seed": 22, "arm": "B40", "truth": 17010, "answer": 17001, "correct": false, "forced": false, "finish": "stop", "completion_tokens": 31745, "wall_s": 341.1}
+{"kind": "lcs", "seed": 22, "arm": "B20", "truth": 17010, "answer": 17001, "correct": false, "forced": true, "finish": "stop", "completion_tokens": 21064, "wall_s": 221.1}
+{"kind": "lcs", "seed": 23, "arm": "B20", "truth": 17002, "answer": 14033, "correct": false, "forced": true, "finish": "stop", "completion_tokens": 20497, "wall_s": 229.5}
+{"kind": "lcs", "seed": 23, "arm": "B40", "truth": 17002, "answer": 14000, "correct": false, "forced": true, "finish": "stop", "completion_tokens": 40977, "wall_s": 433.4}
+{"kind": "lcs", "seed": 24, "arm": "B40", "truth": 14012, "answer": 14007, "correct": false, "forced": true, "finish": "stop", "completion_tokens": 40977, "wall_s": 482.5}
+{"kind": "lcs", "seed": 24, "arm": "B20", "truth": 14012, "answer": 14010, "correct": false, "forced": true, "finish": "stop", "completion_tokens": 20497, "wall_s": 227.7}
+{"kind": "lcs", "seed": 25, "arm": "B20", "truth": 15017, "answer": 1596, "correct": false, "forced": true, "finish": "stop", "completion_tokens": 20496, "wall_s": 203.5}
+{"kind": "lcs", "seed": 25, "arm": "B40", "truth": 15017, "answer": 20012, "correct": false, "forced": true, "finish": "stop", "completion_tokens": 41086, "wall_s": 440.0}
+{"kind": "lcs", "seed": 26, "arm": "B40", "truth": 13007, "answer": 13007, "correct": true, "forced": true, "finish": "stop", "completion_tokens": 40977, "wall_s": 466.8}
+{"kind": "lcs", "seed": 26, "arm": "B20", "truth": 13007, "answer": 13011, "correct": false, "forced": true, "finish": "stop", "completion_tokens": 20809, "wall_s": 229.5}
+{"kind": "grid", "seed": 23, "arm": "B20", "truth": 188, "answer": 188, "correct": true, "forced": false, "finish": "stop", "completion_tokens": 6230, "wall_s": 72.2}
+{"kind": "grid", "seed": 23, "arm": "B40", "truth": 188, "answer": 188, "correct": true, "forced": false, "finish": "stop", "completion_tokens": 6230, "wall_s": 72.3}
+{"kind": "grid", "seed": 25, "arm": "B40", "truth": 110, "answer": 110, "correct": true, "forced": false, "finish": "stop", "completion_tokens": 6773, "wall_s": 80.2}
+{"kind": "grid", "seed": 25, "arm": "B20", "truth": 110, "answer": 110, "correct": true, "forced": false, "finish": "stop", "completion_tokens": 7342, "wall_s": 83.8}

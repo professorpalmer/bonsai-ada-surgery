@@ -1,0 +1,93 @@
+{
+ "id": "H2-replication-v1",
+ "hypothesis": "H2 effect replicates on fresh seeds of the same families",
+ "changed": "reasoning_budget_tokens (B20=20480, B40=40960)",
+ "fixed": "identical to H2-plan",
+ "tasks": "knapsack, digits seeds 31-34 (never generated or viewed before this freeze)",
+ "pass_gate": ">=2 wrong->correct and 0 correct->wrong",
+ "order": [
+  [
+   "knapsack",
+   31,
+   "B20"
+  ],
+  [
+   "knapsack",
+   31,
+   "B40"
+  ],
+  [
+   "digits",
+   31,
+   "B40"
+  ],
+  [
+   "digits",
+   31,
+   "B20"
+  ],
+  [
+   "knapsack",
+   32,
+   "B40"
+  ],
+  [
+   "knapsack",
+   32,
+   "B20"
+  ],
+  [
+   "digits",
+   32,
+   "B20"
+  ],
+  [
+   "digits",
+   32,
+   "B40"
+  ],
+  [
+   "knapsack",
+   33,
+   "B20"
+  ],
+  [
+   "knapsack",
+   33,
+   "B40"
+  ],
+  [
+   "digits",
+   33,
+   "B40"
+  ],
+  [
+   "digits",
+   33,
+   "B20"
+  ],
+  [
+   "knapsack",
+   34,
+   "B40"
+  ],
+  [
+   "knapsack",
+   34,
+   "B20"
+  ],
+  [
+   "digits",
+   34,
+   "B20"
+  ],
+  [
+   "digits",
+   34,
+   "B40"
+  ]
+ ],
+ "limits": {
+  "max_tokens": 49152
+ }
+}

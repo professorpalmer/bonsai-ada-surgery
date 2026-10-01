@@ -1,0 +1,7 @@
+{"kind": "knapsack", "seed": 12, "arm": "B20", "truth": 160, "answer": 160, "correct": true, "forced": true, "finish": "stop", "completion_tokens": 21376, "wall_s": 4916.0}
+{"kind": "digits", "seed": 12, "arm": "B20", "truth": 183505, "answer": 183505, "correct": true, "forced": true, "finish": "stop", "completion_tokens": 22062, "wall_s": 5080.2}
+{"kind": "knapsack", "seed": 13, "arm": "B20", "truth": 258, "answer": 258, "correct": true, "forced": false, "finish": "stop", "completion_tokens": 4259, "wall_s": 889.2}
+{"kind": "digits", "seed": 13, "arm": "B20", "truth": 197166, "answer": 197166, "correct": true, "forced": true, "finish": "stop", "completion_tokens": 21113, "wall_s": 4829.5}
+{"kind": "knapsack", "seed": 14, "arm": "B20", "truth": 259, "answer": 259, "correct": true, "forced": false, "finish": "stop", "completion_tokens": 8710, "wall_s": 1855.3}
+{"kind": "digits", "seed": 14, "arm": "B20", "truth": 92089, "answer": 92081, "correct": false, "forced": true, "finish": "stop", "completion_tokens": 21112, "wall_s": 4796.9}
+{"kind": "digits", "seed": 11, "arm": "B20", "truth": 44892, "answer": 44877, "correct": false, "forced": true, "finish": "stop", "completion_tokens": 21640, "wall_s": 4952.8}

@@ -1,0 +1,29 @@
+95 --top-k 20
+0.00.020.579 I cmn  common_param: common_params_print_info: verbosity = 3 (adjust with the `-lv N` CLI arg)
+0.00.027.550 I srv    load_model: loading model 'C:\Users\pwall\Projects\bonsai-2-27b-serve\models\Ternary-Bonsai-2-27B-
+PTQ1_0-mtp-procreations.gguf'
+0.00.514.437 W common_fit_params: failed to fit params to free device memory: n_gpu_layers already set by user to 99, ab
+ort
+0.00.856.392 W model has unused tensor blk.64.attn_norm.weight (size = 20480 bytes) -- ignoring
+0.00.856.401 W model has unused tensor blk.64.post_attention_norm.weight (size = 20480 bytes) -- ignoring
+0.00.856.419 W model has unused tensor blk.64.attn_q.weight (size = 66846720 bytes) -- ignoring
+0.00.856.425 W model has unused tensor blk.64.attn_k.weight (size = 5570560 bytes) -- ignoring
+0.00.856.431 W model has unused tensor blk.64.attn_v.weight (size = 5570560 bytes) -- ignoring
+0.00.856.452 W model has unused tensor blk.64.attn_output.weight (size = 33423360 bytes) -- ignoring
+0.00.856.469 W model has unused tensor blk.64.attn_q_norm.weight (size = 1024 bytes) -- ignoring
+0.00.856.477 W model has unused tensor blk.64.attn_k_norm.weight (size = 1024 bytes) -- ignoring
+0.00.856.483 W model has unused tensor blk.64.ffn_gate.weight (size = 94699520 bytes) -- ignoring
+0.00.856.489 W model has unused tensor blk.64.ffn_down.weight (size = 94699520 bytes) -- ignoring
+0.00.856.495 W model has unused tensor blk.64.ffn_up.weight (size = 94699520 bytes) -- ignoring
+0.00.856.502 W model has unused tensor blk.64.nextn.eh_proj.weight (size = 55705600 bytes) -- ignoring
+0.00.856.508 W model has unused tensor blk.64.nextn.enorm.weight (size = 20480 bytes) -- ignoring
+0.00.856.528 W model has unused tensor blk.64.nextn.hnorm.weight (size = 20480 bytes) -- ignoring
+0.00.856.552 W model has unused tensor blk.64.nextn.shared_head_norm.weight (size = 20480 bytes) -- ignoring
+0.04.263.042 I cmn          init: llama threadpool init, n_threads = 16
+0.04.966.717 I srv    load_model: initializing, n_slots = 1, n_ctx_slot = 262144, kv_unified = 'false'
+0.04.971.064 I srv          init: chat template supports preserving reasoning, consider enabling it via --reasoning-pres
+erve
+0.04.971.076 I srv  llama_server: model loaded
+0.04.971.078 I srv  llama_server: listening on http://0.0.0.0:8080
+0.04.971.079 W srv  llama_server: NOTICE: server default port will be changed to :9931 in a future release
+0.04.971.079 W srv  llama_server:         ref: https://github.com/ggml-org/llama.cpp/pull/26508

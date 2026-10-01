@@ -1,0 +1,12 @@
+{"kind": "digits", "seed": 61, "arm": "B40", "truth": 68098, "answer": 68098, "correct": true, "forced": true, "finish": "stop", "completion_tokens": 41838, "wall_s": 544.3}
+{"kind": "digits", "seed": 61, "arm": "B80", "truth": 68098, "answer": 68098, "correct": true, "forced": false, "finish": "stop", "completion_tokens": 44362, "wall_s": 577.7}
+{"kind": "digits", "seed": 62, "arm": "B80", "truth": 103292, "answer": 103292, "correct": true, "forced": true, "finish": "stop", "completion_tokens": 84265, "wall_s": 1056.9}
+{"kind": "digits", "seed": 62, "arm": "B40", "truth": 103292, "answer": 103266, "correct": false, "forced": true, "finish": "stop", "completion_tokens": 41933, "wall_s": 506.5}
+{"kind": "digits", "seed": 63, "arm": "B40", "truth": 76984, "answer": 76984, "correct": true, "forced": true, "finish": "stop", "completion_tokens": 42752, "wall_s": 518.2}
+{"kind": "digits", "seed": 63, "arm": "B80", "truth": 76984, "answer": 76984, "correct": true, "forced": false, "finish": "stop", "completion_tokens": 42817, "wall_s": 519.3}
+{"kind": "digits", "seed": 64, "arm": "B80", "truth": 131617, "answer": 131617, "correct": true, "forced": false, "finish": "stop", "completion_tokens": 40352, "wall_s": 498.3}
+{"kind": "digits", "seed": 64, "arm": "B40", "truth": 131617, "answer": 131617, "correct": true, "forced": true, "finish": "stop", "completion_tokens": 42630, "wall_s": 529.0}
+{"kind": "digits", "seed": 65, "arm": "B40", "truth": 104908, "answer": 104908, "correct": true, "forced": true, "finish": "stop", "completion_tokens": 42402, "wall_s": 515.1}
+{"kind": "digits", "seed": 65, "arm": "B80", "truth": 104908, "answer": 104908, "correct": true, "forced": false, "finish": "stop", "completion_tokens": 51566, "wall_s": 637.0}
+{"kind": "digits", "seed": 66, "arm": "B80", "truth": 177137, "answer": 177137, "correct": true, "forced": false, "finish": "stop", "completion_tokens": 44564, "wall_s": 523.4}
+{"kind": "digits", "seed": 66, "arm": "B40", "truth": 177137, "answer": 177137, "correct": true, "forced": false, "finish": "stop", "completion_tokens": 37274, "wall_s": 443.6}
