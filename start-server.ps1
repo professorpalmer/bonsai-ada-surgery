@@ -167,7 +167,37 @@ if (-not $HasTier) { Write-Host "note   this llama-server predates the tiered-KV
 Write-Host "spec   draft $Spec$(if ($TierCells -gt 0) { " ($SpecDeep past the VRAM line)" })$(if ($HasTier -and $Spec -gt 0) { ", draft window $DraftWindow" })"
 Write-Host "listen 0.0.0.0:$Port  think=$Think effort=$Effort budget=$ThinkBudget  harness-proofing=$($HarnessArgs.Count -gt 0)  backend-sampling=$($BsArgs.Count -gt 0)"
 Write-Host "api    Authorization: Bearer <artifacts/api_key.txt>"
+
+# ---- Bonsai layer (BONSAI_LAYER=0 turns it off) ------------------------------------------------------------
+# A small server-side layer in front of llama-server, on the same port clients already use. For coding requests
+# it adds exact API cards for the Python modules involved (generated from the sandbox runtime) and checks the
+# model's code for names that do not exist; for plain requests without client tools it gives the model a
+# sandboxed Python tool (CPython on WASI: no host files, network or processes). Clients need no changes.
+# Measured: research/quality-20260929/REPORT.md. Needs Python 3 and layer\fetch_runtime.ps1 run once; without
+# them the plain server starts as before.
+$LayerDir = Join-Path $Root 'layer'
+$Layer = $env:BONSAI_LAYER -ne '0'
+if ($Layer) {
+    $py = Get-Command python -ErrorAction SilentlyContinue
+    $rt = Test-Path (Join-Path $LayerDir 'runtime\bin\python-3.12.0.wasm')
+    $wt = $false
+    if ($py) { & python -c "import wasmtime" 2>$null; $wt = ($LASTEXITCODE -eq 0) }
+    if (-not ($py -and $rt -and $wt)) {
+        Write-Host "layer  off: run layer\fetch_runtime.ps1 once to enable it (python=$([bool]$py) runtime=$rt wasmtime=$wt)"
+        $Layer = $false
+    }
+}
+$ListenHost = '0.0.0.0'; $ListenPort = $Port; $LayerProc = $null
+if ($Layer) {
+    $InnerPort = if ($env:BONSAI_INNER_PORT) { [int]$env:BONSAI_INNER_PORT } else { $Port + 10000 }
+    $ListenHost = '127.0.0.1'; $ListenPort = $InnerPort
+    $LayerProc = Start-Process python -PassThru -WindowStyle Hidden -ArgumentList @(
+        ('"' + (Join-Path $LayerDir 'bonsai_layer.py') + '"'), '--host', '0.0.0.0', '--port', "$Port",
+        '--upstream', "http://127.0.0.1:$InnerPort")
+    Write-Host "layer  on: clients use :$Port (API cards, API check, sandboxed Python); llama-server on 127.0.0.1:$InnerPort"
+}
 Set-Location $Bin
+try {
 & .\llama-server.exe @TierArgs @SpecArgs @BsArgs @BudgetMsgArgs @HarnessArgs `
     --reasoning-budget $ThinkBudget `
     -n 24576 `
@@ -180,8 +210,8 @@ Set-Location $Bin
     -ub 512 `
     -ctk $Ctk `
     -ctv $Ctk `
-    --host 0.0.0.0 `
-    --port $Port `
+    --host $ListenHost `
+    --port $ListenPort `
     --alias bonsai-2-27b `
     --jinja `
     --prio 2 `
@@ -191,3 +221,6 @@ Set-Location $Bin
     --temp 1.0 `
     --top-p 0.95 `
     --top-k 20
+} finally {
+    if ($LayerProc -and -not $LayerProc.HasExited) { Stop-Process -Id $LayerProc.Id -Force -ErrorAction SilentlyContinue }
+}

@@ -51,3 +51,7 @@ tooling/wasi-python/LICENSE
 tooling/apicards-cache.json
 bin-rc*/
 __pycache__/
+
+# Bonsai layer: downloaded sandbox runtime and caches
+layer/runtime/
+layer/apicards-cache.json
