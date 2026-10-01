@@ -13,7 +13,7 @@ hash, result and correction.
 | `bench/*.log` | One JSON line per run (the summary each analysis was computed from) |
 | `results-raw.zip` | Every raw request/response/trajectory (505 files) |
 | `serve-arms/` | Pinned server launch arms (A / B / KV / teacher), switch scripts, receipts |
-| `tooling/` (snapshot; the working copy lives in the gitignored repo-root `tooling/`) | `wasi-python/sandbox.py` (WASI sandbox + canaries), `interpreter_proxy.py`, `apicards.py`, `apilint.py` |
+| `layer/` (snapshot of the sandbox / proxy / cards / linter code; the working copy is in the gitignored `tooling/`) | `wasi-python/sandbox.py` (WASI sandbox + canaries), `interpreter_proxy.py`, `apicards.py`, `apilint.py` |
 
 ## Running it again
 
