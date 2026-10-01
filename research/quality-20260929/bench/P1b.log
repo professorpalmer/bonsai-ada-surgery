@@ -1,0 +1,10 @@
+{"key": ["contract", "dev-bundle-01", 151, "RAW"], "functional": false, "full": false, "tokens": 38221, "wall_s": 474.3, "detail": ["unrecoverable_json"]}
+{"key": ["contract", "dev-bundle-01", 151, "PROD"], "functional": false, "full": false, "tokens": 33689, "wall_s": 421.0, "detail": ["invalid_or_oversize_base64"]}
+{"key": ["contract", "dev-bundle-01", 152, "PROD"], "functional": false, "full": false, "tokens": 33853, "wall_s": 425.1, "detail": ["invalid_or_oversize_base64"]}
+{"key": ["contract", "dev-bundle-01", 152, "RAW"], "functional": false, "full": false, "tokens": 30475, "wall_s": 341.8, "detail": ["unrecoverable_json"]}
+{"key": ["contract", "dev-bundle-01", 153, "RAW"], "functional": false, "full": false, "tokens": 32581, "wall_s": 365.5, "detail": ["member_mismatch"]}
+{"key": ["contract", "dev-bundle-01", 153, "PROD"], "functional": true, "full": false, "tokens": 16723, "wall_s": 199.1, "detail": []}
+{"key": ["contract", "dev-bundle-01", 154, "PROD"], "functional": true, "full": false, "tokens": 24301, "wall_s": 300.7, "detail": []}
+{"key": ["contract", "dev-bundle-01", 154, "RAW"], "functional": false, "full": false, "tokens": 24511, "wall_s": 285.0, "detail": ["invalid_tar"]}
+{"key": ["contract", "dev-bundle-02", 151, "RAW"], "functional": false, "full": false, "tokens": 38221, "wall_s": 467.5, "detail": ["unrecoverable_json"]}
+{"key": ["contract", "dev-bundle-02", 151, "PROD"], "functional": false, "full": false, "tokens": 33689, "wall_s": 416.6, "detail": ["invalid_or_oversize_base64"]}

@@ -429,3 +429,26 @@ Fix (tooling/apilint.py): import failures are silent; only names inside modules 
 Verified: `import solution` -> no warning; `json.loadz` and `tarfile.STATREG` still flagged.
 P1b partial (discarded, kept in bench/P1b/): bundle-01 151 neither, 152 neither, 153 PROD rescue.
 Same frozen plan rerun into bench/P1c/.
+
+## 2026-10-01 12:22 - P1c stopped (4 runs); card design settled first (E9)
+P1b + P1c partials: v1 cards on bundle 1 rescue in 5 pairs (hand notes: 11/12 in E8/E8R). The model used the
+right names with v1 cards but still failed on logic/usage. Hand notes carry usage guidance; that guidance exists
+in the runtime as full docstrings. Built tooling/apicards_v2.py: public API (__all__) only, full docstring
+(<=300 chars) per function and per method of public classes; bundle card ~14.5k chars (~4k tokens) and contains
+"tarinfo.size bytes are read from it" (addfile) and "mtime can be used to set the modification time" (gzip).
+Running the 4-hour product benchmark with a card design already looking weak would waste GPU; stopped P1c
+(results kept in bench/P1c/, not scored). E9 bench/E9-plan.json sha256 a0b79924550fcb0fb163d6d5f2dc155f5d83b4b3742f377b36cf464f90fd7f0b:
+C1 vs C2 vs DOC on dev-bundle-01 seeds 161-166. Gate declared: adopt a card arm if >= 4/6 and within 1 of DOC.
+The product benchmark then runs once with the adopted design.
+
+## 2026-10-01 14:01 - E9 result: neither auto card design adopted; E9b frozen
+E9 (dev-bundle-01 seeds 161-166, 18/18): functional C1 1/6, C2 2/6, DOC 5/6. Gate (>=4/6 and within 1 of DOC)
+not met by either card arm. Hand notes now 16/18 across E8, E8R, E9.
+Solutions inspected (seeds 161-163): with DOC the model uses tarfile.open/TarInfo/addfile in all three; with C2
+it still builds the tar by hand (struct, manual checksum) in two of three although the API is listed. The notes
+steer the model to USE the library ("tarfile.open(fileobj=buf, mode='w', format=...) writes an uncompressed tar
+stream ..."); a list of signatures does not. Confound in E9: notes sit at the end of the user message, cards in
+the system message before ~5k tokens of contract.
+E9b bench/E9b-plan.json sha256 49878b50269d0a6cdec21211a16c2b0045713fdf95c15b1cf0d9915062cbd4c8: v2 cards at the end of the user message
+(C2U), same + one generic "use the library functions listed above instead of implementing by hand" sentence
+(C2P), vs DOC; dev-bundle-01 seeds 171-176; same gate.

@@ -17,8 +17,15 @@ from run import post
 HERE = os.path.dirname(os.path.abspath(__file__))
 INPUTS = os.path.join(HERE, "..", "evidence", "evidence", "spec-ab-v1", "inputs")
 FROZEN = {"dev-bundle-01": "00-dev-bundle-01-11729", "dev-checklist-01": "06-dev-checklist-01-11729",
-          "dev-bundle-02": "00-dev-bundle-01-11729"}   # same family prompt (public example), different hidden request
-BUDGET = {"B20": 20480, "B40": 40960, "CK": 20480, "R12": 20480, "R24": 20480, "DOC": 20480}
+          "dev-bundle-02": "00-dev-bundle-01-11729",   # same family prompt (public example), different hidden request
+          "dev-batch-01": "02-dev-batch-01-11729", "dev-batch-02": "04-dev-batch-02-11729"}
+BUDGET = {"B20": 20480, "B40": 40960, "CK": 20480, "R12": 20480, "R24": 20480, "DOC": 20480, "RAW": 20480, "PROD": 20480, "C1": 20480, "C2": 20480, "C2U": 20480, "C2P": 20480}
+PREFER = ("Use the library functions listed above instead of implementing these formats or algorithms by hand; "
+          "they already implement them correctly.")
+BASEURL = {"PROD": "http://127.0.0.1:8081"}   # everything else: llama-server directly
+import importlib.util as _ilu
+_bs = _ilu.spec_from_file_location("batch_handlers", os.path.join(contract_grade.CASES_DIR, "host", "batch_handlers.py"))
+batch_handlers = _ilu.module_from_spec(_bs); _bs.loader.exec_module(batch_handlers)
 DOC_NOTES = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "api_notes_tar_gzip.md"), encoding="utf-8").read()
 RESPONSES = {"R24": 24}
 CHECK_TOOL = {"type": "function", "function": {"name": "check_solution", "description": "Run the workspace solution.py on the disclosed public example (twice, as the grader does) and return the grader's verdict for that public example only: whether it passed and the failure reasons (for example invalid_gzip, invalid_tar, wrong members, not reproducible). Hidden cases are never run.", "parameters": {"type": "object", "properties": {}, "required": []}}}
@@ -57,6 +64,23 @@ def check_solution(ws, pub):
 def attempt(case_id, seed, arm, out_dir, max_responses=12):
     system, user, tools = load_case(case_id)
     pub = public_case(user)
+    if arm in ("C2U", "C2P"):   # v2 cards at the END of the user message (where the hand notes sit); C2P adds one generic sentence
+        import sys as _sys
+        _t = os.path.join(HERE, "..", "..", "..", "tooling")
+        if _t not in _sys.path:
+            _sys.path.insert(0, _t)
+        import apicards_v2
+        _cards = apicards_v2.cards_for_request({"messages": [{"role": "system", "content": system}, {"role": "user", "content": user}], "tools": tools})
+        user = user + chr(10) + chr(10) + _cards + ((chr(10) + chr(10) + PREFER) if arm == "C2P" else "")
+    if arm in ("C1", "C2"):   # auto-generated API cards appended to the system message, exactly as the layer does
+        import sys as _sys
+        _t = os.path.join(HERE, "..", "..", "..", "tooling")
+        if _t not in _sys.path:
+            _sys.path.insert(0, _t)
+        import apicards, apicards_v2
+        _mod = apicards if arm == "C1" else apicards_v2
+        _cards = _mod.cards_for_request({"messages": [{"role": "system", "content": system}, {"role": "user", "content": user}], "tools": tools})
+        system = system + chr(10) + chr(10) + _cards
     if arm == "DOC":   # the only change: verified stdlib API notes appended to the user message
         user = user + chr(10) + chr(10) + DOC_NOTES
     if arm in RESPONSES:   # the only change: the response allowance, stated where the frozen prompt states it
@@ -69,6 +93,9 @@ def attempt(case_id, seed, arm, out_dir, max_responses=12):
         tools = tools + [CHECK_TOOL]
     msgs = [{"role": "system", "content": system}, {"role": "user", "content": user}]
     ws, log, t0 = {}, [], time.time()
+    import run as _run
+    _run.BASE = BASEURL.get(arm, "http://127.0.0.1:8080")
+    batch_events, final_text = [], ""
     usage = {"completion": 0, "prompt": 0}
     terminal, n = "response_cap", 0
     while n < max_responses:
@@ -98,6 +125,7 @@ def attempt(case_id, seed, arm, out_dir, max_responses=12):
         msgs.append(am)
         if not calls:
             terminal = "natural_stop"
+            final_text = m.get("content") or ""
             break
         for c in calls:
             try:
@@ -116,6 +144,14 @@ def attempt(case_id, seed, arm, out_dir, max_responses=12):
                 else:
                     ws[path] = data
                     out = {"ok": True, "bytes": len(data)}
+            elif name == "batch_work":
+                jobs = a.get("jobs")
+                try:
+                    out = {"ok": True, "results": batch_handlers.batch_work(jobs)}
+                    batch_events.append({"tool": "batch_work", "jobs": jobs, "settled": True})
+                except Exception:
+                    out = {"ok": False, "error": "invalid_jobs"}
+                    batch_events.append({"tool": "batch_work", "jobs": None, "settled": False})
             elif name == "check_solution" and arm == "CK":
                 out = check_solution(ws, pub)
             elif name == "run_python":
@@ -134,7 +170,12 @@ def attempt(case_id, seed, arm, out_dir, max_responses=12):
             log.append({"tool": name, "result": {k: (v[:400] if isinstance(v, str) else v) for k, v in out.items()}})
             msgs.append({"role": "tool", "tool_call_id": c.get("id", ""), "name": name,
                          "content": json.dumps(out, ensure_ascii=False, separators=(",", ":"))})
-    g = contract_grade.grade(case_id, ws, normal_completion=(terminal == "natural_stop"))
+    if contract_grade.DEV[case_id]["family"] == "batch_merge":
+        g = dict(contract_grade.oracles.grade_case(contract_grade.DEV[case_id], final_text,
+                                                   process_receipt={"batch_events": batch_events},
+                                                   normal_completion=(terminal == "natural_stop")))
+    else:
+        g = contract_grade.grade(case_id, ws, normal_completion=(terminal == "natural_stop"))
     rec = dict(case=case_id, seed=seed, arm=arm, terminal=terminal, responses=n, wall_s=round(time.time() - t0, 1),
                completion_tokens=usage["completion"], prompt_tokens=usage["prompt"],
                forced_turns=sum(1 for x in log if x.get("forced")), checks=sum(1 for x in log if x.get("tool") == "check_solution"),

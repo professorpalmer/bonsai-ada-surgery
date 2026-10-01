@@ -70,6 +70,10 @@ after a failing test. The model debugs one small probe at a time and runs out of
 | frozen prompt | 0 / 12 | E8 (`dev-bundle-01`, seeds 131-136) + E8R (`dev-bundle-02`, seeds 141-146) |
 | same + API notes | 11 / 12 | 11 rescues, 0 losses; E8 p = 0.016, E8R p = 0.031 |
 
+Update (E9, seeds 161-166): the notes again 5/6, cumulative 16/18. Automatically generated API listings
+(signatures and docstrings introspected from the runtime) did not reproduce it (1/6 and 2/6): with a listing
+the model still builds the archive by hand; the notes work because they steer it to use the library.
+
 **What does not fix it** (same task): 2x thinking budget (E2: 3/9 vs 4/9), 2x turns (E6: 1/6 vs 0/6), a tool
 that runs the real grader on the public example (H10: 0/6 vs 0/6; the model called it 0 to 1 times).
 

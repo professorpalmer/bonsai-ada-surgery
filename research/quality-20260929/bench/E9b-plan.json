@@ -1,0 +1,104 @@
+{
+ "id": "E9b-card-placement-v1",
+ "question": "do auto-generated v2 cards work when placed where the hand notes are, with or without one generic 'use the library' sentence?",
+ "arms": {
+  "C2U": "v2 cards appended to the end of the user message",
+  "C2P": "same + one generic sentence (agent_contract.PREFER), identical for every task",
+  "DOC": "hand-written verified notes (control)"
+ },
+ "fixed": "pinned A direct; frozen prompt/tools; budget 20480; 12 responses; oracle grading",
+ "tasks": "dev-bundle-01 seeds 171-176 (fresh)",
+ "gate": "adopt a card arm if functional >= 4/6 AND within 1 of DOC on the same seeds",
+ "order": [
+  [
+   "dev-bundle-01",
+   171,
+   "C2U"
+  ],
+  [
+   "dev-bundle-01",
+   171,
+   "C2P"
+  ],
+  [
+   "dev-bundle-01",
+   171,
+   "DOC"
+  ],
+  [
+   "dev-bundle-01",
+   172,
+   "C2P"
+  ],
+  [
+   "dev-bundle-01",
+   172,
+   "DOC"
+  ],
+  [
+   "dev-bundle-01",
+   172,
+   "C2U"
+  ],
+  [
+   "dev-bundle-01",
+   173,
+   "DOC"
+  ],
+  [
+   "dev-bundle-01",
+   173,
+   "C2U"
+  ],
+  [
+   "dev-bundle-01",
+   173,
+   "C2P"
+  ],
+  [
+   "dev-bundle-01",
+   174,
+   "C2U"
+  ],
+  [
+   "dev-bundle-01",
+   174,
+   "C2P"
+  ],
+  [
+   "dev-bundle-01",
+   174,
+   "DOC"
+  ],
+  [
+   "dev-bundle-01",
+   175,
+   "C2P"
+  ],
+  [
+   "dev-bundle-01",
+   175,
+   "DOC"
+  ],
+  [
+   "dev-bundle-01",
+   175,
+   "C2U"
+  ],
+  [
+   "dev-bundle-01",
+   176,
+   "DOC"
+  ],
+  [
+   "dev-bundle-01",
+   176,
+   "C2U"
+  ],
+  [
+   "dev-bundle-01",
+   176,
+   "C2P"
+  ]
+ ]
+}

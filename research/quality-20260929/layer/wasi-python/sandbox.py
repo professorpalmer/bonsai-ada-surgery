@@ -59,6 +59,7 @@ def run(files, argv, stdin=b"", timeout=8.0, mem_mb=128, max_out=1 << 20):
         wasi.stderr_file = errp
         wasi.preopen_dir(LIB, "/usr/local/lib", False)
         wasi.preopen_dir(work, "/work", True)
+        wasi.preopen_dir(work, ".", True)   # relative paths resolve in the workspace (cwd), as on a normal run
 
         store = wasmtime.Store(engine)
         store.set_wasi(wasi)

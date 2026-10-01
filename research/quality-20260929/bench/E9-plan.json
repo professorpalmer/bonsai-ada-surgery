@@ -1,0 +1,104 @@
+{
+ "id": "E9-card-design-v1",
+ "question": "can auto-generated API cards match the hand-written notes on the bundle task, and which card design?",
+ "arms": {
+  "C1": "cards v1 (tooling/apicards.py: constants, signatures, first doc line)",
+  "C2": "cards v2 (tooling/apicards_v2.py: public API only, full docstring per function and method)",
+  "DOC": "hand-written verified notes (api_notes_tar_gzip.md), the E8 treatment"
+ },
+ "fixed": "pinned A direct (no proxy, no linter, no interpreter); frozen prompt/tools; budget 20480; 12 responses; oracle grading; sandbox with cwd fix",
+ "tasks": "dev-bundle-01 seeds 161-166 (fresh)",
+ "gate": "a card arm is adopted if functional >= 4/6 AND within 1 of DOC on the same seeds; baseline without help is ~1/30 on this task",
+ "order": [
+  [
+   "dev-bundle-01",
+   161,
+   "C1"
+  ],
+  [
+   "dev-bundle-01",
+   161,
+   "C2"
+  ],
+  [
+   "dev-bundle-01",
+   161,
+   "DOC"
+  ],
+  [
+   "dev-bundle-01",
+   162,
+   "C2"
+  ],
+  [
+   "dev-bundle-01",
+   162,
+   "DOC"
+  ],
+  [
+   "dev-bundle-01",
+   162,
+   "C1"
+  ],
+  [
+   "dev-bundle-01",
+   163,
+   "DOC"
+  ],
+  [
+   "dev-bundle-01",
+   163,
+   "C1"
+  ],
+  [
+   "dev-bundle-01",
+   163,
+   "C2"
+  ],
+  [
+   "dev-bundle-01",
+   164,
+   "C1"
+  ],
+  [
+   "dev-bundle-01",
+   164,
+   "C2"
+  ],
+  [
+   "dev-bundle-01",
+   164,
+   "DOC"
+  ],
+  [
+   "dev-bundle-01",
+   165,
+   "C2"
+  ],
+  [
+   "dev-bundle-01",
+   165,
+   "DOC"
+  ],
+  [
+   "dev-bundle-01",
+   165,
+   "C1"
+  ],
+  [
+   "dev-bundle-01",
+   166,
+   "DOC"
+  ],
+  [
+   "dev-bundle-01",
+   166,
+   "C1"
+  ],
+  [
+   "dev-bundle-01",
+   166,
+   "C2"
+  ]
+ ]
+}

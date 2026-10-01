@@ -24,8 +24,11 @@ import sys
 import urllib.error
 import urllib.request
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "wasi-python"))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import sandbox_path  # noqa: E402,F401
 import sandbox  # noqa: E402
+import apicards  # noqa: E402
+import apilint  # noqa: E402
 
 TOOL_NAME = "run_python"
 TOOL = {"type": "function", "function": {
@@ -54,9 +57,53 @@ def run_tool(args_json, timeout):
         return {"error": f"tool call rejected: {e!r}"[:500]}
 
 
+
+def apply_lint(msgs):
+    """Check Python code in the model's earlier tool calls against the real runtime and append any findings to the
+    matching tool result. Deterministic for a given history, so the rendered prefix stays stable across turns."""
+    findings = {}
+    for m in msgs:
+        if m.get("role") != "assistant":
+            continue
+        for c in m.get("tool_calls") or []:
+            try:
+                args = json.loads(c["function"]["arguments"]) if isinstance(c["function"]["arguments"], str)                     else c["function"]["arguments"]
+            except (ValueError, KeyError, TypeError):
+                continue
+            if not isinstance(args, dict):
+                continue
+            name = next((v for k, v in args.items() if k in ("path", "file", "filename", "file_path") and isinstance(v, str)), "")
+            for k, v in args.items():
+                if apilint.looks_like_python(name if k != "path" else "", v) and k not in ("path", "file", "filename", "file_path"):
+                    w = apilint.lint(v)
+                    if w:
+                        findings[c.get("id", "")] = apilint.format_warnings(w)
+    if not findings:
+        return msgs, 0
+    out, n = [], 0
+    for m in msgs:
+        if m.get("role") == "tool" and m.get("tool_call_id") in findings and isinstance(m.get("content"), str)                 and "[API check by the server" not in m["content"]:
+            m = dict(m, content=m["content"] + chr(10) + findings[m["tool_call_id"]])
+            n += 1
+        out.append(m)
+    return out, n
+
+
+def apply_cards(body, msgs):
+    """Inject API cards for the modules a coding request involves into the system message."""
+    text = apicards.cards_for_request(dict(body, messages=msgs))
+    if not text:
+        return msgs, 0
+    if msgs and msgs[0].get("role") == "system" and isinstance(msgs[0].get("content"), str):
+        return [dict(msgs[0], content=msgs[0]["content"] + chr(10) + chr(10) + text)] + msgs[1:], len(text)
+    return [{"role": "system", "content": text}] + msgs, len(text)
+
+
 class Proxy(http.server.BaseHTTPRequestHandler):
     upstream = "http://127.0.0.1:8080"
     max_rounds = 8
+    cards = True
+    lint = True
     exec_timeout = 10.0
     protocol_version = "HTTP/1.1"
 
@@ -71,6 +118,32 @@ class Proxy(http.server.BaseHTTPRequestHandler):
                 return r.status, r.headers.get("Content-Type", "application/json"), r.read()
         except urllib.error.HTTPError as e:
             return e.code, e.headers.get("Content-Type", "application/json"), e.read()
+
+    def _stream(self, method, body):
+        """Relay a streamed (SSE) response as it arrives."""
+        headers = {k: v for k, v in self.headers.items() if k.lower() in ("authorization", "content-type")}
+        req = urllib.request.Request(self.upstream + self.path, data=body, method=method, headers=headers)
+        try:
+            r = urllib.request.urlopen(req, timeout=7200)
+        except urllib.error.HTTPError as e:
+            return self._reply(e.code, e.headers.get("Content-Type", "application/json"), e.read())
+        self.send_response(r.status)
+        self.send_header("Content-Type", r.headers.get("Content-Type", "text/event-stream"))
+        self.send_header("Cache-Control", "no-cache")
+        self.send_header("Connection", "close")
+        self.end_headers()
+        self.close_connection = True
+        try:
+            while True:
+                chunk = r.read1(65536)
+                if not chunk:
+                    break
+                self.wfile.write(chunk)
+                self.wfile.flush()
+        except (BrokenPipeError, ConnectionResetError):
+            pass
+        finally:
+            r.close()
 
     def _reply(self, status, ctype, data):
         self.send_response(status)
@@ -90,13 +163,27 @@ class Proxy(http.server.BaseHTTPRequestHandler):
             body = json.loads(raw)
         except json.JSONDecodeError:
             return self._reply(*self._forward("POST", raw))
+        # server-side preprocessing for every chat request (streamed or not, with or without client tools)
+        msgs0 = list(body.get("messages") or [])
+        info = {}
+        try:
+            if self.lint and body.pop("api_lint", True) is not False:
+                msgs0, info["lint_notes"] = apply_lint(msgs0)
+            if self.cards and body.pop("api_cards", True) is not False:
+                msgs0, info["card_chars"] = apply_cards(body, msgs0)
+        except Exception as e:   # preprocessing must never break a request
+            self.log_message("preprocess failed: %r", e)
+            msgs0 = list(body.get("messages") or [])
+        body["messages"] = msgs0
         client_tools = body.get("tools") or []
         # Default: offer the interpreter only to requests without client tools. Measured (E4): with client tools the
         # data lives in paginated tool results, the model must retype it into code, and transcription errors cost
         # 2 of 15 tasks (1 rescued). Clients with tools can opt in with "code_interpreter": true.
         wanted = body.pop("code_interpreter", None)
         enabled = (not client_tools) if wanted is None else bool(wanted)
-        if not enabled or body.get("stream"):
+        if body.get("stream"):
+            return self._stream("POST", json.dumps(body).encode())
+        if not enabled:
             return self._reply(*self._forward("POST", json.dumps(body).encode()))
         if any(t.get("function", {}).get("name") == TOOL_NAME for t in client_tools):
             return self._reply(*self._forward("POST", json.dumps(body).encode()))   # client owns that name
@@ -126,6 +213,7 @@ class Proxy(http.server.BaseHTTPRequestHandler):
                     m["tool_calls"] = [c for c in calls if c["function"]["name"] != TOOL_NAME]
                 resp["usage"] = usage_total
                 resp["interpreter_trace"] = trace
+                resp["layer"] = info
                 return self._reply(200, "application/json", json.dumps(resp).encode())
             am = {"role": "assistant", "content": m.get("content") or "", "tool_calls": calls}
             if m.get("reasoning_content"):
@@ -145,8 +233,11 @@ if __name__ == "__main__":
     ap.add_argument("--port", type=int, default=8081)
     ap.add_argument("--upstream", default="http://127.0.0.1:8080")
     ap.add_argument("--max-rounds", type=int, default=8)
+    ap.add_argument("--no-cards", action="store_true")
+    ap.add_argument("--no-lint", action="store_true")
     a = ap.parse_args()
     Proxy.upstream, Proxy.max_rounds = a.upstream, a.max_rounds
+    Proxy.cards, Proxy.lint = not a.no_cards, not a.no_lint
     srv = http.server.ThreadingHTTPServer(("127.0.0.1", a.port), Proxy)
     print(f"interpreter proxy on 127.0.0.1:{a.port} -> {a.upstream}", flush=True)
     srv.serve_forever()

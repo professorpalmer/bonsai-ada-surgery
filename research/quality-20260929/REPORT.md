@@ -139,3 +139,22 @@ checker all failed; one page of accurate library facts took the task from 0/12 t
 documentation retrieval for coding: give the model the exact APIs it needs. Second lever (3 gated passes, 1 miss):
 computation through the sandboxed interpreter proxy for plain data questions. Open item: proxy final round must
 always produce an answer.
+
+## Round 6 (2026-10-01 daytime): building the gains into the server
+
+Goal: users should get the gains without assembling anything. Built an integrated server-side layer (API cards,
+API check, sandboxed Python tool) and started a raw-vs-layer product benchmark (P1).
+
+| Step | Result |
+| --- | --- |
+| Sandbox working directory | Harness defect found and fixed: model test scripts could not open workspace files by relative path. Present in both arms of all earlier coding runs (comparisons stay paired). Canaries 14/14 |
+| API linter | 0 warnings on 19 functionally correct solutions; flags invented names (10 of 30 baseline bundle attempts contain one). A false positive on local imports (`import solution`) was found and fixed; it voided a partial P1 run |
+| Auto-generated API cards v1 / v2 vs hand-written notes (E9) | functional 1/6, 2/6 vs 5/6: neither card design adopted. With notes the model uses `tarfile`; with cards it still hand-rolls the format |
+| Hand-written notes, cumulative (E8, E8R, E9) | 16/18 functional vs ~1/30 without help |
+| E9b: cards at the end of the user message, with and without one generic "use the library" sentence | running |
+| P1 product benchmark | paused until the card design is settled; partial runs kept, not scored |
+
+Status: the docs lever is real for curated notes and not yet reproduced by automatic cards. The interpreter
+lever stands as before (3 gated passes, off by default for requests that bring their own tools).
+Deliverables this round: `PRISM-REPORT.md` (failure traces for PrismML), `layer/` snapshot (proxy with cards,
+linter, interpreter, streaming passthrough), launcher integration on a local branch (not merged).

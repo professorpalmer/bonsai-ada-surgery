@@ -1,0 +1,2 @@
+{"key": ["contract", "dev-bundle-01", 151, "RAW"], "functional": false, "full": false, "tokens": 38221, "wall_s": 473.2, "detail": ["unrecoverable_json"]}
+{"key": ["contract", "dev-bundle-01", 151, "PROD"], "functional": false, "full": false, "tokens": 33334, "wall_s": 420.2, "detail": ["invalid_or_oversize_base64"]}
