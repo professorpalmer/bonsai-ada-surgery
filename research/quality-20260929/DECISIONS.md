@@ -579,3 +579,21 @@ Flag: digits PF cost is driven by two seeds (605: 49.7k tokens, 7 runs; 606: 19.
 3.5k on the same seeds. Both still correct. With 6 seeds this is not separable from sampling noise (P itself had a
 37k and a 67k weblog seed), but the shipped default now carries one extra sentence in the tool description for
 every request, so pure-computation cost is tracked as an open item (recheck in the next product benchmark).
+
+## 2026-10-02 00:50 - P2 frozen (runs after E14): product benchmark of the shipped layer, fresh seeds
+Bench port change: the layer owns :8080 and llama-server :18080, so run.py's default BASE, run_proxycheck PORT and
+run_product's workspace arm now point RAW at :18080 (E12 and E13 already used run_layer.py with explicit ports).
+bench/P2-plan.json sha256 ba59fa1777ee8bf0738ffca38220b30e720ca053eefe4550d2b23398856a0061: 74 runs. Gain set: dev-bundle-01, xfer-zip-01 (251-254), knapsack, digits,
+sales, weblog (701-703). Regression set: dev-checklist-01 (251-253), dev-batch-01/02 (251-252), five workspace
+tasks (401-402). dev-bundle-02 dropped (duplicate trajectories). Gates as P1: gain net >= 4 with losses <= 1;
+regression net >= -1. Tokens reported per family (open items: weblog and digits cost).
+
+## 2026-10-02 01:40 - E13 result: streaming interpreter at parity; E14 launched
+E13 (24/24, 0 infra): correct P 12/12, PS 12/12 (3/3 in each of weblog, sales, digits, knapsack); 0 tool-call
+deltas leaked to the client; run notes present in reasoning_content on every run that used the tool; every stream
+ended with finish_reason stop and [DONE]. Gate met.
+Gap found: streamed responses carried no usage (llama-server only sends it with stream_options.include_usage, and
+the layer's rounds would each send their own). Fixed after the run: the layer now requests usage on every round,
+sums the rounds, and emits one usage chunk before [DONE] when the client asked for include_usage (none otherwise).
+Mock-tested; the live layer picks it up at the next restart (after E14, to keep E14's arms on one build).
+E14 launched 01:35 on the live layer (input_file on, repair_note per request).

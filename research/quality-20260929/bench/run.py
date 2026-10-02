@@ -19,7 +19,7 @@ import regex_env
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 KEY = open(os.path.join(ROOT, "..", "..", "api_key.txt")).read().strip()
-BASE = os.environ.get("BONSAI_BASE", "http://127.0.0.1:8080")
+BASE = os.environ.get("BONSAI_BASE", "http://127.0.0.1:18080")   # raw llama-server; the layer is on :8080
 SYSTEM = ("You are an operations agent working in a data workspace. Use the tools to inspect the data and make "
           "the requested changes. When you are finished, call submit_answer exactly once.")
 SYSTEM_RX = "You are a careful software engineer. Use the tools to test your work, then submit it."

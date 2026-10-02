@@ -200,4 +200,6 @@ harness 11/12, layer 6/10, no help ~1/30. Decision: ship the layer as built.
 
 Automatic API cards now help on two of three library families tried. | E12 input.txt: the user's message available to the Python tool as a file | correct 24/24 both arms; tokens on data questions **-58%** (weblog 176k -> 70k, sales 65k -> 31k over 6 seeds each); programs shrank from ~16k to ~1k characters when the model read the file instead of retyping the log. Adopted as default. Open: two digits seeds cost more |
 
-In progress: E13 (streaming interpreter parity), E14 (a fixed note on failing tool results).
+| E13 streaming parity: same requests with `stream: true` through the layer's streaming tool loop | 12/12 vs 12/12, no tool-call deltas leaked, run notes visible in the reasoning stream. The Python tool now works for streaming clients |
+
+In progress: E14 (a fixed note on failing tool results), then P2 (fresh-seed product benchmark of the shipped layer).

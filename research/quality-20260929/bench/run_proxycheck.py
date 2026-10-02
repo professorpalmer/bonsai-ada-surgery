@@ -3,7 +3,7 @@ import argparse, json, os, re, time, urllib.request
 import puzzles
 from run import KEY
 
-PORT = {"DIRECT": 8080, "PROXY": 8081}
+PORT = {"DIRECT": 18080, "PROXY": 8080}   # since 2026-10-01 the layer owns :8080 and llama-server sits on :18080
 
 
 def ask(kind, seed, arm, out_dir):
