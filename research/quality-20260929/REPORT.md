@@ -158,3 +158,31 @@ Status: the docs lever is now automatic: cards introspected from the runtime, ap
 lever stands as before (3 gated passes, off by default for requests that bring their own tools).
 Deliverables this round: `PRISM-REPORT.md` (failure traces for PrismML), `layer/` snapshot (proxy with cards,
 linter, interpreter, streaming passthrough), launcher integration on a local branch (not merged).
+
+## Round 7 (2026-10-01 evening): product benchmark of the integrated layer (P1d, P1e)
+
+Same frozen plan, every request sent once to the raw server and once through the layer. 74/74 runs, no infra errors.
+
+| Set | Raw | Layer | Rescues / losses |
+| --- | ---: | ---: | --- |
+| GAIN (bundle, knapsack, digits, sales, weblog) | 10/20 | 16/20 | 6 / 0 (p = 0.016), gate pass |
+| REGRESSION (checklist, batch, workspace) | 12/17 | 14/17 | 3 / 1, gate pass as declared |
+
+Read with two caveats. The two bundle cases are the same four trajectories graded twice, so independent gain
+rescues are 4 (bundle 2, digits 1, sales 1), still 0 losses. The batch rescues were an artifact: the layer wrongly
+injected API cards into a non-coding task (any code fence counted as "coding") and the model then called the batch
+tool 2 to 10 times. Detection now requires a coding tool, a python fence or an import line; a recheck (P1e, 4
+pairs) shows the layer passing batch requests through unchanged (same tokens, same verdicts, 1/4 both arms).
+
+| Family | Raw | Layer | Note |
+| --- | ---: | ---: | --- |
+| knapsack | 3/3 | 3/3 | 16.9k -> 1.9k tokens |
+| digits | 2/3 | 3/3 | |
+| sales table | 2/3 | 3/3 | |
+| weblog | 3/3 | 3/3 | layer slower: 23k vs 10k tokens |
+| bundle (trajectories) | 0/4 | 2/4 | below the 6/6 seen in the harness (E9b); failures use tarfile but have logic errors |
+| checklist, workspace | same | same | |
+
+Status: the computation lever holds inside the product with no losses. The coding lever is positive but weaker
+than in the harness, on 4 trajectories. Open: whether the API-check notes on tool results hurt the bundle task,
+weblog token cost, card transfer to other libraries.

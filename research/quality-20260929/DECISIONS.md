@@ -463,3 +463,30 @@ from the runtime), no hand-written content. One task family so far: transfer to 
 Layer (tooling/interpreter_proxy.py): apply_cards now uses apicards_v2 and appends cards + sentence to the end of
 the FIRST user message; verified byte-identical to the C2P prompt, idempotent across turns, plain chat untouched.
 Product benchmark relaunched with this layer: same frozen plan P1-plan.json, output bench/P1d/.
+
+## 2026-10-01 late - P1d result (product benchmark, raw server vs integrated layer): gates pass nominally; two caveats; detection fixed; P1e recheck
+P1d (frozen P1-plan.json, 74/74 runs, 0 infra errors). Declared metric, functional:
+- GAIN set: RAW 10/20, PROD 16/20; 6 rescues, 0 losses (sign test p = 0.016). Gate (>= 2 rescues, 0 losses): pass.
+- REGRESSION set: RAW 12/17, PROD 14/17; 3 rescues, 1 loss. Gate: pass as declared.
+Caveats found on reading the trajectories (the declared scores stand; these limit what they mean):
+1. dev-bundle-01 and dev-bundle-02 share prompt and seeds, so they are the same four trajectories graded against
+   two hidden cases. Independent gain rescues are 4 (bundle 2 of 4 trajectories, digits 1, sales 1), 0 losses.
+2. The batch "rescues" are an artifact of a layer defect. The layer arm called batch_work 2 to 10 times per task
+   (a process violation; the contract wants one call). Cause: my card detection treated any ``` fence as a coding
+   request and injected API cards plus the "use the library" sentence into a non-coding task. RAW failures there
+   were fenced or prose JSON. These pairs are not evidence for the layer.
+Per family (RAW -> PROD): knapsack 3/3 -> 3/3 (tokens 16.9k -> 1.9k); digits 2/3 -> 3/3; sales 2/3 -> 3/3;
+weblog 3/3 -> 3/3 (PROD slower: 23k vs 10k tokens); checklist 3/3 -> 3/3; workspace identical; bundle 0/4 -> 2/4
+trajectories. Bundle 2/4 is below E9b's 6/6 for the same card design; the PROD failures used tarfile but had logic
+errors. The difference between the harness arm (C2P) and the layer is the API-check notes on tool results; whether
+those notes hurt is not tested.
+Fix: tooling/apicards.py and apicards_v2.py now call a request "coding" only if a coding tool is offered, the text
+has a ```python fence, or an import line. Offline check: bundle cards 14536 chars, checklist 2104; batch-01/02,
+workspace, sales and plain chat 0.
+P1e (bench/P1e-plan.json sha256 c25abcf950382743058deeb5228c7f6be0aeef00f225e00ac8bfdce1c54e97c7; a verification
+run, hash recorded after the run, no gate): dev-batch-01/02 seeds 151,152, RAW vs PROD through the restarted
+layer. All 4 pairs: equal prompt tokens, equal completion tokens, identical verdicts (1/4 both arms). The layer is
+now a pure passthrough for these requests. Batch 1/4 is the raw model's own level (unrecoverable JSON 3 of 4).
+Standing after P1d + P1e: computation lever confirmed inside the product (digits, sales rescued; knapsack 9x fewer
+tokens; no losses). Coding lever: positive but weaker in the product than in the harness (2/4 vs 6/6), n small.
+Open: lint-note effect on bundle; weblog token cost; card transfer to other libraries.

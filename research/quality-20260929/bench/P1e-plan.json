@@ -1,0 +1,53 @@
+{
+ "id": "P1e-batch-recheck",
+ "order": [
+  [
+   "contract",
+   "dev-batch-01",
+   151,
+   "RAW"
+  ],
+  [
+   "contract",
+   "dev-batch-01",
+   151,
+   "PROD"
+  ],
+  [
+   "contract",
+   "dev-batch-01",
+   152,
+   "PROD"
+  ],
+  [
+   "contract",
+   "dev-batch-01",
+   152,
+   "RAW"
+  ],
+  [
+   "contract",
+   "dev-batch-02",
+   151,
+   "RAW"
+  ],
+  [
+   "contract",
+   "dev-batch-02",
+   151,
+   "PROD"
+  ],
+  [
+   "contract",
+   "dev-batch-02",
+   152,
+   "PROD"
+  ],
+  [
+   "contract",
+   "dev-batch-02",
+   152,
+   "RAW"
+  ]
+ ]
+}

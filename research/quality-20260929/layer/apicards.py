@@ -171,8 +171,10 @@ def cards_for_request(body, max_modules=4):
         for c in m.get("tool_calls") or []:
             text += "\n" + str(c.get("function", {}).get("arguments", ""))
     tools = body.get("tools") or []
-    coding = any(CODING_TOOL_RE.search(t.get("function", {}).get("name", "")) for t in tools) or "```" in text \
-        or bool(IMPORT_RE.search(text))
+    # a coding request: a coding tool is offered, or the text has Python code (a python fence or an import line).
+    # A bare fence is not enough: JSON examples in a non-coding task triggered cards and hurt (P1d batch).
+    coding = (any(CODING_TOOL_RE.search(t.get("function", {}).get("name", "")) for t in tools)
+              or ("```python" in text) or ("```py" + chr(10)) in text or bool(IMPORT_RE.search(text)))
     if not coding:
         return ""
     mods = detect_modules(text, coding)
