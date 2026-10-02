@@ -202,4 +202,6 @@ Automatic API cards now help on two of three library families tried. | E12 input
 
 | E13 streaming parity: same requests with `stream: true` through the layer's streaming tool loop | 12/12 vs 12/12, no tool-call deltas leaked, run notes visible in the reasoning stream. The Python tool now works for streaming clients |
 
-In progress: E14 (a fixed note on failing tool results), then P2 (fresh-seed product benchmark of the shipped layer).
+| E14 repair note: one fixed sentence on failing tool results asking the model to reason about the cause first | bundle 3/6 vs 3/6, ZIP 3/6 vs 4/6: 2 rescues, 1 loss, gate not met; repair turns did not get deeper (median 769 vs 630 chars). Not adopted |
+
+In progress: E15 (run-on-the-example sentence for coding requests), then P2 (fresh-seed product benchmark of the shipped layer).

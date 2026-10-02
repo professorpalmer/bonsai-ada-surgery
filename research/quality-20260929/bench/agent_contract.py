@@ -20,10 +20,10 @@ INPUTS = os.path.join(HERE, "..", "evidence", "evidence", "spec-ab-v1", "inputs"
 FROZEN = {"dev-bundle-01": "00-dev-bundle-01-11729", "dev-checklist-01": "06-dev-checklist-01-11729",
           "dev-bundle-02": "00-dev-bundle-01-11729",   # same family prompt (public example), different hidden request
           "dev-batch-01": "02-dev-batch-01-11729", "dev-batch-02": "04-dev-batch-02-11729"}
-BUDGET = {"B20": 20480, "B40": 40960, "CK": 20480, "R12": 20480, "R24": 20480, "DOC": 20480, "RAW": 20480, "PROD": 20480, "PRODNL": 20480, "PRODX": 20480, "C1": 20480, "C2": 20480, "C2U": 20480, "C2P": 20480}
+BUDGET = {"B20": 20480, "B40": 40960, "CK": 20480, "R12": 20480, "R24": 20480, "DOC": 20480, "RAW": 20480, "PROD": 20480, "PRODNL": 20480, "PRODX": 20480, "PRODY": 20480, "C1": 20480, "C2": 20480, "C2U": 20480, "C2P": 20480}
 PREFER = ("Use the library functions listed above instead of implementing these formats or algorithms by hand; "
           "they already implement them correctly.")
-BASEURL = {"PROD": "http://127.0.0.1:8080", "PRODNL": "http://127.0.0.1:8080", "PRODX": "http://127.0.0.1:8080"}   # since the layer went live (2026-10-01): layer on :8080, llama-server on :18080   # PRODNL: layer with the API check off   # everything else: llama-server directly
+BASEURL = {"PROD": "http://127.0.0.1:8080", "PRODNL": "http://127.0.0.1:8080", "PRODX": "http://127.0.0.1:8080", "PRODY": "http://127.0.0.1:8080"}   # since the layer went live (2026-10-01): layer on :8080, llama-server on :18080   # PRODNL: layer with the API check off   # everything else: llama-server directly
 import importlib.util as _ilu
 _bs = _ilu.spec_from_file_location("batch_handlers", os.path.join(contract_grade.CASES_DIR, "host", "batch_handlers.py"))
 batch_handlers = _ilu.module_from_spec(_bs); _bs.loader.exec_module(batch_handlers)
@@ -111,6 +111,8 @@ def attempt(case_id, seed, arm, out_dir, max_responses=12):
             body["api_lint"] = False
         if arm == "PRODX":
             body["repair_note"] = True
+        if arm == "PRODY":
+            body["finish_note"] = True
         try:
             r = post("/v1/chat/completions", body, 7200)
         except Exception as e:

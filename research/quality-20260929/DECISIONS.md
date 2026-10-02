@@ -597,3 +597,25 @@ the layer's rounds would each send their own). Fixed after the run: the layer no
 sums the rounds, and emits one usage chunk before [DONE] when the client asked for include_usage (none otherwise).
 Mock-tested; the live layer picks it up at the next restart (after E14, to keep E14's arms on one build).
 E14 launched 01:35 on the live layer (input_file on, repair_note per request).
+
+## 2026-10-02 02:00 - E15 frozen (after E14, before P2): finish note for coding requests
+Layer: optional "finish_note" (default off) appends one fixed sentence to the first user message of a coding request
+that offers a run tool: "Before your final answer, run the program you wrote on the example given in the task and
+compare its output with the expected result; fix it if they differ." Motivation: E11, where solutions in both arms
+rejected the disclosed public example and the model ended its turn anyway (8 of 12 mime runs, 1 zip run).
+bench/E15-plan.json sha256 9366a4005b572575ad5fe295a8368d00dffcf1ae2a97ad059cf9d31ea77c08cf: PROD vs PRODY on xfer-mime-01 and xfer-zip-01, seeds 211-216.
+Gate: adopt if >= 2 rescues and 0 losses pooled over 12 pairs. The layer restart that activates this toggle (and
+the summed-usage fix) happens between E14 and E15.
+
+## 2026-10-02 03:20 - E14 result: repair note not adopted (2 rescues, 1 loss); E15 launched
+E14 (24/24). dev-bundle-01: PROD 3/6, PRODX 3/6 (1 rescue, 1 loss). xfer-zip-01: PROD 3/6, PRODX 4/6 (1 rescue).
+Pooled: 2 rescues, 1 loss. Gate (>= 2 rescues, 0 losses): not met. repair_note stays off.
+The note did not make repair turns deeper either: reasoning on turns after a failing run, median 769 chars (PROD)
+vs 630 (PRODX); share under 300 chars 22% vs 28%. Note also that with cards in place the repair turns are already
+less shallow than in the baseline traces of PRISM-REPORT section 2 (median 304, 49% under 300): the model reasons
+more after failures when it is using the library rather than hand-rolling formats.
+Baseline drift to record: zip through the layer was 5/6 in E11 and 3/6 here (fresh seeds, same build apart from
+input.txt, which does not apply to client-tool requests); bundle 3/6 against 4/6 in E10. Both within what 6 seeds
+can show; the product-level numbers come from P2.
+Layer restarted 03:15 on the committed build (summed usage chunk, input.txt default, finish_note toggle).
+E15 launched 03:15.
