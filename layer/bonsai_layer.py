@@ -1,9 +1,9 @@
 """Built-in code interpreter for the Bonsai server: an OpenAI-compatible proxy in front of llama-server.
 
-  client --> proxy (:8081) --> llama-server (:8080)
+  client --> layer (public port) --> llama-server (127.0.0.1, inner port)
 
 For /v1/chat/completions requests the proxy offers the model a `run_python` tool. When the model calls it,
-the proxy runs the code in CPython-on-WASI (tooling/wasi-python/sandbox.py: no host files, no network, no
+the proxy runs the code in CPython-on-WASI (layer/wasi-python/sandbox.py: no host files, no network, no
 processes, memory and time capped), appends the result, and asks the model again, until the model answers or
 calls one of the client's own tools. The client sees one ordinary response.
 
@@ -27,7 +27,7 @@ import urllib.request
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import sandbox_path  # noqa: E402,F401
 import sandbox  # noqa: E402
-import apicards  # noqa: E402
+import apicards_v2 as apicards  # noqa: E402  (E9b: v2 docstring cards adopted)
 import apilint  # noqa: E402
 
 TOOL_NAME = "run_python"
@@ -89,14 +89,25 @@ def apply_lint(msgs):
     return out, n
 
 
+PREFER = ("Use the library functions listed above instead of implementing these formats or algorithms by hand; "
+          "they already implement them correctly.")
+
+
 def apply_cards(body, msgs):
-    """Inject API cards for the modules a coding request involves into the system message."""
+    """Append API cards for the modules a coding request involves to the END of the first user message, followed by
+    one generic sentence. Measured (E9/E9b): the same cards in the system message did not help (2/6); at the end of
+    the user message with the sentence they matched hand-written notes (6/6). The first user message is used so the
+    rendered prefix stays stable across the turns of a tool loop."""
     text = apicards.cards_for_request(dict(body, messages=msgs))
     if not text:
         return msgs, 0
-    if msgs and msgs[0].get("role") == "system" and isinstance(msgs[0].get("content"), str):
-        return [dict(msgs[0], content=msgs[0]["content"] + chr(10) + chr(10) + text)] + msgs[1:], len(text)
-    return [{"role": "system", "content": text}] + msgs, len(text)
+    for i, m in enumerate(msgs):
+        if m.get("role") == "user" and isinstance(m.get("content"), str):
+            if "Reference: exact APIs of the Python modules" in m["content"]:
+                return msgs, 0
+            add = chr(10) + chr(10) + text + chr(10) + chr(10) + PREFER
+            return msgs[:i] + [dict(m, content=m["content"] + add)] + msgs[i + 1:], len(add)
+    return msgs, 0
 
 
 class Proxy(http.server.BaseHTTPRequestHandler):
@@ -240,5 +251,5 @@ if __name__ == "__main__":
     Proxy.upstream, Proxy.max_rounds = a.upstream, a.max_rounds
     Proxy.cards, Proxy.lint = not a.no_cards, not a.no_lint
     srv = http.server.ThreadingHTTPServer((a.host, a.port), Proxy)
-    print(f"bonsai layer on {a.host}:{a.port} -> {a.upstream} (cards={Proxy.cards} lint={Proxy.lint})", flush=True)
+    print(f"bonsai layer on {a.host}:{a.port} -> {a.upstream}", flush=True)
     srv.serve_forever()

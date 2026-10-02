@@ -12,8 +12,8 @@ import sandbox_path  # noqa: F401  (puts tooling/wasi-python on sys.path)
 import sandbox
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-CACHE = os.path.join(HERE, "apicards-cache.json")
-MAX_CARD_CHARS = 3200
+CACHE = os.path.join(HERE, "apicards-v2-cache.json")
+MAX_CARD_CHARS = 6000
 
 _INTROSPECT = r'''
 import importlib, inspect, json, sys
@@ -27,13 +27,18 @@ def first(doc):
     doc = (doc or "").strip().splitlines()
     return doc[0].strip()[:120] if doc else ""
 
+def para(doc):
+    """Docstring as one line of usage text: paragraphs joined, whitespace collapsed, capped."""
+    text = " ".join((doc or "").split())
+    return text[:300]
+
 def sig(obj):
     try:
         return str(inspect.signature(obj))
     except (TypeError, ValueError):
         return "(...)"
 
-out = {"module": name, "doc": first(m.__doc__), "functions": [], "classes": [], "exceptions": [], "constants": []}
+out = {"module": name, "doc": first(m.__doc__), "functions": [], "classes": [], "exceptions": [], "constants": [], "all": sorted(getattr(m, "__all__", []) or [])}
 public = sorted(set((getattr(m, "__all__", None) or []) + [n for n in dir(m) if not n.startswith("_")]))
 for n in public:
     try:
@@ -62,10 +67,10 @@ for n in public:
                 fields.append(mn)
             elif callable(mo) or isinstance(mo, (classmethod, staticmethod)):
                 f = mo.__func__ if isinstance(mo, (classmethod, staticmethod)) else mo
-                meths.append([mn, sig(f)])
+                meths.append([mn, sig(f), para(getattr(f, '__doc__', ''))])
         out["classes"].append([n, sig(o), first(o.__doc__), sorted(set(fields)), meths])
     elif callable(o):
-        out["functions"].append([n, sig(o), first(o.__doc__)])
+        out["functions"].append([n, sig(o), para(o.__doc__)])
     elif isinstance(o, (int, str, bytes, float)) and n.isupper():
         out["constants"].append([n, repr(o)[:24]])
 print(json.dumps(out))
@@ -99,8 +104,8 @@ def introspect(module):
 
 
 def card(module, focus=()):
-    """Render a card. Constants first (complete), then functions, classes with fields; full method signatures only
-    for classes whose name appears in the request; exceptions on one line."""
+    """Card v2: constants, then functions with their docstring, then classes with fields and method signatures
+    (docstrings for methods of classes named in the request, and for short classes). Exceptions on one line."""
     d = introspect(module)
     if "error" in d:
         return ""
@@ -109,17 +114,23 @@ def card(module, focus=()):
     lines = [f"## {module} (exact API of this Python 3.12 runtime): {d['doc']}"]
     if d["constants"]:
         lines.append("constants: " + ", ".join(f"{n}={v}" for n, v in d["constants"]))
+    public = set(d.get("all") or [])
     for n, s_, doc in sorted(d["functions"], key=lambda x: (not hit(x[0]), x[0])):
-        lines.append(f"- {module}.{n}{s_}" + (f"  # {doc}" if doc and hit(n) else ""))
+        if n in ("main",) or n.startswith("_") or (public and n not in public and not hit(n)):
+            continue
+        lines.append(f"- {module}.{n}{s_}" + (f"  # {doc}" if doc else ""))
     for n, s_, doc, fields, meths in sorted(d["classes"], key=lambda x: (not hit(x[0]), x[0])):
         lines.append(f"- class {module}.{n}{s_}" + (f"  # {doc}" if doc else ""))
         if fields:
             lines.append(f"    fields: {', '.join(fields)}")
-        if meths:
-            if hit(n):
-                lines.extend(f"    .{mn}{ms}" for mn, ms in meths)
-            else:
-                lines.append("    methods: " + ", ".join(mn for mn, _ in meths))
+        if public and n not in public and not hit(n):
+            continue
+        detailed = hit(n) or len(meths) <= 14 or (public and n in public)
+        if meths and detailed:
+            for mn, ms, mdoc in meths:
+                lines.append(f"    .{mn}{ms}" + (f"  # {mdoc[:200]}" if mdoc else ""))
+        elif meths:
+            lines.append("    methods: " + ", ".join(mn for mn, _, _ in meths))
     if d["exceptions"]:
         lines.append("exceptions: " + ", ".join(d["exceptions"]))
     text = chr(10).join(lines)
