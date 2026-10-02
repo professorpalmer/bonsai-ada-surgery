@@ -1,0 +1,104 @@
+{
+ "id": "E10-layer-lint-v1",
+ "question": "does the layer's API-check note on tool results hurt the bundle task, and does the layer match the harness card arm?",
+ "arms": {
+  "PROD": "through the layer (cards + API check)",
+  "PRODNL": "through the layer with api_lint=false (cards only)",
+  "C2P": "harness: same cards + sentence, direct to server (E9b arm)"
+ },
+ "fixed": "pinned A; frozen prompt/tools; budget 20480; 12 responses; oracle grading",
+ "tasks": "dev-bundle-01 seeds 181-186 (fresh)",
+ "gate": "ship the layer with the API check OFF by default if PRODNL - PROD >= 2 functional; otherwise keep it on. Layer counts as matching the harness if max(PROD, PRODNL) is within 1 of C2P.",
+ "order": [
+  [
+   "dev-bundle-01",
+   181,
+   "PROD"
+  ],
+  [
+   "dev-bundle-01",
+   181,
+   "PRODNL"
+  ],
+  [
+   "dev-bundle-01",
+   181,
+   "C2P"
+  ],
+  [
+   "dev-bundle-01",
+   182,
+   "PRODNL"
+  ],
+  [
+   "dev-bundle-01",
+   182,
+   "C2P"
+  ],
+  [
+   "dev-bundle-01",
+   182,
+   "PROD"
+  ],
+  [
+   "dev-bundle-01",
+   183,
+   "C2P"
+  ],
+  [
+   "dev-bundle-01",
+   183,
+   "PROD"
+  ],
+  [
+   "dev-bundle-01",
+   183,
+   "PRODNL"
+  ],
+  [
+   "dev-bundle-01",
+   184,
+   "PROD"
+  ],
+  [
+   "dev-bundle-01",
+   184,
+   "PRODNL"
+  ],
+  [
+   "dev-bundle-01",
+   184,
+   "C2P"
+  ],
+  [
+   "dev-bundle-01",
+   185,
+   "PRODNL"
+  ],
+  [
+   "dev-bundle-01",
+   185,
+   "C2P"
+  ],
+  [
+   "dev-bundle-01",
+   185,
+   "PROD"
+  ],
+  [
+   "dev-bundle-01",
+   186,
+   "C2P"
+  ],
+  [
+   "dev-bundle-01",
+   186,
+   "PROD"
+  ],
+  [
+   "dev-bundle-01",
+   186,
+   "PRODNL"
+  ]
+ ]
+}

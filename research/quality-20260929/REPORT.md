@@ -186,3 +186,7 @@ pairs) shows the layer passing batch requests through unchanged (same tokens, sa
 Status: the computation lever holds inside the product with no losses. The coding lever is positive but weaker
 than in the harness, on 4 trajectories. Open: whether the API-check notes on tool results hurt the bundle task,
 weblog token cost, card transfer to other libraries.
+
+Follow-up E10 (6 fresh bundle seeds): layer 4/6, layer with the API check off 3/6, harness card arm 5/6. The API
+check does not hurt and stays on; the layer is within 1 of the harness. Bundle with automatic cards to date:
+harness 11/12, layer 6/10, no help ~1/30. Decision: ship the layer as built.

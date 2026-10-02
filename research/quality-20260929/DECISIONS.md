@@ -490,3 +490,21 @@ now a pure passthrough for these requests. Batch 1/4 is the raw model's own leve
 Standing after P1d + P1e: computation lever confirmed inside the product (digits, sales rescued; knapsack 9x fewer
 tokens; no losses). Coding lever: positive but weaker in the product than in the harness (2/4 vs 6/6), n small.
 Open: lint-note effect on bundle; weblog token cost; card transfer to other libraries.
+
+## 2026-10-01 night - E10 frozen: layer API check on vs off, with the harness card arm as control
+bench/E10-plan.json sha256 e1768139e78d30c1f18ef4a446c0b9e203a96edb0655ef24919a0fdb5e2f53bb: dev-bundle-01 seeds 181-186, arms PROD (layer), PRODNL (layer, api_lint=false),
+C2P (harness, direct). Gate: ship the layer with the API check off by default if PRODNL - PROD >= 2 functional,
+otherwise keep it on; the layer matches the harness if max(PROD, PRODNL) is within 1 of C2P.
+
+## 2026-10-01 night - E10 result: API check stays on; layer matches the harness card arm
+E10 (dev-bundle-01 seeds 181-186, 18/18): functional PROD 4/6, PRODNL 3/6, C2P 5/6.
+Gate 1 (API check off by default if PRODNL - PROD >= 2): not met (difference -1). The check stays on.
+Gate 2 (max(PROD, PRODNL) within 1 of C2P): met (4 vs 5). The layer reproduces the harness card result.
+Notes. PROD and PRODNL are token-identical on seeds 182 and 186 (the check injected nothing there) and diverge on
+the other four, where outcomes are PROD 3/4, PRODNL 2/4: no sign the check hurts, no evidence it helps at this n.
+C2P seed 181 ended abnormally: the first response hit max_tokens (49152) inside a write_file call; the harness
+recorded terminal=infra_error, but the file was written and passes the oracle, so it counts under the declared
+functional metric. Excluding it, C2P is 4/5.
+Bundle with automatic cards, all runs to date: harness C2P 11/12 (E9b, E10), layer 6/10 trajectories (P1d 2/4,
+E10 4/6), against ~1/30 with no help. P1d's 2/4 was within noise of the layer's rate; E9b's 6/6 was the high end.
+Decision: ship the layer as is (cards + sentence, API check on, interpreter for requests without client tools).
