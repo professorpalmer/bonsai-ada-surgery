@@ -176,15 +176,16 @@ Measured on one RTX 4070, small paired task sets, plans and gates frozen before 
 
 | | raw server | with the layer |
 | --- | ---: | ---: |
-| product benchmark, gain tasks (P1d) | 10/20 | 16/20, 0 losses |
-| tar+gzip coding task, automatic cards | ~1/30 | 6/10 |
-| ZIP coding task, automatic cards (E11) | 0/6 | 5/6 |
+| product benchmark, gain tasks, fresh seeds (P2) | 8/20 | **19/20**, 0 losses |
+| product benchmark, regression tasks (P2) | 14/17 | 15/17, 0 losses; non-coding requests pass through byte-identical |
+| tar+gzip coding task, automatic cards | ~1/30 | 10/14 |
+| ZIP coding task, automatic cards (E11, P2) | 0/10 | 8/10 |
 | MIME email coding task (E11) | 0/6 | 0/6 (no transfer) |
 | data questions, tokens with `input.txt` (E12) | | -58%, same correctness |
 | streaming vs non-streaming tool loop (E13) | 12/12 | 12/12 |
 
-Cards are proven on two library families and not on a third; one task family (weblog) costs more tokens through
-the layer; long computations cost about 9x fewer.
+Cards are proven on two library families and not on a third. Token cost through the layer, P2: long computations
+0.08x to 0.76x, coding 0.81x to 0.87x, weblog 1.11x, checklist 1.16x.
 
 ## The patch stack
 

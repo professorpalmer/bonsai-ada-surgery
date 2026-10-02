@@ -653,3 +653,21 @@ PROD) to content errors on the hidden requests (Date header, non-7-bit bytes, en
 The sentence does what it says; the email task stays beyond the model with or without it.
 Layer restarted 08:05 with the adopted defaults (cards, API check, input.txt, finish note; repair note off).
 P2 launched 08:06 on that build: bench/P2-plan.json, 74 runs, RAW on :18080 vs PROD on :8080.
+
+## 2026-10-02 13:00 - P2 result: shipped layer vs raw server on fresh seeds, both gates pass; T2 launched
+P2 (bench/P2-plan.json, 74/74 runs, 0 infra errors; 08:06 to 12:55; memory OC on throughout).
+GAIN set: RAW 8/20, PROD 19/20; 11 rescues, 0 losses (sign test p = 0.0005). Gate (net >= 4, losses <= 1): pass.
+REGRESSION set: RAW 14/17, PROD 15/17; 1 rescue (checklist 253), 0 losses. Gate (net >= -1): pass.
+Per family (RAW -> PROD, completion tokens PROD/RAW): dev-bundle-01 0/4 -> 4/4 (0.81x); xfer-zip-01 0/4 -> 3/4
+(0.87x); knapsack 3/3 -> 3/3 (0.08x); digits 1/3 -> 3/3 (0.76x); sales 1/3 -> 3/3 (0.43x); weblog 3/3 -> 3/3
+(1.11x; was 2.32x in P1d before input.txt); dev-checklist-01 2/3 -> 3/3 (1.16x); dev-batch-01/02 identical, byte-
+equal tokens (passthrough); five workspace tasks identical, byte-equal tokens (passthrough).
+Reading. Compared with P1d (6 rescues of which 4 independent, 1 loss), this is the layer as shipped: v2 cards at
+the end of the user message with the sentence, correct coding detection, input.txt, finish note. No pair got
+worse. The coding families account for 7 of the 11 rescues, computation for 4. The regression families are
+untouched by construction (passthrough) except checklist, where the layer injects cards (it is a coding task) and
+costs 16% more tokens for one extra pass.
+Limits as before: one machine, one model, 3 to 4 seeds per family, synthetic and semi-real tasks, graders written
+here (validated against the original oracles where they exist). This is the number for the README.
+T2 launched 12:58: teacher Qwen3.8-27B UD-Q4_K_M on :18080 (run-teacher-18080.ps1, -c 57344, Bonsai's template,
+budget 20480), Bonsai and layer stopped for it. 10.2 GB on the GPU, the rest of the model in RAM.

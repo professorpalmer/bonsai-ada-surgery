@@ -206,5 +206,26 @@ Automatic API cards now help on two of three library families tried. | E12 input
 
 | E15 finish note: one fixed sentence asking the model to run its program on the task's example before answering | ZIP 4/6 vs **6/6**, email 0/6 vs 0/6: 2 rescues, 0 losses, gate met at its minimum. Adopted (weakly). On the email task the failures moved from "rejects the example" to content errors |
 
-In progress: P2 (fresh-seed product benchmark of the shipped layer), then T2 (teacher at 4-bit on the coding seeds)
-and M1 (Mirai S on the gain set), both descriptive attribution runs.
+
+## Round 9 (2026-10-02): the shipped layer, measured (P2)
+
+Fresh seeds, 74 runs, every request sent once to the raw server and once through the layer as it ships.
+
+| Set | Raw | Layer | Rescues / losses |
+| --- | ---: | ---: | --- |
+| GAIN (bundle, ZIP, knapsack, digits, sales, weblog) | 8/20 | **19/20** | 11 / 0 (p = 0.0005) |
+| REGRESSION (checklist, batch, workspace) | 14/17 | 15/17 | 1 / 0 |
+
+| Family | Raw | Layer | Tokens, layer / raw |
+| --- | ---: | ---: | ---: |
+| tar+gzip bundle | 0/4 | 4/4 | 0.81 |
+| ZIP archive | 0/4 | 3/4 | 0.87 |
+| knapsack | 3/3 | 3/3 | 0.08 |
+| digits | 1/3 | 3/3 | 0.76 |
+| sales table | 1/3 | 3/3 | 0.43 |
+| weblog | 3/3 | 3/3 | 1.11 (was 2.32 before input.txt) |
+| checklist | 2/3 | 3/3 | 1.16 |
+| batch, workspace (passthrough) | same | same | 1.00, byte-equal |
+
+Next: T2 (the same base model at a conventional 4-bit on the coding seeds) and M1 (Mirai S on the gain set), both
+descriptive attribution runs.
