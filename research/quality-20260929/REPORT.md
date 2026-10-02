@@ -198,6 +198,6 @@ harness 11/12, layer 6/10, no help ~1/30. Decision: ship the layer as built.
 | E11 card transfer, ZIP archive task (`zipfile`) | raw 0/6, layer **5/6**, 0 losses: gate met |
 | E11 card transfer, MIME email task (`email.message`) | raw 0/6, layer 0/6: no transfer; the model's solutions reject even the public example, and the email card lists `add_attachment` without its parameters |
 
-Automatic API cards now help on two of three library families tried. In progress: E12 (the user's text as a file
-for the Python tool, to stop the model retyping data), E13 (streaming interpreter parity), E14 (a fixed note on
-failing tool results).
+Automatic API cards now help on two of three library families tried. | E12 input.txt: the user's message available to the Python tool as a file | correct 24/24 both arms; tokens on data questions **-58%** (weblog 176k -> 70k, sales 65k -> 31k over 6 seeds each); programs shrank from ~16k to ~1k characters when the model read the file instead of retyping the log. Adopted as default. Open: two digits seeds cost more |
+
+In progress: E13 (streaming interpreter parity), E14 (a fixed note on failing tool results).

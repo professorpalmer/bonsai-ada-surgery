@@ -566,3 +566,16 @@ Standing: automatic cards now proven on two library families (tarfile+gzip: harn
 5/6 vs 0/6) and not on one (email.message: 0/6 vs 0/6), where the model also fails input validation.
 E12 launched 00:05 on the live layer (new code: streaming interpreter, key check, input_file and repair_note
 toggles default off; cards and interpreter unchanged for arm P).
+
+## 2026-10-02 00:35 - E12 result: input.txt adopted (0 losses, data-question tokens -58%); digits cost flagged
+E12 (48/48, 0 infra). Correct: P 24/24, PF 24/24; 0 rescues, 0 losses. Tokens, P -> PF: weblog 175.6k -> 70.5k,
+sales 65.1k -> 30.6k (weblog+sales -58%); digits 25.1k -> 88.6k; knapsack 18.9k -> 20.8k.
+Gate (0 losses and weblog+sales tokens down >= 25%): met. input_file is now the layer default (--input-file on the
+live layer from 00:35; E13 runs with it on both arms).
+Transcription hypothesis confirmed: with input.txt the weblog program shrank from ~16k characters (the log pasted
+into the source) to ~1k in 4 of 6 seeds; in the other 2 (602, 605) the model still retyped the log. Sales: 2 of 6
+seeds switched to reading the file (code 7.5k -> 0.6k chars).
+Flag: digits PF cost is driven by two seeds (605: 49.7k tokens, 7 runs; 606: 19.4k, 7 runs) against P's 1.9k and
+3.5k on the same seeds. Both still correct. With 6 seeds this is not separable from sampling noise (P itself had a
+37k and a 67k weblog seed), but the shipped default now carries one extra sentence in the tool description for
+every request, so pure-computation cost is tracked as an open item (recheck in the next product benchmark).
