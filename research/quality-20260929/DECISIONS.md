@@ -619,3 +619,18 @@ input.txt, which does not apply to client-tool requests); bundle 3/6 against 4/6
 can show; the product-level numbers come from P2.
 Layer restarted 03:15 on the committed build (summed usage chunk, input.txt default, finish_note toggle).
 E15 launched 03:15.
+
+## 2026-10-02 07:40 - T2 and M1 frozen (after P2): attribution runs with other models on identical requests
+Cary's call: run Mirai S too ("I don't care about brands... I'm here for the GPU poors"). Download of
+alesha-pro/Qwen3.8-27B-S-mirai-GGUF (11.2 GB, community conversion, Apache-2.0) and a CUDA build of
+alesha-pro/llama.cpp-mirai-s (adds 4 ggml types; upstream d834d44e6) started 07:35, both off the GPU.
+bench/run_model.py: the RAW half of a product plan against whatever serves on :18080, labelled.
+T2 bench/T2-plan.json sha256 00a593fb2fe15f4764f95bbf1a87967e876c53c69e24330d0ee45e56946cf456: teacher Qwen3.8-27B UD-Q4_K_M, raw, on dev-bundle-01 and xfer-zip-01 seeds
+251-254 (the P2 coding seeds). Descriptive: does a conventional 4-bit quant of the same base recall the APIs?
+M1 bench/M1-plan.json sha256 01f9156fb070dac867b8c0ee8597bbb6e78e0fe539c9433edd30118a9e5d2cd6: Mirai S raw on P2's whole gain set (20 runs). Descriptive. Caveat recorded
+in the plan: the Mirai fork has no server-side reasoning budget, so its thinking is capped only by max_tokens.
+Order on the GPU: P2 (Bonsai raw vs layer) -> T2 -> M1 (Bonsai stopped for M1, restored after).
+## 2026-10-02 07:34 - note: GPU memory overclock (MSI Afterburner, about +1500 MHz memory) switched ON about 90 s before this entry, during E15
+It was off for every run before this point (all experiments since 2026-09-29). Correctness and token counts are
+unaffected (paired arms, same conditions within each pair); wall-clock seconds before and after this line are not
+comparable.

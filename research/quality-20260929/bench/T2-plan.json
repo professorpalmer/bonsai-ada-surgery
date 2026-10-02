@@ -1,0 +1,49 @@
+{
+ "id": "T2-teacher-coding-v1",
+ "question": "does a conventional 4-bit quantization of the same base model (Qwen3.8-27B UD-Q4_K_M) recall the library APIs that Bonsai does not, on identical coding requests?",
+ "arm": "TEACHER: Qwen3.8-27B-UD-Q4_K_M on the project's llama-server fork with Bonsai's chat template (as C1), raw, no layer, budget 20480 enforced by the server, same sampling",
+ "tasks": "the coding half of P2's gain set: dev-bundle-01 and xfer-zip-01, seeds 251-254 (8 runs)",
+ "comparison": "against P2 RAW (Bonsai raw) and P2 PROD (Bonsai + layer) on the same seeds; descriptive, no gate. The question is attribution, not a product decision.",
+ "order": [
+  [
+   "contract",
+   "dev-bundle-01",
+   251
+  ],
+  [
+   "contract",
+   "dev-bundle-01",
+   252
+  ],
+  [
+   "contract",
+   "dev-bundle-01",
+   253
+  ],
+  [
+   "contract",
+   "dev-bundle-01",
+   254
+  ],
+  [
+   "contract",
+   "xfer-zip-01",
+   251
+  ],
+  [
+   "contract",
+   "xfer-zip-01",
+   252
+  ],
+  [
+   "contract",
+   "xfer-zip-01",
+   253
+  ],
+  [
+   "contract",
+   "xfer-zip-01",
+   254
+  ]
+ ]
+}

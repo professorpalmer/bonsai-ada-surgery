@@ -19,6 +19,8 @@ since #221), i7-13700K with 32 GB, Bonsai 2 27B `PTQ1_0` with the ProCreations M
 | 180k | 298 | 27 | q8_0 did not fit |
 | 258k | 229 | 14.7 | q8_0 did not fit |
 
+Measured with the card's memory overclocked (MSI Afterburner, memory clock ~11.7 GHz effective vs 10.5 GHz stock). Decode is memory-bound, so stock clocks give somewhat lower numbers; the quality research (research/quality-20260929) was run at stock clocks until 2026-10-02 07:34, which does not affect its correctness or token counts.
+
 ![Decode by context depth](img/decode.png)
 
 ![Prefill by context depth](img/prefill.png)

@@ -20,6 +20,8 @@ positions; the rest of the cache (~5.2 GB) sits in pinned system RAM, so decode 
 | 180k | 27 | 298 |
 | 258k (the window's end) | 14.7 | 229 |
 
+Speed figures in this README and in docs/Q8_FULL_CONTEXT.md were measured with the 4070's memory overclocked (MSI Afterburner, memory clock reading ~11.7 GHz effective vs 10.5 stock); at stock clocks expect decode a little lower, since it is memory-bound. Quality results are unaffected by clocks.
+
 Greedy code continuation, 256 tokens, MTP draft head on, cumulative prefill; GDDR6X +1500 MHz (as in every
 number in this repo since #221), display on the CPU's iGPU. What those numbers replace:
 
