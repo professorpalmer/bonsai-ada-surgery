@@ -176,7 +176,7 @@ class Proxy(http.server.BaseHTTPRequestHandler):
     exec_timeout = 10.0
     api_key = None        # when set, chat requests are checked here before any work is done
     repair_note = False   # default for "repair_note": a fixed sentence on failing tool results (E14 pending)
-    input_file = False    # default for "input_file": put the user's text in input.txt for run_python (E12 pending)
+    input_file = True     # default for "input_file": the user's text as input.txt for run_python (E12: adopted)
     protocol_version = "HTTP/1.1"
 
     def log_message(self, fmt, *a):
@@ -434,12 +434,12 @@ if __name__ == "__main__":
     ap.add_argument("--no-cards", action="store_true")
     ap.add_argument("--no-lint", action="store_true")
     ap.add_argument("--repair-note", action="store_true", help="append a fixed sentence to failing tool results by default")
-    ap.add_argument("--input-file", action="store_true", help="give run_python the user's text as input.txt by default")
+    ap.add_argument("--no-input-file", action="store_true", help="do not give run_python the user's text as input.txt")
     a = ap.parse_args()
     Proxy.api_key = os.environ.get("BONSAI_LAYER_KEY") or None
     Proxy.upstream, Proxy.max_rounds = a.upstream, a.max_rounds
     Proxy.cards, Proxy.lint = not a.no_cards, not a.no_lint
-    Proxy.input_file = a.input_file
+    Proxy.input_file = not a.no_input_file
     Proxy.repair_note = a.repair_note
     srv = http.server.ThreadingHTTPServer((a.host, a.port), Proxy)
     print(f"bonsai layer on {a.host}:{a.port} -> {a.upstream}", flush=True)
