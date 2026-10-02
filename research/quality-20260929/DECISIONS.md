@@ -634,3 +634,22 @@ Order on the GPU: P2 (Bonsai raw vs layer) -> T2 -> M1 (Bonsai stopped for M1, r
 It was off for every run before this point (all experiments since 2026-09-29). Correctness and token counts are
 unaffected (paired arms, same conditions within each pair); wall-clock seconds before and after this line are not
 comparable.
+
+## 2026-10-02 08:00 - Mirai S artifacts ready (off the GPU)
+models/donor/Qwen3.8-27B-S-mirai.gguf: 11,173,346,688 bytes, sha256
+5aa4365c3362983e52ff71d8ec2452c2e2e199e299f91594dc85523aa62a43ce, equal to the Hugging Face LFS pointer for
+alesha-pro/Qwen3.8-27B-S-mirai-GGUF (community conversion; "Mirai's compressed trellis codes are copied into the
+GGUF bit for bit"). Server: alesha-pro/llama.cpp-mirai-s at b59ae80 (upstream d834d44e6), built here with MSVC +
+CUDA 13 for sm_89 into %TEMP%\mirai-build (version 0.5.0-dev, --version runs). Not yet loaded on the GPU.
+
+## 2026-10-02 08:05 - E15 result: finish note adopted at the gate's minimum (2 rescues, 0 losses); P2 launched
+E15 (24/24). xfer-zip-01: PROD 4/6, PRODY 6/6 (2 rescues, 0 losses). xfer-mime-01: 0/6 vs 0/6. Pooled 2 rescues,
+0 losses: the pre-declared gate (>= 2, 0) is met exactly at its threshold, so finish_note becomes the default
+(layer code: finish_note = True, --no-finish-note to disable). Weak adoption, stated as such: one family moved,
+by the minimum, on 6 seeds.
+What changed in the trajectories: runs that fed the disclosed example to run_python, 7 of 12 (PROD) vs 9 of 12
+(PRODY). On the mime task the failure mode shifted from "solution rejects even the example" (result_schema, 4 of 6
+PROD) to content errors on the hidden requests (Date header, non-7-bit bytes, encoded Subject: 5 of 6 PRODY).
+The sentence does what it says; the email task stays beyond the model with or without it.
+Layer restarted 08:05 with the adopted defaults (cards, API check, input.txt, finish note; repair note off).
+P2 launched 08:06 on that build: bench/P2-plan.json, 74 runs, RAW on :18080 vs PROD on :8080.

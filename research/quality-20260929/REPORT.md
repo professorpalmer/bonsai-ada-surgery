@@ -204,4 +204,7 @@ Automatic API cards now help on two of three library families tried. | E12 input
 
 | E14 repair note: one fixed sentence on failing tool results asking the model to reason about the cause first | bundle 3/6 vs 3/6, ZIP 3/6 vs 4/6: 2 rescues, 1 loss, gate not met; repair turns did not get deeper (median 769 vs 630 chars). Not adopted |
 
-In progress: E15 (run-on-the-example sentence for coding requests), then P2 (fresh-seed product benchmark of the shipped layer).
+| E15 finish note: one fixed sentence asking the model to run its program on the task's example before answering | ZIP 4/6 vs **6/6**, email 0/6 vs 0/6: 2 rescues, 0 losses, gate met at its minimum. Adopted (weakly). On the email task the failures moved from "rejects the example" to content errors |
+
+In progress: P2 (fresh-seed product benchmark of the shipped layer), then T2 (teacher at 4-bit on the coding seeds)
+and M1 (Mirai S on the gain set), both descriptive attribution runs.
