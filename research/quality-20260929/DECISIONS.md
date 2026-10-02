@@ -508,3 +508,11 @@ functional metric. Excluding it, C2P is 4/5.
 Bundle with automatic cards, all runs to date: harness C2P 11/12 (E9b, E10), layer 6/10 trajectories (P1d 2/4,
 E10 4/6), against ~1/30 with no help. P1d's 2/4 was within noise of the layer's rate; E9b's 6/6 was the high end.
 Decision: ship the layer as is (cards + sentence, API check on, interpreter for requests without client tools).
+
+## 2026-10-01 night - layer merged to main and deployed on the live serve
+Layer branch rebased on main, refreshed with the benchmarked code (v2 cards, detection fix, linter fix, sandbox cwd),
+canaries 14/14, merged to main. Live serve restarted through start-server.ps1: layer on 0.0.0.0:8080, llama-server
+on 127.0.0.1:18080, same pinned arguments. Smoke test through :8080: plain digit-DP question answered correctly
+with 1 sandbox run in 7 s (443 tokens); streaming chat relayed (81 chunks, [DONE]); request with a client tool
+returned the tool call with no interpreter; wrong key 401; /v1/models ok.
+Known gap: streaming requests get cards and the API check but not the Python tool.
