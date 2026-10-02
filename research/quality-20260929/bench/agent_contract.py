@@ -13,16 +13,17 @@ import time
 
 import contract_grade
 from run import post
+import xfer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 INPUTS = os.path.join(HERE, "..", "evidence", "evidence", "spec-ab-v1", "inputs")
 FROZEN = {"dev-bundle-01": "00-dev-bundle-01-11729", "dev-checklist-01": "06-dev-checklist-01-11729",
           "dev-bundle-02": "00-dev-bundle-01-11729",   # same family prompt (public example), different hidden request
           "dev-batch-01": "02-dev-batch-01-11729", "dev-batch-02": "04-dev-batch-02-11729"}
-BUDGET = {"B20": 20480, "B40": 40960, "CK": 20480, "R12": 20480, "R24": 20480, "DOC": 20480, "RAW": 20480, "PROD": 20480, "PRODNL": 20480, "C1": 20480, "C2": 20480, "C2U": 20480, "C2P": 20480}
+BUDGET = {"B20": 20480, "B40": 40960, "CK": 20480, "R12": 20480, "R24": 20480, "DOC": 20480, "RAW": 20480, "PROD": 20480, "PRODNL": 20480, "PRODX": 20480, "C1": 20480, "C2": 20480, "C2U": 20480, "C2P": 20480}
 PREFER = ("Use the library functions listed above instead of implementing these formats or algorithms by hand; "
           "they already implement them correctly.")
-BASEURL = {"PROD": "http://127.0.0.1:8081", "PRODNL": "http://127.0.0.1:8081"}   # PRODNL: layer with the API check off   # everything else: llama-server directly
+BASEURL = {"PROD": "http://127.0.0.1:8080", "PRODNL": "http://127.0.0.1:8080", "PRODX": "http://127.0.0.1:8080"}   # since the layer went live (2026-10-01): layer on :8080, llama-server on :18080   # PRODNL: layer with the API check off   # everything else: llama-server directly
 import importlib.util as _ilu
 _bs = _ilu.spec_from_file_location("batch_handlers", os.path.join(contract_grade.CASES_DIR, "host", "batch_handlers.py"))
 batch_handlers = _ilu.module_from_spec(_bs); _bs.loader.exec_module(batch_handlers)
@@ -33,6 +34,8 @@ MAX_FILES, MAX_BYTES = 16, 128 * 1024
 
 
 def load_case(case_id):
+    if case_id in xfer.CASES:
+        return xfer.prompts(case_id)
     d = os.path.join(INPUTS, FROZEN[case_id])
     p = json.load(open(os.path.join(d, "prompts.json"), encoding="utf-8"))
     s = json.load(open(os.path.join(d, "schemas.json"), encoding="utf-8"))
@@ -63,7 +66,7 @@ def check_solution(ws, pub):
 
 def attempt(case_id, seed, arm, out_dir, max_responses=12):
     system, user, tools = load_case(case_id)
-    pub = public_case(user)
+    pub = public_case(user) if case_id not in xfer.CASES else None
     if arm in ("C2U", "C2P"):   # v2 cards at the END of the user message (where the hand notes sit); C2P adds one generic sentence
         import sys as _sys
         _t = os.path.join(HERE, "..", "..", "..", "tooling")
@@ -94,7 +97,7 @@ def attempt(case_id, seed, arm, out_dir, max_responses=12):
     msgs = [{"role": "system", "content": system}, {"role": "user", "content": user}]
     ws, log, t0 = {}, [], time.time()
     import run as _run
-    _run.BASE = BASEURL.get(arm, "http://127.0.0.1:8080")
+    _run.BASE = BASEURL.get(arm, "http://127.0.0.1:18080")
     batch_events, final_text = [], ""
     usage = {"completion": 0, "prompt": 0}
     terminal, n = "response_cap", 0
@@ -106,6 +109,8 @@ def attempt(case_id, seed, arm, out_dir, max_responses=12):
                     max_tokens=49152, stream=False, cache_prompt=True, seed=seed + n)
         if arm == "PRODNL":
             body["api_lint"] = False
+        if arm == "PRODX":
+            body["repair_note"] = True
         try:
             r = post("/v1/chat/completions", body, 7200)
         except Exception as e:
@@ -172,7 +177,9 @@ def attempt(case_id, seed, arm, out_dir, max_responses=12):
             log.append({"tool": name, "result": {k: (v[:400] if isinstance(v, str) else v) for k, v in out.items()}})
             msgs.append({"role": "tool", "tool_call_id": c.get("id", ""), "name": name,
                          "content": json.dumps(out, ensure_ascii=False, separators=(",", ":"))})
-    if contract_grade.DEV[case_id]["family"] == "batch_merge":
+    if case_id in xfer.CASES:
+        g = xfer.grade(case_id, ws, normal_completion=(terminal == "natural_stop"))
+    elif contract_grade.DEV[case_id]["family"] == "batch_merge":
         g = dict(contract_grade.oracles.grade_case(contract_grade.DEV[case_id], final_text,
                                                    process_receipt={"batch_events": batch_events},
                                                    normal_completion=(terminal == "natural_stop")))

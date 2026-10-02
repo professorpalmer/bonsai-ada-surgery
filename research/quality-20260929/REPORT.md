@@ -190,3 +190,14 @@ weblog token cost, card transfer to other libraries.
 Follow-up E10 (6 fresh bundle seeds): layer 4/6, layer with the API check off 3/6, harness card arm 5/6. The API
 check does not hurt and stays on; the layer is within 1 of the harness. Bundle with automatic cards to date:
 harness 11/12, layer 6/10, no help ~1/30. Decision: ship the layer as built.
+
+## Round 8 (2026-10-02 night): transfer and product follow-ups
+
+| Experiment | Result |
+| --- | --- |
+| E11 card transfer, ZIP archive task (`zipfile`) | raw 0/6, layer **5/6**, 0 losses: gate met |
+| E11 card transfer, MIME email task (`email.message`) | raw 0/6, layer 0/6: no transfer; the model's solutions reject even the public example, and the email card lists `add_attachment` without its parameters |
+
+Automatic API cards now help on two of three library families tried. In progress: E12 (the user's text as a file
+for the Python tool, to stop the model retyping data), E13 (streaming interpreter parity), E14 (a fixed note on
+failing tool results).

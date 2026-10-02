@@ -516,3 +516,53 @@ on 127.0.0.1:18080, same pinned arguments. Smoke test through :8080: plain digit
 with 1 sandbox run in 7 s (443 tokens); streaming chat relayed (81 chunks, [DONE]); request with a client tool
 returned the tool call with no interpreter; wrong key 401; /v1/models ok.
 Known gap: streaming requests get cards and the API check but not the Python tool.
+
+## 2026-10-01 late night - E11 frozen: do the automatic cards transfer to other libraries?
+New cases in bench/xfer.py (sha256 73b66e6c21129d2f79c688455e2ba82ee92d51af1d2c61d51c89bff373683141): xfer-zip-01 (canonical ZIP archive; zipfile) and xfer-mime-01 (MIME email
+with attachments, non-ASCII subject and filename, fixed boundary; email.message). Same shape as the bundle contract;
+graded on four hidden requests each (two valid, two invalid) by properties of the output; reference solutions pass,
+three negative controls fail.
+Layer changes made before freezing (found while preparing the cases, all generic): cards computed from the first
+user message only (they changed slightly on turn 2 before, which also broke the prompt cache once per task);
+modules with a tuple __all__ had no card (hashlib, datetime); base classes of public classes now listed, derived
+classes first (email.message.EmailMessage's methods live on MIMEPart); json lowest priority; email keywords added.
+Bundle card text unchanged (14536 chars). Known weak spot going in: the email card lists add_attachment(*args, **kw)
+with no parameters (the real signature lives in email.contentmanager), so the card cannot teach its arguments.
+bench/E11-plan.json sha256 909cb88545b400962c1ccd09fa437e324c017879e9289c09d7cbabe32db559fd: seeds 191-196, RAW (:18080) vs PROD (live layer :8080), 24 runs.
+Gate, per family: cards transfer if PROD has >= 2 rescues and 0 losses over RAW. No pooled claim.
+
+## 2026-10-01 late night - E12 and E13 frozen (to run after E11, in that order)
+Product work done while E11 runs (not yet live; mock-tested): streaming interpreter in the layer (tokens relayed as
+they arrive, run_python calls withheld and executed, stream continues; run notes appear in reasoning_content);
+API-key check in the layer before any work; optional input.txt (the user's message text) for run_python, per
+request "input_file": true, default off until E12. Motivation for input.txt: P1d weblog through the layer cost 27.6k
+and 28.7k tokens on two seeds vs 7.0k and 8.8k raw, with 2 sandbox runs each; the hypothesis is that the model
+retypes the ~200-line log into its program (E4's transcription failure mode, now as cost). code_chars is now in
+the trace to check it.
+E12 bench/E12-plan.json sha256 89b5ad27345bcb9938ee4bc905ad7e6b5be46efe5b77baab5df401c726a71797: P vs PF on weblog, sales, digits, knapsack, seeds 601-606 (48 runs).
+Gate: adopt input_file by default if 0 losses in 24 pairs and weblog+sales tokens down >= 25%.
+E13 bench/E13-plan.json sha256 60f7255f8e4c80a1e3e0a0a506ab5ebd530033e19e0766acae5520f93c4c2dce: P vs PS (stream) on the same four kinds, seeds 611-613 (24 runs).
+Gate: parity if per-family correct counts within 1 and 0 leaked tool-call deltas.
+
+## 2026-10-01 late night - E14 frozen (after E13): repair note on failing tool results
+Layer: optional "repair_note" (default off) appends one fixed sentence to every failing tool result (non-zero exit,
+timeout or traceback): "this run failed; before your next tool call, reason step by step about the exact cause
+shown above and check that your change fixes it." Motivation: PRISM-REPORT section 2, later turns reason a median
+of 304 characters, 49% under 300, including right after failing tests.
+bench/E14-plan.json sha256 6918b973e1abd3953f71bf55f89874b6a43ec07541598143fb04f79a08d1eada: PROD vs PRODX on dev-bundle-01 and xfer-zip-01, seeds 201-206.
+Gate: adopt if >= 2 rescues and 0 losses pooled over 12 pairs.
+
+## 2026-10-02 00:10 - E11 result: cards transfer to zipfile (5 rescues, 0 losses); no transfer on the email task (0/6 both)
+E11 (24/24). xfer-zip-01: RAW 0/6, PROD 5/6; 5 rescues, 0 losses: gate met. xfer-mime-01: RAW 0/6, PROD 0/6:
+gate not met. Tokens, zip: RAW mean 51k (3 of 6 never produced solution.py), PROD mean 25k.
+Checked that the failures are the model's, not the grader's: the failing solutions (zip 195 PROD, every mime
+solution graded result_schema) reject even the disclosed public example with {"error":"invalid_request"}; their
+own validation is wrong and the model ended its turn anyway (zip 195's last test printed invalid_request). The
+one mime solution that built a message (196 PROD) emitted lines over 998 characters; another (191 PROD) wrote
+filename="utf-8" for a non-ASCII attachment name. The reference solution for each task passes on all hidden
+requests. The weak email card (add_attachment with no parameters; the real signature lives in
+email.contentmanager) was noted before the run and is the first thing to fix for that family.
+Standing: automatic cards now proven on two library families (tarfile+gzip: harness 11/12, layer 6/10; zipfile:
+5/6 vs 0/6) and not on one (email.message: 0/6 vs 0/6), where the model also fails input validation.
+E12 launched 00:05 on the live layer (new code: streaming interpreter, key check, input_file and repair_note
+toggles default off; cards and interpreter unchanged for arm P).

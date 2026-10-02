@@ -1,0 +1,134 @@
+{
+ "id": "E11-card-transfer-v1",
+ "question": "do the layer's automatic API cards help on coding tasks built on libraries other than tar/gzip?",
+ "arms": {
+  "RAW": "llama-server directly (:18080)",
+  "PROD": "through the live layer (:8080): cards + sentence + API check"
+ },
+ "tasks": "xfer-zip-01 (zipfile) and xfer-mime-01 (email.message), bench/xfer.py; seeds 191-196; 12 responses; budget 20480",
+ "metric": "functional = all four hidden requests pass (two valid, two invalid). Secondary: valid_requests_correct.",
+ "gate": "per family: cards transfer if PROD has >= 2 rescues and 0 losses over RAW on paired seeds. Reported per family; no pooled claim.",
+ "notes": "before this plan was frozen the card generator got: email keywords, base classes of public classes listed with their methods, derived classes ordered first, json moved to lowest priority, and a fix for modules whose __all__ is a tuple (hashlib, datetime had no card). Bundle card text verified unchanged (14536 chars). Cards now depend only on the first user message (stable across turns).",
+ "order": [
+  [
+   "xfer-zip-01",
+   191,
+   "RAW"
+  ],
+  [
+   "xfer-zip-01",
+   191,
+   "PROD"
+  ],
+  [
+   "xfer-mime-01",
+   191,
+   "RAW"
+  ],
+  [
+   "xfer-mime-01",
+   191,
+   "PROD"
+  ],
+  [
+   "xfer-zip-01",
+   192,
+   "PROD"
+  ],
+  [
+   "xfer-zip-01",
+   192,
+   "RAW"
+  ],
+  [
+   "xfer-mime-01",
+   192,
+   "PROD"
+  ],
+  [
+   "xfer-mime-01",
+   192,
+   "RAW"
+  ],
+  [
+   "xfer-zip-01",
+   193,
+   "RAW"
+  ],
+  [
+   "xfer-zip-01",
+   193,
+   "PROD"
+  ],
+  [
+   "xfer-mime-01",
+   193,
+   "RAW"
+  ],
+  [
+   "xfer-mime-01",
+   193,
+   "PROD"
+  ],
+  [
+   "xfer-zip-01",
+   194,
+   "PROD"
+  ],
+  [
+   "xfer-zip-01",
+   194,
+   "RAW"
+  ],
+  [
+   "xfer-mime-01",
+   194,
+   "PROD"
+  ],
+  [
+   "xfer-mime-01",
+   194,
+   "RAW"
+  ],
+  [
+   "xfer-zip-01",
+   195,
+   "RAW"
+  ],
+  [
+   "xfer-zip-01",
+   195,
+   "PROD"
+  ],
+  [
+   "xfer-mime-01",
+   195,
+   "RAW"
+  ],
+  [
+   "xfer-mime-01",
+   195,
+   "PROD"
+  ],
+  [
+   "xfer-zip-01",
+   196,
+   "PROD"
+  ],
+  [
+   "xfer-zip-01",
+   196,
+   "RAW"
+  ],
+  [
+   "xfer-mime-01",
+   196,
+   "PROD"
+  ],
+  [
+   "xfer-mime-01",
+   196,
+   "RAW"
+  ]
+ ]
+}
