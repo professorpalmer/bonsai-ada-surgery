@@ -191,9 +191,11 @@ $ListenHost = '0.0.0.0'; $ListenPort = $Port; $LayerProc = $null
 if ($Layer) {
     $InnerPort = if ($env:BONSAI_INNER_PORT) { [int]$env:BONSAI_INNER_PORT } else { $Port + 10000 }
     $ListenHost = '127.0.0.1'; $ListenPort = $InnerPort
+    $env:BONSAI_LAYER_KEY = $ApiKey   # the layer rejects wrong keys before doing any work
     $LayerProc = Start-Process python -PassThru -WindowStyle Hidden -ArgumentList @(
         ('"' + (Join-Path $LayerDir 'bonsai_layer.py') + '"'), '--host', '0.0.0.0', '--port', "$Port",
         '--upstream', "http://127.0.0.1:$InnerPort")
+    Remove-Item Env:BONSAI_LAYER_KEY
     Write-Host "layer  on: clients use :$Port (API cards, API check, sandboxed Python); llama-server on 127.0.0.1:$InnerPort"
 }
 Set-Location $Bin

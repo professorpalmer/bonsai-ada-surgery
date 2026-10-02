@@ -153,25 +153,38 @@ Details and every measurement: [`docs/QUALITY.md`](docs/QUALITY.md).
 ## The Bonsai layer (optional, Windows launcher)
 
 A small server-side layer that `start-server.ps1` puts in front of `llama-server` on the same port, so clients
-change nothing. It does three things:
+change nothing. It does four things:
 
 - **API cards.** For Python coding requests it appends the exact API of the modules involved (generated from a
-  real Python 3.12 runtime) to the first user message.
+  real Python 3.12 runtime) to the first user message, with one sentence asking the model to use the library.
 - **API check.** It checks code the model wrote in earlier tool calls for names and keyword arguments that do not
   exist, and notes them on the tool result.
-- **Sandboxed Python tool.** For non-streaming requests that bring no tools of their own, the model gets a
-  `run_python` tool that runs in CPython on WASI (no host files, network or processes). Requests with client
-  tools and streaming requests do not get it.
+- **Sandboxed Python tool.** For requests that bring no tools of their own, streamed or not, the model gets a
+  `run_python` tool that runs in CPython on WASI (no host files, network or processes). The user's message text is
+  available to the program as `input.txt`, so the model does not retype data. In a stream, the tool rounds appear
+  as short notes in the reasoning stream; the answer streams as usual. Requests with client tools are passed
+  through untouched (the model otherwise retypes paginated tool data into code and loses tasks).
+- **Key check.** Requests with a wrong API key are rejected before any work is done.
 
 Enable it once with `layeretch_runtime.ps1` (downloads the checksummed WASI Python, installs `wasmtime`, runs the
 isolation canaries). It needs Python 3 on PATH. Without the runtime the plain server starts as before;
 `BONSAI_LAYER=0` turns the layer off. Per request: `"code_interpreter": true|false`, `"api_cards": false`,
-`"api_lint": false`.
+`"api_lint": false`, `"input_file": false`.
 
-Measured on one RTX 4070, small paired task sets (details and limits in
-[research/quality-20260929/REPORT.md](research/quality-20260929/REPORT.md)): raw server 10/20 vs layer 16/20 on
-the gain tasks with 0 losses; a tar/gzip coding task about 1/30 with no help vs 6/10 through the layer. The coding
-result is from one library family; other libraries are untested.
+Measured on one RTX 4070, small paired task sets, plans and gates frozen before results (details and limits in
+[research/quality-20260929/REPORT.md](research/quality-20260929/REPORT.md)):
+
+| | raw server | with the layer |
+| --- | ---: | ---: |
+| product benchmark, gain tasks (P1d) | 10/20 | 16/20, 0 losses |
+| tar+gzip coding task, automatic cards | ~1/30 | 6/10 |
+| ZIP coding task, automatic cards (E11) | 0/6 | 5/6 |
+| MIME email coding task (E11) | 0/6 | 0/6 (no transfer) |
+| data questions, tokens with `input.txt` (E12) | | -58%, same correctness |
+| streaming vs non-streaming tool loop (E13) | 12/12 | 12/12 |
+
+Cards are proven on two library families and not on a third; one task family (weblog) costs more tokens through
+the layer; long computations cost about 9x fewer.
 
 ## The patch stack
 

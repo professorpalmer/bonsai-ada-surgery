@@ -39,7 +39,7 @@ def sig(obj):
         return "(...)"
 
 out = {"module": name, "doc": first(m.__doc__), "functions": [], "classes": [], "exceptions": [], "constants": [], "all": sorted(getattr(m, "__all__", []) or [])}
-public = sorted(set((getattr(m, "__all__", None) or []) + [n for n in dir(m) if not n.startswith("_")]))
+public = sorted(set(list(getattr(m, "__all__", None) or []) + [n for n in dir(m) if not n.startswith("_")]))
 for n in public:
     try:
         o = getattr(m, n)
@@ -68,7 +68,8 @@ for n in public:
             elif callable(mo) or isinstance(mo, (classmethod, staticmethod)):
                 f = mo.__func__ if isinstance(mo, (classmethod, staticmethod)) else mo
                 meths.append([mn, sig(f), para(getattr(f, '__doc__', ''))])
-        out["classes"].append([n, sig(o), first(o.__doc__), sorted(set(fields)), meths])
+        bases = [c.__name__ for c in o.__mro__[1:] if c is not object and getattr(c, "__module__", None) == name]
+        out["classes"].append([n, sig(o), first(o.__doc__), sorted(set(fields)), meths, bases])
     elif callable(o):
         out["functions"].append([n, sig(o), para(o.__doc__)])
     elif isinstance(o, (int, str, bytes, float)) and n.isupper():
@@ -115,12 +116,19 @@ def card(module, focus=()):
     if d["constants"]:
         lines.append("constants: " + ", ".join(f"{n}={v}" for n, v in d["constants"]))
     public = set(d.get("all") or [])
+    if public:   # a base class of a public class carries that class's methods: treat it as public too
+        for c in d["classes"]:
+            if c[0] in public:
+                public.update(c[5] if len(c) > 5 else [])
     for n, s_, doc in sorted(d["functions"], key=lambda x: (not hit(x[0]), x[0])):
         if n in ("main",) or n.startswith("_") or (public and n not in public and not hit(n)):
             continue
         lines.append(f"- {module}.{n}{s_}" + (f"  # {doc}" if doc else ""))
-    for n, s_, doc, fields, meths in sorted(d["classes"], key=lambda x: (not hit(x[0]), x[0])):
+    # most derived classes first (a subclass is the API to use; its bases follow), then names in the request
+    for n, s_, doc, fields, meths, *rest in sorted(d["classes"], key=lambda x: (-len(x[5]) if len(x) > 5 else 0, not hit(x[0]), x[0])):
         lines.append(f"- class {module}.{n}{s_}" + (f"  # {doc}" if doc else ""))
+        if rest and rest[0]:
+            lines.append(f"    also has every method of: {', '.join(rest[0])}")
         if fields:
             lines.append(f"    fields: {', '.join(fields)}")
         if public and n not in public and not hit(n):
@@ -145,16 +153,18 @@ KEYWORDS = {
     "gzip": r"\bgzip\b|\.gz\b",
     "zlib": r"\bzlib\b|\bdeflate\b|\bcrc32\b",
     "zipfile": r"\bzip (file|archive)\b|\bzipfile\b",
+    "email.message": r"\bmime\b|\brfc ?5322\b|\.eml\b|\bemail message\b",
+    "email.utils": r"\bmime\b|\brfc ?5322\b|\.eml\b|\bemail message\b",
     "base64": r"\bbase64\b|\bb64\b",
     "hashlib": r"\bsha-?256\b|\bsha-?1\b|\bmd5\b|\bhashlib\b|\bdigest\b",
     "csv": r"\bcsv\b",
-    "json": r"\bjson\b",
     "sqlite3": r"\bsqlite\b",
     "datetime": r"\bdatetime\b|\btimestamp\b|\biso ?8601\b",
     "decimal": r"\bdecimal\b",
     "struct": r"\bstruct\b|\bbinary header\b",
     "re": r"\bregex\b|\bregular expression\b",
     "unicodedata": r"\bunicodedata\b|\bnormali[sz]ation form\b|\bnf[ck]d?\b",
+    "json": r"\bjson\b",
 }
 IMPORT_RE = re.compile(r"^\s*(?:from\s+([A-Za-z_][\w]*)[\w.]*\s+import|import\s+([A-Za-z_][\w]*))", re.M)
 CODING_TOOL_RE = re.compile(r"write|edit|run|exec|python|code|patch|file|shell|bash", re.I)
