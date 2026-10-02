@@ -150,6 +150,24 @@ def apply_repair_note(msgs):
     return out, n
 
 
+FINISH_NOTE = ("Before your final answer, run the program you wrote on the example given in the task and compare its "
+               "output with the expected result; fix it if they differ.")
+
+
+def apply_finish_note(body, msgs):
+    """E15: one fixed sentence at the end of the first user message of a coding request that offers a run tool.
+    Measured problem (E11): solutions that reject even the disclosed example, and the model ends its turn anyway."""
+    tools = body.get("tools") or []
+    if not any(apicards.CODING_TOOL_RE.search(t.get("function", {}).get("name", "")) for t in tools):
+        return msgs, 0
+    for i, m in enumerate(msgs):
+        if m.get("role") == "user" and isinstance(m.get("content"), str):
+            if FINISH_NOTE in m["content"]:
+                return msgs, 0
+            return msgs[:i] + [dict(m, content=m["content"] + chr(10) + chr(10) + FINISH_NOTE)] + msgs[i + 1:], 1
+    return msgs, 0
+
+
 def apply_cards(body, msgs):
     """Append API cards for the modules a coding request involves to the END of the first user message, followed by
     one generic sentence. Measured (E9/E9b): the same cards in the system message did not help (2/6); at the end of
@@ -175,6 +193,7 @@ class Proxy(http.server.BaseHTTPRequestHandler):
     lint = True
     exec_timeout = 10.0
     api_key = None        # when set, chat requests are checked here before any work is done
+    finish_note = True    # default for "finish_note": run-on-the-example sentence for coding requests (E15: adopted)
     repair_note = False   # default for "repair_note": a fixed sentence on failing tool results (E14 pending)
     input_file = True     # default for "input_file": the user's text as input.txt for run_python (E12: adopted)
     protocol_version = "HTTP/1.1"
@@ -361,6 +380,9 @@ class Proxy(http.server.BaseHTTPRequestHandler):
                 msgs0, info["lint_notes"] = apply_lint(msgs0)
             if self.cards and body.pop("api_cards", True) is not False:
                 msgs0, info["card_chars"] = apply_cards(body, msgs0)
+            want_fin = body.pop("finish_note", None)
+            if self.finish_note if want_fin is None else bool(want_fin):
+                msgs0, info["finish_note"] = apply_finish_note(body, msgs0)
             want_note = body.pop("repair_note", None)
             if self.repair_note if want_note is None else bool(want_note):
                 msgs0, info["repair_notes"] = apply_repair_note(msgs0)
@@ -433,6 +455,7 @@ if __name__ == "__main__":
     ap.add_argument("--max-rounds", type=int, default=8)
     ap.add_argument("--no-cards", action="store_true")
     ap.add_argument("--no-lint", action="store_true")
+    ap.add_argument("--no-finish-note", action="store_true", help="do not append the run-on-the-example sentence to coding requests")
     ap.add_argument("--repair-note", action="store_true", help="append a fixed sentence to failing tool results by default")
     ap.add_argument("--no-input-file", action="store_true", help="do not give run_python the user's text as input.txt")
     a = ap.parse_args()
@@ -441,6 +464,7 @@ if __name__ == "__main__":
     Proxy.cards, Proxy.lint = not a.no_cards, not a.no_lint
     Proxy.input_file = not a.no_input_file
     Proxy.repair_note = a.repair_note
+    Proxy.finish_note = not a.no_finish_note
     srv = http.server.ThreadingHTTPServer((a.host, a.port), Proxy)
     print(f"bonsai layer on {a.host}:{a.port} -> {a.upstream}", flush=True)
     srv.serve_forever()
