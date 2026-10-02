@@ -150,6 +150,29 @@ Details and every measurement: [`docs/QUALITY.md`](docs/QUALITY.md).
 - Clients that cap `max_tokens` low are fine: with thinking on the server raises the cap (disable with
   `BONSAI_HARNESS_PROOF=0`).
 
+## The Bonsai layer (optional, Windows launcher)
+
+A small server-side layer that `start-server.ps1` puts in front of `llama-server` on the same port, so clients
+change nothing. It does three things:
+
+- **API cards.** For Python coding requests it appends the exact API of the modules involved (generated from a
+  real Python 3.12 runtime) to the first user message.
+- **API check.** It checks code the model wrote in earlier tool calls for names and keyword arguments that do not
+  exist, and notes them on the tool result.
+- **Sandboxed Python tool.** For non-streaming requests that bring no tools of their own, the model gets a
+  `run_python` tool that runs in CPython on WASI (no host files, network or processes). Requests with client
+  tools and streaming requests do not get it.
+
+Enable it once with `layeretch_runtime.ps1` (downloads the checksummed WASI Python, installs `wasmtime`, runs the
+isolation canaries). It needs Python 3 on PATH. Without the runtime the plain server starts as before;
+`BONSAI_LAYER=0` turns the layer off. Per request: `"code_interpreter": true|false`, `"api_cards": false`,
+`"api_lint": false`.
+
+Measured on one RTX 4070, small paired task sets (details and limits in
+[research/quality-20260929/REPORT.md](research/quality-20260929/REPORT.md)): raw server 10/20 vs layer 16/20 on
+the gain tasks with 0 losses; a tar/gzip coding task about 1/30 with no help vs 6/10 through the layer. The coding
+result is from one library family; other libraries are untested.
+
 ## The patch stack
 
 Everything is submitted upstream to PrismML; this repo ships the combined stack now: 33 commits on
