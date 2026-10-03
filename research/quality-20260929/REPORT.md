@@ -283,5 +283,18 @@ neutral result is the expected one; it also shows the layer does not get in the 
 
 | MATH-500, first 100 integer-answer problems, levels 1-5 (M5) | 99/100 | 100/100 | 1 / 0: neutral at a ceiling; tokens 0.83x |
 
-Next: AW1, a 20-task AppWorld slice (raw vs layer) to test neutrality under a real agent harness; then one
-knowledge benchmark sample.
+
+### A regression found and fixed: code-executing agents (AW1)
+
+AppWorld, 20 `test_normal` tasks, the public bench's `simplified_react_code_agent`, one pass each:
+
+| | Raw | Layer (before the fix) |
+| --- | ---: | ---: |
+| tasks fully correct (TGC) | 13/20 (65%) | 4/20 (20%) |
+| rescues / losses | | 0 / 9 |
+
+The ReAct code agent sends plain chat and executes the model's code blocks itself. The layer saw "no client
+tools", offered its sandboxed `run_python`, and the model ran its code there, where the agent's `apis` object does
+not exist; 8 tasks ended after one call, 5 spun to the step cap. Fix shipped the same morning: a conversation that
+already carries fenced code blocks and offers no tools is passed through untouched. A rerun of the layer arm on the
+fixed build (AW1b) follows the knowledge check (K1).

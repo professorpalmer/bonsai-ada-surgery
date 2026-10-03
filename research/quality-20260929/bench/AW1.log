@@ -1,1 +1,38 @@
 == bonsai-raw start 07:00
+ aggregate   |         65.0         |           42.9          
+difficulty_1 |        100.0         |          100.0          
+difficulty_2 |         36.4         |           0.0           
+difficulty_3 |          0           |            0            
+
+Json evaluation report saved in: .\experiments\outputs\simplified_react_code_agent/bonsai_local/bonsai-raw/test_normal_first20\evaluations\test_normal_first20.json
+
+Text evaluation report saved in: .\experiments\outputs\simplified_react_code_agent/bonsai_local/bonsai-raw/test_normal_first20\evaluations\test_normal_first20.txt
+
+Text Evaluation Report:
+    type     | task_goal_completion | scenario_goal_completion
+-------------+----------------------+-------------------------
+ aggregate   |         65.0         |           42.9          
+difficulty_1 |        100.0         |          100.0          
+difficulty_2 |         36.4         |           0.0           
+difficulty_3 |          0           |            0            
+
+== bonsai-raw done 07:21
+== bonsai-layer start 07:21
+ aggregate   |         20.0         |           0.0           
+difficulty_1 |         33.3         |           0.0           
+difficulty_2 |         9.1          |           0.0           
+difficulty_3 |          0           |            0            
+
+Json evaluation report saved in: .\experiments\outputs\simplified_react_code_agent/bonsai_local/bonsai-layer/test_normal_first20\evaluations\test_normal_first20.json
+
+Text evaluation report saved in: .\experiments\outputs\simplified_react_code_agent/bonsai_local/bonsai-layer/test_normal_first20\evaluations\test_normal_first20.txt
+
+Text Evaluation Report:
+    type     | task_goal_completion | scenario_goal_completion
+-------------+----------------------+-------------------------
+ aggregate   |         20.0         |           0.0           
+difficulty_1 |         33.3         |           0.0           
+difficulty_2 |         9.1          |           0.0           
+difficulty_3 |          0           |            0            
+
+== bonsai-layer done 08:37

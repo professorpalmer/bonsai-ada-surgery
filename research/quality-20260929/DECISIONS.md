@@ -835,3 +835,34 @@ level-1 problem. Tokens: PROD 0.83x RAW (176k vs 213k); the layer used its tool 
 the round cap. Reading: on competition math where the raw model already scores 99%, the layer costs nothing in
 accuracy and 17% less in tokens; the cap-then-nudge defect seen twice on AIME problem 29 did not appear here.
 AW1 (AppWorld slice) launched 07:00: raw then layer, 20 tasks each, bench/run_aw1.sh -> bench/AW1.log.
+
+## 2026-10-03 07:30 - K1 frozen (after AW1): MMLU-Pro 100-question neutrality check
+Dataset: TIGER-Lab/MMLU-Pro test, 1500 rows sampled at 15 offsets across the split, 100 questions stratified over
+13 categories, saved as bench/mmlupro_100.json sha256 75b60beb69ee2d57a6b7dd3cfa6409f2da18a73ff393cc65d7d119a895ae4163.
+Runner bench/run_mc.py (boxed letter). bench/K1-plan.json sha256 9ca2192d2df73b16b963c86f2de2eed6a03fe35f26db67f3c153f2d695f9fe71: 200 runs, paired.
+Gate: neutral if |PROD - RAW| <= 2 correct and PROD tokens within 1.25x; more than 3 losses is a defect to investigate.
+
+## 2026-10-03 08:45 - AW1 result: the layer HURTS a code-in-text agent (AppWorld TGC 65% raw vs 20% layer); K1 paused for the fix
+AW1 (20 test_normal tasks, simplified_react_code_agent, one pass each). Raw: TGC 13/20 (65.0%), SGC 42.9%, 21
+minutes. Layer: TGC 4/20 (20.0%), SGC 0, 76 minutes. Per task: 0 rescues, 9 losses. Gate "neutral" (within 1
+task): failed badly; this is the first clear regression the layer has produced and it is a design defect, not noise.
+Pattern in the layer arm: 8 tasks ended after a single model call, 5 ran to the 50-step cap; raw tasks took 6 to
+23 calls. The ReAct code agent sends plain chat (no tools field) and expects the model's reply to contain a code
+block that the AGENT executes against AppWorld's APIs. The layer sees "no client tools" and offers run_python,
+so the model calls OUR sandbox, where AppWorld's `apis` do not exist; the loop returns a reply without the code
+block the agent is waiting for (ends after one call) or a reply the agent cannot parse (spins to the cap).
+Cause: the interpreter's "no client tools => offer the tool" default does not recognise clients that execute code
+blocks themselves. Fix to implement and test before any further runs through the layer: treat a request as an
+agent-with-its-own-executor when the system prompt (or a prior assistant turn) contains fenced code blocks, and
+pass it through untouched (cards and notes too). Plain conversational requests keep the tool. K1 stopped at launch
+(no results) so that it runs on the fixed build; AW1b (layer arm rerun) follows K1.
+
+## 2026-10-03 08:55 - fix deployed: clients that execute code themselves pass through; K1 relaunched on the fixed build
+Rule (layer/bonsai_layer.py, client_runs_code): a request with no tools whose conversation already contains fenced
+code blocks is a client that runs code itself; the layer forwards it untouched (no tool offer, no cards, no notes,
+no input file). Per-request "code_interpreter": true still opts in. Verified offline: the captured AppWorld
+request (23 messages, 45 fences) passes through; the weblog and sales data questions keep the tool; a chat user
+who pastes a ```python snippet also passes through (accepted trade-off: those requests rarely need the sandbox and
+the cards still apply when a coding tool is present). Requests with client tools are unchanged by this rule.
+AW1b (layer arm rerun on this build) queued after K1; the expectation is parity with raw, since the layer now
+does nothing on those requests.
