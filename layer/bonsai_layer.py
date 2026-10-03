@@ -54,6 +54,20 @@ def tool_spec(with_input):
     return t
 
 
+def client_runs_code(msgs):
+    """A conversation that already carries fenced code blocks and offers no tools is a client that executes code
+    itself (ReAct-style code agents, notebooks, IDE loops). Measured (AW1, AppWorld): offering run_python to such a
+    client made the model run its code in OUR sandbox, where the client's objects do not exist, and the agent's
+    success rate fell from 65% to 20%. Such requests pass through untouched."""
+    for m in msgs:
+        c = m.get("content")
+        if isinstance(c, list):
+            c = " ".join(x.get("text", "") for x in c if isinstance(x, dict))
+        if isinstance(c, str) and "```" in c:
+            return True
+    return False
+
+
 def user_text(msgs):
     """The user's own words (string contents of user messages), for the sandbox input file."""
     parts = []
@@ -370,6 +384,14 @@ class Proxy(http.server.BaseHTTPRequestHandler):
             given = self.headers.get("Authorization", "")
             if not hmac.compare_digest(given.encode("utf-8", "replace"), ("Bearer " + self.api_key).encode()):
                 return self._reply(*self._forward("POST", raw))   # let the server produce its own 401; do no work here
+        # a client that executes code blocks itself gets nothing changed (see client_runs_code)
+        if not (body.get("tools") or []) and client_runs_code(body.get("messages") or []) \
+                and body.get("code_interpreter") is not True:
+            for k in ("code_interpreter", "input_file", "repair_note", "finish_note", "api_cards", "api_lint"):
+                body.pop(k, None)
+            if body.get("stream"):
+                return self._stream("POST", json.dumps(body).encode())
+            return self._reply(*self._forward("POST", json.dumps(body).encode()))
         # server-side preprocessing for every chat request (streamed or not, with or without client tools)
         msgs0 = list(body.get("messages") or [])
         info = {}
