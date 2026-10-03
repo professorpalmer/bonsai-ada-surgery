@@ -314,3 +314,11 @@ Within noise on the pure-recall subjects (10 of the 15 discordant pairs are ques
 its tool, so both arms simply drew different samples), a real gain on the quantitative ones (chemistry 5 -> 8,
 physics 5 -> 6, engineering 6 -> 7) and on three questions where raw ran out of budget without an answer. No harm,
 20% fewer tokens.
+
+## Round 11 (2026-10-03 afternoon): the suite's own reference run (S1)
+
+`suite/run_suite.py`, default plan, raw vs layer, 74 runs. Raw 17/37, layer **28/37**; 13 rescues, 2 losses;
+tokens 0.74x (coding 0.88x, computation 0.40x, workspace 1.06x). The new self-contained tar contract moves 0/4 ->
+2/4 and ZIP 1/4 -> 4/4; digits 0/3 -> 3/3, LCS 0/3 -> 2/3, sales 1/3 -> 3/3; knapsack and weblog already 3/3.
+The two losses are a MIME swap at the model's floor (1/4 both arms) and one workspace pair that diverged in
+sampling on a request the layer forwards untouched (9 of 10 such pairs reproduced token-for-token).

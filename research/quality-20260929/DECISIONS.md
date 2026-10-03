@@ -893,3 +893,18 @@ exactly; 4 diverged, which is the sampling noise floor at temperature 1.0 on thi
 Before the fix the same arm was 4/20. The AW1 README row is updated to the fixed number.
 S1 launched 11:58: the suite's own paired reference run (suite/run_suite.py, default plan, raw :18080 vs layer
 :8080, 37 items per arm), so the public suite ships with a measured scoreboard produced by itself.
+
+## 2026-10-03 16:05 - S1 result: the suite's own paired reference run, raw 17/37 vs layer 28/37 (13 rescues, 2 losses, 0.74x tokens)
+S1 (suite/run_suite.py, default plan, 74 runs, 0 infra errors, 11:54 to 16:00). Scoreboard (bench/S1/scoreboard.md):
+coding: tar 0/4 -> 2/4, ZIP 1/4 -> 4/4, MIME 1/4 -> 1/4 (one swap); computation: digits 0/3 -> 3/3, lcs 0/3 -> 2/3,
+sales 1/3 -> 3/3, knapsack 3/3 -> 3/3, weblog 3/3 -> 3/3; workspace: 8/10 -> 7/10 (one dedupeH pair differs).
+Totals raw 17/37, layer 28/37; 13 rescues, 2 losses; tokens 778k -> 573k (coding 0.88x, computation 0.40x,
+workspace 1.06x).
+The two losses: the MIME swap (1/4 both arms; the family is at the model's floor either way) and one dedupeH pair.
+Workspace requests carry client tools, so the layer forwards them untouched; 9 of 10 workspace pairs have
+identical token counts and identical outcomes, the tenth diverged in sampling (two runs of the same request at
+temperature 1.0 do not always reproduce across sessions; P2 happened to get 10 of 10). That pair is the noise
+floor, not a layer effect; it is counted as a loss anyway because the pre-declared metric is per pair.
+Reading: the self-contained suite reproduces the P2 picture on tasks that owe nothing to the external author's
+cases (the new tar contract moves 0/4 -> 2/4; ZIP 1/4 -> 4/4), with the same no-harm property on the passthrough
+family and a 26% token saving overall. This scoreboard goes into suite/README.md as the reference result.

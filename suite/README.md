@@ -43,8 +43,30 @@ before running (the project used "at least 2-4 rescues and 0-1 losses" per exper
 met. The sets are small by design (a gate, not a leaderboard): a result on 3-4 seeds per task is a development
 signal, and anything within one rescue of its gate should be rerun with fresh seeds before it is believed.
 
-Bonsai 2 27B PTQ1_0 on one RTX 4070, raw vs the layer as shipped, fresh seeds (P2 in the research log): coding
-0/8 -> 7/8, computation 8/12 -> 12/12, workspace and the other regression tasks unchanged, 0 losses.
+Reference run of this suite itself (S1, 2026-10-03): Bonsai 2 27B PTQ1_0 on one RTX 4070, raw llama-server vs
+the same server behind the Bonsai layer, default plan, 74 runs:
+
+| family | task | raw | layer | rescues / losses (B vs A) |
+| --- | --- | ---: | ---: | --- |
+| coding | suite-tar-01 | 0/4 | 2/4 | 2 / 0 |
+| coding | xfer-mime-01 | 1/4 | 1/4 | 1 / 1 |
+| coding | xfer-zip-01 | 1/4 | 4/4 | 3 / 0 |
+| computation | digits | 0/3 | 3/3 | 3 / 0 |
+| computation | knapsack | 3/3 | 3/3 | 0 / 0 |
+| computation | lcs | 0/3 | 2/3 | 2 / 0 |
+| computation | sales | 1/3 | 3/3 | 2 / 0 |
+| computation | weblog | 3/3 | 3/3 | 0 / 0 |
+| workspace | chain | 2/2 | 2/2 | 0 / 0 |
+| workspace | copy | 1/2 | 1/2 | 0 / 0 |
+| workspace | dedupeH | 2/2 | 1/2 | 0 / 1 |
+| workspace | invoiceH | 2/2 | 2/2 | 0 / 0 |
+| workspace | ledgerH | 1/2 | 1/2 | 0 / 0 |
+| **total** | | **17/37** | **28/37** | **13 / 2** |
+
+completion tokens: raw 777,825, layer 572,550
+
+Workspace requests carry their own tools and pass through the layer untouched; the one workspace pair that differs
+is sampling noise between two runs of an identical request (9 of 10 pairs reproduced token-for-token).
 
 ## Requests
 
