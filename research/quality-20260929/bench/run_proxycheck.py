@@ -25,7 +25,8 @@ def ask(kind, seed, arm, out_dir):
                    tokens=(r.get("usage") or {}).get("completion_tokens"), runs=len(r.get("interpreter_trace") or []),
                    leaked_tool_calls=bool(r["choices"][0]["message"].get("tool_calls")), wall_s=round(time.time() - t0, 1))
     os.makedirs(out_dir, exist_ok=True)
-    rec["response"] = resp   # full response (reasoning_content, content, usage, interpreter_trace) for the trace bundle
+    if rec.get("status") == "ok":
+        rec["response"] = r   # full response (reasoning_content, content, usage, interpreter_trace) for the trace bundle
     json.dump(rec, open(os.path.join(out_dir, f"{kind}-{seed}-{arm}.json"), "w", encoding="utf-8"))
     return rec
 
