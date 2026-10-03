@@ -671,3 +671,41 @@ Limits as before: one machine, one model, 3 to 4 seeds per family, synthetic and
 here (validated against the original oracles where they exist). This is the number for the README.
 T2 launched 12:58: teacher Qwen3.8-27B UD-Q4_K_M on :18080 (run-teacher-18080.ps1, -c 57344, Bonsai's template,
 budget 20480), Bonsai and layer stopped for it. 10.2 GB on the GPU, the rest of the model in RAM.
+
+## 2026-10-02 13:20 - queue agreed with Cary
+After T2: a comparison graphic (raw Bonsai vs Bonsai + layer vs teacher, identical requests) -> M1 (Mirai S) ->
+restore Bonsai -> public evals, each paired raw vs layer on the same harness and compared with listed scores only
+as context: AIME 2025 (30 problems; the computation lever on a public bench), HumanEval+ (cards + finish note),
+a MATH-500 subset; one knowledge bench (MMLU-Pro or GPQA sample) only to show the layer is neutral there.
+
+## 2026-10-02 13:30 - A1 frozen (after M1 and the Bonsai restore): AIME 2025, raw vs layer
+Dataset math-ai/aime25 (30 problems) saved as bench/aime25_rows.json sha256 2994a18a8ddef8a223ac3271b3e94a78bf2f92c8bf816a6b6397bd2b73c8ea16.
+bench/A1-plan.json sha256 : 60 runs, one seed, paired by problem. Gate for the claim "the layer helps on
+AIME 2025": >= 3 rescues and <= 1 loss. Public listed scores are context only; the comparison that counts is
+raw vs layer on this harness.
+
+## 2026-10-02 13:30 - A1 frozen (after M1 and the Bonsai restore): AIME 2025, raw vs layer
+Dataset math-ai/aime25 (30 problems) saved as bench/aime25_rows.json sha256 2994a18a8ddef8a223ac3271b3e94a78bf2f92c8bf816a6b6397bd2b73c8ea16.
+bench/A1-plan.json sha256 29e4999a33d5afbc03fb3f640f2c35971ec8d814e85231d4b8f07a6bbf3a6bc3: 60 runs, one seed, paired by problem. Gate for the claim "the layer helps on
+AIME 2025": >= 3 rescues and <= 1 loss. Public listed scores are context only; the comparison that counts is
+raw vs layer on this harness.
+
+## 2026-10-02 13:40 - T2 amendment, decided after 3 of 8 results: cut to 6 runs
+Each teacher coding run takes 70 to 80 minutes (the 16.5 GB model is partly in system RAM; 12-response turns at
+up to 55k context). 8 runs would hold the GPU for 10 hours for a descriptive comparison. T2 stops after the four
+dev-bundle-01 seeds and the first two xfer-zip-01 seeds (251, 252). Decided now, before those results exist; the
+plan file is left as frozen and this entry is the record.
+
+## 2026-10-02 19:45 - T2 result: the 4-bit teacher on the P2 coding seeds; M1 launched
+T2 (6 runs as amended; 12:58 to 19:35). Teacher Qwen3.8-27B UD-Q4_K_M, raw, identical requests to P2:
+dev-bundle-01 251-254: 1/4 (three invalid_tar); xfer-zip-01 251-252: 2/2.
+Same six requests: Bonsai raw 0/6, Bonsai + layer 6/6, teacher 3/6.
+What the teacher's solutions do: on the bundle task none of the four imports tarfile (or struct); it writes the
+tar bytes by hand, like Bonsai, and gets them wrong three times. On the ZIP task it imports zipfile both times
+and passes. So the attribution splits: the habit of hand-rolling a binary format instead of using the library is
+in the base model at 4-bit too (bundle), while recall of the library API is what the 1.58-bit model lost and the
+4-bit one kept (zipfile: 2/2 vs 0/4). The layer's cards cover both: they supply the names and steer to the library.
+Tokens per run: teacher 13k to 20k; Bonsai + layer 11k to 67k (more turns of testing); Bonsai raw 19k to 45k.
+Descriptive, 6 runs, no gate. Teacher wall time 50 to 80 minutes per run (model partly in RAM); not comparable.
+M1 launched 19:42: Mirai S on :18080 (run-mirai.ps1: Bonsai's template, -c 65536, q8 KV, 11.0 GB used), sanity
+request answered correctly at ~40 tok/s. 20 runs, P2 gain-set requests.

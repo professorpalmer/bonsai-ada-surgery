@@ -227,5 +227,18 @@ Fresh seeds, 74 runs, every request sent once to the raw server and once through
 | checklist | 2/3 | 3/3 | 1.16 |
 | batch, workspace (passthrough) | same | same | 1.00, byte-equal |
 
-Next: T2 (the same base model at a conventional 4-bit on the coding seeds) and M1 (Mirai S on the gain set), both
-descriptive attribution runs.
+
+### Attribution: the same base model at a conventional 4-bit (T2)
+
+Qwen3.8-27B UD-Q4_K_M, raw, on six of the P2 coding requests (identical prompts, Bonsai's chat template):
+
+| | Bonsai raw | Bonsai + layer | teacher, 4-bit raw |
+| --- | ---: | ---: | ---: |
+| tar+gzip bundle, seeds 251-254 | 0/4 | 4/4 | 1/4 |
+| ZIP archive, seeds 251-252 | 0/2 | 2/2 | 2/2 |
+
+The teacher hand-rolls the tar format too (none of its four solutions import `tarfile`) and gets it wrong three
+times; it recalls `zipfile` and passes both ZIP runs where raw Bonsai passes none. So: the habit of avoiding the
+library is in the base model, the loss of library recall is the compression's, and the cards address both.
+
+Next: M1 (Mirai S on the gain set), then public evals paired raw vs layer (AIME 2025 first).

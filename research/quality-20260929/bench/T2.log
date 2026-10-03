@@ -1,0 +1,6 @@
+{"key": ["contract", "dev-bundle-01", 251, "TEACHER"], "functional": false, "full": false, "tokens": 17391, "wall_s": 4166.6, "detail": ["invalid_tar"]}
+{"key": ["contract", "dev-bundle-01", 252, "TEACHER"], "functional": true, "full": false, "tokens": 19875, "wall_s": 4812.5, "detail": []}
+{"key": ["contract", "dev-bundle-01", 253, "TEACHER"], "functional": false, "full": false, "tokens": 17446, "wall_s": 4182.7, "detail": ["invalid_tar"]}
+{"key": ["contract", "dev-bundle-01", 254, "TEACHER"], "functional": false, "full": false, "tokens": 17423, "wall_s": 4156.5, "detail": ["invalid_tar"]}
+{"key": ["contract", "xfer-zip-01", 251, "TEACHER"], "functional": true, "full": false, "tokens": 12946, "wall_s": 3031.7, "detail": []}
+{"key": ["contract", "xfer-zip-01", 252, "TEACHER"], "functional": true, "full": false, "tokens": 15750, "wall_s": 3745.9, "detail": []}
