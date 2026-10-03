@@ -1,0 +1,28 @@
+{
+ "id": "TR1-traces-v1",
+ "purpose": "literal traces for PrismML: rerun two coding requests that raw Bonsai failed in P2 with full per-turn reasoning text saved (agent_contract now stores it), raw and through the layer",
+ "runs": "dev-bundle-01 seed 251 and xfer-zip-01 seed 253; arms RAW (:18080) and PROD (:8080); same seeds as P2 so the P2 outcomes are the reference (RAW failed both; PROD passed bundle, failed zip)",
+ "note": "sampling at temperature 1.0 with the same seed is reproducible only if the server's batch-invariant path holds across restarts; outcomes may differ from P2 and are reported as new runs, not as a replay",
+ "order": [
+  [
+   "dev-bundle-01",
+   251,
+   "RAW"
+  ],
+  [
+   "dev-bundle-01",
+   251,
+   "PROD"
+  ],
+  [
+   "xfer-zip-01",
+   253,
+   "RAW"
+  ],
+  [
+   "xfer-zip-01",
+   253,
+   "PROD"
+  ]
+ ]
+}

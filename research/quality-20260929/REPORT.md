@@ -257,4 +257,21 @@ tokens with no answer, so those numbers are not comparable with Bonsai's forced 
 are. Mirai at 2.4 bpw recalls `zipfile` (3/4) like the 4-bit teacher (2/2) where Bonsai at 1.75 bpw does not
 (0/4); all three hand-roll the tar format and mostly fail it (1/4, 1/4, 0/4).
 
-Next: public evals paired raw vs layer, AIME 2025 first (running).
+
+## Round 10 (2026-10-03): a public benchmark, paired (A1)
+
+AIME 2025, 30 problems, one request each, same seed, raw server vs the layer (plain request, so the model gets
+the sandboxed Python tool).
+
+| | Raw | Layer |
+| --- | ---: | ---: |
+| AIME 2025 correct | 26/30 | **29/30** |
+| rescues / losses | | 4 / 1 |
+| completion tokens | 350k | 423k (1.21x) |
+
+Gate for the claim (>= 3 rescues, <= 1 loss) met; with 5 discordant pairs the sign test alone is not significant
+(p = 0.375), so this is consistent with the computation results above rather than independent proof. The one
+loss ran the tool to the round cap (8) and answered wrong after the final nudge; that path is the loop's weak
+point on long problems.
+
+Next: HumanEval paired (164 problems), then a MATH-500 subset and one knowledge benchmark for neutrality.

@@ -183,6 +183,7 @@ Measured on one RTX 4070, small paired task sets, plans and gates frozen before 
 | MIME email coding task (E11) | 0/6 | 0/6 (no transfer) |
 | data questions, tokens with `input.txt` (E12) | | -58%, same correctness |
 | streaming vs non-streaming tool loop (E13) | 12/12 | 12/12 |
+| AIME 2025, 30 problems, one seed (A1) | 26/30 | 29/30 (4 rescues, 1 loss; 1.21x tokens) |
 
 ![Same six coding requests: raw Bonsai 0/6, Bonsai + layer 6/6, the 4-bit teacher 3/6](docs/img/teacher.png)
 

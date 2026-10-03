@@ -728,3 +728,23 @@ task (1/4, like the teacher's 1/4). Bonsai with the layer scores above both on t
 coding family, three per computation family: descriptive.
 Mirai stopped 22:09. Bonsai restored through start-server.ps1 (layer on :8080, llama-server on :18080, shipped
 defaults); smoke test 5/5. A1 (AIME 2025, 60 paired runs) launched 22:12.
+
+## 2026-10-02 23:05 - TR1 queued (after A1): literal reasoning traces for two failing coding requests
+Cary's ask after seeing that the coding-run logs held reasoning lengths, not text. bench/TR1-plan.json sha256 fdd1eb32e005eb481d7b7520adadca7af973fce3e38c2c7da73ba022f62d3b63:
+dev-bundle-01 251 and xfer-zip-01 253, RAW and PROD, with the per-turn reasoning text now saved. New runs, not a
+replay; the P2 outcomes on these seeds are the reference. The layer is restarted first so its traces also carry
+the tool programs. Output bench/TR1/, included in results-raw.zip and pointed to from PRISM-REPORT.md.
+
+## 2026-10-03 00:45 - A1 result: AIME 2025, raw 26/30 vs layer 29/30; gate met; TR1 launched
+A1 (60/60, 0 infra, 22:12 to 00:40; plan A1-plan.json). Correct: RAW 26/30, PROD 29/30. Rescues 4 (problems 2, 9,
+14, 27), losses 1 (problem 29). Pre-declared gate for the claim (>= 3 rescues, <= 1 loss): met. Statistical note:
+5 discordant pairs split 4-1 is not significant on its own (two-sided sign test p = 0.375); the claim rests on
+the gate as declared and on the direction agreeing with every earlier computation result (E1, E1T, E5, P1d, P2).
+Tokens: PROD 1.21x RAW (423k vs 350k over 30 problems). The layer's tool was used on 24 of 30 problems (76 runs);
+no run in either arm hit max_tokens or ended without a parsable answer.
+The loss (29): the layer arm ran the tool 8 times (the round cap), 49.7k tokens, and answered 188 (truth 240);
+raw answered correctly in 21.5k tokens. Two of the rescues (13 fine, 14) also ran to the cap and still landed.
+The cap-then-nudge path is the weak point of the loop on long problems; noted, not changed.
+Context only: raw Bonsai at 26/30 on this harness is already high for a 6.4 GB file; the listed public numbers
+for Qwen3.8-27B and Bonsai 2 use other settings and are not compared here.
+Layer restarted 00:43 with the trace-carrying build. TR1 launched 00:43 (bench/TR1-plan.json).
