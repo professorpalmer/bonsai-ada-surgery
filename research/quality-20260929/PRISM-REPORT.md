@@ -111,12 +111,22 @@ tool-argument parser passes values through verbatim, so this is the model.
 ## 5. Comparison points
 
 - **Teacher, same prompts.** Qwen3.8-27B (UD-Q4_K_M) with Bonsai's chat template, so prompt tokens are
-  identical (`C1/`). Budget 20480, 8 problems: teacher 6/8, Bonsai 5/8. On knapsack the teacher finished three
-  of four on its own in 4.3k to 8.7k tokens; Bonsai hit the 20480 cap on all four. On digits both hit the cap
-  on all four and both scored 2/4.
+  identical. Computation (`C1/`): budget 20480, 8 problems: teacher 6/8, Bonsai 5/8; on knapsack the teacher
+  finished three of four on its own in 4.3k to 8.7k tokens, Bonsai hit the cap on all four. Coding (`T2/`, the
+  same six requests as `P2/`): teacher 3/6, Bonsai raw 0/6, Bonsai with the serving layer below 6/6. The teacher
+  hand-rolls the tar format too (none of its four tar solutions import `tarfile`; three are invalid tar) and
+  recalls `zipfile` (2/2) where raw Bonsai never does (0/4). So: the habit of avoiding the library is in the base
+  model; the loss of library recall is the compression's; both are compensable from the serving side.
+- **Mirai S, same prompts** (`M1/`; community GGUF of the 2.4 bpw codes on its own llama.cpp fork, raw): coding
+  4/8 on the same eight requests (Bonsai raw 0/8, Bonsai + layer 7/8); it recalls `zipfile` (3/4) and mostly
+  fails the hand-rolled tar like the others (1/4). Its computation numbers are not comparable (that fork has no
+  reasoning budget or forced close; 3 of 5 misses ran to 32k tokens without answering).
 - **Public agentic benchmark** (alesha-pro/qwen38-27b-bench-4x3090, commit dcac4a1, not reproduced here):
   AppWorld BF16 95.8, Mirai S (2.4 bpw, 8.45 GB) 89.9, Bonsai 2 PQ2_0 (2.13 bpw, 7.21 GB) 64.3; single-turn
   80.3 / 78.4 / 78.0. Single-turn parity holds; the agentic gap is specific and large.
+- **The serving layer, measured as shipped** (`P2/`, fresh seeds, 74 paired runs): gain tasks raw 8/20 vs
+  19/20 through the layer, 0 losses; regression tasks 14/17 vs 15/17; non-coding tool requests pass through
+  byte-identical. Tokens: long computations 0.08x to 0.76x, coding 0.81x to 0.87x, weblog 1.11x, checklist 1.16x.
 
 ## 6. What this suggests for a release
 
@@ -125,9 +135,17 @@ tool-argument parser passes values through verbatim, so this is the model.
    task. All are in `bench/`, with deterministic graders and frozen plans.
 2. **Calibrate / distill on API-dense code and long tool trajectories.** The lost material looks like
    rarely-used exact facts (constant names, keyword arguments) and long-chain reliability.
-3. **Serving-side mitigations that measurably help today:** accurate API facts in the prompt for coding
-   tasks; a code-execution tool for computation. Both are being built into this repo's server
-   (`layer/` on a branch) and benchmarked end to end; that result is not in yet.
+3. **Serving-side mitigations that measurably help today**, all built into this repo's server (`layer/`, on
+   by default in the launcher) and measured end to end (`P2/`): exact API cards generated from the runtime,
+   appended to the user message with one "use the library" sentence; a WASI-sandboxed Python tool with the
+   user's text available as a file (the model otherwise retypes data into its programs: 16k characters per
+   run on a 200-line log); one "run it on the example before you finish" sentence for coding requests. What
+   did not help, measured: more thinking, more turns, temperature, voting, softer budget closes, a grader
+   tool, a "reason about the failure" note on failing tool results.
+4. **Training targets with evidence** (each measured here): prefer the library over hand-rolling a format
+   (present in the base model too); verify on the given example before finishing; read data from files
+   instead of retyping it; recall of exact API names (the part the compression removed; the ZIP task is a
+   clean probe: 4-bit teacher 2/2, Mirai 2.4 bpw 3/4, Bonsai 1.75 bpw 0/4).
 
 ## 7. Reproduce
 

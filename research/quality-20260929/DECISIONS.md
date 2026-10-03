@@ -709,3 +709,22 @@ Tokens per run: teacher 13k to 20k; Bonsai + layer 11k to 67k (more turns of tes
 Descriptive, 6 runs, no gate. Teacher wall time 50 to 80 minutes per run (model partly in RAM); not comparable.
 M1 launched 19:42: Mirai S on :18080 (run-mirai.ps1: Bonsai's template, -c 65536, q8 KV, 11.0 GB used), sanity
 request answered correctly at ~40 tok/s. 20 runs, P2 gain-set requests.
+
+## 2026-10-02 22:20 - M1 result: Mirai S on the P2 gain set; Bonsai restored; A1 launched
+M1 (20/20 runs, 19:42 to 22:08, Mirai fully on the GPU at ~40 tok/s). Same requests as P2.
+Totals: Bonsai raw 8/20, Bonsai + layer 19/20, Mirai S raw 11/20.
+Coding (identical prompts, tools, oracles): bundle 1/4 (one solution used tarfile and passed; the others hand-
+rolled and produced invalid tar / invalid gzip / unparseable output), ZIP 3/4 (two of the three passes import
+zipfile; one hand-rolled and passed). Bonsai raw 0/8, layer 7/8; 4-bit teacher 3/6 on the overlapping six.
+Computation: digits 0/3, knapsack 2/3, sales 3/3, weblog 2/3. Caveat that matters: three of the four computation
+misses are runs that hit max_tokens 32768 with no answer at all (digits 701, 703, knapsack 703). Mirai's fork has
+no server-side reasoning budget and no forced close; Bonsai is cut at 20480 and made to answer. So Mirai's
+computation numbers measure "did it finish inside 32k tokens", not "can it compute"; raw Bonsai's measure a
+forced answer after 20k. Not comparable; stated as such. The coding numbers are comparable (same per-response cap
+in all arms; no coding run was decided by it).
+Reading, with that caveat: at 2.4 bpw Mirai keeps the library recall that Bonsai at 1.75 bpw lost (zipfile 3/4,
+like the 4-bit teacher's 2/2, against Bonsai raw 0/4), and shares the base model's hand-rolling habit on the tar
+task (1/4, like the teacher's 1/4). Bonsai with the layer scores above both on these 20 requests. Six requests per
+coding family, three per computation family: descriptive.
+Mirai stopped 22:09. Bonsai restored through start-server.ps1 (layer on :8080, llama-server on :18080, shipped
+defaults); smoke test 5/5. A1 (AIME 2025, 60 paired runs) launched 22:12.

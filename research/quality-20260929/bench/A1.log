@@ -1,0 +1,3 @@
+{"pid": 0, "seed": 1001, "arm": "RAW", "truth": 70, "answer": 70, "correct": true, "finish": "stop", "completion_tokens": 852, "runs": 0, "wall_s": 9.3, "status": "ok"}
+{"pid": 0, "seed": 1001, "arm": "PROD", "truth": 70, "answer": 70, "correct": true, "finish": "stop", "completion_tokens": 896, "runs": 0, "wall_s": 10.3, "status": "ok"}
+{"pid": 1, "seed": 1001, "arm": "PROD", "truth": 588, "answer": 588, "correct": true, "finish": "stop", "completion_tokens": 7337, "runs": 2, "wall_s": 80.9, "status": "ok"}

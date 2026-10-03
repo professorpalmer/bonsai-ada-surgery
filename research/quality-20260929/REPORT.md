@@ -241,4 +241,20 @@ The teacher hand-rolls the tar format too (none of its four solutions import `ta
 times; it recalls `zipfile` and passes both ZIP runs where raw Bonsai passes none. So: the habit of avoiding the
 library is in the base model, the loss of library recall is the compression's, and the cards address both.
 
-Next: M1 (Mirai S on the gain set), then public evals paired raw vs layer (AIME 2025 first).
+
+### Attribution: Mirai S, 2.4 bpw, on the P2 gain set (M1)
+
+Community GGUF of Mirai's codes on its own llama.cpp fork, raw, same 20 requests, Bonsai's chat template.
+
+| | Bonsai raw | Bonsai + layer | Mirai S raw |
+| --- | ---: | ---: | ---: |
+| coding (bundle 4, ZIP 4) | 0/8 | 7/8 | 4/8 |
+| computation (digits, knapsack, sales, weblog; 3 each) | 8/12 | 12/12 | 7/12 (see note) |
+| total | 8/20 | **19/20** | 11/20 |
+
+Note: Mirai's fork has no reasoning budget or forced close; 3 of its 5 computation misses are runs that hit 32k
+tokens with no answer, so those numbers are not comparable with Bonsai's forced 20k answers. The coding numbers
+are. Mirai at 2.4 bpw recalls `zipfile` (3/4) like the 4-bit teacher (2/2) where Bonsai at 1.75 bpw does not
+(0/4); all three hand-roll the tar format and mostly fail it (1/4, 1/4, 0/4).
+
+Next: public evals paired raw vs layer, AIME 2025 first (running).
