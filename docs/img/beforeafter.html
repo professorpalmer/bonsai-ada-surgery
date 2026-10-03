@@ -1,0 +1,82 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Bonsai layer, before and after</title>
+<!-- 1200x675 share card, dark. Rendered at 2x into docs/img/beforeafter.png. Numbers: research/quality-20260929/REPORT.md (P2). -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root { --bg:#0E1512; --panel:#152019; --line:#223129; --ink:#F2F6F1; --muted:#9FB3A7; --dim:#5C6E64; --before:#6B7A72; --after:#3CDB8A; --after2:#8EF0BE; --amber:#F3B94A;
+  --display:"IBM Plex Sans Condensed",Arial,sans-serif; --body:"IBM Plex Sans","Segoe UI",Arial,sans-serif; --mono:"IBM Plex Mono",Consolas,monospace; }
+html,body{margin:0;width:1200px;height:675px;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--body);}
+.card{box-sizing:border-box;width:1200px;height:675px;padding:30px 56px 20px;display:flex;flex-direction:column;gap:10px;}
+.eyebrow{font-family:var(--mono);font-size:14px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+h1{margin:0;font-family:var(--display);font-size:44px;line-height:1.02;font-weight:700;}
+h1 b{color:var(--after);font-weight:700;}
+.sub{margin:0;font-size:17px;color:var(--muted);}
+.grid{flex:1;display:grid;grid-template-columns:1.25fr 1fr;gap:22px;min-height:0;margin-top:4px;}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 20px;display:flex;flex-direction:column;gap:8px;}
+.panel h2{margin:0 0 2px;font-family:var(--mono);font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:500;}
+.rows{display:grid;grid-template-columns:150px 1fr 118px;gap:7px 12px;align-items:center;}
+.lab{font-size:15px;font-weight:600;line-height:1.15;}
+.lab small{display:block;font-weight:400;font-size:12px;color:var(--muted);}
+.bars{display:flex;flex-direction:column;gap:3px;}
+.bar{height:11px;border-radius:3px;position:relative;}
+.b{background:var(--before);} .a{background:linear-gradient(90deg,var(--after),var(--after2));}
+.track{background:#1C2A22;border-radius:3px;}
+.num{font-family:var(--mono);font-size:14px;text-align:right;line-height:1.25;}
+.num .was{color:var(--muted);} .num .now{color:var(--after);font-weight:600;font-size:16px;}
+.big{display:flex;align-items:baseline;gap:14px;margin-top:2px;}
+.big .v{font-family:var(--display);font-size:58px;font-weight:700;line-height:.95;}
+.big .was{color:var(--before);} .big .now{color:var(--after);} .big .arrow{color:var(--dim);font-size:34px;}
+.big .cap{font-size:13.5px;color:var(--muted);line-height:1.3;max-width:200px;}
+.legend{display:flex;gap:16px;font-family:var(--mono);font-size:12px;color:var(--muted);}
+.legend i{display:inline-block;width:12px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px;}
+.chips{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.chip{background:#0F1A14;border:1px solid var(--line);border-radius:10px;padding:8px 12px;}
+.chip .t{font-size:12.5px;color:var(--muted);font-family:var(--mono);}
+.chip .v{font-family:var(--display);font-size:25px;font-weight:700;color:var(--after);line-height:1.05;margin-top:2px;}
+.chip .v.n{color:var(--ink);}
+.chip .d{font-size:12px;color:var(--muted);margin-top:2px;}
+.foot{display:flex;justify-content:space-between;gap:16px;font-family:var(--mono);font-size:12px;color:var(--dim);border-top:1px solid var(--line);padding-top:8px;}
+.foot b{color:var(--muted);font-weight:500;}
+</style>
+<div class="card">
+  <div class="eyebrow">Bonsai 2 27B · 1.58-bit · one RTX 4070 12 GB · serving layer, no weight changes</div>
+  <h1>Same 6 GB model. Same GPU. <b>Long, exact work went from 8/20 to 19/20.</b></h1>
+  <p class="sub">Paired runs, fresh seeds, plans and pass gates frozen before results. 11 rescues, 0 losses (sign test p &lt; 0.001). Non-coding tool requests pass through byte-identical.</p>
+  <div class="grid">
+    <div class="panel">
+      <h2>Before → after, by task family (P2)</h2>
+      <div class="rows">
+        <div class="lab">tar + gzip bundle<small>write solution.py · hidden-input oracle</small></div>
+        <div class="bars"><div class="track"><div class="bar b" style="width:2%"></div></div><div class="track"><div class="bar a" style="width:100%"></div></div></div>
+        <div class="num"><span class="was">0 / 4</span> → <span class="now">4 / 4</span></div>
+        <div class="lab">ZIP archive<small>write solution.py · hidden-input oracle</small></div>
+        <div class="bars"><div class="track"><div class="bar b" style="width:2%"></div></div><div class="track"><div class="bar a" style="width:75%"></div></div></div>
+        <div class="num"><span class="was">0 / 4</span> → <span class="now">3 / 4</span></div>
+        <div class="lab">digit-constrained count<small>exact integer answer</small></div>
+        <div class="bars"><div class="track"><div class="bar b" style="width:33%"></div></div><div class="track"><div class="bar a" style="width:100%"></div></div></div>
+        <div class="num"><span class="was">1 / 3</span> → <span class="now">3 / 3</span></div>
+        <div class="lab">sales table question<small>150–200 rows in the prompt</small></div>
+        <div class="bars"><div class="track"><div class="bar b" style="width:33%"></div></div><div class="track"><div class="bar a" style="width:100%"></div></div></div>
+        <div class="num"><span class="was">1 / 3</span> → <span class="now">3 / 3</span></div>
+        <div class="lab">knapsack · web log<small>already solved; now 12x / 1.1x the tokens</small></div>
+        <div class="bars"><div class="track"><div class="bar b" style="width:100%"></div></div><div class="track"><div class="bar a" style="width:100%"></div></div></div>
+        <div class="num"><span class="was">6 / 6</span> → <span class="now">6 / 6</span></div>
+      </div>
+      <div class="legend"><span><i style="background:var(--before)"></i>raw llama-server</span><span><i style="background:var(--after)"></i>with the layer</span></div>
+    </div>
+    <div class="panel">
+      <h2>Does it cost anything? Public checks, paired</h2>
+      <div class="chips">
+        <div class="chip"><div class="t">AIME 2025 · 2 seeds</div><div class="v">52 → 56 <span style="font-size:14px;color:var(--muted)">/ 60</span></div><div class="d">6 rescues, 2 losses · not claimed</div></div>
+        <div class="chip"><div class="t">MMLU-Pro · 100 q, 13 subjects</div><div class="v">71 → 76</div><div class="d">no harm on recall · 0.80x tokens</div></div>
+        <div class="chip"><div class="t">HumanEval · 164</div><div class="v n">159 → 160</div><div class="d">flat at a 97% ceiling</div></div>
+        <div class="chip"><div class="t">MATH-500 · 100 integer</div><div class="v n">99 → 100</div><div class="d">flat at a ceiling · 0.83x tokens</div></div>
+        <div class="chip"><div class="t">AppWorld · 20 tasks, ReAct code agent</div><div class="v n">13 → 15</div><div class="d">passthrough · the first build scored 4/20: found, fixed same day</div></div>
+        <div class="chip"><div class="t">tokens on long computation</div><div class="v">0.08–0.76x</div><div class="d">coding 0.81–0.87x · weblog 1.11x</div></div>
+      </div>
+      
+    </div>
+  </div>
+  <div class="foot"><span>the layer: exact API cards from the runtime · a WASI-sandboxed Python tool · one verify-on-the-example sentence · small sets, development results</span><span><b>professorpalmer/bonsai-ada-surgery</b></span></div>
+</div>
