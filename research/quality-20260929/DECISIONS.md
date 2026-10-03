@@ -801,3 +801,15 @@ scoreboard with rescues/losses, traces incl. reasoning text), suite/README.md. S
 raw server: coding tar fail (invalid tar, as the raw model does), knapsack correct, workspace item completed;
 pipeline verified end to end. This is the eval-gate deliverable for Prism; the frozen cases from the external
 evidence bundle are not part of it.
+
+## 2026-10-03 06:45 - the author's full runnable set, scored from P2 (no new GPU time)
+Cary asked whether the external author's case set had been retested with the shipped layer. The frozen set has
+eight development cases; the duplicate_inventory pair has no contract text in the bundle, so six are runnable.
+P2 (fresh seeds 251-254) already ran dev-bundle-01, dev-checklist-01, dev-batch-01/02 in both arms. The two
+remaining cases share their family prompt with a run case and differ only in the hidden request, so P2's
+trajectories were regraded against them (dev-checklist-02 registered in agent_contract.FROZEN like bundle-02):
+  dev-bundle-01     RAW 0/4 -> PROD 4/4        dev-bundle-02 (same trajectories)    RAW 0/4 -> PROD 3/4 (seed 253 fails the second hidden request)
+  dev-checklist-01  RAW 2/3 -> PROD 3/3        dev-checklist-02 (same trajectories) RAW 2/3 -> PROD 3/3
+  dev-batch-01      RAW 2/2 -> PROD 2/2        dev-batch-02                         RAW 1/2 -> PROD 1/2
+Batch is passthrough (byte-identical requests and tokens). A fresh full rerun of the six cases (AC1, 36 runs) is
+not scheduled: P2 is that rerun. AppWorld slice moves up to right after M5.
