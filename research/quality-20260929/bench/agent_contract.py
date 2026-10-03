@@ -124,7 +124,7 @@ def attempt(case_id, seed, arm, out_dir, max_responses=12):
         usage["completion"] += r["usage"]["completion_tokens"]
         usage["prompt"] += r["usage"]["prompt_tokens"]
         rc = m.get("reasoning_content") or ""
-        log.append({"step": n, "finish": r["choices"][0].get("finish_reason"), "reasoning_chars": len(rc),
+        log.append({"step": n, "finish": r["choices"][0].get("finish_reason"), "reasoning_chars": len(rc), "reasoning": rc,
                     "forced": "Now produce the complete answer" in rc, "content": m.get("content"),
                     "tool_calls": m.get("tool_calls"), "usage": r["usage"]})
         am = {"role": "assistant", "content": m.get("content") or ""}

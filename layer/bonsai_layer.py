@@ -78,6 +78,7 @@ def run_tool(args_json, timeout, extra_files=None):
         files["main.py"] = args.get("code", "")
         r = sandbox.run(files, ["/work/main.py"], stdin=(args.get("stdin") or "").encode("utf-8"), timeout=timeout)
         return {"exit_code": r["exit_code"], "timed_out": r["timed_out"], "code_chars": len(args.get("code", "") or ""),
+                "code": (args.get("code", "") or "")[:20000],   # kept in the trace so a response is auditable on its own
                 "stdout": r["stdout"][:12000].decode("utf-8", "replace"),
                 "stderr": r["stderr"][-4000:].decode("utf-8", "replace")}
     except Exception as e:  # malformed arguments are reported to the model, never raised
@@ -339,7 +340,7 @@ class Proxy(http.server.BaseHTTPRequestHandler):
                 for c in ours:
                     out = run_tool(c["function"]["arguments"], self.exec_timeout, extra)
                     msgs.append({"role": "tool", "tool_call_id": c.get("id", ""), "name": TOOL_NAME,
-                                 "content": json.dumps(out, ensure_ascii=False)})
+                                 "content": json.dumps({k: v for k, v in out.items() if k != "code"}, ensure_ascii=False)})
                     note = "[run_python: " + ("timed out" if out.get("timed_out") else "exit " + str(out.get("exit_code", "rejected"))) + "]"
                     ev = dict(template or {"object": "chat.completion.chunk"},
                               choices=[{"index": 0, "delta": {"reasoning_content": chr(10) + note + chr(10)}, "finish_reason": None}])
@@ -440,10 +441,10 @@ class Proxy(http.server.BaseHTTPRequestHandler):
             for c in ours:
                 out = run_tool(c["function"]["arguments"], self.exec_timeout, extra)
                 trace.append({"round": rnd, "exit_code": out.get("exit_code"), "timed_out": out.get("timed_out"),
-                              "code_chars": out.get("code_chars"),
+                              "code_chars": out.get("code_chars"), "code": out.get("code"),
                               "stdout_head": (out.get("stdout") or "")[:200]})
                 msgs.append({"role": "tool", "tool_call_id": c.get("id", ""), "name": TOOL_NAME,
-                             "content": json.dumps(out, ensure_ascii=False)})
+                             "content": json.dumps({k: v for k, v in out.items() if k != "code"}, ensure_ascii=False)})
         return self._reply(500, "application/json", b'{"error":"interpreter loop ended without an answer"}')
 
 

@@ -1,3 +1,13 @@
 {"pid": 0, "seed": 1001, "arm": "RAW", "truth": 70, "answer": 70, "correct": true, "finish": "stop", "completion_tokens": 852, "runs": 0, "wall_s": 9.3, "status": "ok"}
 {"pid": 0, "seed": 1001, "arm": "PROD", "truth": 70, "answer": 70, "correct": true, "finish": "stop", "completion_tokens": 896, "runs": 0, "wall_s": 10.3, "status": "ok"}
 {"pid": 1, "seed": 1001, "arm": "PROD", "truth": 588, "answer": 588, "correct": true, "finish": "stop", "completion_tokens": 7337, "runs": 2, "wall_s": 80.9, "status": "ok"}
+{"pid": 1, "seed": 1001, "arm": "RAW", "truth": 588, "answer": 588, "correct": true, "finish": "stop", "completion_tokens": 21125, "runs": 0, "wall_s": 247.2, "status": "ok"}
+{"pid": 2, "seed": 1001, "arm": "RAW", "truth": 16, "answer": 506, "correct": false, "finish": "stop", "completion_tokens": 1368, "runs": 0, "wall_s": 14.8, "status": "ok"}
+{"pid": 2, "seed": 1001, "arm": "PROD", "truth": 16, "answer": 16, "correct": true, "finish": "stop", "completion_tokens": 1100, "runs": 0, "wall_s": 12.5, "status": "ok"}
+{"pid": 3, "seed": 1001, "arm": "PROD", "truth": 117, "answer": 117, "correct": true, "finish": "stop", "completion_tokens": 1378, "runs": 1, "wall_s": 13.7, "status": "ok"}
+{"pid": 3, "seed": 1001, "arm": "RAW", "truth": 117, "answer": 117, "correct": true, "finish": "stop", "completion_tokens": 2172, "runs": 0, "wall_s": 23.5, "status": "ok"}
+{"pid": 4, "seed": 1001, "arm": "RAW", "truth": 279, "answer": 279, "correct": true, "finish": "stop", "completion_tokens": 5222, "runs": 0, "wall_s": 58.0, "status": "ok"}
+{"pid": 4, "seed": 1001, "arm": "PROD", "truth": 279, "answer": 279, "correct": true, "finish": "stop", "completion_tokens": 7506, "runs": 1, "wall_s": 85.0, "status": "ok"}
+{"pid": 5, "seed": 1001, "arm": "PROD", "truth": 504, "answer": 504, "correct": true, "finish": "stop", "completion_tokens": 1736, "runs": 1, "wall_s": 18.8, "status": "ok"}
+{"pid": 5, "seed": 1001, "arm": "RAW", "truth": 504, "answer": 504, "correct": true, "finish": "stop", "completion_tokens": 1785, "runs": 0, "wall_s": 19.9, "status": "ok"}
+{"pid": 6, "seed": 1001, "arm": "RAW", "truth": 821, "answer": 821, "correct": true, "finish": "stop", "completion_tokens": 11166, "runs": 0, "wall_s": 140.7, "status": "ok"}
