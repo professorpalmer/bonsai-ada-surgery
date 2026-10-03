@@ -130,6 +130,12 @@ tool-argument parser passes values through verbatim, so this is the model.
 - **Public agentic benchmark** (alesha-pro/qwen38-27b-bench-4x3090, commit dcac4a1, not reproduced here):
   AppWorld BF16 95.8, Mirai S (2.4 bpw, 8.45 GB) 89.9, Bonsai 2 PQ2_0 (2.13 bpw, 7.21 GB) 64.3; single-turn
   80.3 / 78.4 / 78.0. Single-turn parity holds; the agentic gap is specific and large.
+- **Public benchmarks, paired raw vs layer on this machine** (one seed each; details in `REPORT.md` round 10):
+  AIME 2025 52/60 -> 56/60 (two seeds pooled; 6 rescues, 2 losses, so not claimed); HumanEval 159 -> 160 of 164;
+  MATH-500 integer subset 99 -> 100 of 100; MMLU-Pro 100-question sample 71 -> 76 (no harm, 0.80x tokens);
+  AppWorld 20-task slice with the public bench's ReAct code agent 13/20 raw, 15/20 layer after a fix (the first
+  layer build offered its Python tool to an agent that executes code itself and scored 4/20: a client-protocol
+  detection bug, now a passthrough rule).
 - **The serving layer, measured as shipped** (`P2/`, fresh seeds, 74 paired runs): gain tasks raw 8/20 vs
   19/20 through the layer, 0 losses; regression tasks 14/17 vs 15/17; non-coding tool requests pass through
   byte-identical. Tokens: long computations 0.08x to 0.76x, coding 0.81x to 0.87x, weblog 1.11x, checklist 1.16x.
@@ -153,9 +159,17 @@ tool-argument parser passes values through verbatim, so this is the model.
    instead of retyping it; recall of exact API names (the part the compression removed; the ZIP task is a
    clean probe: 4-bit teacher 2/2, Mirai 2.4 bpw 3/4, Bonsai 1.75 bpw 0/4).
 
-## 7. Reproduce
+## 7. A self-contained gate you can run on any candidate
 
-`README.md` in this folder has the layout and commands. In short: start the server, copy `bench/` next to an
+`suite/` in this repository (`python suite/run_suite.py --base <endpoint> --out <dir>`, optional paired `--base-b`)
+packages the long-exact-work tasks without the external author's frozen cases: three coding contracts (tar+gzip,
+ZIP, MIME; property-graded on hidden requests), five computation families with brute-force truths, five
+tool-using workspace tasks. One command, deterministic graders, traces with the reasoning text. Roughly 3
+GPU-hours per endpoint on an RTX 4070 for a 27B. Its own paired reference run on Bonsai (raw vs layer) is `S1/`.
+
+## 8. Reproduce
+
+`README.md` in this folder has the layout and commands for the research runs; `suite/README.md` for the gate. In short: start the server, copy `bench/` next to an
 API key, run `tooling/wasi-python/fetch_runtime.ps1` once for the sandbox, then for example
 `python agent_contract.py --plan E8-plan.json --out E8` or `python run_puzzles.py --plan H2-plan.json --out H2`.
 The agentic contract tasks need the frozen prompts and oracles from the original evidence bundle
