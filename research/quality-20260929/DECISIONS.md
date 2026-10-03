@@ -866,3 +866,19 @@ who pastes a ```python snippet also passes through (accepted trade-off: those re
 the cards still apply when a coding tool is present). Requests with client tools are unchanged by this rule.
 AW1b (layer arm rerun on this build) queued after K1; the expectation is parity with raw, since the layer now
 does nothing on those requests.
+
+## 2026-10-03 11:40 - K1 result: MMLU-Pro sample, raw 71/100 vs layer 76/100 (10 rescues, 5 losses, 0.80x tokens); AW1b launched
+K1 (200/200, 0 infra, on the fixed layer build). RAW 71/100, PROD 76/100. Rescues 10, losses 5 (sign test p = 0.30).
+Tokens PROD 0.80x RAW (389k vs 486k). The layer used its tool on 37 of 100 questions. Raw produced no parsable
+answer on 3 questions (ran its budget without a boxed letter); the layer answered all 100, and those 3 are among
+the rescues. Gate ("neutral" = within 2 correct and within 1.25x tokens): outside the band on the positive side.
+By subject (raw -> layer, n): chemistry 5 -> 8 (8), engineering 6 -> 7, health 4 -> 5, physics 5 -> 6 (7), other
+4 -> 6 (7); law 6 -> 4 (8), psychology 3 -> 2 (7), computer science 6 -> 6 with one swap; biology, business,
+economics, history, math unchanged.
+Reading, carefully: most discordant pairs (10 of 15) are questions where the layer arm did NOT use the tool, so
+they are resampling noise (the tool definition changes the prompt, so the two arms draw different samples at
+temperature 1.0), not an effect of the layer; the law and psychology dips are in that class. The real effect is
+in chemistry/physics/engineering, where the tool was used and the arithmetic came out right, and in the three
+questions where raw never produced an answer. Verdict: no harm on knowledge questions, a small gain on the
+quantitative ones, 20% fewer tokens. Not a claim of +5.
+AW1b launched 11:36: AppWorld layer arm rerun on the fixed build (raw arm unchanged from AW1).

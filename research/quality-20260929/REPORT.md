@@ -298,3 +298,18 @@ tools", offered its sandboxed `run_python`, and the model ran its code there, wh
 not exist; 8 tasks ended after one call, 5 spun to the step cap. Fix shipped the same morning: a conversation that
 already carries fenced code blocks and offers no tools is passed through untouched. A rerun of the layer arm on the
 fixed build (AW1b) follows the knowledge check (K1).
+
+### The "do no harm" check on knowledge questions (K1)
+
+MMLU-Pro, 100 questions stratified over 13 subjects, paired, one seed:
+
+| | Raw | Layer |
+| --- | ---: | ---: |
+| correct | 71/100 | 76/100 |
+| rescues / losses | | 10 / 5 (p = 0.30) |
+| tokens | 486k | 389k (0.80x) |
+
+Within noise on the pure-recall subjects (10 of the 15 discordant pairs are questions where the layer never used
+its tool, so both arms simply drew different samples), a real gain on the quantitative ones (chemistry 5 -> 8,
+physics 5 -> 6, engineering 6 -> 7) and on three questions where raw ran out of budget without an answer. No harm,
+20% fewer tokens.
