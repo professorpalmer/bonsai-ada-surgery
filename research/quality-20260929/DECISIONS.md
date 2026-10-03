@@ -813,3 +813,25 @@ trajectories were regraded against them (dev-checklist-02 registered in agent_co
   dev-batch-01      RAW 2/2 -> PROD 2/2        dev-batch-02                         RAW 1/2 -> PROD 1/2
 Batch is passthrough (byte-identical requests and tokens). A fresh full rerun of the six cases (AC1, 36 runs) is
 not scheduled: P2 is that rerun. AppWorld slice moves up to right after M5.
+
+## 2026-10-03 07:30 - AW1 frozen (after M5): AppWorld slice, raw vs layer, the agent harness question
+Setup: StonyBrookNLP/appworld from source (0.2.0.dev0, data 183 MB) in its own venv; agent
+simplified_react_code_agent (the one the public bench used); model entries bonsai-raw (:18080) and bonsai-layer
+(:8080) with this project's request settings (temperature 1.0, top-p 0.95, top-k 20, min-p 0.05, medium effort,
+budget 20480, max_completion_tokens 32768); AppWorld's defaults otherwise.
+Tasks: the first 20 ids of data/datasets/test_normal.txt in file order: 3d9a636_1 3d9a636_2 3d9a636_3 fd1f8fa_1
+fd1f8fa_2 fd1f8fa_3 325d6ec_1 325d6ec_2 325d6ec_3 29a7b7e_1 29a7b7e_2 29a7b7e_3 21abae1_1 21abae1_2 21abae1_3
+634f342_1 634f342_2 634f342_3 8749218_1 8749218_2. One pass each, both arms.
+Question: is the layer neutral under a real agent harness that brings its own code execution? Expectation from
+E4: close to a no-op (the layer passes requests with client tools through; the ReAct code agent sends plain
+chat with code in text, so the layer MAY offer run_python and inject cards when it sees python fences).
+Gate for "neutral": TGC within 1 task of raw and no new failure mode in the traces. Gate for "helps": >= 3
+rescues, <= 1 loss by task. Our own numbers only; no claims about the external bench.
+
+## 2026-10-03 07:05 - M5 result: MATH-500 integer subset at the ceiling (99/100 raw, 100/100 layer); AW1 launched
+M5 (200/200, 0 infra). RAW 99/100, PROD 100/100; 1 rescue (problem 8, level 1), 0 losses. Gate (>= 3 rescues,
+<= 1 loss): not met; reported as neutral at a ceiling. By level, raw and layer are identical except that one
+level-1 problem. Tokens: PROD 0.83x RAW (176k vs 213k); the layer used its tool on 53 of 100 problems; no run hit
+the round cap. Reading: on competition math where the raw model already scores 99%, the layer costs nothing in
+accuracy and 17% less in tokens; the cap-then-nudge defect seen twice on AIME problem 29 did not appear here.
+AW1 (AppWorld slice) launched 07:00: raw then layer, 20 tasks each, bench/run_aw1.sh -> bench/AW1.log.

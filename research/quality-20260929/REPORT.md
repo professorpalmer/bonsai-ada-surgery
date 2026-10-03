@@ -281,4 +281,7 @@ after the final nudge at 50k+ tokens. That cap-then-nudge path is the loop's one
 HumanEval sits at a 97% ceiling for this model and does not exercise library recall or long computation, so a
 neutral result is the expected one; it also shows the layer does not get in the way of short coding requests.
 
-Next: a second AIME seed (A1b, running), then a MATH-500 subset and one knowledge benchmark for neutrality.
+| MATH-500, first 100 integer-answer problems, levels 1-5 (M5) | 99/100 | 100/100 | 1 / 0: neutral at a ceiling; tokens 0.83x |
+
+Next: AW1, a 20-task AppWorld slice (raw vs layer) to test neutrality under a real agent harness; then one
+knowledge benchmark sample.
