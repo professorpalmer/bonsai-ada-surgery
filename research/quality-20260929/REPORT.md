@@ -274,4 +274,9 @@ Gate for the claim (>= 3 rescues, <= 1 loss) met; with 5 discordant pairs the si
 loss ran the tool to the round cap (8) and answered wrong after the final nudge; that path is the loop's weak
 point on long problems.
 
-Next: HumanEval paired (164 problems), then a MATH-500 subset and one knowledge benchmark for neutrality.
+| HumanEval 164, medium thinking, temp 0 (HE1) | 159/164 | 160/164 | 2 / 1: neutral (gate not met) |
+
+HumanEval sits at a 97% ceiling for this model and does not exercise library recall or long computation, so a
+neutral result is the expected one; it also shows the layer does not get in the way of short coding requests.
+
+Next: a second AIME seed (A1b, running), then a MATH-500 subset and one knowledge benchmark for neutrality.

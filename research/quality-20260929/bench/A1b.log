@@ -1,0 +1,2 @@
+{"pid": 0, "seed": 1002, "arm": "RAW", "truth": 70, "answer": 70, "correct": true, "finish": "stop", "completion_tokens": 1044, "runs": 0, "wall_s": 11.4, "status": "ok"}
+{"pid": 0, "seed": 1002, "arm": "PROD", "truth": 70, "answer": 70, "correct": true, "finish": "stop", "completion_tokens": 819, "runs": 0, "wall_s": 9.3, "status": "ok"}

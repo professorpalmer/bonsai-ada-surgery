@@ -766,3 +766,12 @@ first turn 17k to 74k characters of reasoning, later turns mostly under 300 ("Ty
 ZIP_DEFLATED not ZIP_DEFLATE. Let's fix it."), with occasional 3k to 7k turns after a failing test.
 PRISM-REPORT.md now points at bench/TR1/ for reasoning text and states that earlier coding runs hold lengths only.
 HE1 launched 01:22 (HumanEval 164, raw then layer, --arm medium --temp 0).
+
+## 2026-10-03 03:20 - HE1 finished; A1b (AIME seed 1002) launched to fill the GPU
+bench/A1b-plan.json sha256 e184110d1986ba0df4c6c29784f0c163b6ed6f5324cfdf9c80cdf883e8f268c8: A1 with seed 1002, 60 runs. Same gate; pooled with A1 for the AIME claim.
+
+## 2026-10-03 03:25 - HE1 result: HumanEval neutral (159/164 raw, 160/164 layer; 2 rescues, 1 loss)
+HE1 (164 + 164, --arm medium --temp 0, max_tokens 20480; raw 61 min, layer 42 min). pass@1: RAW 159/164 (96.95),
+PROD 160/164 (97.56). Rescues 2 (HumanEval/83, /116), loss 1 (/77). Gate for the claim (>= 3 rescues, <= 1 loss):
+not met. Reported as neutral: HumanEval is short single-function code at a 97% ceiling for this model, which is
+not where the layer's levers act (no library recall gap, no long computation). The layer arm finished faster.
