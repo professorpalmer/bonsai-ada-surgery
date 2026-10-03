@@ -1,0 +1,78 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Bonsai + layer vs the 4-bit teacher</title>
+<!-- 1200x675 share card; rendered at 2x into docs/img/teacher.png with headless Edge (bench/render_cards.ps1 style).
+     Numbers: research/quality-20260929/REPORT.md rounds 9 (P2) and T2. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root {
+  --ground: #F3F5F1; --surface: #FFFFFF; --ink: #17211B; --muted: #5E6D63; --line: #DCE2DA;
+  --green: #2E7A57; --amber: #A86F16; --rust: #B5473A; --base: #B9C3BB; --slate: #4F6B82;
+  --display: "IBM Plex Sans Condensed", "Arial Narrow", Arial, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", Arial, sans-serif;
+  --mono: "IBM Plex Mono", Consolas, monospace;
+}
+html, body { margin: 0; width: 1200px; height: 675px; overflow: hidden; background: var(--ground); color: var(--ink); font-family: var(--body); }
+.card { box-sizing: border-box; width: 1200px; height: 675px; padding: 30px 56px 22px; display: flex; flex-direction: column; gap: 8px; }
+.eyebrow { font-family: var(--mono); font-size: 15px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 0; font-family: var(--display); font-size: 37px; line-height: 1.08; font-weight: 700; }
+.sub { font-size: 17.5px; color: var(--muted); margin: 0; }
+.cols { flex: 1; display: grid; grid-template-columns: 1.5fr 1fr; gap: 24px; min-height: 0; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 22px; display: flex; flex-direction: column; gap: 10px; }
+.panel h2 { margin: 0; font-family: var(--mono); font-size: 13.5px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 500; color: var(--muted); }
+table { border-collapse: collapse; width: 100%; font-size: 16px; }
+th { font-family: var(--mono); font-size: 12.5px; font-weight: 500; letter-spacing: 0.04em; color: var(--muted); text-align: right; padding: 0 0 8px 12px; border-bottom: 1px solid var(--line); vertical-align: bottom; line-height: 1.25; }
+th:first-child, td:first-child { text-align: left; padding-left: 0; }
+td { padding: 8px 0 8px 12px; border-bottom: 1px solid var(--line); text-align: right; font-family: var(--mono); font-size: 17px; }
+td:first-child { font-family: var(--body); font-weight: 600; font-size: 16px; }
+td .how { display: block; font-weight: 400; font-size: 13px; color: var(--muted); margin-top: 2px; }
+tr.total td { border-bottom: none; font-weight: 600; padding-top: 11px; }
+.g { color: var(--green); } .r { color: var(--rust); } .a { color: var(--amber); } .s { color: var(--slate); }
+.big { font-family: var(--display); font-size: 30px; font-weight: 700; }
+.size { display: grid; grid-template-columns: 150px 1fr 70px; gap: 6px 10px; align-items: center; font-family: var(--mono); font-size: 13.5px; color: var(--muted); }
+.bar { height: 14px; border-radius: 3px; }
+.track { background: #EEF1EC; border-radius: 3px; }
+.val { color: var(--ink); font-weight: 500; text-align: right; }
+.note { font-size: 14px; color: var(--muted); line-height: 1.4; }
+.note b { color: var(--ink); font-weight: 600; }
+.foot { display: flex; justify-content: space-between; gap: 20px; font-family: var(--mono); font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 9px; }
+.foot b { color: var(--ink); font-weight: 500; }
+ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 5px; font-size: 13.5px; line-height: 1.3; }
+li::before { content: "— "; color: var(--muted); }
+</style>
+<div class="card">
+  <div class="eyebrow">Same six coding requests · three servers · one RTX 4070 12 GB · 2026-10-02</div>
+  <h1>A 1.58-bit 27B with the right serving layer beat the 4-bit version of its own teacher.</h1>
+  <p class="sub">Byte-identical prompts and tools. Oracle-graded on hidden inputs. Plans and gates frozen before results.</p>
+  <div class="cols">
+    <div class="panel">
+      <h2>Functionally correct solutions</h2>
+      <table>
+        <tr><th>task</th><th>Bonsai 2 27B<br>1.58-bit, raw</th><th>Bonsai 2 27B<br>1.58-bit + layer</th><th>Qwen3.8-27B<br>4-bit (teacher), raw</th></tr>
+        <tr><td>tar + gzip bundle<span class="how">write solution.py; 4 seeds</span></td><td class="r">0 / 4</td><td class="g">4 / 4</td><td class="a">1 / 4</td></tr>
+        <tr><td>ZIP archive<span class="how">write solution.py; 2 seeds</span></td><td class="r">0 / 2</td><td class="g">2 / 2</td><td class="g">2 / 2</td></tr>
+        <tr class="total"><td>total</td><td class="r big">0 / 6</td><td class="g big">6 / 6</td><td class="a big">3 / 6</td></tr>
+      </table>
+      <div class="size">
+        <span>model file</span><div class="track"><div class="bar" style="width:39%;background:var(--green)"></div></div><span class="val">6.4 GB</span>
+        <span>teacher file</span><div class="track"><div class="bar" style="width:100%;background:var(--slate)"></div></div><span class="val">16.5 GB</span>
+      </div>
+      <div class="note"><b>Why the teacher misses too:</b> on the tar task none of its four solutions use <span style="font-family:var(--mono)">tarfile</span>; it writes the bytes by hand, like Bonsai, and gets them wrong. On ZIP it recalls <span style="font-family:var(--mono)">zipfile</span> and passes where raw Bonsai never does. The habit is the base model's; the lost recall is the compression's. The layer's auto-generated API cards fix both.</div>
+    </div>
+    <div class="panel">
+      <h2>The layer, on the full product benchmark (P2)</h2>
+      <table>
+        <tr><th>set, fresh seeds</th><th>raw</th><th>+ layer</th></tr>
+        <tr><td>gain tasks<span class="how">2 coding, 4 computation families</span></td><td>8 / 20</td><td class="g">19 / 20</td></tr>
+        <tr><td>regression tasks<span class="how">checklist, batch, workspace</span></td><td>14 / 17</td><td class="g">15 / 17</td></tr>
+        <tr class="total"><td>losses</td><td></td><td class="g big">0</td></tr>
+      </table>
+      <ul>
+        <li>Tokens: knapsack 0.08x, sales 0.43x, digits 0.76x, coding 0.8–0.9x, weblog 1.1x</li>
+        <li>What the layer is: exact API cards from the runtime, a WASI-sandboxed Python tool with the user's text as a file, one verify-on-the-example sentence</li>
+        <li>Not a bigger model, more thinking or more turns: all measured, all failed</li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot"><span>teacher served partly from RAM (16.5 GB > 12 GB) · 6 requests is attribution, not a population estimate</span><span><b>professorpalmer/bonsai-ada-surgery</b></span></div>
+</div>

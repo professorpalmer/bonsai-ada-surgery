@@ -184,6 +184,8 @@ Measured on one RTX 4070, small paired task sets, plans and gates frozen before 
 | data questions, tokens with `input.txt` (E12) | | -58%, same correctness |
 | streaming vs non-streaming tool loop (E13) | 12/12 | 12/12 |
 
+![Same six coding requests: raw Bonsai 0/6, Bonsai + layer 6/6, the 4-bit teacher 3/6](docs/img/teacher.png)
+
 Cards are proven on two library families and not on a third. Token cost through the layer, P2: long computations
 0.08x to 0.76x, coding 0.81x to 0.87x, weblog 1.11x, checklist 1.16x.
 
