@@ -296,8 +296,9 @@ AppWorld, 20 `test_normal` tasks, the public bench's `simplified_react_code_agen
 The ReAct code agent sends plain chat and executes the model's code blocks itself. The layer saw "no client
 tools", offered its sandboxed `run_python`, and the model ran its code there, where the agent's `apis` object does
 not exist; 8 tasks ended after one call, 5 spun to the step cap. Fix shipped the same morning: a conversation that
-already carries fenced code blocks and offers no tools is passed through untouched. A rerun of the layer arm on the
-fixed build (AW1b) follows the knowledge check (K1).
+already carries fenced code blocks and offers no tools is passed through untouched. Rerun on the fixed build
+(AW1b): layer 15/20 vs raw 13/20, 2 rescues, 0 losses, and the layer touched none of the 273 responses; the +2 is
+the harness's own run-to-run variance (4 of 20 tasks diverge between two identical configurations).
 
 ### The "do no harm" check on knowledge questions (K1)
 

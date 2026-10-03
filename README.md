@@ -187,7 +187,7 @@ Measured on one RTX 4070, small paired task sets, plans and gates frozen before 
 | HumanEval 164, medium thinking (HE1) | 159/164 | 160/164 (neutral) |
 | MATH-500, 100 integer-answer problems (M5) | 99/100 | 100/100 (neutral at a ceiling; 0.83x tokens) |
 | MMLU-Pro, 100 questions over 13 subjects (K1) | 71/100 | 76/100 (10 rescues, 5 losses: no harm; 0.80x tokens) |
-| AppWorld, 20 tasks, ReAct code agent (AW1) | 13/20 | 4/20 before the fix: the layer must not offer its tool to a client that runs code itself; fixed, rerun pending |
+| AppWorld, 20 tasks, ReAct code agent (AW1, AW1b) | 13/20 | 15/20 after the fix (pure passthrough; 4/20 before it: the layer must not offer its tool to a client that runs code itself) |
 
 ![Same six coding requests: raw Bonsai 0/6, Bonsai + layer 6/6, the 4-bit teacher 3/6](docs/img/teacher.png)
 

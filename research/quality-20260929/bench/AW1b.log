@@ -1,4 +1,19 @@
-== bonsai-layer AW1b start 11:36
-bash: line 1: C:UserspwallAppDataLocalTemp/appworld-venv/Scripts/python.exe: No such file or directory
-bash: line 1: C:UserspwallAppDataLocalTemp/appworld-venv/Scripts/python.exe: No such file or directory
-== bonsai-layer AW1b done
+== bonsai-layer start 11:38
+ aggregate   |         75.0         |           57.1          
+difficulty_1 |        100.0         |          100.0          
+difficulty_2 |         54.5         |           25.0          
+difficulty_3 |          0           |            0            
+
+Json evaluation report saved in: .\experiments\outputs\simplified_react_code_agent/bonsai_local/bonsai-layer/test_normal_first20\evaluations\test_normal_first20.json
+
+Text evaluation report saved in: .\experiments\outputs\simplified_react_code_agent/bonsai_local/bonsai-layer/test_normal_first20\evaluations\test_normal_first20.txt
+
+Text Evaluation Report:
+    type     | task_goal_completion | scenario_goal_completion
+-------------+----------------------+-------------------------
+ aggregate   |         75.0         |           57.1          
+difficulty_1 |        100.0         |          100.0          
+difficulty_2 |         54.5         |           25.0          
+difficulty_3 |          0           |            0            
+
+== bonsai-layer done 11:53

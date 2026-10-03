@@ -882,3 +882,14 @@ in chemistry/physics/engineering, where the tool was used and the arithmetic cam
 questions where raw never produced an answer. Verdict: no harm on knowledge questions, a small gain on the
 quantitative ones, 20% fewer tokens. Not a claim of +5.
 AW1b launched 11:36: AppWorld layer arm rerun on the fixed build (raw arm unchanged from AW1).
+
+## 2026-10-03 11:55 - AW1b result: with the fix the layer is a pure passthrough on AppWorld (15/20 vs raw 13/20, 0 losses); S1 launched
+AW1b (layer arm rerun on the fixed build, 11:38 to 11:53, 15 minutes). TGC layer 15/20 (75.0%) vs raw 13/20
+(65.0%); SGC 57.1 vs 42.9; per task 2 rescues, 0 losses. The layer touched 0 of the 273 model responses (no
+layer/trace fields in any output; 0 sandbox runs): the client_runs_code rule classified every request as a
+code-executing client and forwarded it untouched. Gate (within 1 task of raw): met in the only direction that
+matters; the +2 is run-to-run variance of the raw model itself (16 of 20 tasks reproduced raw's call counts
+exactly; 4 diverged, which is the sampling noise floor at temperature 1.0 on this harness: about 2 tasks in 20).
+Before the fix the same arm was 4/20. The AW1 README row is updated to the fixed number.
+S1 launched 11:58: the suite's own paired reference run (suite/run_suite.py, default plan, raw :18080 vs layer
+:8080, 37 items per arm), so the public suite ships with a measured scoreboard produced by itself.
