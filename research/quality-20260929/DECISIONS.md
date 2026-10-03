@@ -793,3 +793,11 @@ and problem 29 is lost on both seeds, each time by running the tool to the round
 the final nudge with 50k to 54k tokens spent, where raw answers correctly in 21.5k. So the loss is one problem and
 one mechanism (cap, then forced answer), not a diffuse cost. README row updated to the pooled numbers.
 M5 (MATH-500 integer subset, 200 runs) launched 05:30.
+
+## 2026-10-03 06:10 - suite/ committed: the self-contained long-exact-work benchmark
+suite/cases.py (tar+gzip written fresh, ZIP, MIME; references pass, negative controls fail), suite/puzzles.py,
+suite/envs.py, suite/run_suite.py (one entry point, any OpenAI-compatible endpoint, optional paired A vs B,
+scoreboard with rescues/losses, traces incl. reasoning text), suite/README.md. Smoke test, one item per family,
+raw server: coding tar fail (invalid tar, as the raw model does), knapsack correct, workspace item completed;
+pipeline verified end to end. This is the eval-gate deliverable for Prism; the frozen cases from the external
+evidence bundle are not part of it.
