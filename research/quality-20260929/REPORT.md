@@ -265,14 +265,16 @@ the sandboxed Python tool).
 
 | | Raw | Layer |
 | --- | ---: | ---: |
-| AIME 2025 correct | 26/30 | **29/30** |
-| rescues / losses | | 4 / 1 |
-| completion tokens | 350k | 423k (1.21x) |
+| AIME 2025 correct, seed 1 | 26/30 | 29/30 |
+| AIME 2025 correct, seed 2 | 26/30 | 27/30 |
+| pooled, 60 pairs | 52/60 | **56/60** |
+| rescues / losses, pooled | | 6 / 2 |
+| completion tokens | 706k | 827k (1.17x) |
 
-Gate for the claim (>= 3 rescues, <= 1 loss) met; with 5 discordant pairs the sign test alone is not significant
-(p = 0.375), so this is consistent with the computation results above rather than independent proof. The one
-loss ran the tool to the round cap (8) and answered wrong after the final nudge; that path is the loop's weak
-point on long problems.
+The pre-declared pooled gate (>= 3 rescues, <= 1 loss) is **not met** (two losses), so the layer is reported as
+directionally positive on AIME, not as a claim. The pattern is stable across seeds: two problems are rescued on both
+seeds, and one problem (29) is lost on both, each time by running the tool to the round cap and answering wrong
+after the final nudge at 50k+ tokens. That cap-then-nudge path is the loop's one identified defect.
 
 | HumanEval 164, medium thinking, temp 0 (HE1) | 159/164 | 160/164 | 2 / 1: neutral (gate not met) |
 

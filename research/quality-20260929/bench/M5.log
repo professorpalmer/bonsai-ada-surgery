@@ -1,0 +1,6 @@
+{"pid": 0, "seed": 1101, "arm": "RAW", "truth": 9, "answer": 9, "correct": true, "finish": "stop", "completion_tokens": 307, "runs": 0, "wall_s": 3.7, "status": "ok"}
+{"pid": 0, "seed": 1101, "arm": "PROD", "truth": 9, "answer": 9, "correct": true, "finish": "stop", "completion_tokens": 363, "runs": 1, "wall_s": 4.4, "status": "ok"}
+{"pid": 1, "seed": 1101, "arm": "PROD", "truth": 42, "answer": 42, "correct": true, "finish": "stop", "completion_tokens": 612, "runs": 1, "wall_s": 7.3, "status": "ok"}
+{"pid": 1, "seed": 1101, "arm": "RAW", "truth": 42, "answer": 42, "correct": true, "finish": "stop", "completion_tokens": 267, "runs": 0, "wall_s": 3.2, "status": "ok"}
+{"pid": 2, "seed": 1101, "arm": "RAW", "truth": 27, "answer": 27, "correct": true, "finish": "stop", "completion_tokens": 528, "runs": 0, "wall_s": 6.1, "status": "ok"}
+{"pid": 2, "seed": 1101, "arm": "PROD", "truth": 27, "answer": 27, "correct": true, "finish": "stop", "completion_tokens": 458, "runs": 0, "wall_s": 6.0, "status": "ok"}

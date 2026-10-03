@@ -22,8 +22,11 @@ PROFILE = dict(temperature=1.0, top_p=0.95, top_k=20, min_p=0.05, repeat_penalty
                reasoning_budget_tokens=20480, max_tokens=32768, cache_prompt=True, stream=False)
 
 
+DATASET = "aime25_rows.json"   # overridden by the plan's "dataset_file"
+
+
 def problems():
-    d = json.load(open(os.path.join(HERE, "aime25_rows.json"), encoding="utf-8"))
+    d = json.load(open(os.path.join(HERE, DATASET), encoding="utf-8"))
     return [(int(r["row"]["id"]), r["row"]["problem"], str(r["row"]["answer"]).strip()) for r in d["rows"]]
 
 
@@ -70,6 +73,7 @@ if __name__ == "__main__":
     ap.add_argument("--out", required=True)
     a = ap.parse_args()
     plan = json.load(open(a.plan))
+    DATASET = plan.get("dataset_file", DATASET)
     probs = {pid: (p, t) for pid, p, t in problems()}
     for pid, seed, arm in plan["order"]:
         path = os.path.join(a.out, f"aime-{pid:02d}-{seed}-{arm}.json")

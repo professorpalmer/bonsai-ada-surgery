@@ -775,3 +775,21 @@ HE1 (164 + 164, --arm medium --temp 0, max_tokens 20480; raw 61 min, layer 42 mi
 PROD 160/164 (97.56). Rescues 2 (HumanEval/83, /116), loss 1 (/77). Gate for the claim (>= 3 rescues, <= 1 loss):
 not met. Reported as neutral: HumanEval is short single-function code at a 97% ceiling for this model, which is
 not where the layer's levers act (no library recall gap, no long computation). The layer arm finished faster.
+
+## 2026-10-03 04:20 - M5 frozen (after A1b): MATH-500 integer-answer subset, raw vs layer
+Dataset: HuggingFaceH4/MATH-500 test split fetched 2026-10-03; 311 of 500 answers are integers; the first 100 in
+dataset order saved as bench/math500_int100.json sha256 c1258505de707f2bb4f4d3f2087a6242f4b6e9947d6811d20db8e604a5e507bb
+(levels 1:11, 2:23, 3:22, 4:21, 5:23). run_aime.py now takes the dataset from the plan.
+bench/M5-plan.json sha256 2f137fb56cd7ec2c03cb0fa9fbfc47260ee3154fdaa7feeb94ccff4c6f9d661d: 200 runs, one seed, paired by problem. Gate for the claim: >= 3 rescues, <= 1 loss.
+
+## 2026-10-03 05:35 - A1b result and the pooled AIME verdict: direction positive, pooled gate NOT met (2 losses)
+A1b (seed 1002, 60/60, 0 infra): RAW 26/30, PROD 27/30; rescues 2 (problems 2, 14), loss 1 (problem 29); tokens
+1.13x. Pooled A1 + A1b, 60 pairs: RAW 52/60 (86.7%), PROD 56/60 (93.3%); rescues 6, losses 2. The pre-declared
+pooled gate (>= 3 rescues, <= 1 loss) is not met because of the second loss. Sign test 6-2: p = 0.29. Verdict as
+declared: the AIME claim is not supported at the gate; the direction is positive and consistent across seeds.
+The per-problem pattern is stable, which is more informative than the totals: problems 2 and 14 are rescued on both
+seeds (2: a one-line computation the raw model gets wrong by hand; 14: the layer runs the tool 8 times and lands),
+and problem 29 is lost on both seeds, each time by running the tool to the round cap (8) and answering wrong after
+the final nudge with 50k to 54k tokens spent, where raw answers correctly in 21.5k. So the loss is one problem and
+one mechanism (cap, then forced answer), not a diffuse cost. README row updated to the pooled numbers.
+M5 (MATH-500 integer subset, 200 runs) launched 05:30.
