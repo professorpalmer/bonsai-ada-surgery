@@ -748,3 +748,21 @@ The cap-then-nudge path is the weak point of the loop on long problems; noted, n
 Context only: raw Bonsai at 26/30 on this harness is already high for a 6.4 GB file; the listed public numbers
 for Qwen3.8-27B and Bonsai 2 use other settings and are not compared here.
 Layer restarted 00:43 with the trace-carrying build. TR1 launched 00:43 (bench/TR1-plan.json).
+
+## 2026-10-03 00:55 - HE1 frozen (after TR1): HumanEval 164, raw vs layer
+Runner: bench/humaneval_run.py (openai/human-eval data, tests executed in a subprocess), --arm medium
+(thinking on, medium effort), --temp 0, max_tokens 20480, same for both arms. Arms: RAW --base :18080, PROD --base
+:8080 (plain request: the layer offers run_python and input.txt; cards only where the prompt has an import line).
+Output bench/HE1/raw and bench/HE1/layer, scored per problem (paired). Gate for the claim "the layer helps on
+HumanEval": >= 3 rescues and <= 1 loss; otherwise neutral/negative. Context: the README's 161/164 was raw.
+
+## 2026-10-03 01:25 - TR1 result: literal reasoning traces captured; outcomes differ from P2 (new runs); HE1 launched
+TR1 (4/4, 00:43 to 01:20). Per-turn reasoning text is now in the logs (bench/TR1/*.json, key "reasoning" per
+step; the layer arm's responses also carry the tool programs). Outcomes: dev-bundle-01 251 RAW fail
+(unparseable output), PROD fail (invalid/oversize base64); xfer-zip-01 253 RAW pass, PROD pass. P2 had RAW fail
+and PROD pass on the bundle seed and both fail on the ZIP seed, so these are new samples at temperature 1.0, not
+replays, and the per-seed outcomes move. The pattern in the text matches the length statistics reported earlier:
+first turn 17k to 74k characters of reasoning, later turns mostly under 300 ("Typo in solution.py: should be
+ZIP_DEFLATED not ZIP_DEFLATE. Let's fix it."), with occasional 3k to 7k turns after a failing test.
+PRISM-REPORT.md now points at bench/TR1/ for reasoning text and states that earlier coding runs hold lengths only.
+HE1 launched 01:22 (HumanEval 164, raw then layer, --arm medium --temp 0).

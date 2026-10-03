@@ -58,6 +58,12 @@ Also seen: **14 of 30 attempts contain a syntax error in a file the model wrote*
 mismatched braces). Not investigated further; it may be the model, or long code passing through the tool-call
 argument format.
 
+**Where the reasoning text is.** The single-turn runs (`H2/`, `H5/`, `E12/`, `A1/`, ...) store the full
+response including `reasoning_content`. The agentic coding runs through `P2/` stored reasoning *lengths* per turn,
+not the text (every file the model wrote, every tool call and result, and the final answers are there). Four
+reruns with the text saved per turn are in `TR1/` (bundle seed 251 and ZIP seed 253, raw and through the layer);
+coding runs from here on keep it.
+
 **Shallow repair turns.** In those 30 attempts the first turn reasons a median of 59,500 characters; later
 turns a median of 304 characters, and 49% of later turns reason under 300 characters, including turns right
 after a failing test. The model debugs one small probe at a time and runs out of turns.
