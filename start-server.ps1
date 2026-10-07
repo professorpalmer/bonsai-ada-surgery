@@ -8,6 +8,10 @@ function Select-CompleteGguf([string]$Path, [int64]$MinBytes) {
     if ((Get-Item $Path).Length -lt $MinBytes) { return $null }
     return $Path
 }
+# 8 GB cards (docs/8GB.md): q4_0 K/V, a 131k window, the Q4_0 MTP head with draft 1 / tail 1 when its file is present,
+# the shared CUDA pool and f16 prefill. Detected from total VRAM; BONSAI_8GB=1 forces it, BONSAI_8GB=0 turns it off.
+$TotalMiB = [int]((& nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits | Select-Object -First 1).Trim())
+$Small = if ($env:BONSAI_8GB) { $env:BONSAI_8GB -eq '1' } else { $TotalMiB -le 8704 }
 $Model = $null
 if ($env:BONSAI_MODEL) {
     # explicit pick, e.g. BONSAI_MODEL=Bonsai-2-27B-PTQ1_0-CRACK.gguf
@@ -15,7 +19,7 @@ if ($env:BONSAI_MODEL) {
     if (-not (Test-Path $p)) { throw "BONSAI_MODEL not found: $p" }
     $Model = $p
 }
-foreach ($pair in @(
+$Candidates = @(
         @{ Path = (Join-Path $Root 'models\Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf'); Min = 6390000000 },
         @{ Path = (Join-Path $Root 'models\Ternary-Bonsai-2-27B-PTQ1_0-mtp-lean.gguf'); Min = 6290000000 },
         @{ Path = (Join-Path $Root 'models\Ternary-Bonsai-2-27B-PTQ1_0.gguf'); Min = 5900000000 },
@@ -23,7 +27,12 @@ foreach ($pair in @(
         @{ Path = (Join-Path $Root 'models\Bonsai-2-27B-PTQ1_0-CRACK.gguf'); Min = 5900000000 },
         @{ Path = (Join-Path $Root 'models\Ternary-Bonsai-2-27B-PQ2_0.gguf'); Min = 7100000000 },
         @{ Path = (Join-Path $Root 'models\Bonsai-2-27B-PQ2_0-CRACK.gguf'); Min = 7100000000 }
-    )) {
+    )
+if ($Small) {
+    # build\make_mtp_q4head.ps1: the same graft with the head requantized to Q4_0 (-214 MiB on the card)
+    $Candidates = @(@{ Path = (Join-Path $Root 'models\Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations-q4head.gguf'); Min = 6180000000 }) + $Candidates
+}
+foreach ($pair in $Candidates) {
     if ($Model) { break }
     $Model = Select-CompleteGguf $pair.Path $pair.Min
 }
@@ -56,8 +65,9 @@ $ApiKey = (Get-Content -Path $ApiKeyFile -Raw).Trim()
 # BONSAI_KV_VRAM_CELLS pins N. BONSAI_TIER=0 (or an older binary): the all-VRAM cache in a 96k window
 # (128k/q8_0 plus the draft context pages on 12 GB).
 $Tier = ($env:BONSAI_TIER -ne '0') -and $HasTier
-$Ctx = if ($env:BONSAI_CTX) { [int]$env:BONSAI_CTX } elseif ($Tier) { 262144 } else { 98304 }
-$Ctk = if ($env:BONSAI_CTK) { $env:BONSAI_CTK } else { 'q8_0' }
+$Ctx = if ($env:BONSAI_CTX) { [int]$env:BONSAI_CTX } elseif ($Small) { 131072 } elseif ($Tier) { 262144 } else { 98304 }
+# 8 GB: q4_0 holds 2.3x the positions of q8_0 in the same VRAM (1 flipped top token in 48 at depth vs 1 in 171)
+$Ctk = if ($env:BONSAI_CTK) { $env:BONSAI_CTK } elseif ($Small) { 'q4_0' } else { 'q8_0' }
 $Port = if ($env:BONSAI_PORT) { [int]$env:BONSAI_PORT } else { 8080 }
 
 # ---- Reasoning ------------------------------------------------------------------------------------------
@@ -109,8 +119,19 @@ if ($env:BONSAI_BS -ne '0') { $BsArgs += '--backend-sampling' }   # typed: a one
 # (a verified token matches it decoded alone) at no measurable cost. Attention is not batch-invariant under
 # drafting (its KV split follows the kernel instance and the padded KV length): MTP-on output can differ from
 # MTP-off at the rounding level. Older binaries: drafting stops at 24k (BONSAI_SPEC_DEPTH), as measured then.
-$Spec = if ($env:BONSAI_SPEC) { [int]$env:BONSAI_SPEC } elseif ((Split-Path $Model -Leaf) -match '-mtp') { 2 } else { 0 }
-$SpecDeep = if ($env:BONSAI_SPEC_DEEP) { [int]$env:BONSAI_SPEC_DEEP } else { 4 }
+$Spec = if ($env:BONSAI_SPEC) { [int]$env:BONSAI_SPEC } elseif ((Split-Path $Model -Leaf) -match '-mtp') { if ($Small) { 1 } else { 2 } } else { 0 }
+# 8 GB: tail 1. The recurrent-state rollback ring is sized max(draft, tail); tail 2 holds one more 150 MiB plane.
+$SpecDeep = if ($env:BONSAI_SPEC_DEEP) { [int]$env:BONSAI_SPEC_DEEP } elseif ($Small) { 1 } else { 4 }
+$Ubatch = if ($env:BONSAI_UBATCH) { [int]$env:BONSAI_UBATCH } elseif ($Small -and $Spec -eq 0) { 1024 } else { 512 }
+if ($Small) {
+    # engine switches (ignored by older binaries): one CUDA pool for target and draft, a smaller draft micro-batch,
+    # and f16 prefill from pool memory up to the depth the margin holds
+    if ($Spec -gt 0) {
+        if (-not $env:GGML_CUDA_SHARED_POOL) { $env:GGML_CUDA_SHARED_POOL = '1' }
+        if (-not $env:LLAMA_MTP_DRAFT_UBATCH) { $env:LLAMA_MTP_DRAFT_UBATCH = '256' }
+    }
+    if (-not $env:GGML_CUDA_FA_PREFILL_F16) { $env:GGML_CUDA_FA_PREFILL_F16 = if ($Spec -gt 0) { '32768' } else { '65536' } }
+}
 $DraftWindow = if ($env:BONSAI_DRAFT_WINDOW) { [int]$env:BONSAI_DRAFT_WINDOW } else { 16384 }
 [string[]]$SpecArgs = @()
 $DraftCells = 0
@@ -151,6 +172,12 @@ if ($Tier) {
         $Margin = if ($env:BONSAI_VRAM_MARGIN) { [int]$env:BONSAI_VRAM_MARGIN } elseif ($Headless) { 1000 } else { 1300 }
         # weights (the token embedding stays in system RAM), recurrent state, compute buffers, CUDA context
         $FixedMiB = (Get-Item $Model).Length / 1MB - 265 + 150 + 400 + 300 + $DraftCells * $CellBytes / 16 / 1MB
+        if ($Small) {
+            # measured on an RTX 2060 SUPER with the desktop on it (docs/8GB.md): the server's fixed cost per mode
+            # and the free VRAM that held (drafting: 225 MiB; no head: 400, room for the f16 prefill copy at 64k)
+            $FixedMiB = if ($Spec -gt 0) { 6469 } elseif ($Ubatch -ge 1024) { 6218 } else { 5955 }
+            $Margin = if ($env:BONSAI_VRAM_MARGIN) { [int]$env:BONSAI_VRAM_MARGIN } elseif ($Spec -gt 0) { 225 } else { 400 }
+        }
         # KV head N*CellBytes plus the staging buffer (Ctx-N)*CellBytes/16 must fit in what is left
         $Budget = ($FreeMiB - $Margin - $FixedMiB) * 1MB - $Ctx * $CellBytes / 16
         $TierCells = [int]([math]::Floor($Budget / ($CellBytes * 15 / 16) / 256) * 256)
@@ -166,6 +193,7 @@ if ($Tier) {
     }
 }
 
+if ($Small) { Write-Host "8gb    preset on ($TotalMiB MiB card; BONSAI_8GB=0 turns it off): ub $Ubatch, f16 prefill to $($env:GGML_CUDA_FA_PREFILL_F16) cells" }
 Write-Host "model  $(Split-Path $Model -Leaf)"
 Write-Host "window $Ctx / $Ctk  (trained max 262144)"
 if ($TierCells -gt 0) { Write-Host "kv     tiered: cells 0..$TierCells in VRAM, $TierCells..$Ctx in system RAM$(if ($Margin) { " (VRAM margin $Margin MiB)" })" }
@@ -215,7 +243,7 @@ try {
     -c $Ctx `
     -np 1 `
     -b 2048 `
-    -ub 512 `
+    -ub $Ubatch `
     -ctk $Ctk `
     -ctv $Ctk `
     --host $ListenHost `

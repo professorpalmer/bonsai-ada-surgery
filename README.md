@@ -71,7 +71,8 @@ The serving flags behind every number are listed under [Quick start (Linux)](#qu
    PTX that RTX 50 cards compile at first load; they need only the NVIDIA driver.
 2. Put `Ternary-Bonsai-2-27B-PTQ1_0.gguf` from [prism-ml on Hugging Face](https://huggingface.co/prism-ml) in
    `models\`.
-3. Recommended: build the MTP draft-head file (lossless speculative decoding, +50-100% decode).
+3. Recommended: build the MTP draft-head file (speculative decoding, +50-100% decode; every token is the target
+   model's greedy choice, at rounding level not bit-identical to decoding without it, see docs/Q8_FULL_CONTEXT.md).
 
    ```powershell
    git clone -b bonsai-q8-product https://github.com/professorpalmer/llama.cpp-ada-ternary vendor\prism-llama
@@ -152,7 +153,7 @@ keeps ~220-275 MiB of compositor surfaces on the discrete card regardless, so th
 | --- | --- | --- |
 | 12 GB | defaults | this README |
 | 16 GB and up | defaults | the whole q8_0 window fits: the tier switches itself off |
-| 8 GB (2060 Super, 3060 Ti, 4060) | defaults, or `BONSAI_CTX=65536` | tiered KV keeps q8_0; expect speed in the ratio of your bandwidth to 504 GB/s. Untested here |
+| 8 GB (2060 Super, 3060 Ti, 4060) | defaults (the launcher detects the card), plus `build\make_mtp_q4head.ps1` | q4_0, 131k window, Q4_0 head, 47k positions in VRAM; 2060 SUPER with the desktop on it: decode 51 / 48 / 43 / 29 tok/s at 4k / 16k / 32k / 60k. [docs/8GB.md](docs/8GB.md) |
 
 Past the VRAM line decode is bound by PCIe (4.0 x16 here, ~23 GB/s). PCIe 3.0 or x8 slots halve those rows.
 
