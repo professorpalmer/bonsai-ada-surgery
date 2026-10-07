@@ -1,0 +1,16 @@
+=== 15:18 arm mtp cells 95000 depth 138000 health=1
+spec   draft 2 (4 past the VRAM line), draft window 16384
+code   think=0 tools=0: decode   25.2 tok/s (400 tok, evaluated 137341, finish length, tool_calls 0)
+prose  think=0 tools=0: decode   19.5 tok/s (400 tok, evaluated 512, finish length, tool_calls 0)
+code   think=1 tools=0: decode   34.2 tok/s (6283 tok, evaluated 514, finish stop, tool_calls 0)
+prose  think=1 tools=0: decode   20.6 tok/s (1188 tok, evaluated 510, finish stop, tool_calls 0)
+code   think=0 tools=1: decode   27.3 tok/s (50 tok, evaluated 137648, finish tool_calls, tool_calls 1)
+prose  think=0 tools=1: decode   20.2 tok/s (400 tok, evaluated 512, finish length, tool_calls 0)
+code   think=1 tools=1: decode   31.5 tok/s (22947 tok, evaluated 514, finish stop, tool_calls 0)
+prose  think=1 tools=1: decode   32.0 tok/s (8680 tok, evaluated 510, finish stop, tool_calls 0)
+13.03.962.051 I slot print_timing: id  0 | task 2360 | draft acceptance = 0.56667 (   34 accepted /    60 generated), mean len =  3.27
+13.25.704.134 I slot print_timing: id  0 | task 2446 | draft acceptance = 0.35143 (  233 accepted /   663 generated), mean len =  2.40
+25.35.377.589 I slot print_timing: id  0 | task 2615 | draft acceptance = 0.82575 (17615 accepted / 21332 generated), mean len =  4.30
+30.08.811.106 I slot print_timing: id  0 | task 7951 | draft acceptance = 0.75242 ( 6516 accepted /  8660 generated), mean len =  4.01
+10919 MiB, 4, 16
+=== 15:48 done

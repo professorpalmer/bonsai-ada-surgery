@@ -121,7 +121,8 @@ SUPER; until that row lands, `BONSAI_CTX=65536` is the untested starting point.
 `BONSAI_CTX` (262144), `BONSAI_CTK` (q8_0), `BONSAI_TIER` (1), `BONSAI_KV_VRAM_CELLS` (auto), `BONSAI_VRAM_MARGIN`
 (1000 headless / 1300 with the display on the card), `BONSAI_SPEC` / `BONSAI_SPEC_DEEP` (2 / 4), `BONSAI_DRAFT_WINDOW`
 (16384), `BONSAI_EFFORT` (medium), `BONSAI_THINK` (1), `BONSAI_THINK_BUDGET` (20480), `BONSAI_HARNESS_PROOF` (1),
-`BONSAI_LAYER` (1), `BONSAI_PORT`, `BONSAI_MODEL`. Full table and the VRAM arithmetic in the repository README.
+`BONSAI_LAYER` (1), `BONSAI_PORT`, `BONSAI_MODEL`, `BONSAI_MMPROJ` / `BONSAI_MMPROJ_GPU` (vision projector;
+image encoder on the CPU by default, no VRAM cost). Full table and the VRAM arithmetic in the repository README.
 
 ## How it works, in one paragraph each
 
@@ -163,13 +164,16 @@ token-for-token against the unpatched fork before any speed number is recorded.
 ## Credits and licenses
 
 - **PrismML** for Bonsai 2 27B and the [llama.cpp fork](https://github.com/PrismML-Eng/llama.cpp) this runtime is
-  built on. The serving patches are submitted there (#319-#323, #295, #296; earlier work merged in #214, #216, #221).
+  built on. The serving patches are submitted there (#319-#323, #295, #296, #333; earlier work merged in #214, #216, #221).
 - **sudoingX** for the planar-transposed activation layout, the batch-invariant mode, the MTP graft tools and the
   Hadamard fix for the draft graph ([bonsai2-small-gpu](https://github.com/sudoingX/bonsai2-small-gpu), PrismML #217,
   #218).
 - **ProCreations** for the on-policy MTP draft head
   ([Ternary-Bonsai-2-27B-MTP](https://huggingface.co/ProCreations/Ternary-Bonsai-2-27B-MTP)).
 - **Alibaba Qwen** for Qwen3.5-27B, the base model.
+- **Testers who filed issues with full logs:** [@Milor123](https://github.com/Milor123) (empty JSON-schema unions,
+  the vision projector and GPU sharing, deep-context agent runs) and
+  [@outbackdingo](https://github.com/outbackdingo) (GCC 16 build).
 - The serving stack, launcher, layer, suite and docs: MIT, Cary Palmer. The weights are Apache 2.0 as published by
   PrismML; this repository redistributes them with the head added and the notices kept. Not affiliated with,
   endorsed by or sponsored by PrismML, sudoingX, ProCreations or Alibaba.
