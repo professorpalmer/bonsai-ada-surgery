@@ -1,7 +1,7 @@
 # Bonsai 2 27B on an 8 GB card that also draws the desktop
 
-> DRAFT (2026-10-07). Numbers are from the development builds of the night (same code paths as the release candidate);
-> they are replaced by the release-candidate verification run before this page ships.
+> DRAFT (2026-10-07). Mode numbers below are the release-candidate build (Turing fix + shared pool + f16 prefill,
+> sm_75/86/89 + PTX) verified on this card; the build is not published yet.
 
 Measured 2026-10-06/07 on an RTX 2060 SUPER 8 GB (Turing sm_75, PCIe 3.0 x16, stock clocks, power limit 175 W, fan
 100%) that also draws the Windows desktop at 1280x1024 (idle 323-404 MiB), Ryzen 5 2600, 32 GB. Bonsai 2 27B `PTQ1_0`,
@@ -18,8 +18,8 @@ extending the previous prompt). Plans and gates were written before each run; ra
 | positions in VRAM | 47,360 | 53,248 |
 | micro-batch | 512 | 1024 |
 | f16 prefill (`GGML_CUDA_FA_PREFILL_F16`) | up to 32,768 cells | up to 65,536 cells |
-| decode 4k / 16k / 32k / 60k (tok/s) | 51.7 / 48.0 / 43.5 / 29.5 | 43.6 / 38.8 / 34.1 / 22.4 |
-| prefill 4k / 16k / 32k / 60k (tok/s) | 411 / 369 / 309 / 190 | 433 / 391 / 328 / 256 |
+| decode 4k / 16k / 32k / 60k (tok/s) | 51.2 / 47.5 / 43.1 / 29.4 | 43.7 / 39.0 / 34.3 / 22.5 |
+| prefill 4k / 16k / 32k / 60k (tok/s) | 411 / 369 / 309 / 192 | 433 / 391 / 329 / 257 |
 
 Same weights on this card with a community 8 GB recipe (64k window, q4_0, all in VRAM, no head) measured decode
 37.2 / 30.4 / 24.5 / 17.5 and prefill 427 / 382 / 320 / 256 at the same depths.
