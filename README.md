@@ -152,6 +152,15 @@ Measured on this 4070: desktop VRAM 930 -> 285 MiB, the safe margin 1300 -> 1000
 positions, decode at 112k from PCIe-bound to 70 tok/s. ([chart](docs/img/igpu.png)) (Estimated beforehand: ~1 GB and ~30k positions. Windows
 keeps ~220-275 MiB of compositor surfaces on the discrete card regardless, so the real gain was ~17k.)
 
+### Keep the card to yourself
+
+An app that keeps working on the GPU slows the server even when it uses no VRAM: Windows time-slices the card
+between them, and MTP drafting (many short kernels per token) loses the most. Found by
+[@Milor123](https://github.com/professorpalmer/bonsai-ada-surgery/issues/4): with KDE Connect running on the RTX 4070,
+drafting gave 56 tok/s at 16k instead of 83; set to the iGPU, 83. The launcher samples GPU activity before it starts
+the server and prints a `warn` line with the apps on the card when the GPU is already busy. Close the app or set it
+to the integrated GPU in **Settings > System > Display > Graphics**.
+
 ### Other cards
 
 | Card | Recipe | Notes |

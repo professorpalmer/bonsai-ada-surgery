@@ -198,6 +198,22 @@ if ($Layer) {
     Remove-Item Env:BONSAI_LAYER_KEY
     Write-Host "layer  on: clients use :$Port (API cards, API check, sandboxed Python); llama-server on 127.0.0.1:$InnerPort"
 }
+# Another app busy on this GPU (rendering or computing on the card) slows the server even when it uses no VRAM:
+# Windows time-slices the GPU between them, and MTP drafting (many short kernels per token) loses the most. Measured
+# by Milor123 (issue #4): 56 -> 83 tok/s at 16k after moving kdeconnect-app.exe to the iGPU. Warn, never block.
+try {
+    $Busy = 0
+    foreach ($i in 1..6) {
+        $u = [int]((& nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits | Select-Object -First 1).Trim())
+        if ($u -gt $Busy) { $Busy = $u }
+        Start-Sleep -Milliseconds 250
+    }
+    if ($Busy -ge 10) {
+        $Apps = (& nvidia-smi) | Select-String '^\|\s+\d+\s+\S+\s+\S+\s+\d+\s+(C\+G|G|C)\s+(\S+)' | ForEach-Object { Split-Path $_.Matches[0].Groups[2].Value -Leaf } | Where-Object { $_ -ne 'llama-server.exe' } | Sort-Object -Unique
+        Write-Host ("warn   the GPU is {0}% busy before the server starts: one of these apps is working on this card: {1}. Drafting slows when the GPU is shared;" -f $Busy, ($Apps -join ', '))
+        Write-Host "       close it or set it to the integrated GPU (Settings > System > Display > Graphics), then restart."
+    }
+} catch { }
 Set-Location $Bin
 try {
 & .\llama-server.exe @TierArgs @SpecArgs @BsArgs @BudgetMsgArgs @HarnessArgs `
