@@ -178,6 +178,11 @@ def apply_finish_note(body, msgs):
     tools = body.get("tools") or []
     if not any(apicards.CODING_TOOL_RE.search(t.get("function", {}).get("name", "")) for t in tools):
         return msgs, 0
+    # Only when the layer's own sandbox is the coding tool. Measured with run_python (E15/E21); a client that brings
+    # its own tools (Hermes, Cline, ...) gets an instruction to "run the program you wrote" on turns where no program
+    # exists, and the model obliges by writing one (issue #4 triage, 2026-10-07).
+    if any(t.get("function", {}).get("name") != TOOL_NAME for t in tools):
+        return msgs, 0
     for i, m in enumerate(msgs):
         if m.get("role") == "user" and isinstance(m.get("content"), str):
             if FINISH_NOTE in m["content"]:
