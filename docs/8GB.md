@@ -24,6 +24,13 @@ extending the previous prompt). Plans and gates were written before each run; ra
 Same weights on this card with a community 8 GB recipe (64k window, q4_0, all in VRAM, no head) measured decode
 37.2 / 30.4 / 24.5 / 17.5 and prefill 427 / 382 / 320 / 256 at the same depths.
 
+## Quality
+
+HumanEval 164 (`bench/humaneval_run.py --arm medium`, temp 0, 20,480-token cap, layer off), drafting mode on this card:
+q4_0 K/V 157/164, q8_0 K/V 159/164 (the 12 GB q8_0 runs: 159-161). The two failure sets overlap except for two problems
+q4_0 also missed. For exact-syntax work that fits in ~20k tokens, `BONSAI_CTK=q8_0` trades positions in VRAM (about
+21k instead of 47k) for that margin; the launcher sizes the line for it.
+
 ## What decides it on 8 GB
 
 1. **Positions are the product.** Past the VRAM line, decode on PCIe 3.0 reads the host tail: q8_0 with 16,384
