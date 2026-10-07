@@ -47,8 +47,23 @@ if ! git -C "$SRC" diff --binary HEAD | cmp -s - "$SRC/.git/bonsai-applied.patch
     exit 1
 fi
 
+# Host compiler for nvcc. CUDA 13.x refuses gcc newer than 15 (Fedora 43 ships 16; issue #5). Two ways through:
+#   BONSAI_CUDA_HOST_COMPILER=/usr/bin/g++-15   point nvcc at a supported g++ (preferred; dnf install gcc15-c++ on Fedora)
+#   BONSAI_ALLOW_UNSUPPORTED_COMPILER=1          pass nvcc's -allow-unsupported-compiler (works in practice, NVIDIA's "own risk")
+# When neither is set and the default g++ is newer than nvcc supports, the script picks the second with a warning.
+CUDA_EXTRA=()
+if [[ -n ${BONSAI_CUDA_HOST_COMPILER:-} ]]; then
+    CUDA_EXTRA+=(-DCMAKE_CUDA_HOST_COMPILER="$BONSAI_CUDA_HOST_COMPILER")
+else
+    gcc_major=$(c++ -dumpfullversion -dumpversion 2>/dev/null | cut -d. -f1)
+    nvcc_major=$(nvcc --version 2>/dev/null | sed -n 's/.*release \([0-9]*\)\..*/\1/p')
+    if [[ ${BONSAI_ALLOW_UNSUPPORTED_COMPILER:-} == 1 ]] || { [[ ${nvcc_major:-0} -ge 13 ]] && [[ ${gcc_major:-0} -gt 15 ]]; }; then
+        echo "Host g++ $gcc_major is newer than CUDA $nvcc_major supports: building with -allow-unsupported-compiler (set BONSAI_CUDA_HOST_COMPILER to a supported g++ instead if the build misbehaves)." >&2
+        CUDA_EXTRA+=(-DCMAKE_CUDA_FLAGS=-allow-unsupported-compiler)
+    fi
+fi
 cmake -S "$SRC" -B "$SRC/build-linux" -DGGML_CUDA=ON \
-    -DCMAKE_BUILD_TYPE=Release -DCMAKE_CUDA_ARCHITECTURES="$ARCH"
+    -DCMAKE_BUILD_TYPE=Release -DCMAKE_CUDA_ARCHITECTURES="$ARCH" "${CUDA_EXTRA[@]}"
 cmake --build "$SRC/build-linux" --target llama-server -j "$JOBS"
 [[ -x "$SRC/build-linux/bin/llama-server" ]] || { echo 'Build did not produce llama-server.' >&2; exit 1; }
 printf '%s\n' "$SRC/build-linux/bin/llama-server" > "$ROOT/tooling/linux-server-path"
