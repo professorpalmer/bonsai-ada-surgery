@@ -1,0 +1,382 @@
+From 8a7d9fdebec2760e41d26b48d7937d0087f78278 Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Wed, 7 Oct 2026 16:38:53 -0500
+Subject: [PATCH] server: report reasoning tokens and a budget force-close; a
+ per-request budget raises the output cap
+
+A client could only see a force-close by finding the budget message inside reasoning_content.
+The reasoning-budget sampler now counts the tokens it accepts inside reasoning blocks and records
+when the budget (not a manual reasoning_end) forced the end sequence. The final response carries
+both: timings.reasoning_n, timings.reasoning_budget_exhausted, and
+usage.completion_tokens_details.reasoning_tokens (OpenAI field), streaming and non-streaming, only
+when the request ran with a budget sampler.
+
+With --reasoning-max-tokens-floor on, a per-request reasoning_budget_tokens above the server
+budget moves the floor to budget + 4096, and a request with no output cap gets that floor as
+n_predict instead of the server default -n. Before, a client that sent a 40960 budget and no
+max_tokens was cut off at -n inside its thinking.
+
+Tests: test-reasoning-budget covers the report (natural end, exhaustion, clone/reset, manual
+force, budget 0, re-armed blocks, null sampler). Live check on Qwen3.5-2B (CPU):
+bench/budget_report_probe.py in bonsai-ada-surgery, 4/4.
+---
+ common/reasoning-budget.cpp     | 29 ++++++++++++-
+ common/reasoning-budget.h       |  4 ++
+ common/sampling.cpp             |  8 ++++
+ common/sampling.h               |  3 ++
+ tests/test-reasoning-budget.cpp | 72 +++++++++++++++++++++++++++++++++
+ tools/server/server-common.cpp  | 26 ++++++++++--
+ tools/server/server-common.h    |  5 +++
+ tools/server/server-context.cpp | 12 ++++++
+ tools/server/server-task.cpp    |  6 ++-
+ 9 files changed, 160 insertions(+), 5 deletions(-)
+
+diff --git a/common/reasoning-budget.cpp b/common/reasoning-budget.cpp
+index 4884299f3..4aedbc4a0 100644
+--- a/common/reasoning-budget.cpp
++++ b/common/reasoning-budget.cpp
+@@ -65,6 +65,10 @@ struct common_reasoning_budget_ctx {
+     size_t force_pos;         // next position in forced_tokens to force
+ 
+     int32_t end_match;        // index into end_matcher.seqs of the sequence that transitioned to DONE, -1 if none
++
++    // reporting (whole response, across re-armed blocks)
++    int32_t n_reasoning = 0;  // tokens accepted inside reasoning blocks, end sequence and forced tokens included
++    bool    exhausted   = false; // the budget ran out and the end sequence was forced at least once
+ };
+ 
+ static const char * common_reasoning_budget_name(const struct llama_sampler * /*smpl*/) {
+@@ -74,6 +78,11 @@ static const char * common_reasoning_budget_name(const struct llama_sampler * /*
+ static void common_reasoning_budget_accept(struct llama_sampler * smpl, llama_token token) {
+     auto * ctx = (common_reasoning_budget_ctx *) smpl->ctx;
+ 
++    if (ctx->state == REASONING_BUDGET_COUNTING || ctx->state == REASONING_BUDGET_WAITING_UTF8 ||
++        ctx->state == REASONING_BUDGET_FORCING) {
++        ctx->n_reasoning++;
++    }
++
+     switch (ctx->state) {
+         case REASONING_BUDGET_IDLE:
+         {
+@@ -85,6 +94,7 @@ static void common_reasoning_budget_accept(struct llama_sampler * smpl, llama_to
+                 if (ctx->remaining <= 0) {
+                     ctx->state = REASONING_BUDGET_FORCING;
+                     ctx->force_pos = 0;
++                    ctx->exhausted = true;
+                     COM_TRC("%s", "budget=0, forcing immediately\n");
+                 }
+             }
+@@ -117,6 +127,7 @@ static void common_reasoning_budget_accept(struct llama_sampler * smpl, llama_to
+             } else if (ctx->state == REASONING_BUDGET_COUNTING) {
+                 ctx->remaining--;
+                 if (ctx->remaining <= 0) {
++                    ctx->exhausted = true;
+                     if (utf8_complete) {
+                         ctx->state = REASONING_BUDGET_FORCING;
+                         ctx->force_pos = 0;
+@@ -156,6 +167,7 @@ static void common_reasoning_budget_accept(struct llama_sampler * smpl, llama_to
+                 if (ctx->remaining <= 0) {
+                     ctx->state = REASONING_BUDGET_FORCING;
+                     ctx->force_pos = 0;
++                    ctx->exhausted = true;
+                     COM_TRC("%s", "budget=0, forcing immediately\n");
+                 }
+             }
+@@ -193,6 +205,8 @@ static void common_reasoning_budget_reset(struct llama_sampler * smpl) {
+     ctx->end_matcher.reset();
+     ctx->force_pos = 0;
+     ctx->end_match = -1;
++    ctx->n_reasoning = 0;
++    ctx->exhausted = false;
+ }
+ 
+ static struct llama_sampler * common_reasoning_budget_init_state(
+@@ -238,7 +252,8 @@ static struct llama_sampler * common_reasoning_budget_init_state(
+         int32_t                           budget,
+         common_reasoning_budget_state     initial_state) {
+     // promote COUNTING with budget <= 0 to FORCING
+-    if (initial_state == REASONING_BUDGET_COUNTING && budget <= 0) {
++    const bool exhausted_at_init = initial_state == REASONING_BUDGET_COUNTING && budget <= 0;
++    if (exhausted_at_init) {
+         initial_state = REASONING_BUDGET_FORCING;
+     }
+ 
+@@ -254,6 +269,8 @@ static struct llama_sampler * common_reasoning_budget_init_state(
+             /* .state         = */ initial_state,
+             /* .force_pos     = */ 0,
+             /* .end_match     = */ -1,
++            /* .n_reasoning   = */ 0,
++            /* .exhausted     = */ exhausted_at_init,
+         }
+     );
+ }
+@@ -288,6 +305,16 @@ const llama_tokens * common_reasoning_budget_get_end_match(const struct llama_sa
+     return &ctx->end_matcher.seqs[ctx->end_match];
+ }
+ 
++void common_reasoning_budget_get_report(const struct llama_sampler * smpl, int32_t * n_reasoning, bool * exhausted) {
++    const auto * ctx = smpl ? (const common_reasoning_budget_ctx *) smpl->ctx : nullptr;
++    if (n_reasoning) {
++        *n_reasoning = ctx ? ctx->n_reasoning : 0;
++    }
++    if (exhausted) {
++        *exhausted = ctx ? ctx->exhausted : false;
++    }
++}
++
+ bool common_reasoning_budget_force(struct llama_sampler * smpl) {
+     if (!smpl) {
+         return false;
+diff --git a/common/reasoning-budget.h b/common/reasoning-budget.h
+index 1b89a04c4..8e4c0b822 100644
+--- a/common/reasoning-budget.h
++++ b/common/reasoning-budget.h
+@@ -47,6 +47,10 @@ common_reasoning_budget_state common_reasoning_budget_get_state(const struct lla
+ // was recorded. Cleared when a new start sequence re-arms the sampler.
+ const llama_tokens * common_reasoning_budget_get_end_match(const struct llama_sampler * smpl);
+ 
++// Tokens accepted inside reasoning blocks so far, and whether the budget ran out (end sequence forced by the
++// budget, not by common_reasoning_budget_force). Both are 0 / false for a null sampler.
++void common_reasoning_budget_get_report(const struct llama_sampler * smpl, int32_t * n_reasoning, bool * exhausted);
++
+ // Manually transition the reasoning budget sampler into the FORCING state.
+ // Returns true if the transition occurred.
+ bool common_reasoning_budget_force(struct llama_sampler * smpl);
+diff --git a/common/sampling.cpp b/common/sampling.cpp
+index dd5b14823..ddb1a516f 100644
+--- a/common/sampling.cpp
++++ b/common/sampling.cpp
+@@ -742,6 +742,14 @@ uint32_t common_sampler_get_seed(const struct common_sampler * gsmpl) {
+     return llama_sampler_get_seed(gsmpl->chain);
+ }
+ 
++bool common_sampler_reasoning_budget_report(const struct common_sampler * gsmpl, int32_t * n_reasoning, bool * exhausted) {
++    if (!gsmpl || !gsmpl->rbudget) {
++        return false;
++    }
++    common_reasoning_budget_get_report(gsmpl->rbudget, n_reasoning, exhausted);
++    return true;
++}
++
+ bool common_sampler_reasoning_budget_force(struct common_sampler * gsmpl) {
+     if (!gsmpl) {
+         return false;
+diff --git a/common/sampling.h b/common/sampling.h
+index ced3c8364..257b2e26b 100644
+--- a/common/sampling.h
++++ b/common/sampling.h
+@@ -93,6 +93,9 @@ uint32_t common_sampler_get_seed(const struct common_sampler * gsmpl);
+ // force the reasoning budget sampler (if any) to begin forcing its end sequence now.
+ bool common_sampler_reasoning_budget_force(struct common_sampler * gsmpl);
+ 
++// reasoning tokens and budget force-close for the current response; false when there is no budget sampler
++bool common_sampler_reasoning_budget_report(const struct common_sampler * gsmpl, int32_t * n_reasoning, bool * exhausted);
++
+ // helpers
+ 
+ // access the internal list of current candidate tokens
+diff --git a/tests/test-reasoning-budget.cpp b/tests/test-reasoning-budget.cpp
+index 3bcc77e17..4ac835f1c 100644
+--- a/tests/test-reasoning-budget.cpp
++++ b/tests/test-reasoning-budget.cpp
+@@ -358,6 +358,77 @@ static void test_utf8_boundary_detection() {
+     GGML_ASSERT(common_utf8_is_complete(std::string("hello\xC3\xA9", 7)));    // ASCII + complete 2-byte
+ }
+ 
++static void report(llama_sampler * s, int32_t & n, bool & ex) { common_reasoning_budget_get_report(s, &n, &ex); }
++
++static void test_reasoning_budget_report() {
++    const std::vector<llama_token> start  = {100};
++    const std::vector<llama_token> end    = {101};
++    const std::vector<llama_token> forced = {102, 101};
++    int32_t n = -1; bool ex = true;
++
++    // natural end: tokens after the start tag through the end tag are counted, nothing forced
++    {
++        auto * s = common_reasoning_budget_init(nullptr, {start}, {end}, forced, 5, REASONING_BUDGET_IDLE);
++        for (llama_token t : {100, 50, 51, 101, 52}) { llama_sampler_accept(s, t); }
++        report(s, n, ex);
++        GGML_ASSERT(n == 3 && !ex && "natural end: 3 reasoning tokens, not exhausted");
++        llama_sampler_free(s);
++    }
++    // budget exhausted: the forced message and end tag count as reasoning, exhausted is set
++    {
++        auto * s = common_reasoning_budget_init(nullptr, {start}, {end}, forced, 2, REASONING_BUDGET_IDLE);
++        for (llama_token t : {100, 50, 51, 102, 101, 52}) { llama_sampler_accept(s, t); }
++        GGML_ASSERT(common_reasoning_budget_get_state(s) == REASONING_BUDGET_DONE);
++        report(s, n, ex);
++        GGML_ASSERT(n == 4 && ex && "exhausted: 4 reasoning tokens, exhausted");
++        // a clone carries the report; reset clears it
++        auto * c = llama_sampler_clone(s);
++        report(c, n, ex);
++        GGML_ASSERT(n == 4 && ex);
++        llama_sampler_reset(c);
++        report(c, n, ex);
++        GGML_ASSERT(n == 0 && !ex);
++        llama_sampler_free(c);
++        llama_sampler_free(s);
++    }
++    // manual force is the client's choice, not the budget's: not reported as exhausted
++    {
++        auto * s = common_reasoning_budget_init(nullptr, {start}, {end}, forced, 5, REASONING_BUDGET_IDLE);
++        llama_sampler_accept(s, 100);
++        llama_sampler_accept(s, 50);
++        GGML_ASSERT(common_reasoning_budget_force(s));
++        llama_sampler_accept(s, 102);
++        llama_sampler_accept(s, 101);
++        report(s, n, ex);
++        GGML_ASSERT(n == 3 && !ex && "manual force: not exhausted");
++        llama_sampler_free(s);
++    }
++    // budget 0 forces at once: exhausted, both when armed by the start tag and when promoted at init
++    {
++        auto * s = common_reasoning_budget_init(nullptr, {start}, {end}, forced, 0, REASONING_BUDGET_IDLE);
++        llama_sampler_accept(s, 100);
++        report(s, n, ex);
++        GGML_ASSERT(ex && "budget 0 armed by the start tag: exhausted");
++        llama_sampler_free(s);
++        s = common_reasoning_budget_init(nullptr, {start}, {end}, forced, 0, REASONING_BUDGET_COUNTING);
++        report(s, n, ex);
++        GGML_ASSERT(n == 0 && ex && "budget 0 promoted at init: exhausted");
++        llama_sampler_free(s);
++    }
++    // re-armed blocks accumulate
++    {
++        auto * s = common_reasoning_budget_init(nullptr, {start}, {end}, forced, 5, REASONING_BUDGET_IDLE);
++        for (llama_token t : {100, 50, 101, 60, 100, 51, 52, 101}) { llama_sampler_accept(s, t); }
++        report(s, n, ex);
++        GGML_ASSERT(n == 5 && !ex && "two blocks: 2 + 3 reasoning tokens");
++        llama_sampler_free(s);
++    }
++    // null sampler
++    report(nullptr, n, ex);
++    GGML_ASSERT(n == 0 && !ex);
++    printf("  Test 'budget report' passed\n");
++}
++
+ int main(void) {
+     // Reasoning budget sampler tests
+     printf("Testing reasoning budget sampler... ");
+@@ -493,6 +564,7 @@ int main(void) {
+     test_reasoning_budget_clone_mid_counting();
+     test_reasoning_budget_clone_mid_forcing();
+     test_reasoning_budget_force_manual();
++    test_reasoning_budget_report();
+     test_reasoning_budget_end_match();
+ 
+     printf("OK (12 tests passed)\n");
+diff --git a/tools/server/server-common.cpp b/tools/server/server-common.cpp
+index 48466405e..354a83b31 100644
+--- a/tools/server/server-common.cpp
++++ b/tools/server/server-common.cpp
+@@ -85,6 +85,12 @@ json server_slot_stats::to_json() const {
+         base["draft_n_accepted"] = n_draft_accepted;
+     }
+ 
++    // a client can count force-closed turns without parsing reasoning_content for the budget message
++    if (reasoning_tracked) {
++        base["reasoning_n"]                = n_reasoning;
++        base["reasoning_budget_exhausted"] = reasoning_budget_exhausted;
++    }
++
+     return base;
+ }
+ 
+@@ -1411,16 +1417,30 @@ json oaicompat_chat_params_parse(
+     // --reasoning-max-tokens-floor: with thinking on, a client output cap below the floor is raised to it. A
+     // thinking model spends its first thousands of tokens inside the thinking block; a 256-4096 token app cap
+     // ends the request there with no answer. The reasoning budget still bounds the thinking.
++    // A per-request budget above the server's moves the floor with it (budget + 4096, the launcher's rule), and a
++    // request with no cap gets that floor instead of the server default -n: without this, a client that sends
++    // reasoning_budget_tokens 40960 and no max_tokens is cut off at -n inside its thinking.
+     if (opt.reasoning_max_tokens_floor > 0 && inputs.enable_thinking && !chat_params.thinking_end_tags.empty()) {
++        int floor = opt.reasoning_max_tokens_floor;
++        const int req_budget = llama_params.value("reasoning_budget_tokens", -1);
++        if (req_budget > opt.reasoning_budget && req_budget >= 0) {
++            floor = std::max(floor, req_budget + 4096);
++        }
++        bool has_cap = false;
+         for (const char * key : {"n_predict", "max_tokens", "max_completion_tokens"}) {
+             if (llama_params.contains(key) && llama_params.at(key).is_number_integer()) {
+                 const int v = llama_params.at(key).get<int>();
+-                if (v > 0 && v < opt.reasoning_max_tokens_floor) {
+-                    SRV_INF("%s %d raised to %d (thinking on, --reasoning-max-tokens-floor)\n", key, v, opt.reasoning_max_tokens_floor);
+-                    llama_params[key] = opt.reasoning_max_tokens_floor;
++                has_cap = has_cap || v > 0;
++                if (v > 0 && v < floor) {
++                    SRV_INF("%s %d raised to %d (thinking on, --reasoning-max-tokens-floor)\n", key, v, floor);
++                    llama_params[key] = floor;
+                 }
+             }
+         }
++        if (!has_cap && floor > opt.reasoning_max_tokens_floor) {
++            SRV_INF("no output cap; n_predict set to %d (request reasoning budget %d)\n", floor, req_budget);
++            llama_params["n_predict"] = floor;
++        }
+     }
+ 
+     return llama_params;
+diff --git a/tools/server/server-common.h b/tools/server/server-common.h
+index 9f697ce25..7ff967ea8 100644
+--- a/tools/server/server-common.h
++++ b/tools/server/server-common.h
+@@ -357,6 +357,11 @@ struct server_slot_stats {
+     uint64_t n_draft_accepted    = 0;
+     uint64_t n_draft_verif_steps = 0;
+ 
++    // reasoning budget report (only when the request ran with a budget sampler)
++    bool     reasoning_tracked          = false;
++    uint64_t n_reasoning                = 0;
++    bool     reasoning_budget_exhausted = false;
++
+     // these are absolute timestamps (in us)
+     // note: must be signed - they are subtracted before the later ones are set
+     int64_t t_start       = 0;
+diff --git a/tools/server/server-context.cpp b/tools/server/server-context.cpp
+index 5e3420509..d48792a83 100644
+--- a/tools/server/server-context.cpp
++++ b/tools/server/server-context.cpp
+@@ -2069,6 +2069,18 @@ private:
+             res->content     = std::move(slot.generated_text);
+             res->tokens      = std::move(slot.generated_tokens);
+         }
++        {
++            int32_t n_reasoning = 0;
++            bool    exhausted   = false;
++            if (common_sampler_reasoning_budget_report(slot.smpl.get(), &n_reasoning, &exhausted)) {
++                slot.stats.reasoning_tracked          = true;
++                slot.stats.n_reasoning                = n_reasoning;
++                slot.stats.reasoning_budget_exhausted = exhausted;
++                if (exhausted) {
++                    SLT_INF(slot, "reasoning budget exhausted after %d reasoning tokens (end forced)\n", n_reasoning);
++                }
++            }
++        }
+         res->stats           = slot.stats;
+         res->prompt          = slot.task->tokens.detokenize(ctx_tgt, true);
+         res->response_fields = std::move(slot.task->params.response_fields);
+diff --git a/tools/server/server-task.cpp b/tools/server/server-task.cpp
+index 0d3beb313..dde0e720b 100644
+--- a/tools/server/server-task.cpp
++++ b/tools/server/server-task.cpp
+@@ -363,12 +363,16 @@ json server_task_result_cmpl_final::to_json_non_oaicompat() {
+ }
+ 
+ json server_task_result_cmpl_final::usage_json_oaicompat() {
+-    return json {
++    json usage = {
+         {"completion_tokens", n_decoded},
+         {"prompt_tokens",     n_prompt_tokens},
+         {"total_tokens",      n_decoded + n_prompt_tokens},
+         {"prompt_tokens_details", json { {"cached_tokens", n_prompt_tokens_cache} }},
+     };
++    if (stats.reasoning_tracked) {
++        usage["completion_tokens_details"] = json { {"reasoning_tokens", stats.n_reasoning} };
++    }
++    return usage;
+ }
+ 
+ json server_task_result_cmpl_final::to_json_oaicompat() {
+-- 
+2.55.0.windows.3
+

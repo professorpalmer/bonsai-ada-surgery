@@ -78,7 +78,7 @@ those; the layer adds exact references and a sandbox. The weights are untouched.
 | file | what | size |
 | --- | --- | ---: |
 | `Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf` | PrismML's PTQ1_0 file with the on-policy Q8_0 MTP draft head from [ProCreations/Ternary-Bonsai-2-27B-MTP](https://huggingface.co/ProCreations/Ternary-Bonsai-2-27B-MTP) grafted on as `blk.64.*`; every original tensor byte-identical to PrismML's file (proof below). This is the file the launcher uses: lossless speculative decoding, 70.6% draft acceptance, +50-100% decode | 6.40 GB |
-| `bonsai-bundle-win-x64.zip` | Windows binaries: the patched llama.cpp (PrismML fork + 34 patches), sm_75 / 86 / 89 machine code (RTX 20 / 30 / 40) plus compute_89 PTX for RTX 50, CUDA 13 runtime included, NVIDIA driver only. Launcher, layer, suite and docs at the release tag (`bundle-20261007-fixes`) | 608 MB |
+| `bonsai-bundle-win-x64.zip` | Windows binaries: the patched llama.cpp (PrismML fork + 35 patches), sm_75 / 86 / 89 machine code (RTX 20 / 30 / 40) plus compute_89 PTX for RTX 50, CUDA 13 runtime included, NVIDIA driver only. Launcher, layer, suite and docs at the release tag (`bundle-20261007-budget`) | 608 MB |
 | `start-server.ps1` | the launcher (also inside the bundle): reads free VRAM, sizes the VRAM line, starts the layer and the server | |
 
 The original `Ternary-Bonsai-2-27B-PTQ1_0.gguf` without the head also works with everything here (`BONSAI_SPEC=0`
@@ -100,7 +100,7 @@ llama.cpp's chat UI on the same port. The launcher prints the VRAM line it chose
 `layer\fetch_runtime.ps1` downloads the sandbox runtime for the layer (CPython 3.12 on WASI, checksummed, 14 isolation
 canaries); without it the plain server runs.
 
-Linux: `bash build/build_linux.sh` in the repository builds the pinned PrismML source with all 34 patches applied;
+Linux: `bash build/build_linux.sh` in the repository builds the pinned PrismML source with all 35 patches applied;
 the full-window command line is in the repository README. No prebuilt Linux binary yet.
 
 Cards: 12 GB is the measured recipe (display on the iGPU: ~113k positions in VRAM; display on the card: ~95k).
@@ -156,7 +156,7 @@ template with `--jinja`, so this file serves with that template; PrismML's origi
 | --- | --- |
 | `Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf` | `5f212d02ff57cb8eaad260fd7ff57bfaff87ae2bc9183a21dd2f127c27252505` |
 | PrismML's `Ternary-Bonsai-2-27B-PTQ1_0.gguf` (the base) | `53107f530aa52eb00912263ab1ee29bd199261c87cd7b4ad4ca1318c1fe33ee3` |
-| `bonsai-bundle-win-x64.zip` | `be6bcc0e564e0e8a9e98670a115354460270466df026d841a5d2776a757d4165` |
+| `bonsai-bundle-win-x64.zip` | `8e82b8d51a3e6fb6e1bdce1b922bbd85eb55dad6c15b8c284f60d96081fe18a3` |
 
 Every kernel in the stack is checked against the CPU reference, and the served output is checked greedy
 token-for-token against the unpatched fork before any speed number is recorded.
