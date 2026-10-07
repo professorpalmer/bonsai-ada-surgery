@@ -100,8 +100,11 @@ the tiered-KV runtime are detected and get the previous 96k all-VRAM recipe.
 
 ### Upgrading from an older bundle
 
-The engine binaries have not changed since `bundle-20260927` (the 262k / q8_0 tiered cache, MTP drafting at every
-depth, harness-proofing). What the later bundles add runs beside them:
+`bundle-20261007` rebuilds the engine binaries for the first time since `bundle-20260927`: the same 33 patches plus
+patch 0034, which stops JSON schemas with an empty `anyOf` / `oneOf` / `type` from failing the request (issue #3;
+agent frameworks such as Hermes send them). Greedy output is identical to the previous binaries. The same bundle
+carries two layer fixes from issues #3 and #4 and the Linux build fix from #5 (details in the release notes).
+What the bundles between those two added runs beside the engine:
 
 - `bundle-20261003`: **the Bonsai layer**, a small Python proxy the launcher starts in front of llama-server on the
   same port. It gives the model exact API cards for the Python modules a coding request involves, checks its code
@@ -115,7 +118,7 @@ depth, harness-proofing). What the later bundles add runs beside them:
   `test_normal` tasks (95% CI 63.6-77.2) against the published 64.3% for the 2.13-bpw file on the stock fork, with
   the two serving-side failure classes of that analysis (wrong-format replies, step-cap exits) down to 1 each.
 
-To upgrade: `git pull` this repo, unzip the latest `bonsai-bundle-win-x64.zip` over it (same binaries; it carries
+To upgrade: `git pull` this repo, unzip the latest `bonsai-bundle-win-x64.zip` over it (new binaries in `bundle-20261007`; it carries
 the launcher, layer, suite and docs at the tag), run `layer\fetch_runtime.ps1` once (downloads the sandbox runtime,
 installs the `wasmtime` Python package, runs the 14 isolation canaries), then `start-server.ps1` as before. The
 launcher prints `layer on` when the runtime is present and falls back to the plain server when it is not;
