@@ -94,6 +94,9 @@ $Think = $env:BONSAI_THINK -ne '0'
 # on both (issue #1). llama-server reads LLAMA_ARG_CHAT_TEMPLATE_KWARGS verbatim.
 $env:LLAMA_ARG_CHAT_TEMPLATE_KWARGS = if ($Think) { '{"reasoning_effort":"' + $Effort + '"}' } else { '{"reasoning_effort":"' + $Effort + '","enable_thinking":false}' }
 $ThinkBudget = if ($env:BONSAI_THINK_BUDGET) { [int]$env:BONSAI_THINK_BUDGET } else { 20480 }
+# default output cap for requests without max_tokens: the think budget plus room for the answer (24576 at 20480).
+# A request that sends its own larger reasoning_budget_tokens gets budget + 4096 from the server (engine 113db541a).
+$NPredict = [Math]::Max(24576, $ThinkBudget + 4096)
 # injected before </think> when the budget trips, so a force-close still yields the answer
 $ThinkBudgetMsg = if ($null -ne $env:BONSAI_THINK_BUDGET_MSG) { $env:BONSAI_THINK_BUDGET_MSG } else { 'Now produce the complete answer.' }
 [string[]]$BudgetMsgArgs = @()
@@ -239,7 +242,7 @@ Set-Location $Bin
 try {
 & .\llama-server.exe @TierArgs @SpecArgs @BsArgs @BudgetMsgArgs @HarnessArgs @MmprojArgs `
     --reasoning-budget $ThinkBudget `
-    -n 24576 `
+    -n $NPredict `
     -m $Model `
     -ngl 99 `
     -fa on `
