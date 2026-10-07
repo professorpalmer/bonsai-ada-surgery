@@ -1,0 +1,173 @@
+From 2cb7a4ed6841d7409bb67da6d3e437722faea161 Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Wed, 7 Oct 2026 10:48:48 -0500
+Subject: [PATCH] json-schema-to-grammar : convert empty anyOf / oneOf / type
+ unions instead of emitting an empty rule
+
+A schema with an empty union ("anyOf": [], "oneOf": [] or "type": []) produced a rule with no
+alternatives ("root ::=" for a root schema). The grammar parser rejects it, so the request fails
+with "failed to parse grammar". Schema generators used by agent frameworks emit such unions, and
+the failure ends the agent's turn. The keyword constrains nothing, so drop it and convert the rest
+of the schema, in the C++ and the Python converter. Adds test cases for both converters.
+
+Reported-by: Milor123 (professorpalmer/bonsai-ada-surgery#3)
+---
+ common/json-schema-to-grammar.cpp     |  10 +++
+ examples/json_schema_to_grammar.py    |   5 ++
+ tests/test-json-schema-to-grammar.cpp | 103 ++++++++++++++++++++++++++
+ 3 files changed, 118 insertions(+)
+
+diff --git a/common/json-schema-to-grammar.cpp b/common/json-schema-to-grammar.cpp
+index 0aee51b26..dc7a01744 100644
+--- a/common/json-schema-to-grammar.cpp
++++ b/common/json-schema-to-grammar.cpp
+@@ -908,6 +908,16 @@ public:
+     }
+ 
+     std::string visit(const json & schema, const std::string & name) {
++        // An empty union ("anyOf": [], "oneOf": [] or "type": []) has no alternatives to build a rule from; it used to
++        // produce an empty rule that the grammar parser rejects, failing the whole request. Schema generators do emit
++        // it, so drop the keyword and convert the rest of the schema.
++        for (const char * key : {"oneOf", "anyOf", "type"}) {
++            if (schema.is_object() && schema.contains(key) && schema.at(key).is_array() && schema.at(key).empty()) {
++                json rest = schema;
++                rest.erase(key);
++                return visit(rest, name);
++            }
++        }
+         json schema_type = schema.contains("type") ? schema["type"] : json();
+         std::string schema_format = schema.contains("format") ? schema["format"].get<std::string>() : "";
+         std::string rule_name = is_reserved_name(name) ? name + "-" : name.empty() ? "root" : name;
+diff --git a/examples/json_schema_to_grammar.py b/examples/json_schema_to_grammar.py
+index 83abd259d..7a8c74635 100755
+--- a/examples/json_schema_to_grammar.py
++++ b/examples/json_schema_to_grammar.py
+@@ -566,6 +566,11 @@ class SchemaConverter:
+         return self._format_literal(json.dumps(value))
+ 
+     def visit(self, schema, name):
++        # An empty union ("anyOf": [], "oneOf": [] or "type": []) has no alternatives to build a rule from; drop the
++        # keyword and convert the rest of the schema (same as the C++ converter).
++        for key in ('oneOf', 'anyOf', 'type'):
++            if isinstance(schema, dict) and isinstance(schema.get(key), list) and not schema[key]:
++                return self.visit({k: v for k, v in schema.items() if k != key}, name)
+         schema_type = schema.get('type')
+         schema_format = schema.get('format')
+         rule_name = name + '-' if name in RESERVED_NAMES else name or 'root'
+diff --git a/tests/test-json-schema-to-grammar.cpp b/tests/test-json-schema-to-grammar.cpp
+index 214dbe199..ef1242aaa 100755
+--- a/tests/test-json-schema-to-grammar.cpp
++++ b/tests/test-json-schema-to-grammar.cpp
+@@ -1214,6 +1214,109 @@ static void test_all(const std::string & lang, std::function<void(const TestCase
+         )"""
+     });
+ 
++    test({
++        SUCCESS,
++        "empty anyOf",
++        R"""({
++            "anyOf": []
++        })""",
++        R"""(
++            array ::= "[" space ( value ("," space value)* )? space "]"
++            boolean ::= ("true" | "false")
++            char ::= [^"\\\x7F\x00-\x1F] | [\\] (["\\bfnrt] | "u" [0-9a-fA-F]{4})
++            decimal-part ::= [0-9]{1,16}
++            integral-part ::= [0] | [1-9] [0-9]{0,15}
++            null ::= "null"
++            number ::= ("-"? integral-part) ("." decimal-part)? ([eE] [-+]? integral-part)?
++            object ::= "{" space ( string ":" space value ("," space string ":" space value)* )? space "}"
++            root ::= object
++            space ::= | " " | "\n"{1,2} [ \t]{0,20}
++            string ::= "\"" char* "\""
++            value ::= object | array | string | number | boolean | null
++        )"""
++    });
++
++    test({
++        SUCCESS,
++        "empty oneOf",
++        R"""({
++            "oneOf": []
++        })""",
++        R"""(
++            array ::= "[" space ( value ("," space value)* )? space "]"
++            boolean ::= ("true" | "false")
++            char ::= [^"\\\x7F\x00-\x1F] | [\\] (["\\bfnrt] | "u" [0-9a-fA-F]{4})
++            decimal-part ::= [0-9]{1,16}
++            integral-part ::= [0] | [1-9] [0-9]{0,15}
++            null ::= "null"
++            number ::= ("-"? integral-part) ("." decimal-part)? ([eE] [-+]? integral-part)?
++            object ::= "{" space ( string ":" space value ("," space string ":" space value)* )? space "}"
++            root ::= object
++            space ::= | " " | "\n"{1,2} [ \t]{0,20}
++            string ::= "\"" char* "\""
++            value ::= object | array | string | number | boolean | null
++        )"""
++    });
++
++    test({
++        SUCCESS,
++        "empty type array",
++        R"""({
++            "type": [],
++            "properties": {
++                "a": {
++                    "type": "string"
++                }
++            }
++        })""",
++        R"""(
++            a-kv ::= "\"a\"" space ":" space string
++            char ::= [^"\\\x7F\x00-\x1F] | [\\] (["\\bfnrt] | "u" [0-9a-fA-F]{4})
++            root ::= "{" space  (a-kv )? space "}"
++            space ::= | " " | "\n"{1,2} [ \t]{0,20}
++            string ::= "\"" char* "\""
++        )"""
++    });
++
++    test({
++        SUCCESS,
++        "empty unions in properties",
++        R"""({
++            "type": "object",
++            "properties": {
++                "x": {
++                    "anyOf": []
++                },
++                "y": {
++                    "type": [],
++                    "enum": [
++                        "a",
++                        "b"
++                    ]
++                }
++            }
++        })""",
++        R"""(
++            array ::= "[" space ( value ("," space value)* )? space "]"
++            boolean ::= ("true" | "false")
++            char ::= [^"\\\x7F\x00-\x1F] | [\\] (["\\bfnrt] | "u" [0-9a-fA-F]{4})
++            decimal-part ::= [0-9]{1,16}
++            integral-part ::= [0] | [1-9] [0-9]{0,15}
++            null ::= "null"
++            number ::= ("-"? integral-part) ("." decimal-part)? ([eE] [-+]? integral-part)?
++            object ::= "{" space ( string ":" space value ("," space string ":" space value)* )? space "}"
++            root ::= "{" space  (x-kv x-rest | y-kv )? space "}"
++            space ::= | " " | "\n"{1,2} [ \t]{0,20}
++            string ::= "\"" char* "\""
++            value ::= object | array | string | number | boolean | null
++            x ::= object
++            x-kv ::= "\"x\"" space ":" space x
++            x-rest ::= ( "," space y-kv )?
++            y ::= ("\"a\"" | "\"b\"")
++            y-kv ::= "\"y\"" space ":" space y
++        )"""
++    });
++
+     test({
+         SUCCESS,
+         "anyOf $ref",
+-- 
+2.55.0.windows.3
+
