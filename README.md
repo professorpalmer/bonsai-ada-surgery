@@ -396,6 +396,10 @@ cmake --build build-linux --target llama-server -j4
 
 ## Measure it yourself
 
+**Benchmark your own model the same way:** [`docs/BENCHMARK.md`](docs/BENCHMARK.md) has the server line, chat
+template, runners and settings behind the quality numbers above, for any model on any OpenAI-compatible server
+(for example the base model at Q4 on your own GPU), and what to send back so we can pair it with ours.
+
 ```powershell
 bench\killy_suite.ps1                          # HumanEval replays of Killy's plates + the voxel pagoda (~5 h)
 python bench\receipt.py <tag>                  # decode by depth, prefill, TTFT, power, VRAM by window
