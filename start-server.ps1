@@ -142,6 +142,12 @@ if ($Tier) {
         # 800 did not. With the display on the iGPU (nvidia-smi display_active Disabled) 1000 held a 10-minute
         # soak at 83 / 107 tok/s (4k / 16k) and 600 paged at once. Measured on the 4070, 2026-09-27.
         $Headless = ((& nvidia-smi --query-gpu=display_active --format=csv,noheader | Select-Object -First 1).Trim()) -eq 'Disabled'
+        # Under WDDM nvidia-smi can report Disabled for a card that draws the desktop (2060 SUPER, driver 591.86:
+        # display_active Disabled, display_attached No, 4K desktop on it). Windows reports a desktop resolution only
+        # on adapters with a display, so a resolution on this card's adapter means it is not headless.
+        $GpuName = (& nvidia-smi --query-gpu=name --format=csv,noheader | Select-Object -First 1).Trim()
+        $Adapters = @(Get-CimInstance Win32_VideoController -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq $GpuName })
+        if ($Adapters.Count -eq 1 -and $Adapters[0].CurrentHorizontalResolution) { $Headless = $false }
         $Margin = if ($env:BONSAI_VRAM_MARGIN) { [int]$env:BONSAI_VRAM_MARGIN } elseif ($Headless) { 1000 } else { 1300 }
         # weights (the token embedding stays in system RAM), recurrent state, compute buffers, CUDA context
         $FixedMiB = (Get-Item $Model).Length / 1MB - 265 + 150 + 400 + 300 + $DraftCells * $CellBytes / 16 / 1MB
