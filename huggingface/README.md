@@ -155,7 +155,7 @@ template with `--jinja`, so this file serves with that template; PrismML's origi
 | --- | --- |
 | `Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf` | `5f212d02ff57cb8eaad260fd7ff57bfaff87ae2bc9183a21dd2f127c27252505` |
 | PrismML's `Ternary-Bonsai-2-27B-PTQ1_0.gguf` (the base) | `53107f530aa52eb00912263ab1ee29bd199261c87cd7b4ad4ca1318c1fe33ee3` |
-| `bonsai-bundle-win-x64.zip` | `5f8e01f95046460edb44ae4c5030b783da981428d46fc0afc0f4d9f11cb1b59a` |
+| `bonsai-bundle-win-x64.zip` | `be6bcc0e564e0e8a9e98670a115354460270466df026d841a5d2776a757d4165` |
 
 Every kernel in the stack is checked against the CPU reference, and the served output is checked greedy
 token-for-token against the unpatched fork before any speed number is recorded.
