@@ -22,6 +22,7 @@ import hmac
 import http.server
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.request
@@ -168,6 +169,10 @@ def apply_repair_note(msgs):
     return out, n
 
 
+# A request that asks for code: a fenced block, a function definition, a .py file name, or a verb like write/fix/create
+# near a noun like program/function/module/solution. Matches every suite coding prompt; not chat turns about code.
+CODE_TASK_RE = re.compile(r"```|\bdef \w+\(|\w\.py\b|\b(write|implement|fix|debug|refactor|complete|build|create)\b"
+                          r"[^.\n]{0,80}?\b(code|program|function|script|module|solution|class|tests?|parser|library|cli|tool|app)\b", re.I)
 FINISH_NOTE = ("Before your final answer, run the program you wrote on the example given in the task and compare its "
                "output with the expected result; fix it if they differ.")
 
@@ -188,10 +193,10 @@ def apply_finish_note(body, msgs):
     tools = body.get("tools") or []
     if not any(apicards.CODING_TOOL_RE.search(t.get("function", {}).get("name", "")) for t in tools):
         return msgs, 0
-    # Only when the layer's own sandbox is the coding tool. Measured with run_python (E15/E21); a client that brings
-    # its own tools (Hermes, Cline, ...) gets an instruction to "run the program you wrote" on turns where no program
-    # exists, and the model obliges by writing one (issue #4 triage, 2026-10-07).
-    if any(t.get("function", {}).get("name") != TOOL_NAME for t in tools):
+    # Only when the user asks for code. Measured on coding tasks that offer a run tool, including clients' own tools
+    # (E15; E21 on the suite's coding family: 7/12 with it vs 4/12 without). Agents that offer run tools on every turn
+    # (Hermes, Cline) would otherwise get it on turns with no program, and the model writes one (2026-10-07).
+    if not any(CODE_TASK_RE.search(m["content"]) for m in msgs if m.get("role") == "user" and isinstance(m.get("content"), str)):
         return msgs, 0
     for i, m in enumerate(msgs):
         if m.get("role") == "user" and isinstance(m.get("content"), str):
