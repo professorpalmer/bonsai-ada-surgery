@@ -172,11 +172,26 @@ FINISH_NOTE = ("Before your final answer, run the program you wrote on the examp
                "output with the expected result; fix it if they differ.")
 
 
+def _is_our_call_delta(line, our_idx):
+    """True for an SSE line whose tool_call deltas all belong to the layer's own run_python call indices."""
+    try:
+        ev = json.loads(line[len(b"data: "):]) if line.startswith(b"data: ") else None
+        tcs = ((ev or {}).get("choices") or [{}])[0].get("delta", {}).get("tool_calls") or []
+        return bool(tcs) and all(tc.get("index", 0) in our_idx for tc in tcs)
+    except Exception:
+        return False
+
+
 def apply_finish_note(body, msgs):
     """E15: one fixed sentence at the end of the first user message of a coding request that offers a run tool.
     Measured problem (E11): solutions that reject even the disclosed example, and the model ends its turn anyway."""
     tools = body.get("tools") or []
     if not any(apicards.CODING_TOOL_RE.search(t.get("function", {}).get("name", "")) for t in tools):
+        return msgs, 0
+    # Only when the layer's own sandbox is the coding tool. Measured with run_python (E15/E21); a client that brings
+    # its own tools (Hermes, Cline, ...) gets an instruction to "run the program you wrote" on turns where no program
+    # exists, and the model obliges by writing one (issue #4 triage, 2026-10-07).
+    if any(t.get("function", {}).get("name") != TOOL_NAME for t in tools):
         return msgs, 0
     for i, m in enumerate(msgs):
         if m.get("role") == "user" and isinstance(m.get("content"), str):
@@ -298,6 +313,7 @@ class Proxy(http.server.BaseHTTPRequestHandler):
                     self.close_connection = True
                     started = True
                 calls, held, content, reasoning, template = {}, [], [], [], None
+                truncated = False
                 with r:
                     for line in r:
                         line = line.rstrip(b"\r\n")
@@ -329,6 +345,8 @@ class Proxy(http.server.BaseHTTPRequestHandler):
                                 c["function"]["arguments"] += f.get("arguments") or ""
                             held.append(line)
                             continue
+                        if ch.get("finish_reason") == "length":
+                            truncated = True       # cut by max_tokens: any held call is half-written
                         if ch.get("finish_reason") == "tool_calls" or (calls and not ev.get("choices")):
                             held.append(line)      # the finish chunk (and a trailing usage chunk) of a tool round
                             continue
@@ -339,11 +357,15 @@ class Proxy(http.server.BaseHTTPRequestHandler):
                         send(line)
                 ordered = [calls[i] for i in sorted(calls)]
                 ours = [c for c in ordered if c["function"]["name"] == TOOL_NAME]
-                if not ours or len(ours) != len(ordered) or rnd == self.max_rounds:
+                if truncated or not ours or len(ours) != len(ordered) or rnd == self.max_rounds:
                     done = [l for l in held if l.strip() == b"data: [DONE]"]
+                    our_idx = {i for i, c in calls.items() if c["function"]["name"] == TOOL_NAME}
                     for line in held:               # final answer (or a call that is not ours): hand everything back
-                        if line.strip() != b"data: [DONE]":
-                            send(line)
+                        if line.strip() == b"data: [DONE]":
+                            continue
+                        if truncated and our_idx and _is_our_call_delta(line, our_idx):
+                            continue               # our half-written run_python call: never shown, never run
+                        send(line)
                     if client_usage:
                         ev = dict(template or {"object": "chat.completion.chunk"}, choices=[], usage=total)
                         send(b"data: " + json.dumps(ev).encode())
@@ -454,7 +476,8 @@ class Proxy(http.server.BaseHTTPRequestHandler):
             m = resp["choices"][0]["message"]
             calls = m.get("tool_calls") or []
             ours = [c for c in calls if c["function"]["name"] == TOOL_NAME]
-            if not ours or len(ours) != len(calls):   # final answer, or a client tool call: hand back
+            truncated = resp["choices"][0].get("finish_reason") == "length"   # half-written calls: hand back, never run
+            if truncated or not ours or len(ours) != len(calls):   # final answer, or a client tool call: hand back
                 if ours:                               # mixed: drop our calls, keep the client's
                     m["tool_calls"] = [c for c in calls if c["function"]["name"] != TOOL_NAME]
                 resp["usage"] = usage_total
