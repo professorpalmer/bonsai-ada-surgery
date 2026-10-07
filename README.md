@@ -142,6 +142,7 @@ launcher prints `layer on` when the runtime is present and falls back to the pla
 | `BONSAI_HARNESS_PROOF` | 1 | 0 = pass effort words and output caps through unchanged |
 | `BONSAI_EFFORT_ALLOWED` | medium | effort words the template sees; others become medium |
 | `BONSAI_PORT`, `BONSAI_MODEL` | 8080, auto | |
+| `BONSAI_MMPROJ` / `BONSAI_MMPROJ_GPU` | none / 0 | vision projector (`Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf` from prism-ml, in `models\`; `LLAMA_ARG_MMPROJ` is picked up too). Default: the image encoder runs on the CPU, no VRAM and no speed cost, ~0.3 s more per image. `BONSAI_MMPROJ_GPU=1`: on the card, and the VRAM line gives up its size (`receipts/vision_probe.log`). A projector the sizing does not know about can over-commit the card and collapse prefill (issue #4, found by @Milor123) |
 
 ### Getting more positions into VRAM
 
