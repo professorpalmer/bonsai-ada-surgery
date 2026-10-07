@@ -1,7 +1,13 @@
 # Bonsai 2 27B on an 8 GB card that also draws the desktop
 
-> DRAFT (2026-10-07). Mode numbers below are the release-candidate build (Turing fix + shared pool + f16 prefill,
-> sm_75/86/89 + PTX) verified on this card; the build is not published yet.
+```powershell
+.\build\make_mtp_q4head.ps1   # once, after make_mtp_procreations.ps1: the drafting mode's head file
+.\start-server.ps1             # detects an 8 GB card: drafting mode if the Q4_0 head file is present
+$env:BONSAI_MODEL = 'Ternary-Bonsai-2-27B-PTQ1_0.gguf'; .\start-server.ps1   # long-context mode
+```
+
+Needs the bundle from 2026-10-07 or later (`GGML_CUDA_SHARED_POOL`, `GGML_CUDA_FA_PREFILL_F16`; older binaries ignore
+them and run slower). `BONSAI_8GB=0` turns the preset off.
 
 Measured 2026-10-06/07 on an RTX 2060 SUPER 8 GB (Turing sm_75, PCIe 3.0 x16, stock clocks, power limit 175 W, fan
 100%) that also draws the Windows desktop at 1280x1024 (idle 323-404 MiB), Ryzen 5 2600, 32 GB. Bonsai 2 27B `PTQ1_0`,
@@ -15,7 +21,7 @@ extending the previous prompt). Plans and gates were written before each run; ra
 | K/V | q4_0 | q4_0 |
 | MTP head | ProCreations, requantized to Q4_0 (`build/make_mtp_q4head.ps1`) | none |
 | draft / past the VRAM line | 1 / 1 | - |
-| positions in VRAM | 47,360 | 53,248 |
+| positions in VRAM | sized at launch: 47,360-53,760 here | sized at launch: 53,248-58,880 here |
 | micro-batch | 512 | 1024 |
 | f16 prefill (`GGML_CUDA_FA_PREFILL_F16`) | up to 32,768 cells | up to 65,536 cells |
 | decode 4k / 16k / 32k / 60k (tok/s) | 51.2 / 47.5 / 43.1 / 29.4 | 43.7 / 39.0 / 34.3 / 22.5 |
