@@ -37,6 +37,26 @@ foreach ($pair in $Candidates) {
     $Model = Select-CompleteGguf $pair.Path $pair.Min
 }
 if (-not $Model) { throw 'No complete Bonsai 2 GGUF in models\' }
+
+# ---- Vision projector (optional) ------------------------------------------------------------------------
+# BONSAI_MMPROJ=<file in models\ or a full path> (Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf from prism-ml); llama-server's
+# own LLAMA_ARG_MMPROJ is picked up the same way. Default: the encoder runs on the CPU (--no-mmproj-offload) and takes
+# no VRAM from the cache; an image costs a few seconds more to encode. BONSAI_MMPROJ_GPU=1 puts it on the card and
+# the VRAM line is sized with its measured cost. A projector the sizing did not know about over-commits the card:
+# Windows then moves buffers to system RAM and prefill collapses (issue #4: 1,117 -> 198 tok/s at 16k).
+$Mmproj = if ($env:BONSAI_MMPROJ) { $env:BONSAI_MMPROJ } elseif ($env:LLAMA_ARG_MMPROJ) { $env:LLAMA_ARG_MMPROJ } else { $null }
+[string[]]$MmprojArgs = @()
+$MmprojMiB = 0
+if ($Mmproj) {
+    if (-not [IO.Path]::IsPathRooted($Mmproj)) { $Mmproj = Join-Path $Root "models\$Mmproj" }
+    if (-not (Test-Path $Mmproj)) { throw "vision projector not found: $Mmproj" }
+    Remove-Item Env:LLAMA_ARG_MMPROJ -ErrorAction SilentlyContinue   # passed explicitly below
+    $MmprojGpu = $env:BONSAI_MMPROJ_GPU -eq '1'
+    $MmprojArgs = @('--mmproj', $Mmproj)
+    # GPU: count the file size. Measured 346 MiB at load for the 600 MiB Q8_0 file (receipts/vision_probe.log), so this
+    # over-counts a little, on the safe side.
+    if ($MmprojGpu) { $MmprojMiB = [int]((Get-Item $Mmproj).Length / 1MB) } else { $MmprojArgs += '--no-mmproj-offload' }
+}
 $Server = Join-Path $Bin 'llama-server.exe'
 if (-not (Test-Path $Server)) { throw "llama-server.exe missing in $Bin" }
 
@@ -171,11 +191,11 @@ if ($Tier) {
         if ($Adapters.Count -eq 1 -and $Adapters[0].CurrentHorizontalResolution) { $Headless = $false }
         $Margin = if ($env:BONSAI_VRAM_MARGIN) { [int]$env:BONSAI_VRAM_MARGIN } elseif ($Headless) { 1000 } else { 1300 }
         # weights (the token embedding stays in system RAM), recurrent state, compute buffers, CUDA context
-        $FixedMiB = (Get-Item $Model).Length / 1MB - 265 + 150 + 400 + 300 + $DraftCells * $CellBytes / 16 / 1MB
+        $FixedMiB = (Get-Item $Model).Length / 1MB - 265 + 150 + 400 + 300 + $DraftCells * $CellBytes / 16 / 1MB + $MmprojMiB
         if ($Small) {
             # measured on an RTX 2060 SUPER with the desktop on it (docs/8GB.md): the server's fixed cost per mode
             # and the free VRAM that held (drafting: 225 MiB; no head: 400, room for the f16 prefill copy at 64k)
-            $FixedMiB = if ($Spec -gt 0) { 6469 } elseif ($Ubatch -ge 1024) { 6218 } else { 5955 }
+            $FixedMiB = if ($Spec -gt 0) { 6469 + $MmprojMiB } elseif ($Ubatch -ge 1024) { 6218 + $MmprojMiB } else { 5955 + $MmprojMiB }
             $Margin = if ($env:BONSAI_VRAM_MARGIN) { [int]$env:BONSAI_VRAM_MARGIN } elseif ($Spec -gt 0) { 225 } else { 400 }
         }
         # KV head N*CellBytes plus the staging buffer (Ctx-N)*CellBytes/16 must fit in what is left
@@ -201,6 +221,7 @@ if (-not $HasTier) { Write-Host "note   this llama-server predates the tiered-KV
 Write-Host "spec   draft $Spec$(if ($TierCells -gt 0) { " ($SpecDeep past the VRAM line)" })$(if ($HasTier -and $Spec -gt 0) { ", draft window $DraftWindow" })"
 Write-Host "listen 0.0.0.0:$Port  think=$Think effort=$Effort budget=$ThinkBudget  harness-proofing=$($HarnessArgs.Count -gt 0)  backend-sampling=$($BsArgs.Count -gt 0)"
 Write-Host "api    Authorization: Bearer <artifacts/api_key.txt>"
+if ($Mmproj) { Write-Host "vision $(Split-Path $Mmproj -Leaf) on the $(if ($MmprojGpu) { "GPU ($MmprojMiB MiB counted in the VRAM line)" } else { "CPU (no VRAM; BONSAI_MMPROJ_GPU=1 to offload)" })" }
 
 # ---- Bonsai layer (BONSAI_LAYER=0 turns it off) ------------------------------------------------------------
 # A small server-side layer in front of llama-server, on the same port clients already use. For coding requests
@@ -250,7 +271,7 @@ try {
 } catch { }
 Set-Location $Bin
 try {
-& .\llama-server.exe @TierArgs @SpecArgs @BsArgs @BudgetMsgArgs @HarnessArgs `
+& .\llama-server.exe @TierArgs @SpecArgs @BsArgs @BudgetMsgArgs @HarnessArgs @MmprojArgs `
     --reasoning-budget $ThinkBudget `
     -n 24576 `
     -m $Model `
