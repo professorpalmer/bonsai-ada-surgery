@@ -19,6 +19,10 @@ since #221), i7-13700K with 32 GB, Bonsai 2 27B `PTQ1_0` with the ProCreations M
 | 180k | 298 | 27 | q8_0 did not fit |
 | 258k | 229 | 14.7 | q8_0 did not fit |
 
+2026-10-08: measured again on the current engine (patches through 0041, lookup drafting on), with new text and code
+decode separately: README speed table, `receipts/depth_table_0041.log`. Prefill at 131k / 180k / 258k is now 649 /
+547 / 436 tok/s.
+
 ![Decode by context depth](img/decode.png)
 
 ![Prefill by context depth](img/prefill.png)
