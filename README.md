@@ -9,24 +9,26 @@ re-quantized; every kernel checked against the CPU reference. The 12 GB card hol
 positions; the rest of the cache (~5.2 GB) sits in pinned system RAM, so decode slows past 112k
 (table below) and the box needs ~8 GB of free RAM.
 
-| RTX 4070 12 GB, served, one slot | decode (tok/s) | prefill (tok/s) |
-| --- | ---: | ---: |
-| 4k tokens of context | **83** | 1,100 |
-| 16k | **106** | 1,100 |
-| 32k | **100** | 918 |
-| 64k | **87** | 724 |
-| 112k (last position in VRAM) | **70** | 539 |
-| 131k | **41** | 374 |
-| 180k | 27 | 298 |
-| 258k (the window's end) | 14.7 | 229 |
+| RTX 4070 12 GB, served, one slot | decode, new text (tok/s) | decode, code (tok/s) | prefill (tok/s) |
+| --- | ---: | ---: | ---: |
+| 4k tokens of context | **102** | 102 | 1,173 |
+| 16k | **83** | 242 | 1,137 |
+| 32k | **78** | 175 | 1,031 |
+| 64k | **69** | 109 | 867 |
+| 112k (in VRAM) | **61** | 91 | 698 |
+| 131k | **30** | 63 | 649 |
+| 180k | **17.9** | 28 | 547 |
+| 258k (the window's end) | **8.6** | 12.1 | 436 |
 
-Greedy code continuation, 256 tokens, MTP draft head on, cumulative prefill; GDDR6X +1500 MHz (as in every
-number in this repo since #221), display on the CPU's iGPU. What those numbers replace:
+Measured 2026-10-08 with `bench/depth_table.sh` on the released bundle, a fresh prompt at each depth: 400-token
+greedy answers (thinking off) with the default drafting (lookup + MTP head). New text = an essay; code = a
+Python module, where the lookup drafter copies the answer's own repeated lines; prefill = cumulative for the
+whole prompt. GDDR6X +1500 MHz (as in every number in this repo since #221), display on the CPU's iGPU. What those numbers replace:
 
 | | before (this repo, Sep 2026) | now |
 | --- | --- | --- |
 | window on 12 GB with q8_0 KV | 96k (q4_0 for 262k) | **262,144** |
-| decode at 32k / 64k | 47.6 / 36.9 | **100 / 87** |
+| decode at 32k / 64k | 47.6 / 36.9 | **78 / 69** on new text, **175 / 109** on code (2026-10-08 table) |
 | decode when the answer copies the context (file rewrite), 4k / 130k | 117 / 63 (MTP only) | **352 / 164** (lookup drafting) |
 | KV precision at 262k | q4_0: 1 flipped top token in 48 | q8_0: **1 in 160** |
 | apps that send `effort: "high"` | HTTP 500 on every request | answered (normalized to medium) |
@@ -59,7 +61,7 @@ How, and every receipt: [`docs/Q8_FULL_CONTEXT.md`](docs/Q8_FULL_CONTEXT.md). Sh
 | --- | --- | --- |
 | Windows, an NVIDIA card (RTX 20/30/40/50) | download the release zip, drop in the model, run `start-server.ps1` | [Quick start (Windows)](#quick-start-windows-nvidia) |
 | Hugging Face | the same bundle plus the ready-made MTP-grafted GGUF (`hf download`, no graft step) | [CaryPalmer/Ternary-Bonsai-2-27B-262k-GGUF](https://huggingface.co/CaryPalmer/Ternary-Bonsai-2-27B-262k-GGUF) |
-| Linux, NVIDIA driver + CUDA toolkit | `bash build/build_linux.sh` builds the pinned PrismML source with all 40 patches applied | [Quick start (Linux)](#quick-start-linux-nvidia) |
+| Linux, NVIDIA driver + CUDA toolkit | `bash build/build_linux.sh` builds the pinned PrismML source with all 41 patches applied | [Quick start (Linux)](#quick-start-linux-nvidia) |
 | your own llama.cpp workflow | build the fork branch `bonsai-q8-product`, or `git am` the series in `patches/` onto PrismML `adfffbe` | [The patch stack](#the-patch-stack) |
 | an older bundle of this repo | `git pull`, unzip the latest zip over it, run `layeretch_runtime.ps1` once | [Upgrading](#upgrading-from-an-older-bundle) |
 
@@ -102,6 +104,11 @@ the tiered-KV runtime are detected and get the previous 96k all-VRAM recipe.
 
 ### Upgrading from an older bundle
 
+`bundle-20261008-tier` makes **prefill past the VRAM line** faster (patch 0041). Each prefill micro-batch wrote its new
+K/V rows to system RAM in small pieces over PCIe once the prompt passed the line (~0.68 ms per prompt token). Now
+the rows go to VRAM first and then to system RAM as whole 16-byte stores, and the next layer's system-RAM rows
+are copied while the layers before it compute. One 258k prompt: 369 -> 436 tok/s; 180k: 484 -> 547; below the line, decode and output
+unchanged. The speed table above is measured again with this bundle (the September numbers were older engines).
 `bundle-20261008-lookup` turns on **lookup drafting** (patch 0039): a lookup drafter drafts text that is already in the
 context, up to 32 tokens at a time, and the MTP head drafts new text. When the answer copies the context (file
 rewrites, edit calls, quoted logs), decode is much faster; on new text it is unchanged, and the output is the same:
@@ -129,7 +136,7 @@ What the bundles between those two added runs beside the engine:
   `test_normal` tasks (95% CI 63.6-77.2) against the published 64.3% for the 2.13-bpw file on the stock fork, with
   the two serving-side failure classes of that analysis (wrong-format replies, step-cap exits) down to 1 each.
 
-To upgrade: `git pull` this repo, unzip the latest `bonsai-bundle-win-x64.zip` over it (new binaries in `bundle-20261008-lookup`; it carries
+To upgrade: `git pull` this repo, unzip the latest `bonsai-bundle-win-x64.zip` over it (new binaries in `bundle-20261008-tier`; it carries
 the launcher, layer, suite and docs at the tag), run `layer\fetch_runtime.ps1` once (downloads the sandbox runtime,
 installs the `wasmtime` Python package, runs the 14 isolation canaries), then `start-server.ps1` as before. The
 launcher prints `layer on` when the runtime is present and falls back to the plain server when it is not;
@@ -281,7 +288,7 @@ Cards are proven on two library families and not on a third. Token cost through 
 
 ## The patch stack
 
-Everything is submitted upstream to PrismML; this repo ships the combined stack now: 40 commits on
+Everything is submitted upstream to PrismML; this repo ships the combined stack now: 41 commits on
 `prism@adfffbe`, as `git am`-able patches in [`patches/`](patches/), as the branch
 [`bonsai-q8-product`](https://github.com/professorpalmer/llama.cpp-ada-ternary/tree/bonsai-q8-product), and as
 Windows binaries on [Releases](../../releases). Merged upstream already: #214 (branch-free PTQ1_0 MMQ tile loader,
@@ -315,13 +322,14 @@ Hadamard-embedding fix of sudoingX's #217 landed through #205. #285 was split at
 | 0038 | `GGML_CUDA_FA_PREFILL_F16=N`: prefill-sized attention converts a quantized cache of up to N cells to f16 in pool memory (off by default; the 8 GB preset sets it) | [#330](https://github.com/PrismML-Eng/llama.cpp/pull/330) |
 | 0039 | `--spec-lookup-n-max N`: a separate draft limit for the lookup drafters (`ngram-*`) listed before the model drafter; the MTP head keeps `--spec-draft-n-max` | this repo |
 | 0040 | ADD+RMS_NORM+MUL fusion on every NVIDIA GPU (it ran on GB10 only); the fusion range check accepts exact aliases (by @cklxx) | [#209](https://github.com/PrismML-Eng/llama.cpp/pull/209) |
+| 0041 | Tiered KV prefill: rows that a prefill micro-batch writes past the VRAM line go to VRAM first and then to system RAM as whole 16-byte stores (the quantizing write cost ~0.68 ms per prefill token over PCIe); the host rows of the next attention layer are copied on a second stream while the layers before it compute | this repo |
 
 How each cut was found (CUPTI traces, L1 wavefront counts, what did not work):
 [`surgery/ADA4070_PTQ1.md`](surgery/ADA4070_PTQ1.md) and [`docs/Q8_FULL_CONTEXT.md`](docs/Q8_FULL_CONTEXT.md).
 
 ## Quick start (Linux, NVIDIA)
 
-`build/build_linux.sh` fetches the pinned PrismML source (`adfffbe`) and applies **all 40 bundled patches**,
+`build/build_linux.sh` fetches the pinned PrismML source (`adfffbe`) and applies **all 41 bundled patches**,
 including the `common.cuh` header fix (0024) and the Hopper/Blackwell PDL dependency wait (0026). No manual patch
 application or Git author configuration is needed. There is no prebuilt Linux binary yet.
 

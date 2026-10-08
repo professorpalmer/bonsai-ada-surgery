@@ -1,0 +1,107 @@
+01:16 === tier step probe, depth 40000
+01:16 arm line16k (BONSAI_KV_VRAM_CELLS=16384): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
+line16k: code   depth  40000 (evaluated 40034): prefill   729.2 tok/s  ttft  54.90s  decode   39.9 tok/s (400 tok)
+line16k chunk to   6144: 0.830 ms/tok
+line16k chunk to   8192: 0.845 ms/tok
+line16k chunk to  10240: 0.869 ms/tok
+line16k chunk to  12288: 0.894 ms/tok
+line16k chunk to  14336: 0.913 ms/tok
+line16k chunk to  16384: 0.942 ms/tok
+line16k chunk to  18432: 1.265 ms/tok
+line16k chunk to  20480: 1.621 ms/tok
+line16k chunk to  22528: 1.670 ms/tok
+line16k chunk to  24576: 1.709 ms/tok
+line16k chunk to  26624: 1.685 ms/tok
+line16k chunk to  28672: 1.675 ms/tok
+line16k chunk to  30720: 1.724 ms/tok
+line16k chunk to  32768: 1.719 ms/tok
+line16k chunk to  34816: 1.836 ms/tok
+line16k chunk to  36864: 1.860 ms/tok
+line16k chunk to  38912: 1.899 ms/tok
+line16k chunk to  39518: 2.525 ms/tok
+line16k chunk to  40030: 1.387 ms/tok
+01:17 arm line16k-ctx64k (BONSAI_KV_VRAM_CELLS=16384,BONSAI_CTX=65536): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..65536 in system RAM
+line16k-ctx64k: code   depth  40000 (evaluated 40034): prefill   718.6 tok/s  ttft  55.71s  decode   39.8 tok/s (400 tok)
+line16k-ctx64k chunk to   6144: 0.825 ms/tok
+line16k-ctx64k chunk to   8192: 0.854 ms/tok
+line16k-ctx64k chunk to  10240: 0.869 ms/tok
+line16k-ctx64k chunk to  12288: 0.898 ms/tok
+line16k-ctx64k chunk to  14336: 0.913 ms/tok
+line16k-ctx64k chunk to  16384: 0.942 ms/tok
+line16k-ctx64k chunk to  18432: 1.270 ms/tok
+line16k-ctx64k chunk to  20480: 1.562 ms/tok
+line16k-ctx64k chunk to  22528: 1.636 ms/tok
+line16k-ctx64k chunk to  24576: 1.724 ms/tok
+line16k-ctx64k chunk to  26624: 1.733 ms/tok
+line16k-ctx64k chunk to  28672: 1.816 ms/tok
+line16k-ctx64k chunk to  30720: 1.836 ms/tok
+line16k-ctx64k chunk to  32768: 1.777 ms/tok
+line16k-ctx64k chunk to  34816: 1.826 ms/tok
+line16k-ctx64k chunk to  36864: 1.919 ms/tok
+line16k-ctx64k chunk to  38912: 1.909 ms/tok
+line16k-ctx64k chunk to  39518: 2.525 ms/tok
+line16k-ctx64k chunk to  40030: 1.543 ms/tok
+01:19 arm line16k-nostage (BONSAI_KV_VRAM_CELLS=16384,GGML_CUDA_KV_TIER_STAGING=0): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
+line16k-nostage: code   depth  40000 (evaluated 40034): prefill   325.2 tok/s  ttft 123.11s  decode   34.1 tok/s (400 tok)
+line16k-nostage chunk to   6144: 0.825 ms/tok
+line16k-nostage chunk to   8192: 0.850 ms/tok
+line16k-nostage chunk to  10240: 0.874 ms/tok
+line16k-nostage chunk to  12288: 0.894 ms/tok
+line16k-nostage chunk to  14336: 0.913 ms/tok
+line16k-nostage chunk to  16384: 0.938 ms/tok
+line16k-nostage chunk to  18432: 1.353 ms/tok
+line16k-nostage chunk to  20480: 2.163 ms/tok
+line16k-nostage chunk to  22528: 2.739 ms/tok
+line16k-nostage chunk to  24576: 3.262 ms/tok
+line16k-nostage chunk to  26624: 3.901 ms/tok
+line16k-nostage chunk to  28672: 4.375 ms/tok
+line16k-nostage chunk to  30720: 4.902 ms/tok
+line16k-nostage chunk to  32768: 5.542 ms/tok
+line16k-nostage chunk to  34816: 6.104 ms/tok
+line16k-nostage chunk to  36864: 6.665 ms/tok
+line16k-nostage chunk to  38912: 7.251 ms/tok
+line16k-nostage chunk to  39518: 9.637 ms/tok
+line16k-nostage chunk to  40030: 5.625 ms/tok
+01:22 arm line16k-mtpoff (BONSAI_KV_VRAM_CELLS=16384,BONSAI_SPEC=0): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
+line16k-mtpoff: code   depth  40000 (evaluated 40034): prefill   761.6 tok/s  ttft  52.57s  decode   19.1 tok/s (400 tok)
+line16k-mtpoff chunk to   6144: 0.796 ms/tok
+line16k-mtpoff chunk to   8192: 0.820 ms/tok
+line16k-mtpoff chunk to  10240: 0.845 ms/tok
+line16k-mtpoff chunk to  12288: 0.859 ms/tok
+line16k-mtpoff chunk to  14336: 0.889 ms/tok
+line16k-mtpoff chunk to  16384: 0.898 ms/tok
+line16k-mtpoff chunk to  18432: 1.230 ms/tok
+line16k-mtpoff chunk to  20480: 1.494 ms/tok
+line16k-mtpoff chunk to  22528: 1.548 ms/tok
+line16k-mtpoff chunk to  24576: 1.577 ms/tok
+line16k-mtpoff chunk to  26624: 1.650 ms/tok
+line16k-mtpoff chunk to  28672: 1.670 ms/tok
+line16k-mtpoff chunk to  30720: 1.714 ms/tok
+line16k-mtpoff chunk to  32768: 1.670 ms/tok
+line16k-mtpoff chunk to  34816: 1.694 ms/tok
+line16k-mtpoff chunk to  36864: 1.763 ms/tok
+line16k-mtpoff chunk to  38912: 1.821 ms/tok
+line16k-mtpoff chunk to  39518: 2.310 ms/tok
+line16k-mtpoff chunk to  40030: 1.367 ms/tok
+01:24 arm allvram (BONSAI_TIER=0,BONSAI_CTX=65536): health=1; 
+allvram: code   depth  40000 (evaluated 40034): prefill   990.1 tok/s  ttft  40.43s  decode   89.5 tok/s (400 tok)
+allvram chunk to   6144: 0.835 ms/tok
+allvram chunk to   8192: 0.845 ms/tok
+allvram chunk to  10240: 0.869 ms/tok
+allvram chunk to  12288: 0.894 ms/tok
+allvram chunk to  14336: 0.913 ms/tok
+allvram chunk to  16384: 0.933 ms/tok
+allvram chunk to  18432: 0.962 ms/tok
+allvram chunk to  20480: 0.996 ms/tok
+allvram chunk to  22528: 1.021 ms/tok
+allvram chunk to  24576: 1.050 ms/tok
+allvram chunk to  26624: 1.074 ms/tok
+allvram chunk to  28672: 1.099 ms/tok
+allvram chunk to  30720: 1.118 ms/tok
+allvram chunk to  32768: 1.138 ms/tok
+allvram chunk to  34816: 1.177 ms/tok
+allvram chunk to  36864: 1.187 ms/tok
+allvram chunk to  38912: 1.216 ms/tok
+allvram chunk to  39518: 1.683 ms/tok
+allvram chunk to  40030: 0.957 ms/tok
+01:25 === done

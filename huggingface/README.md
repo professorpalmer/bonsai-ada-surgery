@@ -25,8 +25,8 @@ language:
 
 # Bonsai 2 27B, served: the full 262,144-token window at q8_0 on a 12 GB card
 
-**A 27B model with its whole trained context window, at q8_0 KV precision, on one RTX 4070 12 GB. 100 tok/s at
-32k tokens of context, 87 at 64k, 70 at 112k, and the window keeps going to 262k. Lossless speculative decoding at
+**A 27B model with its whole trained context window, at q8_0 KV precision, on one RTX 4070 12 GB. 78 tok/s of new
+text at 32k tokens of context (175 on code), 69 at 64k, 61 at 112k, and the window keeps going to 262k. Lossless speculative decoding at
 every depth. A server that answers the requests agents and apps actually send. One command on Windows.**
 
 This is PrismML's [Ternary Bonsai 2 27B](https://huggingface.co/prism-ml/Ternary-Bonsai-2-27B-gguf) (1.58-bit
@@ -38,18 +38,20 @@ MTP drafting that pays at every depth, harness-proofing for the apps that send `
 and an optional server-side layer (exact API cards, an API check, a sandboxed Python tool) that lifts the model's
 coding and agentic scores without touching the weights.
 
-| RTX 4070 12 GB, served, one slot | decode (tok/s) | prefill (tok/s) |
-| --- | ---: | ---: |
-| 4k tokens of context | **83** | 1,100 |
-| 16k | **106** | 1,100 |
-| 32k | **100** | 918 |
-| 64k | **87** | 724 |
-| 112k (last position in VRAM) | **70** | 539 |
-| 131k | **41** | 374 |
-| 180k | 27 | 298 |
-| 258k (the window's end) | 14.7 | 229 |
+| RTX 4070 12 GB, served, one slot | decode, new text (tok/s) | decode, code (tok/s) | prefill (tok/s) |
+| --- | ---: | ---: | ---: |
+| 4k tokens of context | **102** | 102 | 1,173 |
+| 16k | **83** | 242 | 1,137 |
+| 32k | **78** | 175 | 1,031 |
+| 64k | **69** | 109 | 867 |
+| 112k (in VRAM) | **61** | 91 | 698 |
+| 131k | **30** | 63 | 649 |
+| 180k | **17.9** | 28 | 547 |
+| 258k (the window's end) | **8.6** | 12.1 | 436 |
 
-Greedy code continuation, 256 tokens, MTP draft head on, cumulative prefill, display on the CPU's iGPU. Every number
+Measured 2026-10-08 (`bench/depth_table.sh`), a fresh prompt at each depth: 400-token greedy answers with the
+default drafting (lookup + MTP head); new text = an essay, code = a Python module; prefill = cumulative for the
+whole prompt; display on the CPU's iGPU. Every number
 has a receipt in the repository (`docs/Q8_FULL_CONTEXT.md`, `docs/RECEIPTS.md`, `docs/QUALITY.md`).
 
 ## What the serve changes, same weights
@@ -58,7 +60,7 @@ has a receipt in the repository (`docs/Q8_FULL_CONTEXT.md`, `docs/RECEIPTS.md`, 
 | --- | --- | --- |
 | window on 12 GB with q8_0 KV | 96k (q4_0 KV to reach 262k) | **262,144 at q8_0** |
 | KV precision at depth | q4_0: 1 flipped top token in 48 | q8_0: **1 in 160** |
-| decode at 32k / 64k | 47.6 / 36.9 | **100 / 87** |
+| decode at 32k / 64k | 47.6 / 36.9 | **78 / 69** on new text, **175 / 109** on code (2026-10-08 table) |
 | decode when the answer copies the context (file rewrite), 4k / 130k | 117 / 63 (MTP only) | **352 / 164** (lookup drafting) |
 | speculative decoding | up to 24k, then off | **at every depth**, outputs identical to drafting off |
 | apps that send `effort: "high"` (Cline, Kilo, Open WebUI) | HTTP 500 on every request | **answered** (normalized to medium) |
@@ -79,7 +81,7 @@ those; the layer adds exact references and a sandbox. The weights are untouched.
 | file | what | size |
 | --- | --- | ---: |
 | `Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf` | PrismML's PTQ1_0 file with the on-policy Q8_0 MTP draft head from [ProCreations/Ternary-Bonsai-2-27B-MTP](https://huggingface.co/ProCreations/Ternary-Bonsai-2-27B-MTP) grafted on as `blk.64.*`; every original tensor byte-identical to PrismML's file (proof below). This is the file the launcher uses: lossless speculative decoding, 70.6% draft acceptance, +50-100% decode | 6.40 GB |
-| `bonsai-bundle-win-x64.zip` | Windows binaries: the patched llama.cpp (PrismML fork + 39 patches; 0040 lands with the next bundle), sm_75 / 86 / 89 machine code (RTX 20 / 30 / 40) plus compute_89 PTX for RTX 50, CUDA 13 runtime included, NVIDIA driver only. Launcher, layer, suite and docs at the release tag (`bundle-20261008-lookup`) | 608 MB |
+| `bonsai-bundle-win-x64.zip` | Windows binaries: the patched llama.cpp (PrismML fork + 41 patches), sm_75 / 86 / 89 machine code (RTX 20 / 30 / 40) plus compute_89 PTX for RTX 50, CUDA 13 runtime included, NVIDIA driver only. Launcher, layer, suite and docs at the release tag (`bundle-20261008-lookup`) | 608 MB |
 | `start-server.ps1` | the launcher (also inside the bundle): reads free VRAM, sizes the VRAM line, starts the layer and the server | |
 
 The original `Ternary-Bonsai-2-27B-PTQ1_0.gguf` without the head also works with everything here (`BONSAI_SPEC=0`
@@ -101,7 +103,7 @@ llama.cpp's chat UI on the same port. The launcher prints the VRAM line it chose
 `layer\fetch_runtime.ps1` downloads the sandbox runtime for the layer (CPython 3.12 on WASI, checksummed, 14 isolation
 canaries); without it the plain server runs.
 
-Linux: `bash build/build_linux.sh` in the repository builds the pinned PrismML source with all 39 patches applied;
+Linux: `bash build/build_linux.sh` in the repository builds the pinned PrismML source with all 41 patches applied;
 the full-window command line is in the repository README. No prebuilt Linux binary yet.
 
 Cards: 12 GB is the measured recipe (display on the iGPU: ~113k positions in VRAM; display on the card: ~95k).

@@ -1,0 +1,376 @@
+01:25 === tier A/B, depth 40000
+01:25 arm base (C:/Users/pwall/AppData/Local/Temp/root-0040; BONSAI_KV_VRAM_CELLS=16384): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
+base:     t = go(a.base, key, p, n, a.depth)
+01:26 arm pre (C:/Users/pwall/AppData/Local/Temp/root-tier; BONSAI_KV_VRAM_CELLS=16384): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
+pre: code   depth  40000 (evaluated 40034): prefill   745.3 tok/s  ttft  53.71s  decode   40.5 tok/s (400 tok)
+pre chunk to   6144: 0.820 ms/tok
+pre chunk to   8192: 0.840 ms/tok
+pre chunk to  10240: 0.869 ms/tok
+pre chunk to  12288: 0.884 ms/tok
+pre chunk to  14336: 0.908 ms/tok
+pre chunk to  16384: 0.933 ms/tok
+pre chunk to  18432: 1.250 ms/tok
+pre chunk to  20480: 1.445 ms/tok
+pre chunk to  22528: 1.470 ms/tok
+pre chunk to  24576: 1.587 ms/tok
+pre chunk to  26624: 1.680 ms/tok
+pre chunk to  28672: 1.733 ms/tok
+pre chunk to  30720: 1.729 ms/tok
+pre chunk to  32768: 1.758 ms/tok
+pre chunk to  34816: 1.812 ms/tok
+pre chunk to  36864: 1.807 ms/tok
+pre chunk to  38912: 1.870 ms/tok
+pre chunk to  39518: 2.442 ms/tok
+pre chunk to  40030: 1.465 ms/tok
+01:32 arm prek (C:/Users/pwall/AppData/Local/Temp/root-tier; BONSAI_KV_VRAM_CELLS=16384,GGML_CUDA_KV_TIER_COPY=kernel): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
+01:32 === tier A/B, depth 40000
+01:32 arm base (C:/Users/pwall/AppData/Local/Temp/root-0040; BONSAI_KV_VRAM_CELLS=16384): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
+base: code   depth  40000 (evaluated 40034): prefill   717.0 tok/s  ttft  55.83s  decode   40.0 tok/s (400 tok)
+base chunk to   6144: 0.830 ms/tok
+base chunk to   8192: 0.850 ms/tok
+base chunk to  10240: 0.864 ms/tok
+base chunk to  12288: 0.894 ms/tok
+base chunk to  14336: 0.918 ms/tok
+base chunk to  16384: 0.928 ms/tok
+base chunk to  18432: 1.289 ms/tok
+base chunk to  20480: 1.655 ms/tok
+base chunk to  22528: 1.689 ms/tok
+base chunk to  24576: 1.714 ms/tok
+base chunk to  26624: 1.704 ms/tok
+base chunk to  28672: 1.738 ms/tok
+base chunk to  30720: 1.724 ms/tok
+base chunk to  32768: 1.816 ms/tok
+base chunk to  34816: 1.890 ms/tok
+base chunk to  36864: 1.914 ms/tok
+base chunk to  38912: 1.948 ms/tok
+base chunk to  39518: 2.574 ms/tok
+base chunk to  40030: 1.465 ms/tok
+01:38 arm v2 (C:/Users/pwall/AppData/Local/Temp/root-tier2; BONSAI_KV_VRAM_CELLS=16384): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
+v2: code   depth  40000 (evaluated 40034): prefill   982.9 tok/s  ttft  40.73s  decode   41.7 tok/s (400 tok)
+v2 chunk to   6144: 0.825 ms/tok
+v2 chunk to   8192: 0.850 ms/tok
+v2 chunk to  10240: 0.874 ms/tok
+v2 chunk to  12288: 0.889 ms/tok
+v2 chunk to  14336: 0.913 ms/tok
+v2 chunk to  16384: 0.933 ms/tok
+v2 chunk to  18432: 0.972 ms/tok
+v2 chunk to  20480: 1.006 ms/tok
+v2 chunk to  22528: 1.035 ms/tok
+v2 chunk to  24576: 1.060 ms/tok
+v2 chunk to  26624: 1.079 ms/tok
+v2 chunk to  28672: 1.108 ms/tok
+v2 chunk to  30720: 1.128 ms/tok
+v2 chunk to  32768: 1.157 ms/tok
+v2 chunk to  34816: 1.172 ms/tok
+v2 chunk to  36864: 1.201 ms/tok
+v2 chunk to  38912: 1.235 ms/tok
+v2 chunk to  39518: 1.716 ms/tok
+v2 chunk to  40030: 0.957 ms/tok
+01:43 arm v2-noredir (C:/Users/pwall/AppData/Local/Temp/root-tier2; BONSAI_KV_VRAM_CELLS=16384,GGML_CUDA_KV_TIER_REDIRECT=0): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
+v2-noredir: code   depth  40000 (evaluated 40034): prefill   721.2 tok/s  ttft  55.51s  decode   40.4 tok/s (400 tok)
+v2-noredir chunk to   6144: 0.830 ms/tok
+v2-noredir chunk to   8192: 0.850 ms/tok
+v2-noredir chunk to  10240: 0.869 ms/tok
+v2-noredir chunk to  12288: 0.889 ms/tok
+v2-noredir chunk to  14336: 0.918 ms/tok
+v2-noredir chunk to  16384: 0.938 ms/tok
+v2-noredir chunk to  18432: 1.294 ms/tok
+v2-noredir chunk to  20480: 1.680 ms/tok
+v2-noredir chunk to  22528: 1.704 ms/tok
+v2-noredir chunk to  24576: 1.660 ms/tok
+v2-noredir chunk to  26624: 1.719 ms/tok
+v2-noredir chunk to  28672: 1.724 ms/tok
+v2-noredir chunk to  30720: 1.836 ms/tok
+v2-noredir chunk to  32768: 1.748 ms/tok
+v2-noredir chunk to  34816: 1.797 ms/tok
+v2-noredir chunk to  36864: 1.890 ms/tok
+v2-noredir chunk to  38912: 1.914 ms/tok
+v2-noredir chunk to  39518: 2.459 ms/tok
+v2-noredir chunk to  40030: 1.504 ms/tok
+01:49 arm v2-nopre (C:/Users/pwall/AppData/Local/Temp/root-tier2; BONSAI_KV_VRAM_CELLS=16384,GGML_CUDA_KV_TIER_PREFETCH=0): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
+v2-nopre: code   depth  40000 (evaluated 40034): prefill   966.9 tok/s  ttft  41.40s  decode   39.9 tok/s (400 tok)
+v2-nopre chunk to   6144: 0.820 ms/tok
+v2-nopre chunk to   8192: 0.854 ms/tok
+v2-nopre chunk to  10240: 0.869 ms/tok
+v2-nopre chunk to  12288: 0.894 ms/tok
+v2-nopre chunk to  14336: 0.913 ms/tok
+v2-nopre chunk to  16384: 0.938 ms/tok
+v2-nopre chunk to  18432: 0.962 ms/tok
+v2-nopre chunk to  20480: 1.021 ms/tok
+v2-nopre chunk to  22528: 1.040 ms/tok
+v2-nopre chunk to  24576: 1.074 ms/tok
+v2-nopre chunk to  26624: 1.104 ms/tok
+v2-nopre chunk to  28672: 1.133 ms/tok
+v2-nopre chunk to  30720: 1.157 ms/tok
+v2-nopre chunk to  32768: 1.191 ms/tok
+v2-nopre chunk to  34816: 1.211 ms/tok
+v2-nopre chunk to  36864: 1.245 ms/tok
+v2-nopre chunk to  38912: 1.279 ms/tok
+v2-nopre chunk to  39518: 1.799 ms/tok
+v2-nopre chunk to  40030: 1.035 ms/tok
+greedy text tierab-v2 vs tierab-base: 4/7 identical
+greedy text tierab-v2-noredir vs tierab-base: 0/7 identical
+greedy text tierab-v2-nopre vs tierab-base: 7/7 identical
+tierab-base: decode mean 138.2 tok/s over 7 jobs
+tierab-v2: decode mean 152.2 tok/s over 7 jobs
+tierab-v2-noredir: decode mean 124.6 tok/s over 7 jobs
+tierab-v2-nopre: decode mean 141.0 tok/s over 7 jobs
+01:53 === done
+01:54 === tier A/B, depth 40000
+01:54 arm v2fix (C:/Users/pwall/AppData/Local/Temp/root-tier2; BONSAI_KV_VRAM_CELLS=16384): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
+v2fix: code   depth  40000 (evaluated 40034): prefill   983.4 tok/s  ttft  40.71s  decode   40.5 tok/s (400 tok)
+v2fix chunk to   6144: 0.825 ms/tok
+v2fix chunk to   8192: 0.850 ms/tok
+v2fix chunk to  10240: 0.874 ms/tok
+v2fix chunk to  12288: 0.884 ms/tok
+v2fix chunk to  14336: 0.913 ms/tok
+v2fix chunk to  16384: 0.938 ms/tok
+v2fix chunk to  18432: 0.967 ms/tok
+v2fix chunk to  20480: 1.011 ms/tok
+v2fix chunk to  22528: 1.035 ms/tok
+v2fix chunk to  24576: 1.055 ms/tok
+v2fix chunk to  26624: 1.084 ms/tok
+v2fix chunk to  28672: 1.108 ms/tok
+v2fix chunk to  30720: 1.123 ms/tok
+v2fix chunk to  32768: 1.152 ms/tok
+v2fix chunk to  34816: 1.182 ms/tok
+v2fix chunk to  36864: 1.201 ms/tok
+v2fix chunk to  38912: 1.230 ms/tok
+v2fix chunk to  39518: 1.700 ms/tok
+v2fix chunk to  40030: 0.996 ms/tok
+tierab-v2fix: decode mean 147.4 tok/s over 7 jobs
+01:58 === done
+02:04 === tier A/B, depth 160000
+02:04 arm base160 (C:/Users/pwall/AppData/Local/Temp/root-0040; ): health=1; kv     tiered: cells 0..119040 in VRAM, 119040..262144 in system RAM (VRAM margin 1000 MiB)
+base160: code   depth 160000 (evaluated 159086): prefill   542.0 tok/s  ttft 293.53s  decode   28.4 tok/s (400 tok)
+base160 chunk to   6144: 0.825 ms/tok
+base160 chunk to   8192: 0.850 ms/tok
+base160 chunk to  10240: 0.874 ms/tok
+base160 chunk to  12288: 0.894 ms/tok
+base160 chunk to  14336: 0.913 ms/tok
+base160 chunk to  16384: 0.942 ms/tok
+base160 chunk to  18432: 0.967 ms/tok
+base160 chunk to  20480: 1.001 ms/tok
+base160 chunk to  22528: 1.021 ms/tok
+base160 chunk to  24576: 1.050 ms/tok
+base160 chunk to  26624: 1.079 ms/tok
+base160 chunk to  28672: 1.099 ms/tok
+base160 chunk to  30720: 1.123 ms/tok
+base160 chunk to  32768: 1.152 ms/tok
+base160 chunk to  34816: 1.167 ms/tok
+base160 chunk to  36864: 1.191 ms/tok
+base160 chunk to  38912: 1.221 ms/tok
+base160 chunk to  40960: 1.245 ms/tok
+base160 chunk to  43008: 1.265 ms/tok
+base160 chunk to  45056: 1.289 ms/tok
+base160 chunk to  47104: 1.313 ms/tok
+base160 chunk to  49152: 1.338 ms/tok
+base160 chunk to  51200: 1.367 ms/tok
+base160 chunk to  53248: 1.382 ms/tok
+base160 chunk to  55296: 1.411 ms/tok
+base160 chunk to  57344: 1.440 ms/tok
+base160 chunk to  59392: 1.455 ms/tok
+base160 chunk to  61440: 1.484 ms/tok
+base160 chunk to  63488: 1.509 ms/tok
+base160 chunk to  65536: 1.533 ms/tok
+base160 chunk to  67584: 1.558 ms/tok
+base160 chunk to  69632: 1.577 ms/tok
+base160 chunk to  71680: 1.606 ms/tok
+base160 chunk to  73728: 1.626 ms/tok
+base160 chunk to  75776: 1.650 ms/tok
+base160 chunk to  77824: 1.680 ms/tok
+base160 chunk to  79872: 1.694 ms/tok
+base160 chunk to  81920: 1.729 ms/tok
+base160 chunk to  83968: 1.743 ms/tok
+base160 chunk to  86016: 1.777 ms/tok
+base160 chunk to  88064: 1.792 ms/tok
+base160 chunk to  90112: 1.821 ms/tok
+base160 chunk to  92160: 1.841 ms/tok
+base160 chunk to  94208: 1.870 ms/tok
+base160 chunk to  96256: 1.885 ms/tok
+base160 chunk to  98304: 1.919 ms/tok
+base160 chunk to 100352: 1.934 ms/tok
+base160 chunk to 102400: 1.968 ms/tok
+base160 chunk to 104448: 1.982 ms/tok
+base160 chunk to 106496: 2.012 ms/tok
+base160 chunk to 108544: 2.031 ms/tok
+base160 chunk to 110592: 2.061 ms/tok
+base160 chunk to 112640: 2.090 ms/tok
+base160 chunk to 114688: 2.109 ms/tok
+base160 chunk to 116736: 2.134 ms/tok
+base160 chunk to 118784: 2.158 ms/tok
+base160 chunk to 120832: 2.432 ms/tok
+base160 chunk to 122880: 2.642 ms/tok
+base160 chunk to 124928: 2.681 ms/tok
+base160 chunk to 126976: 2.695 ms/tok
+base160 chunk to 129024: 2.720 ms/tok
+base160 chunk to 131072: 2.749 ms/tok
+base160 chunk to 133120: 2.783 ms/tok
+base160 chunk to 135168: 2.983 ms/tok
+base160 chunk to 137216: 2.974 ms/tok
+base160 chunk to 139264: 3.008 ms/tok
+base160 chunk to 141312: 2.896 ms/tok
+base160 chunk to 143360: 2.920 ms/tok
+base160 chunk to 145408: 2.949 ms/tok
+base160 chunk to 147456: 2.979 ms/tok
+base160 chunk to 149504: 3.057 ms/tok
+base160 chunk to 151552: 3.247 ms/tok
+base160 chunk to 153600: 3.193 ms/tok
+base160 chunk to 155648: 3.232 ms/tok
+base160 chunk to 157696: 3.320 ms/tok
+base160 chunk to 158570: 3.524 ms/tok
+base160 chunk to 159082: 3.008 ms/tok
+02:13 arm v2fix-160 (C:/Users/pwall/AppData/Local/Temp/root-tier2; ): health=1; kv     tiered: cells 0..119040 in VRAM, 119040..262144 in system RAM (VRAM margin 1000 MiB)
+v2fix-160: code   depth 160000 (evaluated 159086): prefill   584.6 tok/s  ttft 272.11s  decode   28.7 tok/s (400 tok)
+v2fix-160 chunk to   6144: 0.830 ms/tok
+v2fix-160 chunk to   8192: 0.850 ms/tok
+v2fix-160 chunk to  10240: 0.869 ms/tok
+v2fix-160 chunk to  12288: 0.889 ms/tok
+v2fix-160 chunk to  14336: 0.918 ms/tok
+v2fix-160 chunk to  16384: 0.933 ms/tok
+v2fix-160 chunk to  18432: 0.972 ms/tok
+v2fix-160 chunk to  20480: 0.996 ms/tok
+v2fix-160 chunk to  22528: 1.021 ms/tok
+v2fix-160 chunk to  24576: 1.055 ms/tok
+v2fix-160 chunk to  26624: 1.069 ms/tok
+v2fix-160 chunk to  28672: 1.099 ms/tok
+v2fix-160 chunk to  30720: 1.118 ms/tok
+v2fix-160 chunk to  32768: 1.147 ms/tok
+v2fix-160 chunk to  34816: 1.167 ms/tok
+v2fix-160 chunk to  36864: 1.196 ms/tok
+v2fix-160 chunk to  38912: 1.211 ms/tok
+v2fix-160 chunk to  40960: 1.245 ms/tok
+v2fix-160 chunk to  43008: 1.260 ms/tok
+v2fix-160 chunk to  45056: 1.289 ms/tok
+v2fix-160 chunk to  47104: 1.318 ms/tok
+v2fix-160 chunk to  49152: 1.338 ms/tok
+v2fix-160 chunk to  51200: 1.357 ms/tok
+v2fix-160 chunk to  53248: 1.387 ms/tok
+v2fix-160 chunk to  55296: 1.416 ms/tok
+v2fix-160 chunk to  57344: 1.436 ms/tok
+v2fix-160 chunk to  59392: 1.460 ms/tok
+v2fix-160 chunk to  61440: 1.479 ms/tok
+v2fix-160 chunk to  63488: 1.504 ms/tok
+v2fix-160 chunk to  65536: 1.533 ms/tok
+v2fix-160 chunk to  67584: 1.558 ms/tok
+v2fix-160 chunk to  69632: 1.582 ms/tok
+v2fix-160 chunk to  71680: 1.602 ms/tok
+v2fix-160 chunk to  73728: 1.626 ms/tok
+v2fix-160 chunk to  75776: 1.660 ms/tok
+v2fix-160 chunk to  77824: 1.675 ms/tok
+v2fix-160 chunk to  79872: 1.699 ms/tok
+v2fix-160 chunk to  81920: 1.724 ms/tok
+v2fix-160 chunk to  83968: 1.748 ms/tok
+v2fix-160 chunk to  86016: 1.772 ms/tok
+v2fix-160 chunk to  88064: 1.797 ms/tok
+v2fix-160 chunk to  90112: 1.816 ms/tok
+v2fix-160 chunk to  92160: 1.851 ms/tok
+v2fix-160 chunk to  94208: 1.860 ms/tok
+v2fix-160 chunk to  96256: 1.895 ms/tok
+v2fix-160 chunk to  98304: 1.914 ms/tok
+v2fix-160 chunk to 100352: 1.938 ms/tok
+v2fix-160 chunk to 102400: 1.958 ms/tok
+v2fix-160 chunk to 104448: 1.987 ms/tok
+v2fix-160 chunk to 106496: 2.002 ms/tok
+v2fix-160 chunk to 108544: 2.041 ms/tok
+v2fix-160 chunk to 110592: 2.061 ms/tok
+v2fix-160 chunk to 112640: 2.075 ms/tok
+v2fix-160 chunk to 114688: 2.114 ms/tok
+v2fix-160 chunk to 116736: 2.124 ms/tok
+v2fix-160 chunk to 118784: 2.158 ms/tok
+v2fix-160 chunk to 120832: 2.178 ms/tok
+v2fix-160 chunk to 122880: 2.207 ms/tok
+v2fix-160 chunk to 124928: 2.227 ms/tok
+v2fix-160 chunk to 126976: 2.256 ms/tok
+v2fix-160 chunk to 129024: 2.275 ms/tok
+v2fix-160 chunk to 131072: 2.305 ms/tok
+v2fix-160 chunk to 133120: 2.324 ms/tok
+v2fix-160 chunk to 135168: 2.349 ms/tok
+v2fix-160 chunk to 137216: 2.373 ms/tok
+v2fix-160 chunk to 139264: 2.402 ms/tok
+v2fix-160 chunk to 141312: 2.422 ms/tok
+v2fix-160 chunk to 143360: 2.456 ms/tok
+v2fix-160 chunk to 145408: 2.466 ms/tok
+v2fix-160 chunk to 147456: 2.500 ms/tok
+v2fix-160 chunk to 149504: 2.529 ms/tok
+v2fix-160 chunk to 151552: 2.549 ms/tok
+v2fix-160 chunk to 153600: 2.573 ms/tok
+v2fix-160 chunk to 155648: 2.588 ms/tok
+v2fix-160 chunk to 157696: 2.617 ms/tok
+v2fix-160 chunk to 158570: 2.872 ms/tok
+v2fix-160 chunk to 159082: 2.324 ms/tok
+greedy text tierab-v2fix-160 vs tierab-base160: 7/7 identical
+tierab-base160: decode mean 205.6 tok/s over 7 jobs
+tierab-v2fix-160: decode mean 206.4 tok/s over 7 jobs
+02:21 === done
+02:24 === tier A/B, depth 40000
+02:24 arm v2fix2 (C:/Users/pwall/AppData/Local/Temp/root-tier2; BONSAI_KV_VRAM_CELLS=16384): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
+v2fix2: code   depth  40000 (evaluated 40034): prefill   987.3 tok/s  ttft  40.55s  decode   40.4 tok/s (400 tok)
+v2fix2 chunk to   6144: 0.825 ms/tok
+v2fix2 chunk to   8192: 0.854 ms/tok
+v2fix2 chunk to  10240: 0.864 ms/tok
+v2fix2 chunk to  12288: 0.898 ms/tok
+v2fix2 chunk to  14336: 0.913 ms/tok
+v2fix2 chunk to  16384: 0.938 ms/tok
+v2fix2 chunk to  18432: 0.962 ms/tok
+v2fix2 chunk to  20480: 1.001 ms/tok
+v2fix2 chunk to  22528: 1.025 ms/tok
+v2fix2 chunk to  24576: 1.055 ms/tok
+v2fix2 chunk to  26624: 1.069 ms/tok
+v2fix2 chunk to  28672: 1.094 ms/tok
+v2fix2 chunk to  30720: 1.128 ms/tok
+v2fix2 chunk to  32768: 1.147 ms/tok
+v2fix2 chunk to  34816: 1.172 ms/tok
+v2fix2 chunk to  36864: 1.191 ms/tok
+v2fix2 chunk to  38912: 1.226 ms/tok
+v2fix2 chunk to  39518: 1.667 ms/tok
+v2fix2 chunk to  40030: 0.977 ms/tok
+tierab-v2fix2: decode mean 147.5 tok/s over 7 jobs
+02:29 === done
+02:46 === tier A/B, depth 40000
+02:46 arm q4-base (C:/Users/pwall/AppData/Local/Temp/root-0040; BONSAI_KV_VRAM_CELLS=16384,BONSAI_CTK=q4_0): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
+q4-base: code   depth  40000 (evaluated 40034): prefill   850.9 tok/s  ttft  47.05s  decode   49.7 tok/s (400 tok)
+q4-base chunk to   6144: 0.825 ms/tok
+q4-base chunk to   8192: 0.845 ms/tok
+q4-base chunk to  10240: 0.864 ms/tok
+q4-base chunk to  12288: 0.884 ms/tok
+q4-base chunk to  14336: 0.903 ms/tok
+q4-base chunk to  16384: 0.928 ms/tok
+q4-base chunk to  18432: 0.986 ms/tok
+q4-base chunk to  20480: 1.318 ms/tok
+q4-base chunk to  22528: 1.416 ms/tok
+q4-base chunk to  24576: 1.436 ms/tok
+q4-base chunk to  26624: 1.343 ms/tok
+q4-base chunk to  28672: 1.357 ms/tok
+q4-base chunk to  30720: 1.396 ms/tok
+q4-base chunk to  32768: 1.426 ms/tok
+q4-base chunk to  34816: 1.440 ms/tok
+q4-base chunk to  36864: 1.470 ms/tok
+q4-base chunk to  38912: 1.494 ms/tok
+q4-base chunk to  39518: 2.046 ms/tok
+q4-base chunk to  40030: 1.152 ms/tok
+02:51 arm q4-v2 (C:/Users/pwall/AppData/Local/Temp/root-tier2; BONSAI_KV_VRAM_CELLS=16384,BONSAI_CTK=q4_0): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
+q4-v2: code   depth  40000 (evaluated 40034): prefill  1018.5 tok/s  ttft  39.31s  decode   50.3 tok/s (400 tok)
+q4-v2 chunk to   6144: 0.820 ms/tok
+q4-v2 chunk to   8192: 0.845 ms/tok
+q4-v2 chunk to  10240: 0.859 ms/tok
+q4-v2 chunk to  12288: 0.889 ms/tok
+q4-v2 chunk to  14336: 0.908 ms/tok
+q4-v2 chunk to  16384: 0.918 ms/tok
+q4-v2 chunk to  18432: 0.947 ms/tok
+q4-v2 chunk to  20480: 0.962 ms/tok
+q4-v2 chunk to  22528: 0.996 ms/tok
+q4-v2 chunk to  24576: 1.001 ms/tok
+q4-v2 chunk to  26624: 1.030 ms/tok
+q4-v2 chunk to  28672: 1.045 ms/tok
+q4-v2 chunk to  30720: 1.069 ms/tok
+q4-v2 chunk to  32768: 1.094 ms/tok
+q4-v2 chunk to  34816: 1.118 ms/tok
+q4-v2 chunk to  36864: 1.138 ms/tok
+q4-v2 chunk to  38912: 1.157 ms/tok
+q4-v2 chunk to  39518: 1.634 ms/tok
+q4-v2 chunk to  40030: 0.918 ms/tok
+greedy text tierab-q4-v2 vs tierab-q4-base: 7/7 identical
+tierab-q4-base: decode mean 169.7 tok/s over 7 jobs
+tierab-q4-v2: decode mean 175.8 tok/s over 7 jobs
+02:55 === done

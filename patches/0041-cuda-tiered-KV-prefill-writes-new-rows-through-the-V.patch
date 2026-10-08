@@ -1,0 +1,488 @@
+From 9f2b0feacd456e1f6b2e73056c2e49b9baa4c9ec Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Thu, 8 Oct 2026 02:07:01 -0500
+Subject: [PATCH] cuda: tiered KV prefill writes new rows through the VRAM
+ alias, prefetches host rows
+
+Past the VRAM line of a tiered KV cache, each prefill micro-batch wrote its new K/V rows into host memory with
+the quantizing set_rows kernels, in small pieces over PCIe: a fixed ~0.68 ms per prefill token on an RTX 4070
+(512-token micro-batches), the same at a 16k and a 119k line.
+
+Graphs that run without CUDA graphs (prefill) now:
+- point set_rows nodes that write into a tiered buffer at its all-VRAM alias, so the new host-part rows land in
+  the VRAM staging buffer, and copy them back to their host pages with whole 16-byte stores (one block per row);
+- copy the host rows of attention op k into staging on a second stream while the main stream computes the layers
+  before op k; the main stream waits for that copy before the layer's set_rows writes staging.
+
+Both read and write the same bytes as before. GGML_CUDA_KV_TIER_REDIRECT=0 / GGML_CUDA_KV_TIER_PREFETCH=0
+disable the parts. Decode graphs (CUDA graphs) keep the synchronous staging.
+
+RTX 4070, Bonsai 2 27B, q8_0 K/V, VRAM line pinned at 16k, prefill to 40k: 717 -> 983 tok/s (all-VRAM cache:
+990); without the redirect 721, without the prefetch 967.
+---
+ ggml/src/ggml-cuda/fattn.cu     |  32 ++-
+ ggml/src/ggml-cuda/ggml-cuda.cu | 337 +++++++++++++++++++++++++++++++-
+ 2 files changed, 355 insertions(+), 14 deletions(-)
+
+diff --git a/ggml/src/ggml-cuda/fattn.cu b/ggml/src/ggml-cuda/fattn.cu
+index 45d4bbe72..4c64be74f 100644
+--- a/ggml/src/ggml-cuda/fattn.cu
++++ b/ggml/src/ggml-cuda/fattn.cu
+@@ -612,8 +612,10 @@ size_t ggml_cuda_flash_attn_ext_get_alloc_size(int device, const ggml_tensor * d
+     return f16_extra.end - (uintptr_t) dst->data;
+ }
+ 
+-// ggml-cuda.cu: host-tail staging of tiered buffers (ggml_backend_cuda_tier_buffer_type)
++// ggml-cuda.cu: host-tail staging of tiered buffers (ggml_backend_cuda_tier_buffer_type), and its prefetch
+ void * ggml_cuda_tier_stage(const void * ptr, size_t nbytes, cudaStream_t stream);
++bool   ggml_cuda_tier_fa_begin(ggml_backend_cuda_context & ctx, const ggml_tensor * dst, void ** K_alias, void ** V_alias);
++void   ggml_cuda_tier_fa_end(ggml_backend_cuda_context & ctx);
+ 
+ void ggml_cuda_flash_attn_ext(ggml_backend_cuda_context & ctx, ggml_tensor * dst) {
+     ggml_cuda_set_device(ctx.device);
+@@ -626,14 +628,28 @@ void ggml_cuda_flash_attn_ext(ggml_backend_cuda_context & ctx, ggml_tensor * dst
+     // that stay below the tier line. The staged bytes are the same bytes, so results are unchanged.
+     ggml_tensor * K = dst->src[1];
+     ggml_tensor * V = dst->src[2];
++    // With the prefetch (ggml_cuda_tier_graph_begin), the host rows are already in staging when this op starts.
+     void * K_data = K ? K->data : nullptr;
+     void * V_data = V ? V->data : nullptr;
++    bool tier_piped = false;
+     if (K && V && V != K) {
+-        if (void * a = ggml_cuda_tier_stage(K->data, ggml_nbytes(K), ctx.stream())) {
+-            K->data = a;
+-        }
+-        if (void * a = ggml_cuda_tier_stage(V->data, ggml_nbytes(V), ctx.stream())) {
+-            V->data = a;
++        void * K_alias = nullptr;
++        void * V_alias = nullptr;
++        tier_piped = ggml_cuda_tier_fa_begin(ctx, dst, &K_alias, &V_alias);
++        if (tier_piped) {
++            if (K_alias) {
++                K->data = K_alias;
++            }
++            if (V_alias) {
++                V->data = V_alias;
++            }
++        } else {
++            if (void * a = ggml_cuda_tier_stage(K->data, ggml_nbytes(K), ctx.stream())) {
++                K->data = a;
++            }
++            if (void * a = ggml_cuda_tier_stage(V->data, ggml_nbytes(V), ctx.stream())) {
++                V->data = a;
++            }
+         }
+     }
+ 
+@@ -651,6 +667,10 @@ void ggml_cuda_flash_attn_ext(ggml_backend_cuda_context & ctx, ggml_tensor * dst
+             break;
+     }
+ 
++    if (tier_piped) {
++        ggml_cuda_tier_fa_end(ctx);
++    }
++
+     if (K) {
+         K->data = K_data;
+     }
+diff --git a/ggml/src/ggml-cuda/ggml-cuda.cu b/ggml/src/ggml-cuda/ggml-cuda.cu
+index fb5bc9826..8a7e22147 100644
+--- a/ggml/src/ggml-cuda/ggml-cuda.cu
++++ b/ggml/src/ggml-cuda/ggml-cuda.cu
+@@ -727,10 +727,51 @@ static std::mutex ggml_cuda_lock;
+ static std::condition_variable ggml_cuda_lock_cv;
+ static std::atomic<int> ggml_cuda_lock_counter;
+ 
++// tiered KV prefill state of a backend context (see ggml_cuda_tier_graph_begin)
++struct ggml_cuda_tier_redirect {
++    int          at;       // graph index of the set_rows node
++    ggml_tensor * node;
++    void *       data;     // the node's own address, restored after the write-back
++    const void * entry;    // ggml_cuda_tier_entry of the tiered buffer
++    size_t       base;     // offset of the node's data in the tiered buffer
++    size_t       h_lo;     // host run of the node's range, as offsets from base
++    size_t       h_hi;
++};
++struct ggml_cuda_tier_state {
++    std::vector<ggml_cuda_tier_redirect> rd; // set_rows nodes that write through the alias, in graph order
++    size_t      rd_next  = 0;             // rd[rd_next] is the next one to write back
++    std::vector<const ggml_tensor *> fa;  // attention ops of the graph whose K/V reach a host tail, in graph order
++    size_t      next     = 0;             // fa[next] is the next attention op of the prefetch pipeline
++    bool        inflight = false;         // a prefetch was queued and the main stream has not waited for it yet
++    cudaEvent_t read     = nullptr;       // main stream: the last attention op that read the staging buffers is done
++    cudaEvent_t copied   = nullptr;       // prefetch stream: the copy for fa[next] is done
++};
++static std::mutex g_tier_state_mutex;
++static std::unordered_map<const ggml_backend_cuda_context *, ggml_cuda_tier_state> g_tier_states;
++
++static ggml_cuda_tier_state & ggml_cuda_tier_state_of(const ggml_backend_cuda_context & ctx) {
++    std::lock_guard<std::mutex> lock(g_tier_state_mutex);
++    return g_tier_states[&ctx];
++}
++
+ ggml_backend_cuda_context::~ggml_backend_cuda_context() {
+     std::unique_lock<std::mutex> lock(ggml_cuda_lock);
+     ggml_cuda_lock_cv.wait(lock, []{ return ggml_cuda_lock_counter.load(std::memory_order_relaxed) == 0; });
+ 
++    {
++        std::lock_guard<std::mutex> tier_lock(g_tier_state_mutex);
++        auto it = g_tier_states.find(this);
++        if (it != g_tier_states.end()) {
++            if (it->second.read != nullptr) {
++                CUDA_CHECK(cudaEventDestroy(it->second.read));
++            }
++            if (it->second.copied != nullptr) {
++                CUDA_CHECK(cudaEventDestroy(it->second.copied));
++            }
++            g_tier_states.erase(it);
++        }
++    }
++
+     // pool blocks held across a graph go back to the pool before the pools are destroyed below
+     fwht_q8_context.reset();
+ 
+@@ -1040,13 +1081,25 @@ static void ggml_cuda_tier_unregister(CUdeviceptr va) {
+     }
+ }
+ 
+-// VRAM staging buffers shared by every tiered buffer: slot i backs the i-th host run (K tail, V tail).
+-// Created at the first request and kept for the life of the process; a later, longer run gets no alias.
+-static bool ggml_cuda_tier_staging_handle(int physical, int slot, size_t len, CUmemGenericAllocationHandle * out) {
++// VRAM staging buffers shared by the tiered buffers of one KV cache: slot i backs the i-th host run (K tail, V
++// tail). The layers of a cache run one after another on one stream, so they can share them; another cache (the MTP
++// draft context's) runs on its own stream and can overlap with this one's work, so it gets its own. The cache is
++// the "kv<ptr>" part of the buffer type tag ("kv%p_l%u", llama-kv-cache.cpp). Created at the first request and kept
++// for the life of the process; a later, longer run gets no alias.
++static std::string ggml_cuda_tier_staging_key(const std::string & name) {
++    const size_t a = name.find("_tier_");
++    if (a == std::string::npos) {
++        return name;
++    }
++    const size_t b = name.find("_l", a + 6);
++    return name.substr(a + 6, b == std::string::npos ? std::string::npos : b - (a + 6));
++}
++
++static bool ggml_cuda_tier_staging_handle(int physical, const std::string & key, int slot, size_t len, CUmemGenericAllocationHandle * out) {
+     static std::mutex m;
+-    static std::map<int, std::pair<CUmemGenericAllocationHandle, size_t>> handles;
++    static std::map<std::pair<std::string, int>, std::pair<CUmemGenericAllocationHandle, size_t>> handles;
+     std::lock_guard<std::mutex> lock(m);
+-    auto it = handles.find(slot);
++    auto it = handles.find({ key, slot });
+     if (it == handles.end()) {
+         CUmemAllocationProp pd = {};
+         pd.type          = CU_MEM_ALLOCATION_TYPE_PINNED;
+@@ -1056,8 +1109,8 @@ static bool ggml_cuda_tier_staging_handle(int physical, int slot, size_t len, CU
+         if (cuMemCreate(&h, len, &pd, 0) != CUDA_SUCCESS) {
+             return false;
+         }
+-        GGML_LOG_INFO("%s: staging buffer %d: %.2f MiB VRAM\n", __func__, slot, len/1048576.0);
+-        it = handles.emplace(slot, std::make_pair(h, len)).first;
++        GGML_LOG_INFO("%s: staging buffer %s/%d: %.2f MiB VRAM\n", __func__, key.c_str(), slot, len/1048576.0);
++        it = handles.emplace(std::make_pair(key, slot), std::make_pair(h, len)).first;
+     }
+     if (it->second.second < len) {
+         return false;
+@@ -1203,7 +1256,7 @@ static ggml_backend_buffer_t ggml_backend_cuda_tier_alloc(ggml_backend_buffer_ty
+                 CUmemGenericAllocationHandle h = rr.h;
+                 if (!in_vram[off / gran]) {
+                     CUmemGenericAllocationHandle bh;
+-                    if (!ggml_cuda_tier_staging_handle(physical, ih++, rr.len, &bh)) {
++                    if (!ggml_cuda_tier_staging_handle(physical, ggml_cuda_tier_staging_key(bctx->name), ih++, rr.len, &bh)) {
+                         ok = false;
+                         break;
+                     }
+@@ -1264,6 +1317,263 @@ static ggml_backend_buffer_t ggml_backend_cuda_tier_alloc(ggml_backend_buffer_ty
+ }
+ #endif
+ 
++// Tiered KV, prefill side. Graphs that run without CUDA graphs (prefill micro-batches) get two changes:
++//  1. set_rows nodes that write into a tiered buffer write through its all-VRAM alias, so the new rows of the host
++//     part land in the VRAM staging buffer; a write-back kernel then copies them to their host pages as whole
++//     16-byte stores. The quantizing set_rows kernels write each row in small pieces, which over PCIe cost a fixed
++//     ~0.68 ms per prefill token once the micro-batch is past the VRAM line (RTX 4070, 512-token micro-batches).
++//  2. The host rows of attention op k are copied into staging on a second stream while the main stream computes the
++//     layers between op k-1 and op k (staging is shared by all layers, so the copy starts when op k-1 has read it).
++//     The main stream waits for that copy before the layer's set_rows writes staging, and op k reads the alias.
++// Both read and write the same bytes as the synchronous path. GGML_CUDA_KV_TIER_REDIRECT=0 and
++// GGML_CUDA_KV_TIER_PREFETCH=0 disable them. Anything unexpected (an attention op out of graph order) stops the
++// prefetch for the rest of the graph, and the remaining attention ops take the synchronous copy.
++#if defined(GGML_USE_VMM) && !defined(GGML_USE_HIP) && !defined(GGML_USE_MUSA)
++static const ggml_cuda_tier_entry * ggml_cuda_tier_find(const void * ptr) {
++    const CUdeviceptr p = (CUdeviceptr) ptr;
++    std::lock_guard<std::mutex> lock(g_tier_mutex);
++    for (auto & it : g_tier_entries) {
++        if (p >= it.va && p < it.va + it.total) {
++            return &it;
++        }
++    }
++    return nullptr;
++}
++
++// first host run of e that intersects [lo, hi) (offsets in the tiered buffer), as [a, b)
++static bool ggml_cuda_tier_host_part(const ggml_cuda_tier_entry * e, size_t lo, size_t hi, size_t * a, size_t * b) {
++    for (auto & hr : e->host_runs) {
++        const size_t x = std::max(lo, hr.first), y = std::min(hi, hr.first + hr.second);
++        if (x < y) {
++            *a = x;
++            *b = y;
++            return true;
++        }
++    }
++    return false;
++}
++
++static bool ggml_cuda_tier_reaches_host(const ggml_tensor * t) {
++    const ggml_cuda_tier_entry * e = ggml_cuda_tier_find(t->data);
++    if (!e) {
++        return false;
++    }
++    const size_t lo = (CUdeviceptr) t->data - e->va;
++    size_t a, b;
++    return ggml_cuda_tier_host_part(e, lo, std::min(e->total, lo + ggml_nbytes(t)), &a, &b);
++}
++
++// one block per index: copy row idx[r] from the alias (VRAM staging) to the original range (host pages) when the
++// row touches the host run [h_lo, h_hi) (offsets from the tensor base); rows in VRAM are the same pages in both
++template <typename idx_t>
++static __global__ void k_tier_write_back(const char * __restrict__ alias, char * __restrict__ orig, const idx_t * __restrict__ idx,
++        const size_t row_stride, const size_t row_bytes, const size_t h_lo, const size_t h_hi, const int vec) {
++    const size_t off = (size_t) idx[blockIdx.x]*row_stride;
++    if (off + row_bytes <= h_lo || off >= h_hi) {
++        return;
++    }
++    if (vec == 16) {
++        const int4 * s = (const int4 *) (alias + off);
++        int4       * d = (int4       *) (orig  + off);
++        for (size_t k = threadIdx.x; k < row_bytes/16; k += blockDim.x) {
++            d[k] = s[k];
++        }
++    } else if (vec == 4) {
++        const int * s = (const int *) (alias + off);
++        int       * d = (int       *) (orig  + off);
++        for (size_t k = threadIdx.x; k < row_bytes/4; k += blockDim.x) {
++            d[k] = s[k];
++        }
++    } else {
++        for (size_t k = threadIdx.x; k < row_bytes; k += blockDim.x) {
++            orig[off + k] = alias[off + k];
++        }
++    }
++}
++
++// copy the host-backed bytes of [lo, hi) (offsets in the tiered buffer) into the staging alias
++static void ggml_cuda_tier_copy_range(const ggml_cuda_tier_entry * e, size_t lo, size_t hi, cudaStream_t stream) {
++    for (auto & hr : e->host_runs) {
++        const size_t a = std::max(lo, hr.first), b = std::min(hi, hr.first + hr.second);
++        if (a < b) {
++            CUDA_CHECK(cudaMemcpyAsync((void *) (e->va2 + a), (const void *) (e->va + a), b - a, cudaMemcpyDeviceToDevice, stream));
++        }
++    }
++}
++
++static void ggml_cuda_tier_wait(ggml_backend_cuda_context & ctx, ggml_cuda_tier_state & ts) {
++    if (ts.inflight) {
++        CUDA_CHECK(cudaStreamWaitEvent(ctx.stream(), ts.copied, 0));
++        ts.inflight = false;
++    }
++}
++
++static void ggml_cuda_tier_prefetch(ggml_backend_cuda_context & ctx, ggml_cuda_tier_state & ts, const ggml_tensor * fa) {
++    cudaStream_t side = ctx.stream(ctx.device, GGML_CUDA_MAX_STREAMS - 1);
++    CUDA_CHECK(cudaStreamWaitEvent(side, ts.read, 0));
++    for (int s = 1; s <= 2; ++s) {
++        const ggml_tensor * t = fa->src[s];
++        const ggml_cuda_tier_entry * e = ggml_cuda_tier_find(t->data);
++        if (e) {
++            const size_t lo = (CUdeviceptr) t->data - e->va;
++            ggml_cuda_tier_copy_range(e, lo, std::min(e->total, lo + ggml_nbytes(t)), side);
++        }
++    }
++    CUDA_CHECK(cudaEventRecord(ts.copied, side));
++    ts.inflight = true;
++}
++
++static void ggml_cuda_tier_graph_begin(ggml_backend_cuda_context & ctx, ggml_cuda_tier_state & ts, const ggml_cgraph * cgraph, bool enable) {
++    ts.rd.clear();
++    ts.rd_next = 0;
++    ts.fa.clear();
++    ts.next = 0;
++    static const bool redirect_on = [] {
++        const char * v = getenv("GGML_CUDA_KV_TIER_REDIRECT");
++        return v == nullptr || atoi(v) != 0;
++    }();
++    static const bool prefetch_on = [] {
++        const char * v = getenv("GGML_CUDA_KV_TIER_PREFETCH");
++        return v == nullptr || atoi(v) != 0;
++    }();
++    if (!enable || (!redirect_on && !prefetch_on)) {
++        return;
++    }
++    {
++        std::lock_guard<std::mutex> lock(g_tier_mutex);
++        if (g_tier_entries.empty()) {
++            return;
++        }
++    }
++    // every set_rows into a tiered buffer must go through the alias when the prefetch runs: a row written in place
++    // after the prefetch read its host page would be stale in staging
++    bool all_redirected = true;
++    for (int i = 0; i < cgraph->n_nodes; ++i) {
++        ggml_tensor * n = cgraph->nodes[i];
++        if (n->op == GGML_OP_SET_ROWS && n->data) {
++            const ggml_cuda_tier_entry * e = ggml_cuda_tier_find(n->data);
++            const size_t base = e ? (CUdeviceptr) n->data - e->va : 0;
++            size_t a, b;
++            if (e && ggml_cuda_tier_host_part(e, base, std::min(e->total, base + ggml_nbytes(n)), &a, &b)) {
++                const ggml_tensor * idx = n->src[1];
++                const bool flat = idx && (idx->type == GGML_TYPE_I64 || idx->type == GGML_TYPE_I32) && ggml_is_contiguous(idx) &&
++                    idx->ne[1] == 1 && idx->ne[2] == 1 && idx->ne[3] == 1 && n->ne[2] == 1 && n->ne[3] == 1;
++                if (redirect_on && flat) {
++                    ts.rd.push_back({ i, n, n->data, e, base, a - base, b - base });
++                } else {
++                    all_redirected = false;
++                }
++            }
++        }
++        if (prefetch_on && n->op == GGML_OP_FLASH_ATTN_EXT && n->src[1] && n->src[2] && n->src[1] != n->src[2] &&
++                (ggml_cuda_tier_reaches_host(n->src[1]) || ggml_cuda_tier_reaches_host(n->src[2]))) {
++            ts.fa.push_back(n);
++        }
++    }
++    if (!all_redirected) {
++        ts.fa.clear();
++    }
++    for (auto & r : ts.rd) {
++        const ggml_cuda_tier_entry * e = (const ggml_cuda_tier_entry *) r.entry;
++        r.node->data = (void *) (e->va2 + r.base);
++    }
++    if (!ts.fa.empty()) {
++        if (ts.read == nullptr) {
++            CUDA_CHECK(cudaEventCreateWithFlags(&ts.read,   cudaEventDisableTiming));
++            CUDA_CHECK(cudaEventCreateWithFlags(&ts.copied, cudaEventDisableTiming));
++        }
++        // work already queued on the main stream can still read the staging buffers
++        CUDA_CHECK(cudaEventRecord(ts.read, ctx.stream()));
++        ggml_cuda_tier_prefetch(ctx, ts, ts.fa[0]);
++    }
++}
++
++// before graph node i: write back the redirected set_rows nodes computed so far, and let the main stream wait for
++// the prefetch when a redirected set_rows (or the fused group that ends in it) comes within the next nodes
++static void ggml_cuda_tier_step(ggml_backend_cuda_context & ctx, ggml_cuda_tier_state & ts, int i) {
++    while (ts.rd_next < ts.rd.size() && ts.rd[ts.rd_next].at < i) {
++        ggml_cuda_tier_redirect & r = ts.rd[ts.rd_next++];
++        const ggml_cuda_tier_entry * e = (const ggml_cuda_tier_entry *) r.entry;
++        const ggml_tensor * n   = r.node;
++        const ggml_tensor * idx = n->src[1];
++        const char * alias = (const char *) (e->va2 + r.base);
++        char       * orig  = (char *) r.data;
++        const size_t row_bytes = ggml_row_size(n->type, n->ne[0]);
++        const size_t align = (size_t) r.base | (size_t) n->nb[1] | row_bytes;
++        const int    vec = align % 16 == 0 ? 16 : align % 4 == 0 ? 4 : 1;
++        if (idx->ne[0] == 0) {
++            // nothing written
++        } else if (idx->type == GGML_TYPE_I64) {
++            k_tier_write_back<<<(unsigned) idx->ne[0], 128, 0, ctx.stream()>>>(alias, orig, (const int64_t *) idx->data,
++                n->nb[1], row_bytes, r.h_lo, r.h_hi, vec);
++        } else {
++            k_tier_write_back<<<(unsigned) idx->ne[0], 128, 0, ctx.stream()>>>(alias, orig, (const int32_t *) idx->data,
++                n->nb[1], row_bytes, r.h_lo, r.h_hi, vec);
++        }
++        CUDA_CHECK(cudaGetLastError());
++        r.node->data = r.data;
++    }
++    if (ts.inflight && ts.rd_next < ts.rd.size() && ts.rd[ts.rd_next].at <= i + 4) {
++        ggml_cuda_tier_wait(ctx, ts);
++    }
++}
++
++static void ggml_cuda_tier_graph_end(ggml_backend_cuda_context & ctx, ggml_cuda_tier_state & ts, int n_nodes) {
++    ggml_cuda_tier_step(ctx, ts, n_nodes);
++    ggml_cuda_tier_wait(ctx, ts);
++    ts.rd.clear();
++    ts.rd_next = 0;
++    ts.fa.clear();
++    ts.next = 0;
++}
++
++// called by ggml_cuda_flash_attn_ext: true when this op is the next one of the prefetch pipeline (its K/V host rows
++// are in staging, the alias addresses are returned); false: the op takes the synchronous copy
++bool ggml_cuda_tier_fa_begin(ggml_backend_cuda_context & ctx, const ggml_tensor * dst, void ** K_alias, void ** V_alias) {
++    ggml_cuda_tier_state & ts = ggml_cuda_tier_state_of(ctx);
++    if (ts.next < ts.fa.size()) {
++        if (ts.fa[ts.next] == dst) {
++            ggml_cuda_tier_wait(ctx, ts);
++            for (int s = 1; s <= 2; ++s) {
++                const ggml_tensor * t = dst->src[s];
++                const ggml_cuda_tier_entry * e = ggml_cuda_tier_find(t->data);
++                *(s == 1 ? K_alias : V_alias) = e ? (void *) (e->va2 + ((CUdeviceptr) t->data - e->va)) : nullptr;
++            }
++            return true;
++        }
++        ts.next = ts.fa.size();
++    }
++    // a prefetch of a stopped pipeline must be done before the synchronous copy reuses the staging buffers
++    ggml_cuda_tier_wait(ctx, ts);
++    return false;
++}
++
++void ggml_cuda_tier_fa_end(ggml_backend_cuda_context & ctx) {
++    ggml_cuda_tier_state & ts = ggml_cuda_tier_state_of(ctx);
++    CUDA_CHECK(cudaEventRecord(ts.read, ctx.stream()));
++    if (++ts.next < ts.fa.size()) {
++        ggml_cuda_tier_prefetch(ctx, ts, ts.fa[ts.next]);
++    }
++}
++#else
++static void ggml_cuda_tier_graph_begin(ggml_backend_cuda_context & ctx, ggml_cuda_tier_state & ts, const ggml_cgraph * cgraph, bool enable) {
++    GGML_UNUSED(ctx); GGML_UNUSED(ts); GGML_UNUSED(cgraph); GGML_UNUSED(enable);
++}
++static void ggml_cuda_tier_step(ggml_backend_cuda_context & ctx, ggml_cuda_tier_state & ts, int i) {
++    GGML_UNUSED(ctx); GGML_UNUSED(ts); GGML_UNUSED(i);
++}
++static void ggml_cuda_tier_graph_end(ggml_backend_cuda_context & ctx, ggml_cuda_tier_state & ts, int n_nodes) {
++    GGML_UNUSED(ctx); GGML_UNUSED(ts); GGML_UNUSED(n_nodes);
++}
++bool ggml_cuda_tier_fa_begin(ggml_backend_cuda_context & ctx, const ggml_tensor * dst, void ** K_alias, void ** V_alias) {
++    GGML_UNUSED(ctx); GGML_UNUSED(dst); GGML_UNUSED(K_alias); GGML_UNUSED(V_alias);
++    return false;
++}
++void ggml_cuda_tier_fa_end(ggml_backend_cuda_context & ctx) {
++    GGML_UNUSED(ctx);
++}
++#endif
++
+ // A device buffer type whose buffers keep vram_frac of each of n_parts equal parts in VRAM and the rest in
+ // pinned host memory mapped into the same device range. `tag` makes the name unique so a caller can ask
+ // for one buffer per tensor group. Returns nullptr when the device has no VMM.
+@@ -4875,8 +5185,15 @@ static void ggml_cuda_graph_evaluate_and_capture(ggml_backend_cuda_context * cud
+             const bool timing = op_timing && !use_cuda_graph;
+             std::vector<std::pair<const ggml_tensor *, cudaEvent_t>> op_events;
+ 
++            ggml_cuda_tier_state & tier = ggml_cuda_tier_state_of(*cuda_ctx);
++            ggml_cuda_tier_graph_begin(*cuda_ctx, tier, cgraph, !use_cuda_graph && !should_launch_concurrent_events);
++            const bool tier_active = !tier.rd.empty() || !tier.fa.empty();
++
+             for (int i = 0; i < cgraph->n_nodes; i++) {
+                 ggml_tensor * node = cgraph->nodes[i];
++                if (tier_active) {
++                    ggml_cuda_tier_step(*cuda_ctx, tier, i);
++                }
+                 if (timing) {
+                     cudaEvent_t e;
+                     CUDA_CHECK(cudaEventCreate(&e));
+@@ -5081,6 +5398,10 @@ static void ggml_cuda_graph_evaluate_and_capture(ggml_backend_cuda_context * cud
+                }
+             }
+ 
++            if (tier_active) {
++                ggml_cuda_tier_graph_end(*cuda_ctx, tier, cgraph->n_nodes);
++            }
++
+             if (timing && !op_events.empty()) {
+                 cudaEvent_t end;
+                 CUDA_CHECK(cudaEventCreate(&end));
+-- 
+2.55.0.windows.3
+

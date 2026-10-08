@@ -1,0 +1,41 @@
+02:57 === depth table 0040 (C:/Users/pwall/AppData/Local/Temp/root-0040): health=1; kv     tiered: cells 0..119040 in VRAM, 119040..262144 in system RAM (VRAM margin 1000 MiB)
+258000: code   depth 258000 (evaluated 256858): prefill   368.7 tok/s  ttft 696.64s  decode   12.0 tok/s (400 tok)
+258000: prose  depth 258000 (evaluated 512): prefill   177.8 tok/s  ttft   2.88s  decode    8.6 tok/s (400 tok)
+258000: bash   depth 258000 (evaluated 516): prefill   178.0 tok/s  ttft   2.90s  decode   11.3 tok/s (400 tok)
+258000: mean decode 10.7 tok/s
+180000: code   depth 180000 (evaluated 179048): prefill   484.3 tok/s  ttft 369.70s  decode   27.8 tok/s (400 tok)
+180000: prose  depth 180000 (evaluated 512): prefill   235.8 tok/s  ttft   2.17s  decode   17.7 tok/s (400 tok)
+180000: bash   depth 180000 (evaluated 516): prefill   244.3 tok/s  ttft   2.11s  decode   23.3 tok/s (400 tok)
+180000: mean decode 22.9 tok/s
+131000: code   depth 131000 (evaluated 130306): prefill   628.1 tok/s  ttft 207.48s  decode   60.2 tok/s (400 tok)
+131000: prose  depth 131000 (evaluated 512): prefill   294.1 tok/s  ttft   1.74s  decode   30.2 tok/s (400 tok)
+131000: bash   depth 131000 (evaluated 516): prefill   300.9 tok/s  ttft   1.71s  decode   45.3 tok/s (400 tok)
+131000: mean decode 45.2 tok/s
+112000: code   depth 112000 (evaluated 111972): prefill   697.5 tok/s  ttft 160.54s  decode   91.1 tok/s (400 tok)
+112000: prose  depth 112000 (evaluated 512): prefill   412.0 tok/s  ttft   1.24s  decode   60.8 tok/s (400 tok)
+112000: bash   depth 112000 (evaluated 516): prefill   415.7 tok/s  ttft   1.24s  decode   82.9 tok/s (400 tok)
+112000: mean decode 78.3 tok/s
+64000: code   depth  64000 (evaluated 64009): prefill   866.0 tok/s  ttft  73.91s  decode  109.5 tok/s (400 tok)
+64000: prose  depth  64000 (evaluated 512): prefill   545.0 tok/s  ttft   0.94s  decode   69.2 tok/s (400 tok)
+64000: bash   depth  64000 (evaluated 516): prefill   547.6 tok/s  ttft   0.94s  decode  110.4 tok/s (400 tok)
+64000: mean decode 96.4 tok/s
+32000: code   depth  32000 (evaluated 32044): prefill  1031.9 tok/s  ttft  31.05s  decode  177.0 tok/s (400 tok)
+32000: prose  depth  32000 (evaluated 512): prefill   682.9 tok/s  ttft   0.75s  decode   77.9 tok/s (400 tok)
+32000: bash   depth  32000 (evaluated 516): prefill   682.7 tok/s  ttft   0.76s  decode   93.0 tok/s (400 tok)
+32000: mean decode 116.0 tok/s
+16000: code   depth  16000 (evaluated 16036): prefill  1137.6 tok/s  ttft  14.10s  decode  244.0 tok/s (400 tok)
+16000: prose  depth  16000 (evaluated 512): prefill   809.1 tok/s  ttft   0.63s  decode   82.9 tok/s (400 tok)
+16000: bash   depth  16000 (evaluated 516): prefill   813.5 tok/s  ttft   0.63s  decode   94.9 tok/s (400 tok)
+16000: mean decode 140.6 tok/s
+4000: code   depth   4000 (evaluated 4048): prefill  1177.8 tok/s  ttft   3.44s  decode  102.5 tok/s (400 tok)
+4000: prose  depth   4000 (evaluated 512): prefill   923.5 tok/s  ttft   0.55s  decode  102.6 tok/s (400 tok)
+4000: bash   depth   4000 (evaluated 516): prefill   942.5 tok/s  ttft   0.55s  decode  118.4 tok/s (400 tok)
+4000: mean decode 107.8 tok/s
+cumulative prefill at   4000: 1304 tok/s (4096 tokens in 3.1 s)
+cumulative prefill at  16000: 1176 tok/s (16384 tokens in 13.9 s)
+cumulative prefill at  32000: 1049 tok/s (32768 tokens in 31.2 s)
+cumulative prefill at  64000:  878 tok/s (63488 tokens in 72.3 s)
+cumulative prefill at 112000:  699 tok/s (112640 tokens in 161.1 s)
+cumulative prefill at 131000:  627 tok/s (131072 tokens in 209.0 s)
+cumulative prefill at 180000:  487 tok/s (180224 tokens in 370.4 s)
+03:28 === done

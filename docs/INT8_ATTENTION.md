@@ -1,12 +1,12 @@
-# Int8 score step for prefill attention (plan, 2026-10-08)
+# Int8 score step for prefill attention (plan and result, 2026-10-08)
 
 Idea credit: syv-ai/HyperQwen, which uses an int8-QK prefill attention kernel for this exact attention shape
 (24 query heads, 4 KV heads, head size 256) on vLLM. This note is our route to the same result in this engine.
 
 ## The result we want
 
-Prefill at 130k context goes from about 349 tok/s to 550 tok/s or more on the RTX 4070, on Bonsai 2 27B and on
-Mirai S, with no measurable quality change (KL by position against today's kernel, HumanEval and the suite paired).
+Prefill at 130k context goes from about 349 tok/s to 550 tok/s or more on the RTX 4070, on Bonsai 2 27B, with no
+measurable quality change (KL by position against today's kernel, HumanEval and the suite paired).
 
 ## Why the gain is there
 
@@ -43,7 +43,52 @@ So the depth term of the fit includes more than this kernel. Correction to the e
 step makes the kernel twice as fast (the combined MMA peak goes from about 78 to about 156 TFLOPS), prefill at 130k
 goes from about 349 to about 460 tok/s, about +33%. The gate (+25% at 128k) stays.
 
-## Route
+## Result (2026-10-08): stopped, two gates fail
+
+The int8 score step works (branch `int8-kq` on the engine fork, build switch `GGML_CUDA_FA_INT8_KQ=1`): q8_0 K,
+head 256, 16 query columns for each warp, Q quantized in the kernel in blocks of 32, two `m16n8k32` int8 MMAs for each
+block, int32 results scaled by (Q scale) x (K scale) into the float score tile. Everything after the score step is
+unchanged.
+
+| Check | Result | Gate |
+| --- | --- | --- |
+| `test-backend-ops -o FLASH_ATTN_EXT` | 2994 / 2994 pass | pass |
+| Kernel time, 512 queries, KV 4k / 32k / 64k / 128k | 1.01 / 9.73 / 19.7 / 39.7 ms (was 1.27 / 11.0 / 22.5 / 45.4): 12-21% faster | - |
+| Prefill at 128k (from the kernel share) | about +6% | +25%: **fail** |
+| KL against today's kernel (ctx 32768, 2 chunks, q8_0 K/V) | mean 0.000314 ± 0.000105, same top token 99.24%, max 3.33 | ≤ 0.00017: **fail** |
+| PPL | 8.3841 against 8.3860 (ratio 0.99978 ± 0.00018) | - |
+
+Why the gain is small: the kernel runs at 36-41 TFLOPS, about half of the MMA peak before the change and about a
+quarter after it. The MMAs are not the limit. The rest of the time goes to the tile loads (V is still converted to
+fp16 in shared memory), the softmax, the scale arithmetic and the synchronizations. A faster score step does not
+change those.
+
+What we found on the way, and what we do next: below the tiered-KV line, the attention kernel is almost all of
+the depth cost (0.012 ms per token for each 1k of depth; the kernel alone is about 0.011). When prefill crosses the
+line (119,040 cells on the 12 GB recipe), the cost per token jumps by about 0.67 ms at once and then grows twice as
+fast. At 130k that step is about 30% of the prefill time. `bench/tier_step_probe.sh` moves the line to 16k and
+changes one thing for each arm, to find the cause (`receipts/tier_step.log`):
+
+| Line at 16k, prefill to 40k | Cost per token just past the line | Prefill, tok/s |
+| --- | ---: | ---: |
+| Served recipe | 1.62-1.67 ms (0.94 just below it) | 729 |
+| Window 64k instead of 262k | 1.56-1.64 ms | 719 |
+| Staging off | grows with each host row (3.26 ms at 8k host rows) | 325 |
+| MTP off | 1.49-1.55 ms | 762 |
+| All-VRAM cache (64k window) | 0.96-1.05 ms | 990 |
+
+The step does not depend on the depth, the window or the draft head, and staging is not its cause either: it is
+the writes. Each prefill micro-batch writes 512 new K/V rows into each attention layer, and past the line those rows
+are in system RAM. The quantizing `set_rows` kernel writes each row in small pieces, and over PCIe that costs about
+0.68 ms per prefill token. Decode writes a few rows per step, so it does not show the step.
+
+Patch 0041 makes those writes go to VRAM first: `set_rows` writes through the all-VRAM alias (the new host-part
+rows land in the staging buffer), and a write-back kernel copies them to their RAM pages as whole 16-byte stores.
+It also copies the host rows of the next attention layer into staging on a second stream while the layers before it
+compute. Result with the line at 16k, prefill to 40k (`receipts/tier_ab.log`): 717 -> 983 tok/s, the same as the
+all-VRAM cache (990); without the write redirect 721, without the prefetch 967; greedy text identical to 0040.
+
+## Route (as planned)
 
 1. **Measure first.** Run `test-backend-ops -o FLASH_ATTN_EXT` in performance mode for the served shapes (head 256,
    GQA 6, q8_0 K/V, 512 queries, KV 32k / 64k / 128k) to get the kernel time today and the split between the score

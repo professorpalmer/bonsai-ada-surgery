@@ -1,0 +1,39 @@
+00:50 === MTP head A/B: Q8_0 vs Q4_0, depths 4000 32000 100000
+00:50 q8: health=1 
+q8 depth 4000: mean decode 73.6 tok/s
+q8 depth 32000: mean decode 114.2 tok/s
+00:53 q4: health=1 kv     tiered: cells 0..125696 in VRAM, 125696..262144 in system RAM (VRAM margin 1000 MiB)
+q4 depth 4000: mean decode 96.5 tok/s
+q4 depth 32000: mean decode 100.7 tok/s
+00:55 VOID: the q8 lines above came from another serve left running by an earlier step (it held 8080 and the VRAM; the launcher refused). Rerun follows.
+00:59 === MTP head A/B: Q8_0 vs Q4_0, depths 4000 32000 100000
+00:59 q8: health=1 kv     tiered: cells 0..119040 in VRAM, 119040..262144 in system RAM (VRAM margin 1000 MiB)
+q8 depth 4000: mean decode 93.8 tok/s
+q8 depth 32000: mean decode 100.3 tok/s
+q8 depth 100000: mean decode 87.7 tok/s
+q8 acceptance = 0.89943 (  313 accepted /   348 generated), mean len =  4.64
+q8 acceptance = 0.56883 (  219 accepted /   385 generated), mean len =  2.23
+q8 acceptance = 0.75568 (  266 accepted /   352 generated), mean len =  3.03
+01:03 q4: health=1 kv     tiered: cells 0..125696 in VRAM, 125696..262144 in system RAM (VRAM margin 1000 MiB)
+q4 depth 4000: mean decode 96.9 tok/s
+q4 depth 32000: mean decode 100.4 tok/s
+q4 depth 100000: mean decode 86.3 tok/s
+q4 acceptance = 0.88352 (  311 accepted /   352 generated), mean len =  4.53
+q4 acceptance = 0.53518 (  213 accepted /   398 generated), mean len =  2.16
+q4 acceptance = 0.70765 (  259 accepted /   366 generated), mean len =  2.88
+01:07 q8b: health=1 kv     tiered: cells 0..119040 in VRAM, 119040..262144 in system RAM (VRAM margin 1000 MiB)
+q8b depth 4000: mean decode 93.4 tok/s
+q8b depth 32000: mean decode 99.8 tok/s
+q8b depth 100000: mean decode 87.4 tok/s
+q8b acceptance = 0.89943 (  313 accepted /   348 generated), mean len =  4.64
+q8b acceptance = 0.56883 (  219 accepted /   385 generated), mean len =  2.23
+q8b acceptance = 0.75568 (  266 accepted /   352 generated), mean len =  3.03
+01:12 q4b: health=1 kv     tiered: cells 0..125696 in VRAM, 125696..262144 in system RAM (VRAM margin 1000 MiB)
+q4b depth 4000: mean decode 97.0 tok/s
+q4b depth 32000: mean decode 100.7 tok/s
+q4b depth 100000: mean decode 86.2 tok/s
+q4b acceptance = 0.88352 (  311 accepted /   352 generated), mean len =  4.53
+q4b acceptance = 0.53518 (  213 accepted /   398 generated), mean len =  2.16
+q4b acceptance = 0.70765 (  259 accepted /   366 generated), mean len =  2.88
+greedy text, Q4_0 head vs Q8_0 head (quote + plain): identical
+01:16 === done

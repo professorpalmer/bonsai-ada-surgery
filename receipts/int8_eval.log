@@ -1,0 +1,24 @@
+00:46 === int8 eval, build C:\Users\pwall\AppData\Local\Temp\build-int8\bin
+  2994/2994 tests passed
+00:47 kernel timing (served prefill shape):
+kv=4096  1005.31 us/run  51.27 TFLOPS
+kv=32768  9728.00 us/run  42.38 TFLOPS
+kv=65536  19703.49 us/run  41.85 TFLOPS
+kv=131072  39714.27 us/run  41.53 TFLOPS
+00:48 KL against today's kernel (q8_0 K/V, ctx 32768, 2 chunks):
+00:48 === done
+00:55 KL against today's kernel (base = release build, q8_0 K/V, ctx 32768, 2 chunks):
+
+artifacts\eval\int8kl_base_32768.log:18:0.47.636.188 I perplexity: 37.31 seconds per pass - ETA 1.39.109.337 I Final 
+estimate: PPL = 8.3884 +/- 0.12310
+chunk             PPL               ln(PPL(Q)/PPL(base))          KL Divergence              Δp RMS            Same top p
+Mean PPL(Q)                   :   8.384131 ±   0.123003
+Mean PPL(base)                :   8.386014 ±   0.122992
+Mean PPL(Q)/PPL(base)         :   0.999776 ±   0.000181
+Mean PPL(Q)-PPL(base)         :  -0.001882 ±   0.001520
+Mean    KLD:   0.000314 ±   0.000105
+Maximum KLD:   3.334385
+99.9%   KLD:   0.004955
+Same top p: 99.243 ± 0.048 %
+
+

@@ -38,6 +38,17 @@ agreement 99.38%; q4_0 0.00218, 97.93%. The previous 12 GB routes to 262k all us
    tail copies the used host rows into staging with the copy engine and reads the alias. Prefill: the tail is read
    once per op instead of once per query tile (146 -> 280 tok/s at 180k). Decode: DMA instead of SMs reading host
    memory (+28% at 180k).
+   **Prefill writes past the line** (patch 0041, 2026-10-08). Each prefill micro-batch writes 512 new K/V rows into
+   every attention layer. Past the line those rows are in system RAM, and the quantizing `set_rows` kernel wrote
+   them in small pieces over PCIe: a fixed ~0.68 ms per prefill token, the same at a 16k and a 119k line, with or
+   without staging and drafting (`docs/INT8_ATTENTION.md`, `receipts/tier_step.log`). Now `set_rows` writes through
+   the all-VRAM alias, and a write-back kernel copies the new host-part rows to RAM as whole 16-byte stores. The
+   host rows of the next attention layer are copied into staging on a second stream while the layers before it
+   compute (`GGML_CUDA_KV_TIER_REDIRECT=0` / `GGML_CUDA_KV_TIER_PREFETCH=0` turn the parts off). Each KV cache gets
+   its own staging buffers, because the draft context runs on its own stream. Served line, one 159k prefill: each
+   prompt chunk past 119k costs 2.21-2.59 ms per token instead of 2.64-3.52, cumulative 542 -> 585 tok/s. Line at
+   16k, prefill to 40k: 717 -> 983 tok/s (all-VRAM cache: 990). Greedy text identical; decode unchanged
+   (`receipts/tier_ab.log`).
 3. **Quantized-KV GQA decode on the MMA attention kernel** (default for <= 8 queries; `GGML_CUDA_FA_MMA_DECODE_MIN_KV`).
    Bonsai 2 has 24 query heads over 4 KV heads; the vector kernel reads each K/V row once per query head, the
    in-place MMA kernel from #221 once per KV head. 4k 78.1 -> 86.9, 16k 77.7 -> 111.6 tok/s.
