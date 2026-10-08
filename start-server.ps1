@@ -177,13 +177,13 @@ if ($Spec -gt 0) {
     # context (file rewrites, edit calls, quoted logs) up to BONSAI_LOOKUP_N tokens; the head drafts new text with its
     # own small draft size. Measured (receipts/lookup_ab.jsonl, same text in every arm): file rewrites 117 -> 352 tok/s
     # at 4k and 63 -> 164 at 130k, edit calls +19% / +25%, plain text unchanged. 32 is the best limit for edit calls;
-    # 64 is faster on full rewrites (420 / 183) and slower on edits. BONSAI_LOOKUP=0 turns it off. Off by default on
-    # 8 GB cards: a long draft widens the verify batch, and the 8 GB margin is not measured for it.
+    # 64 is faster on full rewrites (420 / 183) and slower on edits. BONSAI_LOOKUP=0 turns it off. 8 GB (RTX 2060 SUPER,
+    # drafting preset): file rewrites 58 -> 126 tok/s at depth 0 and 32 -> 69 at 64k, edits +6 %, plain unchanged, same text at depth 0, at
+    # least 90 MiB free VRAM (receipts/lookup_ab_8gb.jsonl).
     # BONSAI_SPEC_TYPE: the whole --spec-type list (overrides the above). BONSAI_SPEC_ARGS: extra drafter flags.
     $HasLookupCap = $Help -match '--spec-lookup-n-max'
     $LookupN = if ($env:BONSAI_LOOKUP_N) { [int]$env:BONSAI_LOOKUP_N } else { 32 }
-    $LookupOn = ($env:BONSAI_LOOKUP -ne '0') -and $HasLookupCap -and -not $Small -and $LookupN -gt 0
-    if ($env:BONSAI_LOOKUP -eq '1') { $LookupOn = $HasLookupCap -and $LookupN -gt 0 }   # also on 8 GB, by request
+    $LookupOn = ($env:BONSAI_LOOKUP -ne '0') -and $HasLookupCap -and $LookupN -gt 0
     $SpecType = if ($env:BONSAI_SPEC_TYPE) { $env:BONSAI_SPEC_TYPE } elseif ($LookupOn) { 'ngram-mod,draft-mtp' } else { 'draft-mtp' }
     $SpecArgs = @('--spec-type', $SpecType, '--spec-draft-n-max', "$Spec", '-ctkd', $Ctk, '-ctvd', $Ctk)
     if ($LookupOn -and -not $env:BONSAI_SPEC_TYPE) { $SpecArgs += @('--spec-lookup-n-max', "$LookupN") }
