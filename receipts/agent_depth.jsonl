@@ -14,3 +14,11 @@
 {"tag": "", "depth": 45000, "arm": "sampled-minp", "ask": 1, "tps": 68.1, "n": 1957, "evaluated": 515, "acceptance": 0.503}
 {"tag": "", "depth": 45000, "arm": "sampled", "ask": 0, "tps": 71.4, "n": 7082, "evaluated": 55517, "acceptance": 0.715}
 {"tag": "", "depth": 45000, "arm": "sampled", "ask": 1, "tps": 56.6, "n": 1368, "evaluated": 515, "acceptance": 0.453}
+{"tag": "i7-lookup", "depth": 60000, "arm": "greedy", "ask": 0, "tps": 82.3, "n": 3837, "evaluated": 66481, "acceptance": 0.731}
+{"tag": "i7-lookup", "depth": 60000, "arm": "greedy", "ask": 1, "tps": 67.1, "n": 1641, "evaluated": 515, "acceptance": 0.566}
+{"tag": "i7-lookup", "depth": 60000, "arm": "sampled", "ask": 0, "tps": 73.8, "n": 2149, "evaluated": 516, "acceptance": 0.653}
+{"tag": "i7-lookup", "depth": 60000, "arm": "sampled", "ask": 1, "tps": 64.6, "n": 1818, "evaluated": 515, "acceptance": 0.522}
+{"tag": "i7-nolookup", "depth": 60000, "arm": "greedy", "ask": 0, "tps": 79.7, "n": 3699, "evaluated": 66481, "acceptance": 0.774}
+{"tag": "i7-nolookup", "depth": 60000, "arm": "greedy", "ask": 1, "tps": 67.4, "n": 1641, "evaluated": 515, "acceptance": 0.57}
+{"tag": "i7-nolookup", "depth": 60000, "arm": "sampled", "ask": 0, "tps": 75.3, "n": 2368, "evaluated": 516, "acceptance": 0.701}
+{"tag": "i7-nolookup", "depth": 60000, "arm": "sampled", "ask": 1, "tps": 64.6, "n": 1818, "evaluated": 515, "acceptance": 0.516}
