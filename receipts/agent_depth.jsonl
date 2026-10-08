@@ -1,0 +1,16 @@
+{"tag": "", "depth": 45000, "arm": "greedy", "ask": 0, "tps": 86.1, "n": 4879, "evaluated": 45397, "acceptance": 0.764}
+{"tag": "", "depth": 45000, "arm": "greedy", "ask": 1, "tps": 69.9, "n": 1023, "evaluated": 515, "acceptance": 0.521}
+{"tag": "", "depth": 45000, "arm": "sampled", "ask": 0, "tps": 82.7, "n": 2872, "evaluated": 516, "acceptance": 0.712}
+{"tag": "", "depth": 45000, "arm": "sampled", "ask": 1, "tps": 67.4, "n": 1216, "evaluated": 515, "acceptance": 0.481}
+{"tag": "", "depth": 45000, "arm": "greedy", "ask": 0, "tps": 53.5, "n": 3948, "evaluated": 45397, "acceptance": null}
+{"tag": "", "depth": 45000, "arm": "greedy", "ask": 1, "tps": 53.8, "n": 1104, "evaluated": 515, "acceptance": null}
+{"tag": "", "depth": 45000, "arm": "sampled", "ask": 0, "tps": 53.7, "n": 2284, "evaluated": 516, "acceptance": null}
+{"tag": "", "depth": 45000, "arm": "sampled", "ask": 1, "tps": 53.8, "n": 1457, "evaluated": 515, "acceptance": null}
+{"tag": "", "depth": 45000, "arm": "sampled", "ask": 0, "tps": 81.1, "n": 2572, "evaluated": 45397, "acceptance": 0.683}
+{"tag": "", "depth": 45000, "arm": "sampled", "ask": 1, "tps": 67.6, "n": 1216, "evaluated": 515, "acceptance": 0.483}
+{"tag": "", "depth": 45000, "arm": "sampled-topk0", "ask": 0, "tps": 74.7, "n": 3653, "evaluated": 516, "acceptance": 0.688}
+{"tag": "", "depth": 45000, "arm": "sampled-topk0", "ask": 1, "tps": 62.7, "n": 1224, "evaluated": 515, "acceptance": 0.482}
+{"tag": "", "depth": 45000, "arm": "sampled-minp", "ask": 0, "tps": 80.3, "n": 4871, "evaluated": 516, "acceptance": 0.694}
+{"tag": "", "depth": 45000, "arm": "sampled-minp", "ask": 1, "tps": 68.1, "n": 1957, "evaluated": 515, "acceptance": 0.503}
+{"tag": "", "depth": 45000, "arm": "sampled", "ask": 0, "tps": 71.4, "n": 7082, "evaluated": 55517, "acceptance": 0.715}
+{"tag": "", "depth": 45000, "arm": "sampled", "ask": 1, "tps": 56.6, "n": 1368, "evaluated": 515, "acceptance": 0.453}

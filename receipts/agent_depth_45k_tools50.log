@@ -1,0 +1,8 @@
+=== 20:37 arm mtp cells 112896 depth 45000 health=1
+spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on)
+{"tag": "", "depth": 45000, "arm": "sampled", "ask": 0, "tps": 71.4, "n": 7082, "evaluated": 55517, "acceptance": 0.715}
+{"tag": "", "depth": 45000, "arm": "sampled", "ask": 1, "tps": 56.6, "n": 1368, "evaluated": 515, "acceptance": 0.453}
+2.47.556.266 I slot print_timing: id  0 | task 0 | draft acceptance = 0.71534 ( 4169 accepted /  5828 generated), mean len =  2.43
+3.12.730.147 I slot print_timing: id  0 | task 2945 | draft acceptance = 0.45265 (  650 accepted /  1436 generated), mean len =  1.91
+11459 MiB, 4, 16
+=== 20:40 done
