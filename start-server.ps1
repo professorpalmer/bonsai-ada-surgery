@@ -178,8 +178,8 @@ if ($Spec -gt 0) {
     # own small draft size. Measured (receipts/lookup_ab.jsonl, same text in every arm): file rewrites 117 -> 352 tok/s
     # at 4k and 63 -> 164 at 130k, edit calls +19% / +25%, plain text unchanged. 32 is the best limit for edit calls;
     # 64 is faster on full rewrites (420 / 183) and slower on edits. BONSAI_LOOKUP=0 turns it off. 8 GB (RTX 2060 SUPER,
-    # drafting preset): file rewrites 58 -> 126 tok/s at depth 0 and 32 -> 69 at 64k, edits +6 %, plain unchanged, same text at depth 0, at
-    # least 90 MiB free VRAM (receipts/lookup_ab_8gb.jsonl).
+    # drafting preset): file rewrites 58 -> 126 tok/s at depth 0 and 32 -> 69 at 64k, edits +6 % / +16 %, plain unchanged, same text at depth 0, at
+    # least 82 MiB free VRAM (receipts/lookup_ab_8gb.jsonl).
     # BONSAI_SPEC_TYPE: the whole --spec-type list (overrides the above). BONSAI_SPEC_ARGS: extra drafter flags.
     $HasLookupCap = $Help -match '--spec-lookup-n-max'
     $LookupN = if ($env:BONSAI_LOOKUP_N) { [int]$env:BONSAI_LOOKUP_N } else { 32 }

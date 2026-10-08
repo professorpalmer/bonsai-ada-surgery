@@ -48,10 +48,10 @@ lookup draft uses the server's state checkpoint, not more recurrent-state planes
 | depth | file rewrite | edit call | plain |
 | --- | --- | --- | --- |
 | 0, MTP only / with lookup | 58.2 / 125.9 | 56.9 / 60.5 | 52.5 / 52.8 |
-| 64k, MTP only / with lookup | 32.5 / 69.3 | 32.5 / (follow-up) | 31.4 / 31.3 |
+| 64k, MTP only / with lookup | 32.5 / 69.3 | 32.5 / 37.7 | 31.4 / 31.3 |
 
 At depth 0 the text is the same with and without lookup (11 of 11). At 64k one file rewrite of 11 items differs: a wider
-verify batch changes attention rounding, as MTP drafting itself does. Free VRAM did not go below 90 MiB.
+verify batch changes attention rounding, as MTP drafting itself does. Free VRAM did not go below 82 MiB.
 
 ## What decides it on 8 GB
 

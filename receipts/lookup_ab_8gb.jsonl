@@ -40,3 +40,5 @@
 {"tag": "look_d64k", "depth": 64000, "kind": "plain", "item": "bash", "tps": 31.2, "n": 400, "draft_n": 217, "draft_acc": 182, "sha": "ece470a86c3d", "wall": 16.6}
 {"tag": "look_d64k", "depth": 64000, "kind": "edit", "item": "textwrap.py", "tps": 41.4, "n": 256, "draft_n": 242, "draft_acc": 197, "sha": "4bb9655bcb75", "wall": 285.0}
 {"tag": "look_d64k", "depth": 64000, "kind": "edit", "item": "shlex.py", "tps": 38.2, "n": 164, "draft_n": 141, "draft_acc": 114, "sha": "eed762da2c87", "wall": 278.5}
+{"tag": "look_d64k", "depth": 64000, "kind": "edit", "item": "fnmatch.py", "tps": 36.8, "n": 148, "draft_n": 109, "draft_acc": 100, "sha": "1d0a873adaf6", "wall": 280.6}
+{"tag": "look_d64k", "depth": 64000, "kind": "edit", "item": "csv.py", "tps": 34.3, "n": 237, "draft_n": 267, "draft_acc": 181, "sha": "34626552c9d9", "wall": 284.5}
