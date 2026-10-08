@@ -1,0 +1,23 @@
+23:45 === engine A/B pr8: A = C:/Users/pwall/Projects/bonsai-2-27b-serve\bin, B = C:\Users\pwall\AppData\Local\Temp\root-0040\bin, depths 4000 32000
+A-mtp-1 depth 4000: mean decode 94.7 tok/s
+A-mtp-1 depth 32000: mean decode 100.9 tok/s
+B-mtp-1 depth 4000: mean decode 94.5 tok/s
+B-mtp-1 depth 32000: mean decode 100.5 tok/s
+A-mtp-2 depth 4000: mean decode 93.9 tok/s
+A-mtp-2 depth 32000: mean decode 100.6 tok/s
+B-mtp-2 depth 4000: mean decode 94.3 tok/s
+B-mtp-2 depth 32000: mean decode 99.1 tok/s
+A-nomtp-1 depth 4000: mean decode 65.0 tok/s
+A-nomtp-1 depth 32000: mean decode 56.4 tok/s
+B-nomtp-1 depth 4000: mean decode 65.2 tok/s
+B-nomtp-1 depth 32000: mean decode 56.6 tok/s
+A-nomtp-2 depth 4000: mean decode 64.8 tok/s
+A-nomtp-2 depth 32000: mean decode 56.3 tok/s
+B-nomtp-2 depth 4000: mean decode 65.1 tok/s
+B-nomtp-2 depth 32000: mean decode 56.7 tok/s
+23:56 greedy identity (release_smoke):
+  code   identical: True
+  prose  identical: True
+  think  identical: True
+GREEDY IDENTICAL
+23:58 === done
