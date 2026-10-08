@@ -61,6 +61,10 @@ How, and every receipt: [`docs/Q8_FULL_CONTEXT.md`](docs/Q8_FULL_CONTEXT.md). Sh
 - **Prefill past the VRAM line** (patch 0041): the K/V rows that a prefill batch writes past the line go to VRAM
   first and then to system RAM in whole blocks, and the next layer's RAM rows are copied while the layers before it
   compute. A 258k prompt: 369 -> 436 tok/s (time to first token 697 -> 589 s), same output.
+- **Many tools cost no decode speed** (patch 0042): with speculative decoding the server copies the sampler on
+  each draft step, and with tools the sampler holds the tool-call grammar. The grammar copy searched every grammar
+  element for each stack entry, about 15 ms per step with 107 tool schemas. Now a binary search: an agent request
+  with 107 tools at 63k, 41.8 -> 61.2 tok/s (2 tools: 63.5), same output ([issue #7](https://github.com/professorpalmer/bonsai-ada-surgery/issues/7)).
 - What we took from [syv-ai/HyperQwen](https://github.com/syv-ai/HyperQwen), what we measured and what we decided:
   [`docs/HYPERQWEN.md`](docs/HYPERQWEN.md).
 
@@ -70,7 +74,7 @@ How, and every receipt: [`docs/Q8_FULL_CONTEXT.md`](docs/Q8_FULL_CONTEXT.md). Sh
 | --- | --- | --- |
 | Windows, an NVIDIA card (RTX 20/30/40/50) | download the release zip, drop in the model, run `start-server.ps1` | [Quick start (Windows)](#quick-start-windows-nvidia) |
 | Hugging Face | the same bundle plus the ready-made MTP-grafted GGUF (`hf download`, no graft step) | [CaryPalmer/Ternary-Bonsai-2-27B-262k-GGUF](https://huggingface.co/CaryPalmer/Ternary-Bonsai-2-27B-262k-GGUF) |
-| Linux, NVIDIA driver + CUDA toolkit | `bash build/build_linux.sh` builds the pinned PrismML source with all 41 patches applied | [Quick start (Linux)](#quick-start-linux-nvidia) |
+| Linux, NVIDIA driver + CUDA toolkit | `bash build/build_linux.sh` builds the pinned PrismML source with all 42 patches applied | [Quick start (Linux)](#quick-start-linux-nvidia) |
 | your own llama.cpp workflow | build the fork branch `bonsai-q8-product`, or `git am` the series in `patches/` onto PrismML `adfffbe` | [The patch stack](#the-patch-stack) |
 | an older bundle of this repo | `git pull`, unzip the latest zip over it, run `layeretch_runtime.ps1` once | [Upgrading](#upgrading-from-an-older-bundle) |
 
@@ -113,6 +117,13 @@ the tiered-KV runtime are detected and get the previous 96k all-VRAM recipe.
 
 ### Upgrading from an older bundle
 
+`bundle-20261008-tools` makes **agent requests with many tools** faster (patch 0042). With speculative decoding the
+server copies the sampler on each draft step, so that it can go back when a draft is rejected. With tools, the
+sampler holds the tool-call grammar, and the grammar copy found each stack entry with a search over every element of
+every grammar rule: about 15 ms per draft step with 107 tool schemas (an agent client with many MCP servers). Now
+a binary search over the rule start addresses. 107 tools at 63k: 41.8 -> 61.2 tok/s on a plan-like answer,
+47.6 -> 69.9 greedy, a request with three tool calls 60.1 -> 87.7; 2 tools give 63.5. Same output: same token counts,
+same acceptance, same tool-call hash (`receipts/issue7_fix_ab.log`). Requests without tools do not change.
 `bundle-20261008-tier` makes **prefill past the VRAM line** faster (patch 0041). Each prefill micro-batch wrote its new
 K/V rows to system RAM in small pieces over PCIe once the prompt passed the line (~0.68 ms per prompt token). Now
 the rows go to VRAM first and then to system RAM as whole 16-byte stores, and the next layer's system-RAM rows
@@ -297,7 +308,7 @@ Cards are proven on two library families and not on a third. Token cost through 
 
 ## The patch stack
 
-Everything is submitted upstream to PrismML; this repo ships the combined stack now: 41 commits on
+Everything is submitted upstream to PrismML; this repo ships the combined stack now: 42 commits on
 `prism@adfffbe`, as `git am`-able patches in [`patches/`](patches/), as the branch
 [`bonsai-q8-product`](https://github.com/professorpalmer/llama.cpp-ada-ternary/tree/bonsai-q8-product), and as
 Windows binaries on [Releases](../../releases). Merged upstream already: #214 (branch-free PTQ1_0 MMQ tile loader,
@@ -332,13 +343,14 @@ Hadamard-embedding fix of sudoingX's #217 landed through #205. #285 was split at
 | 0039 | `--spec-lookup-n-max N`: a separate draft limit for the lookup drafters (`ngram-*`) listed before the model drafter; the MTP head keeps `--spec-draft-n-max` | this repo |
 | 0040 | ADD+RMS_NORM+MUL fusion on every NVIDIA GPU (it ran on GB10 only); the fusion range check accepts exact aliases (by @cklxx) | [#209](https://github.com/PrismML-Eng/llama.cpp/pull/209) |
 | 0041 | Tiered KV prefill: rows that a prefill micro-batch writes past the VRAM line go to VRAM first and then to system RAM as whole 16-byte stores (the quantizing write cost ~0.68 ms per prefill token over PCIe); the host rows of the next attention layer are copied on a second stream while the layers before it compute | this repo |
+| 0042 | Grammar copy: `llama_grammar_clone_impl` finds each stack entry by a binary search over the rule start addresses (it searched every element of every rule; the server copies the sampler on each speculative step, so a request with 107 tools lost ~15 ms per step) | this repo |
 
 How each cut was found (CUPTI traces, L1 wavefront counts, what did not work):
 [`surgery/ADA4070_PTQ1.md`](surgery/ADA4070_PTQ1.md) and [`docs/Q8_FULL_CONTEXT.md`](docs/Q8_FULL_CONTEXT.md).
 
 ## Quick start (Linux, NVIDIA)
 
-`build/build_linux.sh` fetches the pinned PrismML source (`adfffbe`) and applies **all 41 bundled patches**,
+`build/build_linux.sh` fetches the pinned PrismML source (`adfffbe`) and applies **all 42 bundled patches**,
 including the `common.cuh` header fix (0024) and the Hopper/Blackwell PDL dependency wait (0026). No manual patch
 application or Git author configuration is needed. There is no prebuilt Linux binary yet.
 

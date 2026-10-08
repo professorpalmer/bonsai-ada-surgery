@@ -56,3 +56,6 @@ __pycache__/
 layer/runtime/
 layer/apicards-cache.json
 layer/apicards-v2-cache.json
+
+# server and launcher logs, captured client requests (never commit)
+logs/

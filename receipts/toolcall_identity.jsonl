@@ -1,0 +1,4 @@
+{"tag": "i7f-base", "tools": 107, "calls": ["read", "read", "github_search_issue"], "finish": "tool_calls", "sha": "f544aac5db5c", "tps": 60.1, "n": 401, "acceptance": 0.69}
+{"tag": "i7f-fix", "tools": 107, "calls": ["read", "read", "github_search_issue"], "finish": "tool_calls", "sha": "f544aac5db5c", "tps": 87.7, "n": 401, "acceptance": 0.69}
+{"tag": "i7f-fix-gate", "tools": 107, "calls": ["read", "read", "github_search_issue"], "finish": "tool_calls", "sha": "f544aac5db5c", "tps": 87.4, "n": 401, "acceptance": 0.69}
+{"tag": "i7f-fix-nolookup", "tools": 107, "calls": ["read", "read", "github_search_issue"], "finish": "tool_calls", "sha": "f544aac5db5c", "tps": 88.6, "n": 369, "acceptance": 0.75}
