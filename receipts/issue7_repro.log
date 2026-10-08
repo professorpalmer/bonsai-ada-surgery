@@ -1,0 +1,19 @@
+=== 14:48 arm mtp cells 95000 depth 138000 health=1
+spec   draft 2 (4 past the VRAM line), draft window 16384
+code   depth 138000 (evaluated 137214): prefill   559.7 tok/s  ttft 245.14s  decode   28.3 tok/s (400 tok)
+prose  depth 138000 (evaluated 512): prefill   281.2 tok/s  ttft   1.82s  decode   20.4 tok/s (400 tok)
+bash   depth 138000 (evaluated 516): prefill   279.9 tok/s  ttft   1.84s  decode   25.5 tok/s (400 tok)
+mean decode 24.7 tok/s
+0.07.427.065 I slot print_timing: id  0 | task 0 | draft acceptance = 0.80000 (    4 accepted /     5 generated), mean len =  2.33
+4.27.010.373 I slot print_timing: id  0 | task 7 | draft acceptance = 0.59660 (  281 accepted /   471 generated), mean len =  3.38
+4.48.506.081 I slot print_timing: id  0 | task 195 | draft acceptance = 0.35616 (  234 accepted /   657 generated), mean len =  2.42
+5.06.090.774 I slot print_timing: id  0 | task 363 | draft acceptance = 0.51149 (  267 accepted /   522 generated), mean len =  3.04
+10933 MiB, 4, 16
+=== 14:53 arm nomtp cells 95000 depth 138000 health=1
+spec   draft 0 (4 past the VRAM line)
+code   depth 138000 (evaluated 137214): prefill   572.8 tok/s  ttft 239.55s  decode   11.6 tok/s (400 tok)
+prose  depth 138000 (evaluated 512): prefill   300.8 tok/s  ttft   1.70s  decode   11.6 tok/s (400 tok)
+bash   depth 138000 (evaluated 516): prefill   293.0 tok/s  ttft   1.76s  decode   11.6 tok/s (400 tok)
+mean decode 11.6 tok/s
+9723 MiB, 4, 16
+=== 14:59 done

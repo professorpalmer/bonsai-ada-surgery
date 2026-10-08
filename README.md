@@ -58,7 +58,7 @@ How, and every receipt: [`docs/Q8_FULL_CONTEXT.md`](docs/Q8_FULL_CONTEXT.md). Sh
 | --- | --- | --- |
 | Windows, an NVIDIA card (RTX 20/30/40/50) | download the release zip, drop in the model, run `start-server.ps1` | [Quick start (Windows)](#quick-start-windows-nvidia) |
 | Hugging Face | the same bundle plus the ready-made MTP-grafted GGUF (`hf download`, no graft step) | [CaryPalmer/Ternary-Bonsai-2-27B-262k-GGUF](https://huggingface.co/CaryPalmer/Ternary-Bonsai-2-27B-262k-GGUF) |
-| Linux, NVIDIA driver + CUDA toolkit | `bash build/build_linux.sh` builds the pinned PrismML source with all 34 patches applied | [Quick start (Linux)](#quick-start-linux-nvidia) |
+| Linux, NVIDIA driver + CUDA toolkit | `bash build/build_linux.sh` builds the pinned PrismML source with all 35 patches applied | [Quick start (Linux)](#quick-start-linux-nvidia) |
 | your own llama.cpp workflow | build the fork branch `bonsai-q8-product`, or `git am` the series in `patches/` onto PrismML `adfffbe` | [The patch stack](#the-patch-stack) |
 | an older bundle of this repo | `git pull`, unzip the latest zip over it, run `layeretch_runtime.ps1` once | [Upgrading](#upgrading-from-an-older-bundle) |
 
@@ -101,10 +101,12 @@ the tiered-KV runtime are detected and get the previous 96k all-VRAM recipe.
 
 ### Upgrading from an older bundle
 
-`bundle-20261007-fixes` rebuilds the engine binaries for the first time since `bundle-20260927`: the same 33 patches plus
-patch 0034, which stops JSON schemas with an empty `anyOf` / `oneOf` / `type` from failing the request (issue #3;
-agent frameworks such as Hermes send them). Greedy output is identical to the previous binaries. The same bundle
-carries two layer fixes from issues #3 and #4 and the Linux build fix from #5 (details in the release notes).
+`bundle-20261007-budget` adds patch 0035: the server reports a forced close of the thinking (see *Reasoning budget
+report* below), and a request that sends its own larger thinking budget gets an output cap to match. Greedy output
+is identical to the previous binaries. `bundle-20261007-fixes` rebuilt the engine binaries for the first time since
+`bundle-20260927`: the same 33 patches plus patch 0034, which stops JSON schemas with an empty `anyOf` / `oneOf` /
+`type` from failing the request (issue #3; agent frameworks such as Hermes send them). The same bundle carries two
+layer fixes from issues #3 and #4 and the Linux build fix from #5 (details in the release notes).
 What the bundles between those two added runs beside the engine:
 
 - `bundle-20261003`: **the Bonsai layer**, a small Python proxy the launcher starts in front of llama-server on the
@@ -119,7 +121,7 @@ What the bundles between those two added runs beside the engine:
   `test_normal` tasks (95% CI 63.6-77.2) against the published 64.3% for the 2.13-bpw file on the stock fork, with
   the two serving-side failure classes of that analysis (wrong-format replies, step-cap exits) down to 1 each.
 
-To upgrade: `git pull` this repo, unzip the latest `bonsai-bundle-win-x64.zip` over it (new binaries in `bundle-20261007-fixes`; it carries
+To upgrade: `git pull` this repo, unzip the latest `bonsai-bundle-win-x64.zip` over it (new binaries in `bundle-20261007-budget`; it carries
 the launcher, layer, suite and docs at the tag), run `layer\fetch_runtime.ps1` once (downloads the sandbox runtime,
 installs the `wasmtime` Python package, runs the 14 isolation canaries), then `start-server.ps1` as before. The
 launcher prints `layer on` when the runtime is present and falls back to the plain server when it is not;
@@ -127,6 +129,9 @@ launcher prints `layer on` when the runtime is present and falls back to the pla
 `python suite\run_suite.py --base http://127.0.0.1:18080 --base-b http://127.0.0.1:8080 --out suite-out`.
 
 ### Knobs (environment variables)
+
+A variable stays set in a PowerShell window until you remove it or close the window. At start, the launcher lists
+every `BONSAI_*`, `LLAMA_ARG_*` and `GGML_*` variable that is set, and it says when MTP is off and why (issue #7).
 
 | Variable | Default | |
 | --- | --- | --- |
@@ -187,6 +192,15 @@ Details and every measurement: [`docs/QUALITY.md`](docs/QUALITY.md).
   empty answers). `low` behaves close to `xhigh`. `medium` is the model's natural thinking and beats both, and
   thinking off, at every output cap from 2k up (Killy's HumanEval grid: 160-161 of 164). Default: `medium` with a
   20k thinking budget and a force-close message so a trip still yields the answer.
+- **Reasoning budget report** (patch 0035). Every response to a request that ran with a thinking budget says
+  whether the budget closed the thinking: `timings.reasoning_budget_exhausted` (`true` / `false`),
+  `timings.reasoning_n` (tokens inside the thinking, forced tokens included) and the OpenAI field
+  `usage.completion_tokens_details.reasoning_tokens`, streaming and non-streaming. A client can count forced
+  closes without searching `reasoning_content` for the budget message. A request may send its own
+  `reasoning_budget_tokens`; when that is above the server's budget, the output cap becomes that budget + 4096
+  (also for a request with no `max_tokens`, which before was cut at the server default inside its thinking).
+  Check: `python bench\budget_report_probe.py --base http://127.0.0.1:18080 --key-file artifacts\api_key.txt`. On agent work the budget rarely
+  acts: AppWorld (168 tasks, 2835 model calls) has no call above 3,021 completion tokens.
 - **Harness-proofing.** Cline, Kilo and Open WebUI send `effort: "high"`, which the template rejects: HTTP 500,
   0 of 164. Apps with 256-4096 token caps end a thinking model mid-thought (17-137 of 164). The server maps
   unknown effort words to medium and raises small caps to the thinking budget. Replays of Killy's rows against
@@ -258,7 +272,7 @@ Cards are proven on two library families and not on a third. Token cost through 
 
 ## The patch stack
 
-Everything is submitted upstream to PrismML; this repo ships the combined stack now: 34 commits on
+Everything is submitted upstream to PrismML; this repo ships the combined stack now: 35 commits on
 `prism@adfffbe`, as `git am`-able patches in [`patches/`](patches/), as the branch
 [`bonsai-q8-product`](https://github.com/professorpalmer/llama.cpp-ada-ternary/tree/bonsai-q8-product), and as
 Windows binaries on [Releases](../../releases). Merged upstream already: #214 (branch-free PTQ1_0 MMQ tile loader,
@@ -286,13 +300,14 @@ Hadamard-embedding fix of sudoingX's #217 landed through #205. #285 was split at
 | 0032 | `--reasoning-effort-allow/-fallback`, `--reasoning-max-tokens-floor` | #285 |
 | 0033 | `GGML_CUDA_OP_TIMING` per-node GPU time (diagnostics) | #285 |
 | 0034 | JSON schema to grammar: empty `anyOf` / `oneOf` / `type` unions are converted instead of failing the request (reported by Milor123, #3) | upstream ggml-org rejects them with a clear error since its September schema rewrite; PrismML PR |
+| 0035 | reasoning budget report (`reasoning_budget_exhausted`, `reasoning_n`, `usage.completion_tokens_details.reasoning_tokens`); a per-request budget above the server's raises the output cap to budget + 4096 | this repo |
 
 How each cut was found (CUPTI traces, L1 wavefront counts, what did not work):
 [`surgery/ADA4070_PTQ1.md`](surgery/ADA4070_PTQ1.md) and [`docs/Q8_FULL_CONTEXT.md`](docs/Q8_FULL_CONTEXT.md).
 
 ## Quick start (Linux, NVIDIA)
 
-`build/build_linux.sh` fetches the pinned PrismML source (`adfffbe`) and applies **all 34 bundled patches**,
+`build/build_linux.sh` fetches the pinned PrismML source (`adfffbe`) and applies **all 35 bundled patches**,
 including the `common.cuh` header fix (0024) and the Hopper/Blackwell PDL dependency wait (0026). No manual patch
 application or Git author configuration is needed. There is no prebuilt Linux binary yet.
 
