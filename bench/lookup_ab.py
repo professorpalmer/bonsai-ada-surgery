@@ -44,15 +44,21 @@ def post(base, key, body):
     return r, time.time() - t0
 
 
-def run(base, key, tag, out):
+def run(base, key, tag, out, depth=0):
+    pre = ""
+    if depth:
+        import sys
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from quick_tps import filler
+        pre = filler(base, key, depth)
     jobs = []
     for w in windows():
-        jobs.append(("quote", w["path"], {"messages": [{"role": "user", "content":
+        jobs.append(("quote", w["path"], {"messages": [{"role": "user", "content": pre +
             f"Here is the file `{w['path']}`:\n\n```python\n{w['text']}```\n\nOutput the complete file again with exactly one "
             f"change: add the comment line `# reviewed` as the first line of the body of `{w['fn']}`. Output only the "
             "file, in one python code block."}], "max_tokens": 4096}))
         jobs.append(("edit", w["path"], {"messages": [
-            {"role": "user", "content": f"In `{w['path']}`, add the comment line `# reviewed` as the first line of the body "
+            {"role": "user", "content": pre + f"In `{w['path']}`, add the comment line `# reviewed` as the first line of the body "
              f"of `{w['fn']}`. Use one edit call. Include the def line and the next four lines in oldText."},
             {"role": "assistant", "content": "", "tool_calls": [{"id": "r1", "type": "function", "function":
              {"name": "read", "arguments": json.dumps({"path": w["path"]})}}]},
@@ -61,13 +67,13 @@ def run(base, key, tag, out):
              "parameters": {"type": "object", "properties": {"path": {"type": "string"}}, "required": ["path"]}}}],
             "max_tokens": 2048}))
     for name, p, n in PLAIN:
-        jobs.append(("plain", name, {"messages": [{"role": "user", "content": p}], "max_tokens": n}))
+        jobs.append(("plain", name, {"messages": [{"role": "user", "content": pre + p}], "max_tokens": n}))
     for kind, item, body in jobs:
         body.update(temperature=0, top_p=1, chat_template_kwargs={"enable_thinking": False})
         r, dt = post(base, key, body)
         t, m = r.get("timings") or {}, r["choices"][0]["message"]
         text = (m.get("content") or "") + json.dumps(m.get("tool_calls") or [], sort_keys=True)
-        rec = {"tag": tag, "kind": kind, "item": item, "tps": round(t.get("predicted_per_second") or 0, 1),
+        rec = {"tag": tag, "depth": depth, "kind": kind, "item": item, "tps": round(t.get("predicted_per_second") or 0, 1),
                "n": t.get("predicted_n"), "draft_n": t.get("draft_n"), "draft_acc": t.get("draft_n_accepted"),
                "sha": hashlib.sha256(text.encode()).hexdigest()[:12], "wall": round(dt, 1)}
         print(json.dumps(rec), flush=True)
@@ -81,7 +87,8 @@ if __name__ == "__main__":
     ap.add_argument("--key-file", required=True)
     ap.add_argument("--tag", required=True)
     ap.add_argument("--out", required=True)
+    ap.add_argument("--depth", type=int, default=0)
     a = ap.parse_args()
     key = open(a.key_file).read().strip()
     post(a.base, key, {"messages": [{"role": "user", "content": "Say hi."}], "max_tokens": 8})   # warm-up
-    run(a.base, key, a.tag, a.out)
+    run(a.base, key, a.tag, a.out, a.depth)

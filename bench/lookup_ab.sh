@@ -12,6 +12,6 @@ for A in "${ARMS[@]}"; do
     powershell -NoProfile -Command "Start-Process powershell -WindowStyle Hidden -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File','$ROOT\start-server.ps1' -RedirectStandardOutput '$ROOT\logs\lookup_$NAME.launcher.log' -RedirectStandardError '$ROOT\logs\lookup_$NAME.server.log'"
   ok=0; for i in $(seq 1 90); do sleep 2; curl -s -m 2 http://127.0.0.1:8080/health | grep -q ok && { ok=1; break; }; done
   echo "=== $(date '+%H:%M') arm $NAME ($TYPE $EXTRA) health=$ok; $(grep '^spec' logs/lookup_$NAME.launcher.log)"
-  [ $ok = 1 ] && PYTHONUTF8=1 python bench/lookup_ab.py --base http://127.0.0.1:8080 --key-file artifacts/api_key.txt --tag "$NAME" --out $OUT
+  [ $ok = 1 ] && PYTHONUTF8=1 python bench/lookup_ab.py --base http://127.0.0.1:8080 --key-file artifacts/api_key.txt --tag "$NAME" --out $OUT ${DEPTH:+--depth $DEPTH}
 done
 stop_srv; echo "=== $(date '+%H:%M') done"

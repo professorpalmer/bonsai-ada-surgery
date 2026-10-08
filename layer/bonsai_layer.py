@@ -22,8 +22,10 @@ import hmac
 import http.server
 import json
 import os
+import queue
 import re
 import sys
+import threading
 import urllib.error
 import urllib.request
 
@@ -226,6 +228,9 @@ def apply_cards(body, msgs):
 
 class Proxy(http.server.BaseHTTPRequestHandler):
     upstream = "http://127.0.0.1:8080"
+    # SSE comment sent while the server is silent, every this many seconds (0 = off). A prefill of 100k+ tokens
+    # takes minutes with no bytes; clients, proxies and tunnels (Cloudflare: 100 s) close an idle connection.
+    keepalive = 15.0
     max_rounds = 12       # E16: 12 rounds lost no cell that 8 won and fixed the cap-then-nudge problem in 2 of 3 seeds
     cards = True
     lint = True
@@ -263,16 +268,61 @@ class Proxy(http.server.BaseHTTPRequestHandler):
         self.end_headers()
         self.close_connection = True
         try:
-            while True:
-                chunk = r.read1(65536)
-                if not chunk:
-                    break
+            at_boundary = True                     # a comment may only go between two SSE events
+            for chunk in self._keepalive_chunks(r):
+                if chunk is None:
+                    if at_boundary:
+                        self.wfile.write(b": keep-alive\n\n")
+                        self.wfile.flush()
+                    continue
                 self.wfile.write(chunk)
                 self.wfile.flush()
+                at_boundary = chunk.endswith(b"\n\n") or chunk.endswith(b"\r\n\r\n")
         except (BrokenPipeError, ConnectionResetError):
             pass
         finally:
             r.close()
+
+    def _keepalive_chunks(self, r, lines=False):
+        """Yield what the server sends (chunks, or lines when lines=True), and None after each keepalive seconds of
+        silence. The read runs in a thread so that the wait can time out."""
+        if self.keepalive <= 0:
+            if lines:
+                yield from r
+            else:
+                while True:
+                    c = r.read1(65536)
+                    if not c:
+                        return
+                    yield c
+            return
+        q = queue.Queue()
+
+        def pump():
+            try:
+                if lines:
+                    for line in r:
+                        q.put(line)
+                else:
+                    while True:
+                        c = r.read1(65536)
+                        if not c:
+                            break
+                        q.put(c)
+            except Exception:
+                pass
+            q.put(StopIteration)
+
+        threading.Thread(target=pump, daemon=True).start()
+        while True:
+            try:
+                item = q.get(timeout=self.keepalive)
+            except queue.Empty:
+                yield None
+                continue
+            if item is StopIteration:
+                return
+            yield item
 
     def _open_stream(self, body):
         headers = {k: v for k, v in self.headers.items() if k.lower() in ("authorization", "content-type")}
@@ -320,7 +370,10 @@ class Proxy(http.server.BaseHTTPRequestHandler):
                 calls, held, content, reasoning, template = {}, [], [], [], None
                 truncated = False
                 with r:
-                    for line in r:
+                    for line in self._keepalive_chunks(r, lines=True):
+                        if line is None:
+                            send(b": keep-alive")
+                            continue
                         line = line.rstrip(b"\r\n")
                         if not line.startswith(b"data:"):
                             continue
@@ -509,6 +562,7 @@ if __name__ == "__main__":
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--upstream", default="http://127.0.0.1:8080")
     ap.add_argument("--max-rounds", type=int, default=12)
+    ap.add_argument("--keepalive", type=float, default=15.0, help="seconds of server silence before an SSE comment (0 = off)")
     ap.add_argument("--no-cards", action="store_true")
     ap.add_argument("--no-lint", action="store_true")
     ap.add_argument("--no-finish-note", action="store_true", help="do not append the run-on-the-example sentence to coding requests")
@@ -517,6 +571,7 @@ if __name__ == "__main__":
     a = ap.parse_args()
     Proxy.api_key = os.environ.get("BONSAI_LAYER_KEY") or None
     Proxy.upstream, Proxy.max_rounds = a.upstream, a.max_rounds
+    Proxy.keepalive = a.keepalive
     Proxy.cards, Proxy.lint = not a.no_cards, not a.no_lint
     Proxy.input_file = not a.no_input_file
     Proxy.repair_note = a.repair_note
