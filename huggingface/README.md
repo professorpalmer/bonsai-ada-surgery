@@ -33,7 +33,7 @@ This is PrismML's [Ternary Bonsai 2 27B](https://huggingface.co/prism-ml/Ternary
 ternary `PTQ1_0`, 5.9 GB, Apache 2.0), the same weights, nothing re-quantized, with its MTP draft head grafted back
 on (byte-identical trunk, proof below) and the serving stack from
 [github.com/professorpalmer/bonsai-ada-surgery](https://github.com/professorpalmer/bonsai-ada-surgery): a tiered KV
-cache that puts the first ~113k positions in VRAM and the rest in pinned system RAM with bit-identical output,
+cache that puts the first ~119k positions in VRAM and the rest in pinned system RAM with bit-identical output,
 MTP drafting that pays at every depth, harness-proofing for the apps that send `effort: "high"` or tiny output caps,
 and an optional server-side layer (exact API cards, an API check, a sandboxed Python tool) that lifts the model's
 coding and agentic scores without touching the weights.
@@ -106,7 +106,7 @@ canaries); without it the plain server runs.
 Linux: `bash build/build_linux.sh` in the repository builds the pinned PrismML source with all 41 patches applied;
 the full-window command line is in the repository README. No prebuilt Linux binary yet.
 
-Cards: 12 GB is the measured recipe (display on the iGPU: ~113k positions in VRAM; display on the card: ~95k).
+Cards: 12 GB is the measured recipe (display on the iGPU: ~119k positions in VRAM; display on the card: ~95k, measured 2026-09-27).
 16 GB and up: the whole q8_0 window fits, the tier switches itself off. 8 GB: the launcher detects the card and
 uses its 8 GB preset (q4_0 K/V, a 131k window, a Q4_0 MTP head). Measured on an RTX 2060 SUPER that also draws
 the desktop: 51.2 / 43.1 tok/s at 4k / 32k, HumanEval medium 157 of 164 (repository `docs/8GB.md`).
@@ -141,6 +141,14 @@ per verify batch), drafting pays at every depth; greedy output equals greedy out
 
 **Harness-proofing** (`--reasoning-effort-allow`, `--reasoning-max-tokens-floor`). The same weights score 0 to 160
 of 164 on HumanEval depending on what the client sends. The server absorbs both causes.
+
+**Lookup drafting** (patch 0039, on by default). An n-gram drafter drafts text that is already in the context, up to
+32 tokens at a time, in front of the MTP head. File rewrites 117 -> 352 tok/s at 4k and 18.5 -> 66 at 250k; new text
+unchanged; same output.
+
+**Prefill past the VRAM line** (patch 0041). The K/V rows a prefill batch writes past the line go to VRAM first and
+then to system RAM in whole blocks; the next layer's RAM rows are copied while the layers before it compute. A 258k
+prompt: 369 -> 436 tok/s, same output.
 
 **The layer.** A small proxy the launcher starts in front of `llama-server` on the same port. Exact API cards for
 the Python modules a request involves (generated from the sandbox's own runtime), an API check that flags names that

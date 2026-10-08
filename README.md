@@ -5,9 +5,9 @@
 The model's **full 262,144-token trained window with q8_0 KV cache on a 12 GB RTX 4070**, and the
 speed and serving recipe that make that window usable. Patched [PrismML llama.cpp](https://github.com/PrismML-Eng/llama.cpp)
 for Bonsai 2 27B (1.58-bit ternary `PTQ1_0`, 5.9 GB) with the MTP draft head. Same weights, nothing
-re-quantized; every kernel checked against the CPU reference. The 12 GB card holds the first ~113k
-positions; the rest of the cache (~5.2 GB) sits in pinned system RAM, so decode slows past 112k
-(table below) and the box needs ~8 GB of free RAM.
+re-quantized; every kernel checked against the CPU reference. The 12 GB card holds the first ~119k
+positions (display on the CPU's iGPU); the rest of the cache (~5 GB) sits in pinned system RAM, so decode slows
+past ~119k (table below) and the box needs ~8 GB of free RAM.
 
 | RTX 4070 12 GB, served, one slot | decode, new text (tok/s) | decode, code (tok/s) | prefill (tok/s) |
 | --- | ---: | ---: | ---: |
@@ -45,7 +45,7 @@ whole prompt. GDDR6X +1500 MHz (as in every number in this repo since #221), dis
 
 How, and every receipt: [`docs/Q8_FULL_CONTEXT.md`](docs/Q8_FULL_CONTEXT.md). Short version:
 
-- **Tiered KV cache** (`--kv-vram-cells`): the first ~113k positions of each layer's K/V live in VRAM, the rest
+- **Tiered KV cache** (`--kv-vram-cells`): the first ~119k positions of each layer's K/V live in VRAM, the rest
   in pinned system RAM mapped into the same CUDA address range. Kernels are unchanged and output is
   **bit-identical** to an all-VRAM cache. Past the line, attention copies the used RAM rows into VRAM with the
   copy engine first.
@@ -54,6 +54,15 @@ How, and every receipt: [`docs/Q8_FULL_CONTEXT.md`](docs/Q8_FULL_CONTEXT.md). Sh
   read per verify batch), drafting now pays at every depth; the old 24k cutoff is gone.
 - **Harness-proofing** (`--reasoning-effort-allow`, `--reasoning-max-tokens-floor`): the same weights score 0 to
   160 of 164 on HumanEval depending on what the client sends. The server absorbs both causes.
+- **Lookup drafting** (patch 0039, on by default): an n-gram drafter drafts text that is already in the context, up
+  to 32 tokens at a time, in front of the MTP head. When the answer copies the context (file rewrites, edit calls,
+  quoted logs), decode is 3 to 3.6 times faster (file rewrite 117 -> 352 tok/s at 4k, 18.5 -> 66 at 250k). New text
+  is unchanged, and so is the output.
+- **Prefill past the VRAM line** (patch 0041): the K/V rows that a prefill batch writes past the line go to VRAM
+  first and then to system RAM in whole blocks, and the next layer's RAM rows are copied while the layers before it
+  compute. A 258k prompt: 369 -> 436 tok/s (time to first token 697 -> 589 s), same output.
+- What we took from [syv-ai/HyperQwen](https://github.com/syv-ai/HyperQwen), what we measured and what we decided:
+  [`docs/HYPERQWEN.md`](docs/HYPERQWEN.md).
 
 ## Four ways in
 
