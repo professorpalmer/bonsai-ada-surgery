@@ -1,0 +1,10 @@
+Prefill cost by depth (2026-10-08), Bonsai 2 27B PTQ1_0, RTX 4070, served recipe (q8_0 K/V, tiered line ~119k,
+ubatch 512, batch 2048), one 159,190-token prefill (510.8 tok/s cumulative), progress lines of the server log.
+Least-squares fit over 77 chunks of 2,048 tokens: ms per prefill token = 0.509 + 0.0181 x depth(k).
+The constant is the weight math; the depth term is mostly attention (plus the host-tail reads past ~119k).
+  depth   8k: 1528 tok/s, depth share 22%      depth 100k:  431 tok/s, depth share 78%
+  depth  32k:  918 tok/s, depth share 53%      depth 130k:  349 tok/s, depth share 82%
+  depth  64k:  599 tok/s, depth share 70%      depth 158k:  296 tok/s, depth share 85%
+Measured chunks: 5.2k 1157 tok/s, 29.8k 853, 54.4k 685, 79.0k 572, 103.5k 489, 128.1k 327, 152.7k 279.
+Reading: an int8-QK prefill attention (HyperQwen's idea, for this exact geometry: 24 q heads, 4 KV heads, head 256)
+that halves the depth term would take 130k from ~349 to ~590 tok/s. The K cache is already q8_0 (int8 + scale).
