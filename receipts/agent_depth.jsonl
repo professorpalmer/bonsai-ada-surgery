@@ -22,3 +22,15 @@
 {"tag": "i7-nolookup", "depth": 60000, "arm": "greedy", "ask": 1, "tps": 67.4, "n": 1641, "evaluated": 515, "acceptance": 0.57}
 {"tag": "i7-nolookup", "depth": 60000, "arm": "sampled", "ask": 0, "tps": 75.3, "n": 2368, "evaluated": 516, "acceptance": 0.701}
 {"tag": "i7-nolookup", "depth": 60000, "arm": "sampled", "ask": 1, "tps": 64.6, "n": 1818, "evaluated": 515, "acceptance": 0.516}
+{"tag": "i7b-t107-lookup", "depth": 36000, "tools": 107, "arm": "server", "ask": 0, "tps": 72.4, "n": 2114, "evaluated": 62994, "acceptance": 0.718}
+{"tag": "i7b-t107-lookup", "depth": 36000, "tools": 107, "arm": "server", "ask": 1, "tps": 41.7, "n": 1445, "evaluated": 515, "acceptance": 0.452}
+{"tag": "i7b-t107-lookup", "depth": 36000, "tools": 107, "arm": "greedy", "ask": 0, "tps": 65.2, "n": 4936, "evaluated": 516, "acceptance": 0.713}
+{"tag": "i7b-t107-lookup", "depth": 36000, "tools": 107, "arm": "greedy", "ask": 1, "tps": 47.6, "n": 1632, "evaluated": 515, "acceptance": 0.577}
+{"tag": "i7b-t2-lookup", "depth": 63000, "tools": 2, "arm": "server", "ask": 0, "tps": 70.7, "n": 3727, "evaluated": 63476, "acceptance": 0.566}
+{"tag": "i7b-t2-lookup", "depth": 63000, "tools": 2, "arm": "server", "ask": 1, "tps": 63.5, "n": 1717, "evaluated": 515, "acceptance": 0.462}
+{"tag": "i7b-t107-nolookup", "depth": 36000, "tools": 107, "arm": "server", "ask": 0, "tps": 72.5, "n": 2114, "evaluated": 62994, "acceptance": 0.718}
+{"tag": "i7b-t107-nolookup", "depth": 36000, "tools": 107, "arm": "server", "ask": 1, "tps": 41.8, "n": 1436, "evaluated": 515, "acceptance": 0.463}
+{"tag": "i7b-t107-nolookup", "depth": 36000, "tools": 107, "arm": "greedy", "ask": 0, "tps": 64.2, "n": 4770, "evaluated": 516, "acceptance": 0.785}
+{"tag": "i7b-t107-nolookup", "depth": 36000, "tools": 107, "arm": "greedy", "ask": 1, "tps": 47.6, "n": 1676, "evaluated": 515, "acceptance": 0.61}
+{"tag": "i7b-t2-nolookup", "depth": 63000, "tools": 2, "arm": "server", "ask": 0, "tps": 75.9, "n": 2940, "evaluated": 63476, "acceptance": 0.655}
+{"tag": "i7b-t2-nolookup", "depth": 63000, "tools": 2, "arm": "server", "ask": 1, "tps": 63.5, "n": 1685, "evaluated": 515, "acceptance": 0.466}
