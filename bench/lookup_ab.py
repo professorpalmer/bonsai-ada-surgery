@@ -68,6 +68,8 @@ def run(base, key, tag, out, depth=0):
             "max_tokens": 2048}))
     for name, p, n in PLAIN:
         jobs.append(("plain", name, {"messages": [{"role": "user", "content": pre + p}], "max_tokens": n}))
+    # requests with tools last: a tool list changes the start of the prompt, and each switch re-reads the whole context
+    jobs.sort(key=lambda j: {"quote": 0, "plain": 1, "edit": 2}[j[0]])
     for kind, item, body in jobs:
         body.update(temperature=0, top_p=1, chat_template_kwargs={"enable_thinking": False})
         r, dt = post(base, key, body)

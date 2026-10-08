@@ -42,3 +42,171 @@
 {"tag": "mtp-again", "kind": "plain", "item": "code", "tps": 95.0, "n": 400, "draft_n": 329, "draft_acc": 234, "sha": "f307ae7b11f4", "wall": 4.6}
 {"tag": "mtp-again", "kind": "plain", "item": "prose", "tps": 78.1, "n": 400, "draft_n": 405, "draft_acc": 196, "sha": "e00464430194", "wall": 5.4}
 {"tag": "mtp-again", "kind": "plain", "item": "bash", "tps": 97.2, "n": 400, "draft_n": 324, "draft_acc": 237, "sha": "b3a2c37a05d5", "wall": 4.4}
+{"tag": "mod+mtp-n8", "kind": "quote", "item": "textwrap.py", "tps": 169.0, "n": 1348, "draft_n": 1216, "draft_acc": 1195, "sha": "45d97823b4bf", "wall": 11.4}
+{"tag": "mod+mtp-n8", "kind": "edit", "item": "textwrap.py", "tps": 114.9, "n": 160, "draft_n": 168, "draft_acc": 140, "sha": "b8eba22e6d11", "wall": 6.0}
+{"tag": "mod+mtp-n8", "kind": "quote", "item": "shlex.py", "tps": 163.6, "n": 846, "draft_n": 784, "draft_acc": 747, "sha": "a470f9e5143e", "wall": 7.5}
+{"tag": "mod+mtp-n8", "kind": "edit", "item": "shlex.py", "tps": 110.4, "n": 164, "draft_n": 184, "draft_acc": 142, "sha": "d4fdfc2d28cf", "wall": 5.0}
+{"tag": "mod+mtp-n8", "kind": "quote", "item": "fnmatch.py", "tps": 170.3, "n": 1226, "draft_n": 1104, "draft_acc": 1087, "sha": "354164b1634f", "wall": 10.6}
+{"tag": "mod+mtp-n8", "kind": "edit", "item": "fnmatch.py", "tps": 119.5, "n": 148, "draft_n": 152, "draft_acc": 130, "sha": "75d2f274c2e4", "wall": 4.5}
+{"tag": "mod+mtp-n8", "kind": "quote", "item": "csv.py", "tps": 163.8, "n": 1396, "draft_n": 1296, "draft_acc": 1233, "sha": "79e2648e5062", "wall": 12.4}
+{"tag": "mod+mtp-n8", "kind": "edit", "item": "csv.py", "tps": 123.3, "n": 237, "draft_n": 248, "draft_acc": 207, "sha": "6396b5a25f46", "wall": 6.7}
+{"tag": "mod+mtp-n8", "kind": "plain", "item": "code", "tps": 54.4, "n": 400, "draft_n": 899, "draft_acc": 285, "sha": "f307ae7b11f4", "wall": 8.0}
+{"tag": "mod+mtp-n8", "kind": "plain", "item": "prose", "tps": 36.2, "n": 400, "draft_n": 1335, "draft_acc": 230, "sha": "f0c7109f0117", "wall": 11.3}
+{"tag": "mod+mtp-n8", "kind": "plain", "item": "bash", "tps": 55.3, "n": 400, "draft_n": 869, "draft_acc": 290, "sha": "e541510f9b17", "wall": 7.6}
+{"tag": "mod+mtp-n16", "kind": "quote", "item": "textwrap.py", "tps": 88.7, "n": 1348, "draft_n": 1328, "draft_acc": 1264, "sha": "45d97823b4bf", "wall": 23.0}
+{"tag": "mod+mtp-n16", "kind": "edit", "item": "textwrap.py", "tps": 54.5, "n": 160, "draft_n": 224, "draft_acc": 147, "sha": "fd1a1291badc", "wall": 13.3}
+{"tag": "mod+mtp-n16", "kind": "quote", "item": "shlex.py", "tps": 83.1, "n": 846, "draft_n": 880, "draft_acc": 790, "sha": "a470f9e5143e", "wall": 15.3}
+{"tag": "mod+mtp-n16", "kind": "edit", "item": "shlex.py", "tps": 46.5, "n": 164, "draft_n": 272, "draft_acc": 148, "sha": "a5947d9b5aad", "wall": 11.2}
+{"tag": "mod+mtp-n16", "kind": "quote", "item": "fnmatch.py", "tps": 87.2, "n": 1226, "draft_n": 1232, "draft_acc": 1148, "sha": "354164b1634f", "wall": 21.9}
+{"tag": "mod+mtp-n16", "kind": "edit", "item": "fnmatch.py", "tps": 55.2, "n": 148, "draft_n": 208, "draft_acc": 136, "sha": "2aaeb4cd004f", "wall": 10.0}
+{"tag": "mod+mtp-n16", "kind": "quote", "item": "csv.py", "tps": 80.5, "n": 1396, "draft_n": 1504, "draft_acc": 1301, "sha": "79e2648e5062", "wall": 26.1}
+{"tag": "mod+mtp-n16", "kind": "edit", "item": "csv.py", "tps": 56.3, "n": 237, "draft_n": 336, "draft_acc": 217, "sha": "6b25b6c0764b", "wall": 14.7}
+{"tag": "mod+mtp-n16", "kind": "plain", "item": "code", "tps": 17.6, "n": 400, "draft_n": 1742, "draft_acc": 288, "sha": "f307ae7b11f4", "wall": 24.1}
+{"tag": "mod+mtp-n16", "kind": "plain", "item": "prose", "tps": 11.7, "n": 400, "draft_n": 2562, "draft_acc": 235, "sha": "e9272028e566", "wall": 34.9}
+{"tag": "mod+mtp-n16", "kind": "plain", "item": "bash", "tps": 17.4, "n": 400, "draft_n": 1670, "draft_acc": 293, "sha": "e541510f9b17", "wall": 23.6}
+{"tag": "mod-only-n16", "kind": "quote", "item": "textwrap.py", "tps": 221.9, "n": 1348, "draft_n": 1168, "draft_acc": 1158, "sha": "45d97823b4bf", "wall": 7.4}
+{"tag": "mod-only-n16", "kind": "edit", "item": "textwrap.py", "tps": 83.0, "n": 160, "draft_n": 64, "draft_acc": 55, "sha": "b5554d8ca87b", "wall": 3.6}
+{"tag": "mod-only-n16", "kind": "quote", "item": "shlex.py", "tps": 228.1, "n": 846, "draft_n": 752, "draft_acc": 738, "sha": "a470f9e5143e", "wall": 4.7}
+{"tag": "mod-only-n16", "kind": "edit", "item": "shlex.py", "tps": 86.4, "n": 164, "draft_n": 96, "draft_acc": 69, "sha": "92f0a5139926", "wall": 3.2}
+{"tag": "mod-only-n16", "kind": "quote", "item": "fnmatch.py", "tps": 250.1, "n": 1226, "draft_n": 1136, "draft_acc": 1108, "sha": "354164b1634f", "wall": 6.2}
+{"tag": "mod-only-n16", "kind": "edit", "item": "fnmatch.py", "tps": 80.4, "n": 148, "draft_n": 80, "draft_acc": 54, "sha": "dc8839575029", "wall": 3.1}
+{"tag": "mod-only-n16", "kind": "quote", "item": "csv.py", "tps": 216.8, "n": 1396, "draft_n": 1280, "draft_acc": 1217, "sha": "79e2648e5062", "wall": 7.9}
+{"tag": "mod-only-n16", "kind": "edit", "item": "csv.py", "tps": 104.2, "n": 237, "draft_n": 176, "draft_acc": 138, "sha": "ecdc63ae973f", "wall": 4.0}
+{"tag": "mod-only-n16", "kind": "plain", "item": "code", "tps": 64.8, "n": 400, "draft_n": 0, "draft_acc": 0, "sha": "787c566dbb79", "wall": 6.6}
+{"tag": "mod-only-n16", "kind": "plain", "item": "prose", "tps": 64.7, "n": 400, "draft_n": 0, "draft_acc": 0, "sha": "a00a8aa68656", "wall": 6.5}
+{"tag": "mod-only-n16", "kind": "plain", "item": "bash", "tps": 64.8, "n": 400, "draft_n": 0, "draft_acc": 0, "sha": "e541510f9b17", "wall": 6.5}
+{"tag": "mtp-ctl", "kind": "quote", "item": "textwrap.py", "tps": 116.2, "n": 1348, "draft_n": 904, "draft_acc": 895, "sha": "45d97823b4bf", "wall": 13.0}
+{"tag": "mtp-ctl", "kind": "edit", "item": "textwrap.py", "tps": 113.9, "n": 160, "draft_n": 108, "draft_acc": 106, "sha": "0fd129120d92", "wall": 3.3}
+{"tag": "mtp-ctl", "kind": "quote", "item": "shlex.py", "tps": 116.7, "n": 846, "draft_n": 566, "draft_acc": 564, "sha": "a470f9e5143e", "wall": 8.3}
+{"tag": "mtp-ctl", "kind": "edit", "item": "shlex.py", "tps": 111.9, "n": 164, "draft_n": 110, "draft_acc": 110, "sha": "94a4bd95dfad", "wall": 2.9}
+{"tag": "mtp-ctl", "kind": "quote", "item": "fnmatch.py", "tps": 117.0, "n": 1226, "draft_n": 818, "draft_acc": 816, "sha": "354164b1634f", "wall": 11.9}
+{"tag": "mtp-ctl", "kind": "edit", "item": "fnmatch.py", "tps": 110.8, "n": 148, "draft_n": 100, "draft_acc": 99, "sha": "2122768ee7b3", "wall": 2.7}
+{"tag": "mtp-ctl", "kind": "quote", "item": "csv.py", "tps": 116.1, "n": 1396, "draft_n": 938, "draft_acc": 926, "sha": "79e2648e5062", "wall": 13.6}
+{"tag": "mtp-ctl", "kind": "edit", "item": "csv.py", "tps": 115.8, "n": 237, "draft_n": 158, "draft_acc": 158, "sha": "05b9cda93cf1", "wall": 3.9}
+{"tag": "mtp-ctl", "kind": "plain", "item": "code", "tps": 95.1, "n": 400, "draft_n": 329, "draft_acc": 234, "sha": "f307ae7b11f4", "wall": 4.6}
+{"tag": "mtp-ctl", "kind": "plain", "item": "prose", "tps": 78.0, "n": 400, "draft_n": 405, "draft_acc": 196, "sha": "e00464430194", "wall": 5.4}
+{"tag": "mtp-ctl", "kind": "plain", "item": "bash", "tps": 96.8, "n": 400, "draft_n": 324, "draft_acc": 237, "sha": "b3a2c37a05d5", "wall": 4.4}
+{"tag": "mod+mtp-L16", "kind": "quote", "item": "textwrap.py", "tps": 249.8, "n": 1348, "draft_n": 1246, "draft_acc": 1235, "sha": "45d97823b4bf", "wall": 6.7}
+{"tag": "mod+mtp-L16", "kind": "edit", "item": "textwrap.py", "tps": 126.3, "n": 160, "draft_n": 132, "draft_acc": 122, "sha": "86b70239890f", "wall": 3.1}
+{"tag": "mod+mtp-L16", "kind": "quote", "item": "shlex.py", "tps": 246.4, "n": 846, "draft_n": 794, "draft_acc": 776, "sha": "a470f9e5143e", "wall": 4.5}
+{"tag": "mod+mtp-L16", "kind": "edit", "item": "shlex.py", "tps": 121.3, "n": 164, "draft_n": 156, "draft_acc": 127, "sha": "6fbf692e1824", "wall": 2.8}
+{"tag": "mod+mtp-L16", "kind": "quote", "item": "fnmatch.py", "tps": 267.1, "n": 1226, "draft_n": 1152, "draft_acc": 1138, "sha": "354164b1634f", "wall": 6.0}
+{"tag": "mod+mtp-L16", "kind": "edit", "item": "fnmatch.py", "tps": 117.5, "n": 148, "draft_n": 140, "draft_acc": 111, "sha": "ebc91fe0ebc9", "wall": 2.6}
+{"tag": "mod+mtp-L16", "kind": "quote", "item": "csv.py", "tps": 241.8, "n": 1396, "draft_n": 1330, "draft_acc": 1280, "sha": "79e2648e5062", "wall": 7.4}
+{"tag": "mod+mtp-L16", "kind": "edit", "item": "csv.py", "tps": 143.5, "n": 237, "draft_n": 234, "draft_acc": 194, "sha": "e77f4e44fa7c", "wall": 3.5}
+{"tag": "mod+mtp-L16", "kind": "plain", "item": "code", "tps": 96.2, "n": 400, "draft_n": 327, "draft_acc": 235, "sha": "f307ae7b11f4", "wall": 4.5}
+{"tag": "mod+mtp-L16", "kind": "plain", "item": "prose", "tps": 77.8, "n": 400, "draft_n": 405, "draft_acc": 196, "sha": "e00464430194", "wall": 5.4}
+{"tag": "mod+mtp-L16", "kind": "plain", "item": "bash", "tps": 96.3, "n": 400, "draft_n": 326, "draft_acc": 236, "sha": "b3a2c37a05d5", "wall": 4.5}
+{"tag": "mod+mtp-L32", "kind": "quote", "item": "textwrap.py", "tps": 342.0, "n": 1348, "draft_n": 1316, "draft_acc": 1273, "sha": "45d97823b4bf", "wall": 5.3}
+{"tag": "mod+mtp-L32", "kind": "edit", "item": "textwrap.py", "tps": 133.8, "n": 160, "draft_n": 132, "draft_acc": 124, "sha": "b5771ef9c207", "wall": 3.0}
+{"tag": "mod+mtp-L32", "kind": "quote", "item": "shlex.py", "tps": 352.8, "n": 846, "draft_n": 810, "draft_acc": 799, "sha": "a470f9e5143e", "wall": 3.5}
+{"tag": "mod+mtp-L32", "kind": "edit", "item": "shlex.py", "tps": 129.9, "n": 164, "draft_n": 188, "draft_acc": 129, "sha": "9c82d8c5a007", "wall": 2.7}
+{"tag": "mod+mtp-L32", "kind": "quote", "item": "fnmatch.py", "tps": 390.3, "n": 1226, "draft_n": 1186, "draft_acc": 1172, "sha": "354164b1634f", "wall": 4.5}
+{"tag": "mod+mtp-L32", "kind": "edit", "item": "fnmatch.py", "tps": 127.2, "n": 148, "draft_n": 156, "draft_acc": 113, "sha": "c2fbee0a9db3", "wall": 2.5}
+{"tag": "mod+mtp-L32", "kind": "quote", "item": "csv.py", "tps": 324.0, "n": 1396, "draft_n": 1440, "draft_acc": 1316, "sha": "79e2648e5062", "wall": 5.9}
+{"tag": "mod+mtp-L32", "kind": "edit", "item": "csv.py", "tps": 149.9, "n": 237, "draft_n": 282, "draft_acc": 197, "sha": "63a2bc2fee17", "wall": 3.5}
+{"tag": "mod+mtp-L32", "kind": "plain", "item": "code", "tps": 96.6, "n": 400, "draft_n": 325, "draft_acc": 236, "sha": "f307ae7b11f4", "wall": 4.5}
+{"tag": "mod+mtp-L32", "kind": "plain", "item": "prose", "tps": 77.7, "n": 400, "draft_n": 405, "draft_acc": 196, "sha": "e00464430194", "wall": 5.4}
+{"tag": "mod+mtp-L32", "kind": "plain", "item": "bash", "tps": 97.1, "n": 400, "draft_n": 324, "draft_acc": 237, "sha": "b3a2c37a05d5", "wall": 4.4}
+{"tag": "simple+mtp-L16", "kind": "quote", "item": "textwrap.py", "tps": 249.1, "n": 1348, "draft_n": 1328, "draft_acc": 1252, "sha": "45d97823b4bf", "wall": 6.8}
+{"tag": "simple+mtp-L16", "kind": "edit", "item": "textwrap.py", "tps": 110.8, "n": 160, "draft_n": 176, "draft_acc": 125, "sha": "e69d634984b1", "wall": 3.3}
+{"tag": "simple+mtp-L16", "kind": "quote", "item": "shlex.py", "tps": 254.2, "n": 846, "draft_n": 810, "draft_acc": 782, "sha": "a470f9e5143e", "wall": 4.4}
+{"tag": "simple+mtp-L16", "kind": "edit", "item": "shlex.py", "tps": 109.4, "n": 164, "draft_n": 190, "draft_acc": 128, "sha": "1a5034ee33d3", "wall": 3.0}
+{"tag": "simple+mtp-L16", "kind": "quote", "item": "fnmatch.py", "tps": 267.2, "n": 1226, "draft_n": 1184, "draft_acc": 1142, "sha": "354164b1634f", "wall": 6.0}
+{"tag": "simple+mtp-L16", "kind": "edit", "item": "fnmatch.py", "tps": 109.8, "n": 148, "draft_n": 174, "draft_acc": 114, "sha": "54dc0b58bd23", "wall": 2.7}
+{"tag": "simple+mtp-L16", "kind": "quote", "item": "csv.py", "tps": 245.2, "n": 1396, "draft_n": 1392, "draft_acc": 1292, "sha": "79e2648e5062", "wall": 7.3}
+{"tag": "simple+mtp-L16", "kind": "edit", "item": "csv.py", "tps": 141.7, "n": 237, "draft_n": 254, "draft_acc": 198, "sha": "d5378d33b62b", "wall": 3.5}
+{"tag": "simple+mtp-L16", "kind": "plain", "item": "code", "tps": 97.1, "n": 400, "draft_n": 327, "draft_acc": 235, "sha": "f307ae7b11f4", "wall": 4.5}
+{"tag": "simple+mtp-L16", "kind": "plain", "item": "prose", "tps": 78.8, "n": 400, "draft_n": 405, "draft_acc": 196, "sha": "e00464430194", "wall": 5.3}
+{"tag": "simple+mtp-L16", "kind": "plain", "item": "bash", "tps": 97.5, "n": 400, "draft_n": 326, "draft_acc": 236, "sha": "b3a2c37a05d5", "wall": 4.4}
+{"tag": "mtp-ctl2", "kind": "quote", "item": "textwrap.py", "tps": 117.2, "n": 1348, "draft_n": 904, "draft_acc": 895, "sha": "45d97823b4bf", "wall": 12.8}
+{"tag": "mtp-ctl2", "kind": "edit", "item": "textwrap.py", "tps": 114.8, "n": 160, "draft_n": 108, "draft_acc": 106, "sha": "f814ecd9938e", "wall": 3.2}
+{"tag": "mtp-ctl2", "kind": "quote", "item": "shlex.py", "tps": 117.4, "n": 846, "draft_n": 566, "draft_acc": 564, "sha": "a470f9e5143e", "wall": 8.3}
+{"tag": "mtp-ctl2", "kind": "edit", "item": "shlex.py", "tps": 112.9, "n": 164, "draft_n": 110, "draft_acc": 110, "sha": "a65f1cf9455e", "wall": 2.9}
+{"tag": "mtp-ctl2", "kind": "quote", "item": "fnmatch.py", "tps": 117.8, "n": 1226, "draft_n": 818, "draft_acc": 816, "sha": "354164b1634f", "wall": 11.8}
+{"tag": "mtp-ctl2", "kind": "edit", "item": "fnmatch.py", "tps": 111.8, "n": 148, "draft_n": 100, "draft_acc": 99, "sha": "1fdc33181c16", "wall": 2.7}
+{"tag": "mtp-ctl2", "kind": "quote", "item": "csv.py", "tps": 116.6, "n": 1396, "draft_n": 938, "draft_acc": 926, "sha": "79e2648e5062", "wall": 13.5}
+{"tag": "mtp-ctl2", "kind": "edit", "item": "csv.py", "tps": 116.6, "n": 237, "draft_n": 158, "draft_acc": 158, "sha": "7494652e8faa", "wall": 3.9}
+{"tag": "mtp-ctl2", "kind": "plain", "item": "code", "tps": 96.3, "n": 400, "draft_n": 329, "draft_acc": 234, "sha": "f307ae7b11f4", "wall": 4.5}
+{"tag": "mtp-ctl2", "kind": "plain", "item": "prose", "tps": 78.5, "n": 400, "draft_n": 405, "draft_acc": 196, "sha": "e00464430194", "wall": 5.4}
+{"tag": "mtp-ctl2", "kind": "plain", "item": "bash", "tps": 97.9, "n": 400, "draft_n": 324, "draft_acc": 237, "sha": "b3a2c37a05d5", "wall": 4.4}
+{"tag": "mod+mtp-L64", "kind": "quote", "item": "textwrap.py", "tps": 428.7, "n": 1348, "draft_n": 1396, "draft_acc": 1299, "sha": "45d97823b4bf", "wall": 4.5}
+{"tag": "mod+mtp-L64", "kind": "edit", "item": "textwrap.py", "tps": 123.3, "n": 160, "draft_n": 193, "draft_acc": 123, "sha": "70d19b3dbb93", "wall": 3.1}
+{"tag": "mod+mtp-L64", "kind": "quote", "item": "shlex.py", "tps": 400.7, "n": 846, "draft_n": 874, "draft_acc": 810, "sha": "a470f9e5143e", "wall": 3.2}
+{"tag": "mod+mtp-L64", "kind": "edit", "item": "shlex.py", "tps": 122.1, "n": 164, "draft_n": 251, "draft_acc": 129, "sha": "bd823ab5a38b", "wall": 2.8}
+{"tag": "mod+mtp-L64", "kind": "quote", "item": "fnmatch.py", "tps": 464.5, "n": 1226, "draft_n": 1248, "draft_acc": 1189, "sha": "354164b1634f", "wall": 4.0}
+{"tag": "mod+mtp-L64", "kind": "edit", "item": "fnmatch.py", "tps": 110.8, "n": 148, "draft_n": 243, "draft_acc": 113, "sha": "20e7832c3971", "wall": 2.7}
+{"tag": "mod+mtp-L64", "kind": "quote", "item": "csv.py", "tps": 386.2, "n": 1396, "draft_n": 1518, "draft_acc": 1344, "sha": "79e2648e5062", "wall": 5.2}
+{"tag": "mod+mtp-L64", "kind": "edit", "item": "csv.py", "tps": 150.4, "n": 237, "draft_n": 378, "draft_acc": 199, "sha": "343e14b247cf", "wall": 3.4}
+{"tag": "mod+mtp-L64", "kind": "plain", "item": "code", "tps": 96.9, "n": 400, "draft_n": 327, "draft_acc": 235, "sha": "f307ae7b11f4", "wall": 4.5}
+{"tag": "mod+mtp-L64", "kind": "plain", "item": "prose", "tps": 78.6, "n": 400, "draft_n": 405, "draft_acc": 196, "sha": "e00464430194", "wall": 5.3}
+{"tag": "mod+mtp-L64", "kind": "plain", "item": "bash", "tps": 97.3, "n": 400, "draft_n": 326, "draft_acc": 236, "sha": "b3a2c37a05d5", "wall": 4.4}
+{"tag": "simple+mtp-L32", "kind": "quote", "item": "textwrap.py", "tps": 373.6, "n": 1348, "draft_n": 1392, "draft_acc": 1293, "sha": "45d97823b4bf", "wall": 5.0}
+{"tag": "simple+mtp-L32", "kind": "edit", "item": "textwrap.py", "tps": 116.7, "n": 160, "draft_n": 240, "draft_acc": 127, "sha": "e793ec2bf644", "wall": 3.2}
+{"tag": "simple+mtp-L32", "kind": "quote", "item": "shlex.py", "tps": 364.5, "n": 846, "draft_n": 858, "draft_acc": 805, "sha": "a470f9e5143e", "wall": 3.4}
+{"tag": "simple+mtp-L32", "kind": "edit", "item": "shlex.py", "tps": 111.4, "n": 164, "draft_n": 270, "draft_acc": 130, "sha": "0369d0255205", "wall": 2.9}
+{"tag": "simple+mtp-L32", "kind": "quote", "item": "fnmatch.py", "tps": 400.8, "n": 1226, "draft_n": 1232, "draft_acc": 1177, "sha": "354164b1634f", "wall": 4.4}
+{"tag": "simple+mtp-L32", "kind": "edit", "item": "fnmatch.py", "tps": 113.1, "n": 148, "draft_n": 238, "draft_acc": 116, "sha": "1ebc56c05b46", "wall": 2.7}
+{"tag": "simple+mtp-L32", "kind": "quote", "item": "csv.py", "tps": 354.5, "n": 1396, "draft_n": 1488, "draft_acc": 1335, "sha": "79e2648e5062", "wall": 5.5}
+{"tag": "simple+mtp-L32", "kind": "edit", "item": "csv.py", "tps": 150.7, "n": 237, "draft_n": 302, "draft_acc": 202, "sha": "3c7c76576d5d", "wall": 3.5}
+{"tag": "simple+mtp-L32", "kind": "plain", "item": "code", "tps": 97.1, "n": 400, "draft_n": 327, "draft_acc": 235, "sha": "f307ae7b11f4", "wall": 4.5}
+{"tag": "simple+mtp-L32", "kind": "plain", "item": "prose", "tps": 79.0, "n": 400, "draft_n": 403, "draft_acc": 197, "sha": "e00464430194", "wall": 5.3}
+{"tag": "simple+mtp-L32", "kind": "plain", "item": "bash", "tps": 97.2, "n": 400, "draft_n": 326, "draft_acc": 236, "sha": "b3a2c37a05d5", "wall": 4.4}
+{"tag": "d130-mtp", "depth": 130000, "kind": "quote", "item": "textwrap.py", "tps": 63.8, "n": 1348, "draft_n": 1112, "draft_acc": 1071, "sha": "45d97823b4bf", "wall": 230.7}
+{"tag": "d130-mtp", "depth": 130000, "kind": "edit", "item": "textwrap.py", "tps": 62.1, "n": 194, "draft_n": 164, "draft_acc": 153, "sha": "6f26cb32952e", "wall": 215.6}
+{"tag": "d130-mtp", "depth": 130000, "kind": "quote", "item": "shlex.py", "tps": 63.9, "n": 846, "draft_n": 708, "draft_acc": 670, "sha": "a470f9e5143e", "wall": 222.9}
+{"tag": "d130-mtp", "depth": 130000, "kind": "edit", "item": "shlex.py", "tps": 61.5, "n": 164, "draft_n": 140, "draft_acc": 130, "sha": "cf0b8051db86", "wall": 213.0}
+{"tag": "d130-mtp", "depth": 130000, "kind": "quote", "item": "fnmatch.py", "tps": 63.3, "n": 1226, "draft_n": 1024, "draft_acc": 971, "sha": "354164b1634f", "wall": 230.1}
+{"tag": "d130-mtp", "depth": 130000, "kind": "edit", "item": "fnmatch.py", "tps": 64.5, "n": 148, "draft_n": 120, "draft_acc": 118, "sha": "a4c529f81d3f", "wall": 214.0}
+{"tag": "d130-mtp", "depth": 130000, "kind": "quote", "item": "csv.py", "tps": 62.6, "n": 1396, "draft_n": 1172, "draft_acc": 1104, "sha": "79e2648e5062", "wall": 233.4}
+{"tag": "d130-mtp", "depth": 130000, "kind": "edit", "item": "csv.py", "tps": 62.9, "n": 237, "draft_n": 196, "draft_acc": 189, "sha": "67b3bc9ad4b5", "wall": 215.7}
+{"tag": "d130-mtp", "depth": 130000, "kind": "plain", "item": "code", "tps": 47.0, "n": 400, "draft_n": 467, "draft_acc": 282, "sha": "ab502e67f76b", "wall": 215.8}
+{"tag": "d130-mtp", "depth": 130000, "kind": "plain", "item": "prose", "tps": 34.1, "n": 400, "draft_n": 643, "draft_acc": 237, "sha": "a4d0e4b92aa7", "wall": 13.5}
+{"tag": "d130-mtp", "depth": 130000, "kind": "plain", "item": "bash", "tps": 43.4, "n": 400, "draft_n": 504, "draft_acc": 272, "sha": "c0ee4e7abc24", "wall": 11.0}
+{"tag": "d130-mod+mtp-L32", "depth": 130000, "kind": "quote", "item": "textwrap.py", "tps": 161.2, "n": 1348, "draft_n": 1336, "draft_acc": 1285, "sha": "45d97823b4bf", "wall": 217.7}
+{"tag": "d130-mod+mtp-L32", "depth": 130000, "kind": "edit", "item": "textwrap.py", "tps": 74.5, "n": 194, "draft_n": 216, "draft_acc": 166, "sha": "42ab714a6cc1", "wall": 215.1}
+{"tag": "d130-mod+mtp-L32", "depth": 130000, "kind": "quote", "item": "shlex.py", "tps": 165.5, "n": 846, "draft_n": 824, "draft_acc": 806, "sha": "a470f9e5143e", "wall": 214.8}
+{"tag": "d130b-mod+mtp-L32", "depth": 130000, "kind": "quote", "item": "textwrap.py", "tps": 162.1, "n": 1348, "draft_n": 1336, "draft_acc": 1285, "sha": "45d97823b4bf", "wall": 217.4}
+{"tag": "d130b-mod+mtp-L32", "depth": 130000, "kind": "quote", "item": "shlex.py", "tps": 165.6, "n": 846, "draft_n": 824, "draft_acc": 806, "sha": "a470f9e5143e", "wall": 214.2}
+{"tag": "d130b-mod+mtp-L32", "depth": 130000, "kind": "quote", "item": "fnmatch.py", "tps": 172.7, "n": 1226, "draft_n": 1228, "draft_acc": 1176, "sha": "354164b1634f", "wall": 217.4}
+{"tag": "d130b-mod+mtp-L32", "depth": 130000, "kind": "quote", "item": "csv.py", "tps": 155.9, "n": 1396, "draft_n": 1432, "draft_acc": 1328, "sha": "79e2648e5062", "wall": 219.3}
+{"tag": "d130b-mod+mtp-L32", "depth": 130000, "kind": "plain", "item": "code", "tps": 47.2, "n": 400, "draft_n": 467, "draft_acc": 282, "sha": "ab502e67f76b", "wall": 214.8}
+{"tag": "d130b-mod+mtp-L32", "depth": 130000, "kind": "plain", "item": "prose", "tps": 34.4, "n": 400, "draft_n": 643, "draft_acc": 237, "sha": "a4d0e4b92aa7", "wall": 13.4}
+{"tag": "d130b-mod+mtp-L32", "depth": 130000, "kind": "plain", "item": "bash", "tps": 43.7, "n": 400, "draft_n": 504, "draft_acc": 272, "sha": "c0ee4e7abc24", "wall": 11.0}
+{"tag": "d130b-mod+mtp-L32", "depth": 130000, "kind": "edit", "item": "textwrap.py", "tps": 74.9, "n": 194, "draft_n": 216, "draft_acc": 166, "sha": "23492d62b15d", "wall": 215.3}
+{"tag": "d130b-mod+mtp-L32", "depth": 130000, "kind": "edit", "item": "shlex.py", "tps": 77.1, "n": 164, "draft_n": 176, "draft_acc": 140, "sha": "b146965892b4", "wall": 211.7}
+{"tag": "d130b-mod+mtp-L32", "depth": 130000, "kind": "edit", "item": "fnmatch.py", "tps": 76.4, "n": 148, "draft_n": 140, "draft_acc": 125, "sha": "b3d6822d6c89", "wall": 213.1}
+{"tag": "d130b-mod+mtp-L32", "depth": 130000, "kind": "edit", "item": "csv.py", "tps": 84.6, "n": 237, "draft_n": 264, "draft_acc": 209, "sha": "7cede484a66f", "wall": 214.4}
+{"tag": "d130b-mod+mtp-L64", "depth": 130000, "kind": "quote", "item": "textwrap.py", "tps": 188.2, "n": 1348, "draft_n": 1412, "draft_acc": 1308, "sha": "45d97823b4bf", "wall": 217.2}
+{"tag": "d130b-mod+mtp-L64", "depth": 130000, "kind": "quote", "item": "shlex.py", "tps": 176.7, "n": 846, "draft_n": 888, "draft_acc": 817, "sha": "a470f9e5143e", "wall": 214.0}
+{"tag": "d130b-mod+mtp-L64", "depth": 130000, "kind": "quote", "item": "fnmatch.py", "tps": 200.5, "n": 1226, "draft_n": 1260, "draft_acc": 1194, "sha": "354164b1634f", "wall": 215.8}
+{"tag": "d130b-mod+mtp-L64", "depth": 130000, "kind": "quote", "item": "csv.py", "tps": 166.0, "n": 1396, "draft_n": 1540, "draft_acc": 1350, "sha": "79e2648e5062", "wall": 218.8}
+{"tag": "d130b-mod+mtp-L64", "depth": 130000, "kind": "plain", "item": "code", "tps": 47.4, "n": 400, "draft_n": 467, "draft_acc": 282, "sha": "ab502e67f76b", "wall": 214.9}
+{"tag": "d130b-mod+mtp-L64", "depth": 130000, "kind": "plain", "item": "prose", "tps": 34.3, "n": 400, "draft_n": 643, "draft_acc": 237, "sha": "a4d0e4b92aa7", "wall": 13.5}
+{"tag": "d130b-mod+mtp-L64", "depth": 130000, "kind": "plain", "item": "bash", "tps": 43.6, "n": 400, "draft_n": 504, "draft_acc": 272, "sha": "c0ee4e7abc24", "wall": 11.0}
+{"tag": "d130b-mod+mtp-L64", "depth": 130000, "kind": "edit", "item": "textwrap.py", "tps": 75.7, "n": 194, "draft_n": 212, "draft_acc": 169, "sha": "a9d647c34336", "wall": 215.2}
+{"tag": "d130b-mod+mtp-L64", "depth": 130000, "kind": "edit", "item": "shlex.py", "tps": 68.8, "n": 164, "draft_n": 208, "draft_acc": 140, "sha": "399ec7014582", "wall": 212.0}
+{"tag": "d130b-mod+mtp-L64", "depth": 130000, "kind": "edit", "item": "fnmatch.py", "tps": 65.4, "n": 148, "draft_n": 196, "draft_acc": 125, "sha": "6375b1bbe4f3", "wall": 213.3}
+{"tag": "d130b-mod+mtp-L64", "depth": 130000, "kind": "edit", "item": "csv.py", "tps": 80.5, "n": 237, "draft_n": 328, "draft_acc": 211, "sha": "ea0d309f9172", "wall": 214.0}
+{"tag": "mod+mtp-L48", "depth": 0, "kind": "quote", "item": "textwrap.py", "tps": 385.6, "n": 1348, "draft_n": 1358, "draft_acc": 1288, "sha": "45d97823b4bf", "wall": 4.8}
+{"tag": "mod+mtp-L48", "depth": 0, "kind": "quote", "item": "shlex.py", "tps": 374.1, "n": 846, "draft_n": 858, "draft_acc": 806, "sha": "a470f9e5143e", "wall": 3.3}
+{"tag": "mod+mtp-L48", "depth": 0, "kind": "quote", "item": "fnmatch.py", "tps": 421.2, "n": 1226, "draft_n": 1232, "draft_acc": 1183, "sha": "354164b1634f", "wall": 4.2}
+{"tag": "mod+mtp-L48", "depth": 0, "kind": "quote", "item": "csv.py", "tps": 392.5, "n": 1396, "draft_n": 1476, "draft_acc": 1344, "sha": "79e2648e5062", "wall": 5.0}
+{"tag": "mod+mtp-L48", "depth": 0, "kind": "plain", "item": "code", "tps": 95.7, "n": 400, "draft_n": 327, "draft_acc": 235, "sha": "f307ae7b11f4", "wall": 4.5}
+{"tag": "mod+mtp-L48", "depth": 0, "kind": "plain", "item": "prose", "tps": 78.2, "n": 400, "draft_n": 405, "draft_acc": 196, "sha": "e00464430194", "wall": 5.4}
+{"tag": "mod+mtp-L48", "depth": 0, "kind": "plain", "item": "bash", "tps": 96.8, "n": 400, "draft_n": 326, "draft_acc": 236, "sha": "b3a2c37a05d5", "wall": 4.4}
+{"tag": "mod+mtp-L48", "depth": 0, "kind": "edit", "item": "textwrap.py", "tps": 125.1, "n": 160, "draft_n": 164, "draft_acc": 123, "sha": "f35707d21b4e", "wall": 3.1}
+{"tag": "mod+mtp-L48", "depth": 0, "kind": "edit", "item": "shlex.py", "tps": 122.0, "n": 164, "draft_n": 204, "draft_acc": 129, "sha": "7e88813c49d5", "wall": 2.4}
+{"tag": "mod+mtp-L48", "depth": 0, "kind": "edit", "item": "fnmatch.py", "tps": 111.3, "n": 148, "draft_n": 204, "draft_acc": 113, "sha": "2b649f77b713", "wall": 2.8}
+{"tag": "mod+mtp-L48", "depth": 0, "kind": "edit", "item": "csv.py", "tps": 135.4, "n": 237, "draft_n": 346, "draft_acc": 198, "sha": "84a60392b3df", "wall": 3.3}
+{"tag": "mod+mtp-L24", "depth": 0, "kind": "quote", "item": "textwrap.py", "tps": 305.0, "n": 1348, "draft_n": 1294, "draft_acc": 1260, "sha": "45d97823b4bf", "wall": 5.8}
+{"tag": "mod+mtp-L24", "depth": 0, "kind": "quote", "item": "shlex.py", "tps": 310.1, "n": 846, "draft_n": 810, "draft_acc": 791, "sha": "a470f9e5143e", "wall": 3.8}
+{"tag": "mod+mtp-L24", "depth": 0, "kind": "quote", "item": "fnmatch.py", "tps": 330.6, "n": 1226, "draft_n": 1184, "draft_acc": 1160, "sha": "354164b1634f", "wall": 5.0}
+{"tag": "mod+mtp-L24", "depth": 0, "kind": "quote", "item": "csv.py", "tps": 290.7, "n": 1396, "draft_n": 1382, "draft_acc": 1305, "sha": "79e2648e5062", "wall": 6.3}
+{"tag": "mod+mtp-L24", "depth": 0, "kind": "plain", "item": "code", "tps": 96.6, "n": 400, "draft_n": 325, "draft_acc": 236, "sha": "f307ae7b11f4", "wall": 4.5}
+{"tag": "mod+mtp-L24", "depth": 0, "kind": "plain", "item": "prose", "tps": 78.1, "n": 400, "draft_n": 405, "draft_acc": 196, "sha": "e00464430194", "wall": 5.4}
+{"tag": "mod+mtp-L24", "depth": 0, "kind": "plain", "item": "bash", "tps": 96.8, "n": 400, "draft_n": 326, "draft_acc": 236, "sha": "b3a2c37a05d5", "wall": 4.4}
+{"tag": "mod+mtp-L24", "depth": 0, "kind": "edit", "item": "textwrap.py", "tps": 119.6, "n": 160, "draft_n": 164, "draft_acc": 121, "sha": "6845350ce5f0", "wall": 3.1}
+{"tag": "mod+mtp-L24", "depth": 0, "kind": "edit", "item": "shlex.py", "tps": 119.7, "n": 164, "draft_n": 180, "draft_acc": 127, "sha": "e4356a1ebde5", "wall": 2.4}
+{"tag": "mod+mtp-L24", "depth": 0, "kind": "edit", "item": "fnmatch.py", "tps": 119.8, "n": 148, "draft_n": 156, "draft_acc": 113, "sha": "91eb49a2a231", "wall": 2.6}
+{"tag": "mod+mtp-L24", "depth": 0, "kind": "edit", "item": "csv.py", "tps": 137.3, "n": 237, "draft_n": 274, "draft_acc": 195, "sha": "a542e8533987", "wall": 3.3}

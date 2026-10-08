@@ -173,11 +173,20 @@ $DraftCells = 0
 if ($Spec -gt 0) {
     if (-not ((Split-Path $Model -Leaf) -match '-mtp')) { throw 'BONSAI_SPEC needs an *-mtp-*.gguf (grafted MTP head)' }
     $env:GGML_CUDA_BATCH_INVARIANT = '1'
-    # BONSAI_SPEC_TYPE: the engine's --spec-type list. A lookup drafter listed with the MTP head (for example
-    # "ngram-mod,draft-mtp") drafts from the context first and the head drafts when the lookup finds no match.
-    # BONSAI_SPEC_ARGS: extra drafter flags, space-separated (for example "--spec-ngram-mod-n-max 32").
-    $SpecType = if ($env:BONSAI_SPEC_TYPE) { $env:BONSAI_SPEC_TYPE } else { 'draft-mtp' }
+    # Lookup drafting (patch 0039): a lookup drafter in front of the MTP head drafts text that is already in the
+    # context (file rewrites, edit calls, quoted logs) up to BONSAI_LOOKUP_N tokens; the head drafts new text with its
+    # own small draft size. Measured (receipts/lookup_ab.jsonl, same text in every arm): file rewrites 117 -> 352 tok/s
+    # at 4k and 63 -> 164 at 130k, edit calls +19% / +25%, plain text unchanged. 32 is the best limit for edit calls;
+    # 64 is faster on full rewrites (420 / 183) and slower on edits. BONSAI_LOOKUP=0 turns it off. Off by default on
+    # 8 GB cards: a long draft widens the verify batch, and the 8 GB margin is not measured for it.
+    # BONSAI_SPEC_TYPE: the whole --spec-type list (overrides the above). BONSAI_SPEC_ARGS: extra drafter flags.
+    $HasLookupCap = $Help -match '--spec-lookup-n-max'
+    $LookupN = if ($env:BONSAI_LOOKUP_N) { [int]$env:BONSAI_LOOKUP_N } else { 32 }
+    $LookupOn = ($env:BONSAI_LOOKUP -ne '0') -and $HasLookupCap -and -not $Small -and $LookupN -gt 0
+    if ($env:BONSAI_LOOKUP -eq '1') { $LookupOn = $HasLookupCap -and $LookupN -gt 0 }   # also on 8 GB, by request
+    $SpecType = if ($env:BONSAI_SPEC_TYPE) { $env:BONSAI_SPEC_TYPE } elseif ($LookupOn) { 'ngram-mod,draft-mtp' } else { 'draft-mtp' }
     $SpecArgs = @('--spec-type', $SpecType, '--spec-draft-n-max', "$Spec", '-ctkd', $Ctk, '-ctvd', $Ctk)
+    if ($LookupOn -and -not $env:BONSAI_SPEC_TYPE) { $SpecArgs += @('--spec-lookup-n-max', "$LookupN") }
     if ($env:BONSAI_SPEC_ARGS) { $SpecArgs += @($env:BONSAI_SPEC_ARGS -split '\s+' | Where-Object { $_ }) }
     if ($HasTier) {
         $SpecArgs += @('--spec-draft-window', "$DraftWindow")
@@ -244,7 +253,7 @@ Write-Host "window $Ctx / $Ctk  (trained max 262144)"
 if ($TierCells -gt 0) { Write-Host "kv     tiered: cells 0..$TierCells in VRAM, $TierCells..$Ctx in system RAM$(if ($Margin) { " (VRAM margin $Margin MiB)" })" }
 if (-not $HasTier) { Write-Host "note   this llama-server predates the tiered-KV runtime: 96k all-VRAM recipe (see README, Quick start)" }
 if ($Spec -gt 0) {
-    Write-Host "spec   draft $Spec$(if ($TierCells -gt 0) { " ($SpecDeep past the VRAM line)" })$(if ($HasTier) { ", draft window $DraftWindow" }) (MTP on)$(if ($SpecType -ne 'draft-mtp') { "; types $SpecType" })$(if ($env:BONSAI_SPEC_ARGS) { " $($env:BONSAI_SPEC_ARGS)" })"
+    Write-Host "spec   draft $Spec$(if ($TierCells -gt 0) { " ($SpecDeep past the VRAM line)" })$(if ($HasTier) { ", draft window $DraftWindow" }) (MTP on)$(if ($LookupOn -and -not $env:BONSAI_SPEC_TYPE) { "; lookup drafting up to $LookupN (BONSAI_LOOKUP=0 turns it off)" } elseif ($SpecType -ne 'draft-mtp') { "; types $SpecType" })$(if ($env:BONSAI_SPEC_ARGS) { " $($env:BONSAI_SPEC_ARGS)" })"
 } elseif ($env:BONSAI_SPEC) {
     Write-Host "spec   draft 0: MTP is OFF because BONSAI_SPEC=$($env:BONSAI_SPEC) is set in this window. Decode is slower:"
     Write-Host "       at 138k context, 25 tok/s with MTP against 11.6 without (RTX 4070, receipts/issue7_repro.log)."

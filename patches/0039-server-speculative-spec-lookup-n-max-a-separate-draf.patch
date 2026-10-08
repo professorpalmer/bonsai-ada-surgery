@@ -1,0 +1,152 @@
+From 008ac1112dcb3d89bd0e12c523c0222cfde0cc75 Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Wed, 7 Oct 2026 21:11:19 -0500
+Subject: [PATCH] server/speculative: --spec-lookup-n-max, a separate draft
+ limit for the lookup drafters
+
+With a lookup drafter (ngram-*) listed before the model drafter in --spec-type, the lookup drafts text that is
+already in the context and the model drafter (MTP) drafts when the lookup finds no match. Both were cut to the one
+slot limit, --spec-draft-n-max. A lookup draft is cheap and usually accepted when the answer copies the context
+(file rewrites, edit calls); an MTP draft longer than 2 costs more than it saves on new text. The new option sets
+the lookup limit on its own; the model drafter keeps --spec-draft-n-max (and --spec-draft-n-max-tail).
+
+Bonsai 2 27B PTQ1_0, RTX 4070, MTP draft 2, thinking off, greedy, 4 file rewrites / 4 edit calls / 3 plain prompts:
+  MTP only                  114.6-117.2 / 111.1-114.0 / 88.7-90.9 tok/s
+  ngram-mod + MTP, lookup 32  352.3 / 135.2 / 90.5   (same text as MTP only)
+  ngram-mod + MTP, lookup 64  420.0 / 126.7 / 90.9   (same text)
+  one shared limit of 8       166.7 / 117.0 / 48.6   (MTP drafts 8 on new text)
+---
+ common/arg.cpp                  | 12 ++++++++++++
+ common/common.h                 |  5 +++++
+ common/speculative.cpp          | 13 +++++++++----
+ common/speculative.h            |  3 +++
+ tools/server/server-context.cpp | 15 +++++++++++++++
+ 5 files changed, 44 insertions(+), 4 deletions(-)
+
+diff --git a/common/arg.cpp b/common/arg.cpp
+index 128130f0d..60e019009 100644
+--- a/common/arg.cpp
++++ b/common/arg.cpp
+@@ -4189,6 +4189,18 @@ common_params_context common_params_parser_init(common_params & params, llama_ex
+             params.speculative.draft.n_max_tail = value;
+         }
+     ).set_spec().set_examples({LLAMA_EXAMPLE_SERVER}).set_env("LLAMA_ARG_SPEC_DRAFT_N_MAX_TAIL"));
++    add_opt(common_arg(
++        {"--spec-lookup-n-max"}, "N",
++        string_format("draft size for the lookup drafters (ngram-*) listed with a model drafter in --spec-type: they\n"
++                      "draft text already in the context, the model drafter keeps --spec-draft-n-max; 0 = same (default: %d)",
++                      params.speculative.draft.n_max_lookup),
++        [](common_params & params, int value) {
++            if (value < 0) {
++                throw std::invalid_argument("invalid value");
++            }
++            params.speculative.draft.n_max_lookup = value;
++        }
++    ).set_spec().set_examples({LLAMA_EXAMPLE_SERVER}).set_env("LLAMA_ARG_SPEC_LOOKUP_N_MAX"));
+ 
+     add_opt(common_arg(
+         {"--spec-draft-p-split", "--draft-p-split"}, "P",
+diff --git a/common/common.h b/common/common.h
+index 506456ec8..400795253 100644
+--- a/common/common.h
++++ b/common/common.h
+@@ -345,6 +345,11 @@ struct common_params_speculative_draft {
+     // is bound by reading the host tail over PCIe and a wider verify batch reads it once for all columns.
+     int32_t n_max_tail = 0;
+ 
++    // draft size for the lookup drafters (ngram-*; 0 = the same limit as the model drafter). A lookup draft copies
++    // text that is already in the context, so a long draft is cheap and usually accepted; the model drafter (MTP)
++    // keeps --spec-draft-n-max, where long drafts cost more than they save.
++    int32_t n_max_lookup = 0;
++
+     bool backend_sampling = true; // offload draft sampling to the backend (default: on)
+ 
+     common_params_model mparams;
+diff --git a/common/speculative.cpp b/common/speculative.cpp
+index 38e511c09..588f2bead 100644
+--- a/common/speculative.cpp
++++ b/common/speculative.cpp
+@@ -3776,10 +3776,15 @@ void common_speculative_draft(common_speculative * spec) {
+             if (dp.drafting && !result.empty()) {
+                 dp.drafting = false;
+ 
+-                if (dp.n_max > 0) {
+-                    if (!result.empty() && (int) result.size() > dp.n_max) {
+-                        SPC_DBG("truncating draft to %d tokens\n", dp.n_max);
+-                        result.resize(dp.n_max);
++                const auto t = impl.get()->type;
++                const bool lookup = t == COMMON_SPECULATIVE_TYPE_NGRAM_SIMPLE || t == COMMON_SPECULATIVE_TYPE_NGRAM_MAP_K ||
++                                    t == COMMON_SPECULATIVE_TYPE_NGRAM_MAP_K4V || t == COMMON_SPECULATIVE_TYPE_NGRAM_MOD ||
++                                    t == COMMON_SPECULATIVE_TYPE_NGRAM_CACHE;
++                const int32_t cap = lookup && dp.n_max_lookup > 0 ? dp.n_max_lookup : dp.n_max;
++                if (cap > 0) {
++                    if (!result.empty() && (int) result.size() > cap) {
++                        SPC_DBG("truncating draft to %d tokens\n", cap);
++                        result.resize(cap);
+                     }
+                 }
+ 
+diff --git a/common/speculative.h b/common/speculative.h
+index 12d166660..083347b26 100644
+--- a/common/speculative.h
++++ b/common/speculative.h
+@@ -64,6 +64,9 @@ struct common_speculative_draft_params {
+ 
+     // the generated draft from the last _draft() call
+     llama_tokens * result;
++
++    // limit for the lookup drafters (ngram-*); 0 = n_max
++    int32_t n_max_lookup = 0;
+ };
+ 
+ common_speculative_draft_params & common_speculative_get_draft_params(common_speculative * spec, llama_seq_id seq_id);
+diff --git a/tools/server/server-context.cpp b/tools/server/server-context.cpp
+index d48792a83..97d4e0c09 100644
+--- a/tools/server/server-context.cpp
++++ b/tools/server/server-context.cpp
+@@ -210,6 +210,7 @@ struct server_slot {
+     int32_t spec_n_max       = 0; // draft size (--spec-draft-n-max) below spec_tail_depth
+     int32_t spec_n_max_tail  = 0; // draft size from spec_tail_depth on (--spec-draft-n-max-tail, 0 = spec_n_max)
+     int32_t spec_tail_depth  = 0; // start of the tiered-KV host tail (--kv-vram-cells, 0 = none)
++    int32_t spec_n_max_lookup = 0; // draft size for the lookup drafters (--spec-lookup-n-max, 0 = the cap above)
+ 
+     llama_tokens spec_draft;
+     llama_tokens spec_prompt;
+@@ -475,6 +476,18 @@ struct server_slot {
+         return n_draft_max;
+     }
+ 
++    // the same limits for the lookup drafters, with --spec-lookup-n-max in place of the model drafter's cap
++    int get_n_draft_max_lookup() const {
++        if (spec_n_max_lookup <= 0) {
++            return 0;
++        }
++        int n = n_ctx - prompt.n_tokens() - 2;
++        if (n_remaining() > 0) {
++            n = std::min(n, n_remaining() - 1);
++        }
++        return std::max(0, std::min(n, (int) spec_n_max_lookup));
++    }
++
+     // add sampled token of this slot to the batch, optionally add the speculative draft tokens if any
+     void handle_last_sampled_token(server_batch & batch) {
+         bool add_ok = true;
+@@ -1267,6 +1280,7 @@ private:
+             slot.spec_n_max      = spec_n_max;
+             slot.spec_n_max_tail = params_base.speculative.draft.n_max_tail;
+             slot.spec_tail_depth = params_base.n_kv_vram_cells;
++            slot.spec_n_max_lookup = params_base.speculative.draft.n_max_lookup;
+             slot.n_ctx   = n_ctx_slot;
+ 
+             slot.stats.speculative = slot.can_speculate();
+@@ -2990,6 +3004,7 @@ private:
+                             /* .id_last  = */ slot.sampled,
+                             /* .prompt   = */ &slot.spec_prompt,
+                             /* .result   = */ &slot.spec_draft,
++                            /* .n_max_lookup = */ slot.get_n_draft_max_lookup(),
+                         };
+ 
+                         drafting.push_back(&slot);
+-- 
+2.55.0.windows.3
+
