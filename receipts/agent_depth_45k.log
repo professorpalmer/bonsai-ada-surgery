@@ -1,0 +1,21 @@
+=== 20:24 arm mtp cells 112896 depth 45000 health=1
+spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on)
+{"tag": "", "depth": 45000, "arm": "greedy", "ask": 0, "tps": 86.1, "n": 4879, "evaluated": 45397, "acceptance": 0.764}
+{"tag": "", "depth": 45000, "arm": "greedy", "ask": 1, "tps": 69.9, "n": 1023, "evaluated": 515, "acceptance": 0.521}
+{"tag": "", "depth": 45000, "arm": "sampled", "ask": 0, "tps": 82.7, "n": 2872, "evaluated": 516, "acceptance": 0.712}
+{"tag": "", "depth": 45000, "arm": "sampled", "ask": 1, "tps": 67.4, "n": 1216, "evaluated": 515, "acceptance": 0.481}
+1.51.051.481 I slot print_timing: id  0 | task 0 | draft acceptance = 0.76359 ( 2949 accepted /  3862 generated), mean len =  2.53
+2.06.538.352 I slot print_timing: id  0 | task 1957 | draft acceptance = 0.52096 (  522 accepted /  1002 generated), mean len =  2.04
+2.42.114.311 I slot print_timing: id  0 | task 2461 | draft acceptance = 0.71181 ( 1687 accepted /  2370 generated), mean len =  2.42
+3.01.027.648 I slot print_timing: id  0 | task 3649 | draft acceptance = 0.48142 (  596 accepted /  1238 generated), mean len =  1.96
+11459 MiB, 4, 16
+=== 20:27 arm nomtp cells 112896 depth 45000 health=1
+spec   draft 0: MTP is OFF because BONSAI_SPEC=0 is set in this window. Decode is slower:
+       To turn MTP on: Remove-Item Env:BONSAI_SPEC (or open a new window), then start again.
+env    set in this window, these change the defaults: BONSAI_KV_VRAM_CELLS=112896  BONSAI_LAYER=0  BONSAI_SPEC=0
+{"tag": "", "depth": 45000, "arm": "greedy", "ask": 0, "tps": 53.5, "n": 3948, "evaluated": 45397, "acceptance": null}
+{"tag": "", "depth": 45000, "arm": "greedy", "ask": 1, "tps": 53.8, "n": 1104, "evaluated": 515, "acceptance": null}
+{"tag": "", "depth": 45000, "arm": "sampled", "ask": 0, "tps": 53.7, "n": 2284, "evaluated": 516, "acceptance": null}
+{"tag": "", "depth": 45000, "arm": "sampled", "ask": 1, "tps": 53.8, "n": 1457, "evaluated": 515, "acceptance": null}
+10251 MiB, 4, 16
+=== 20:31 done

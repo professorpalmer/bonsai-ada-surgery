@@ -1,0 +1,14 @@
+=== 20:32 arm mtp cells 112896 depth 45000 health=1
+spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on)
+{"tag": "", "depth": 45000, "arm": "sampled", "ask": 0, "tps": 81.1, "n": 2572, "evaluated": 45397, "acceptance": 0.683}
+{"tag": "", "depth": 45000, "arm": "sampled", "ask": 1, "tps": 67.6, "n": 1216, "evaluated": 515, "acceptance": 0.483}
+{"tag": "", "depth": 45000, "arm": "sampled-topk0", "ask": 0, "tps": 74.7, "n": 3653, "evaluated": 516, "acceptance": 0.688}
+{"tag": "", "depth": 45000, "arm": "sampled-topk0", "ask": 1, "tps": 62.7, "n": 1224, "evaluated": 515, "acceptance": 0.482}
+{"tag": "", "depth": 45000, "arm": "sampled-minp", "ask": 0, "tps": 80.3, "n": 4871, "evaluated": 516, "acceptance": 0.694}
+{"tag": "", "depth": 45000, "arm": "sampled-minp", "ask": 1, "tps": 68.1, "n": 1957, "evaluated": 515, "acceptance": 0.503}
+2.34.733.694 I slot print_timing: id  0 | task 1734 | draft acceptance = 0.68803 ( 2115 accepted /  3074 generated), mean len =  2.38
+2.55.111.643 I slot print_timing: id  0 | task 3274 | draft acceptance = 0.48234 (  601 accepted /  1246 generated), mean len =  1.96
+3.56.594.559 I slot print_timing: id  0 | task 3900 | draft acceptance = 0.69353 ( 2831 accepted /  4082 generated), mean len =  2.39
+4.26.166.848 I slot print_timing: id  0 | task 5944 | draft acceptance = 0.50256 (  981 accepted /  1952 generated), mean len =  2.01
+11459 MiB, 4, 16
+=== 20:36 done

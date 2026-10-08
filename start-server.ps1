@@ -173,7 +173,12 @@ $DraftCells = 0
 if ($Spec -gt 0) {
     if (-not ((Split-Path $Model -Leaf) -match '-mtp')) { throw 'BONSAI_SPEC needs an *-mtp-*.gguf (grafted MTP head)' }
     $env:GGML_CUDA_BATCH_INVARIANT = '1'
-    $SpecArgs = @('--spec-type', 'draft-mtp', '--spec-draft-n-max', "$Spec", '-ctkd', $Ctk, '-ctvd', $Ctk)
+    # BONSAI_SPEC_TYPE: the engine's --spec-type list. A lookup drafter listed with the MTP head (for example
+    # "ngram-mod,draft-mtp") drafts from the context first and the head drafts when the lookup finds no match.
+    # BONSAI_SPEC_ARGS: extra drafter flags, space-separated (for example "--spec-ngram-mod-n-max 32").
+    $SpecType = if ($env:BONSAI_SPEC_TYPE) { $env:BONSAI_SPEC_TYPE } else { 'draft-mtp' }
+    $SpecArgs = @('--spec-type', $SpecType, '--spec-draft-n-max', "$Spec", '-ctkd', $Ctk, '-ctvd', $Ctk)
+    if ($env:BONSAI_SPEC_ARGS) { $SpecArgs += @($env:BONSAI_SPEC_ARGS -split '\s+' | Where-Object { $_ }) }
     if ($HasTier) {
         $SpecArgs += @('--spec-draft-window', "$DraftWindow")
         $DraftCells = $DraftWindow + 2 * 2048 + 256   # the draft context the runtime sizes for the window
@@ -239,7 +244,7 @@ Write-Host "window $Ctx / $Ctk  (trained max 262144)"
 if ($TierCells -gt 0) { Write-Host "kv     tiered: cells 0..$TierCells in VRAM, $TierCells..$Ctx in system RAM$(if ($Margin) { " (VRAM margin $Margin MiB)" })" }
 if (-not $HasTier) { Write-Host "note   this llama-server predates the tiered-KV runtime: 96k all-VRAM recipe (see README, Quick start)" }
 if ($Spec -gt 0) {
-    Write-Host "spec   draft $Spec$(if ($TierCells -gt 0) { " ($SpecDeep past the VRAM line)" })$(if ($HasTier) { ", draft window $DraftWindow" }) (MTP on)"
+    Write-Host "spec   draft $Spec$(if ($TierCells -gt 0) { " ($SpecDeep past the VRAM line)" })$(if ($HasTier) { ", draft window $DraftWindow" }) (MTP on)$(if ($SpecType -ne 'draft-mtp') { "; types $SpecType" })$(if ($env:BONSAI_SPEC_ARGS) { " $($env:BONSAI_SPEC_ARGS)" })"
 } elseif ($env:BONSAI_SPEC) {
     Write-Host "spec   draft 0: MTP is OFF because BONSAI_SPEC=$($env:BONSAI_SPEC) is set in this window. Decode is slower:"
     Write-Host "       at 138k context, 25 tok/s with MTP against 11.6 without (RTX 4070, receipts/issue7_repro.log)."

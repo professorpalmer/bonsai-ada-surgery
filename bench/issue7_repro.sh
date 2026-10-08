@@ -12,7 +12,7 @@ for ARM in ${ARMS:-mtp nomtp}; do
   ok=0; for i in $(seq 1 90); do sleep 2; curl -s -m 2 http://127.0.0.1:8080/health | grep -q ok && { ok=1; break; }; done
   echo "=== $(date '+%H:%M') arm $ARM cells $CELLS depth $DEPTH health=$ok" | tee -a $LOG
   grep -iE "kv-vram|line|spec|draft" logs/issue7_launcher_$ARM.log | head -6 | tee -a $LOG
-  [ $ok = 1 ] && PYTHONUTF8=1 python bench/${TOOL:-quick_tps}.py --base http://127.0.0.1:8080 --key-file artifacts/api_key.txt --depth $DEPTH 2>&1 | tee -a $LOG
+  [ $ok = 1 ] && PYTHONUTF8=1 python bench/${TOOL:-quick_tps}.py --base http://127.0.0.1:8080 --key-file artifacts/api_key.txt --depth $DEPTH ${TOOL_ARGS:-} 2>&1 | tee -a $LOG
   grep -E "draft acceptance" logs/issue7_$ARM.log | tail -4 | tee -a $LOG
   nvidia-smi --query-gpu=memory.used,pcie.link.gen.current,pcie.link.width.current --format=csv,noheader | tee -a $LOG
 done
