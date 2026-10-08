@@ -1,0 +1,21 @@
+=== 05:53 arm mtp cells 121344 depth 138000 health=1
+spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI_LOOKUP=0 turns it off)
+code   depth 138000 (evaluated 137214): prefill   633.5 tok/s  ttft 216.61s  decode   41.6 tok/s (400 tok)
+prose  depth 138000 (evaluated 512): prefill   364.4 tok/s  ttft   1.40s  decode   29.8 tok/s (400 tok)
+bash   depth 138000 (evaluated 516): prefill   367.0 tok/s  ttft   1.41s  decode   37.4 tok/s (400 tok)
+mean decode 36.3 tok/s
+0.07.441.730 I slot print_timing: id  0 | task 0 | draft acceptance = 0.80000 (    4 accepted /     5 generated), mean len =  2.33
+3.53.991.649 I slot print_timing: id  0 | task 7 | draft acceptance = 0.59660 (  281 accepted /   471 generated), mean len =  3.38
+4.08.877.008 I slot print_timing: id  0 | task 195 | draft acceptance = 0.35616 (  234 accepted /   657 generated), mean len =  2.42
+4.21.048.158 I slot print_timing: id  0 | task 363 | draft acceptance = 0.51149 (  267 accepted /   522 generated), mean len =  3.04
+11713 MiB, 4, 16
+=== 05:57 arm nomtp cells 121344 depth 138000 health=1
+spec   draft 0: MTP is OFF because BONSAI_SPEC=0 is set in this window. Decode is slower:
+       To turn MTP on: Remove-Item Env:BONSAI_SPEC (or open a new window), then start again.
+env    set in this window, these change the defaults: BONSAI_KV_VRAM_CELLS=121344  BONSAI_LAYER=0  BONSAI_SPEC=0
+code   depth 138000 (evaluated 137214): prefill   648.3 tok/s  ttft 211.64s  decode   20.2 tok/s (400 tok)
+prose  depth 138000 (evaluated 512): prefill   387.9 tok/s  ttft   1.32s  decode   20.1 tok/s (400 tok)
+bash   depth 138000 (evaluated 516): prefill   393.7 tok/s  ttft   1.31s  decode   20.2 tok/s (400 tok)
+mean decode 20.2 tok/s
+10501 MiB, 4, 16
+=== 06:02 done
