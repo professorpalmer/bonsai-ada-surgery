@@ -6,8 +6,9 @@
 $env:BONSAI_MODEL = 'Ternary-Bonsai-2-27B-PTQ1_0.gguf'; .\start-server.ps1   # long-context mode
 ```
 
-Needs the bundle from 2026-10-07 or later (`GGML_CUDA_SHARED_POOL`, `GGML_CUDA_FA_PREFILL_F16`; older binaries ignore
-them and run slower). `BONSAI_8GB=0` turns the preset off.
+Needs `bundle-20261007-8gb` or later (patches 0036-0038: `GGML_CUDA_SHARED_POOL`, `GGML_CUDA_FA_PREFILL_F16`, the
+Turing one-column decode). An older engine ignores the switches; the measured fixed costs then do not hold, and the
+launcher warns before the start. `BONSAI_8GB=0` turns the preset off.
 
 Measured 2026-10-06/07 on an RTX 2060 SUPER 8 GB (Turing sm_75, PCIe 3.0 x16, stock clocks, power limit 175 W, fan
 100%) that also draws the Windows desktop at 1280x1024 (idle 323-404 MiB), Ryzen 5 2600, 32 GB. Bonsai 2 27B `PTQ1_0`,

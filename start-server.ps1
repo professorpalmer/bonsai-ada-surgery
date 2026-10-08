@@ -157,6 +157,15 @@ if ($Small) {
         if (-not $env:LLAMA_MTP_DRAFT_UBATCH) { $env:LLAMA_MTP_DRAFT_UBATCH = '256' }
     }
     if (-not $env:GGML_CUDA_FA_PREFILL_F16) { $env:GGML_CUDA_FA_PREFILL_F16 = if ($Spec -gt 0) { '32768' } else { '65536' } }
+    # The fixed costs below were measured with these switches. An older engine ignores them, and then the VRAM line
+    # is too high for the card: Windows moves memory out of VRAM and prefill collapses. Say so before the start.
+    $Has8gb = $false
+    try { $Has8gb = [Text.Encoding]::ASCII.GetString([IO.File]::ReadAllBytes((Join-Path $Bin 'ggml-cuda.dll'))).Contains('GGML_CUDA_SHARED_POOL') } catch { }
+    if (-not $Has8gb) {
+        Write-Host "warn   8 GB preset: this engine does not have the 8 GB switches (shared pool, f16 prefill)."
+        Write-Host "       The VRAM line can then be too high for the card, and prefill can collapse. Unzip the latest"
+        Write-Host "       bonsai-bundle-win-x64.zip (bundle-20261007-8gb or later) over the repository, then start again."
+    }
 }
 $DraftWindow = if ($env:BONSAI_DRAFT_WINDOW) { [int]$env:BONSAI_DRAFT_WINDOW } else { 16384 }
 [string[]]$SpecArgs = @()
@@ -193,8 +202,13 @@ if ($Tier) {
         # display_active Disabled, display_attached No, 4K desktop on it). Windows reports a desktop resolution only
         # on adapters with a display, so a resolution on this card's adapter means it is not headless.
         $GpuName = (& nvidia-smi --query-gpu=name --format=csv,noheader | Select-Object -First 1).Trim()
-        $Adapters = @(Get-CimInstance Win32_VideoController -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq $GpuName })
-        if ($Adapters.Count -eq 1 -and $Adapters[0].CurrentHorizontalResolution) { $Headless = $false }
+        # Exception: with the desktop on the iGPU, Windows reports the desktop resolution on both adapters (RTX 4070 and
+        # UHD 770 both 1920, 2026-10-07), while nvidia-smi correctly says Disabled. So the Windows check overrides
+        # nvidia-smi only when no other adapter reports a display.
+        $Video = @(Get-CimInstance Win32_VideoController -ErrorAction SilentlyContinue)
+        $Adapters = @($Video | Where-Object { $_.Name -eq $GpuName })
+        $OtherDisplays = @($Video | Where-Object { $_.Name -ne $GpuName -and $_.CurrentHorizontalResolution })
+        if ($Adapters.Count -eq 1 -and $Adapters[0].CurrentHorizontalResolution -and $OtherDisplays.Count -eq 0) { $Headless = $false }
         $Margin = if ($env:BONSAI_VRAM_MARGIN) { [int]$env:BONSAI_VRAM_MARGIN } elseif ($Headless) { 1000 } else { 1300 }
         # weights (the token embedding stays in system RAM), recurrent state, compute buffers, CUDA context
         $FixedMiB = (Get-Item $Model).Length / 1MB - 265 + 150 + 400 + 300 + $DraftCells * $CellBytes / 16 / 1MB + $MmprojMiB
@@ -235,8 +249,11 @@ if ($Spec -gt 0) {
     Write-Host "spec   draft 0: MTP is off because $(Split-Path $Model -Leaf) has no MTP head. For faster decode, use the"
     Write-Host "       *-mtp-*.gguf file (README, Quick start)."
 }
-# the launcher sets these three itself, and they stay in the window after a run: not the user's settings
-$Listed = @($UserEnv | Where-Object { $_.Name -notin @('BONSAI_LAYER_KEY', 'LLAMA_ARG_CHAT_TEMPLATE_KWARGS', 'GGML_CUDA_BATCH_INVARIANT') -and $_.Value })
+# Variables the launcher sets itself. It removes them when it stops (finally block below). A window that ran an
+# older launcher can still hold them, so they are not listed as the user's settings either.
+$LauncherVars = @('BONSAI_LAYER_KEY', 'LLAMA_ARG_CHAT_TEMPLATE_KWARGS', 'GGML_CUDA_BATCH_INVARIANT',
+                  'GGML_CUDA_SHARED_POOL', 'LLAMA_MTP_DRAFT_UBATCH', 'GGML_CUDA_FA_PREFILL_F16')
+$Listed = @($UserEnv | Where-Object { $_.Name -notin $LauncherVars -and $_.Value })
 if ($Listed.Count -gt 0) {
     Write-Host ("env    set in this window, these change the defaults: " + (($Listed | ForEach-Object { "$($_.Name)=$($_.Value)" }) -join '  '))
     Write-Host "       A new PowerShell window starts without them. Remove-Item Env:NAME removes one."
@@ -321,4 +338,10 @@ try {
     --top-k 20
 } finally {
     if ($LayerProc -and -not $LayerProc.HasExited) { Stop-Process -Id $LayerProc.Id -Force -ErrorAction SilentlyContinue }
+    # Remove the variables this run set, so that the next start in this window begins from the user's own settings
+    # (the 8 GB preset only sets a switch when it is not already set; a value left from an earlier run would stay).
+    $Mine = @($UserEnv | ForEach-Object { $_.Name })
+    foreach ($n in $LauncherVars) {
+        if ($Mine -notcontains $n) { Remove-Item "Env:$n" -ErrorAction SilentlyContinue }
+    }
 }
