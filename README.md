@@ -280,7 +280,7 @@ Cards are proven on two library families and not on a third. Token cost through 
 
 ## The patch stack
 
-Everything is submitted upstream to PrismML; this repo ships the combined stack now: 39 commits on
+Everything is submitted upstream to PrismML; this repo ships the combined stack now: 40 commits on
 `prism@adfffbe`, as `git am`-able patches in [`patches/`](patches/), as the branch
 [`bonsai-q8-product`](https://github.com/professorpalmer/llama.cpp-ada-ternary/tree/bonsai-q8-product), and as
 Windows binaries on [Releases](../../releases). Merged upstream already: #214 (branch-free PTQ1_0 MMQ tile loader,
@@ -320,7 +320,7 @@ How each cut was found (CUPTI traces, L1 wavefront counts, what did not work):
 
 ## Quick start (Linux, NVIDIA)
 
-`build/build_linux.sh` fetches the pinned PrismML source (`adfffbe`) and applies **all 39 bundled patches**,
+`build/build_linux.sh` fetches the pinned PrismML source (`adfffbe`) and applies **all 40 bundled patches**,
 including the `common.cuh` header fix (0024) and the Hopper/Blackwell PDL dependency wait (0026). No manual patch
 application or Git author configuration is needed. There is no prebuilt Linux binary yet.
 
