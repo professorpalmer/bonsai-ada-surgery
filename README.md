@@ -58,7 +58,7 @@ How, and every receipt: [`docs/Q8_FULL_CONTEXT.md`](docs/Q8_FULL_CONTEXT.md). Sh
 | --- | --- | --- |
 | Windows, an NVIDIA card (RTX 20/30/40/50) | download the release zip, drop in the model, run `start-server.ps1` | [Quick start (Windows)](#quick-start-windows-nvidia) |
 | Hugging Face | the same bundle plus the ready-made MTP-grafted GGUF (`hf download`, no graft step) | [CaryPalmer/Ternary-Bonsai-2-27B-262k-GGUF](https://huggingface.co/CaryPalmer/Ternary-Bonsai-2-27B-262k-GGUF) |
-| Linux, NVIDIA driver + CUDA toolkit | `bash build/build_linux.sh` builds the pinned PrismML source with all 39 patches applied | [Quick start (Linux)](#quick-start-linux-nvidia) |
+| Linux, NVIDIA driver + CUDA toolkit | `bash build/build_linux.sh` builds the pinned PrismML source with all 40 patches applied | [Quick start (Linux)](#quick-start-linux-nvidia) |
 | your own llama.cpp workflow | build the fork branch `bonsai-q8-product`, or `git am` the series in `patches/` onto PrismML `adfffbe` | [The patch stack](#the-patch-stack) |
 | an older bundle of this repo | `git pull`, unzip the latest zip over it, run `layeretch_runtime.ps1` once | [Upgrading](#upgrading-from-an-older-bundle) |
 
@@ -313,6 +313,7 @@ Hadamard-embedding fix of sudoingX's #217 landed through #205. #285 was split at
 | 0037 | `GGML_CUDA_SHARED_POOL=1`: one transient CUDA pool for the target and the draft context; `LLAMA_MTP_DRAFT_UBATCH` (off by default; the 8 GB preset sets them) | this repo |
 | 0038 | `GGML_CUDA_FA_PREFILL_F16=N`: prefill-sized attention converts a quantized cache of up to N cells to f16 in pool memory (off by default; the 8 GB preset sets it) | [#330](https://github.com/PrismML-Eng/llama.cpp/pull/330) |
 | 0039 | `--spec-lookup-n-max N`: a separate draft limit for the lookup drafters (`ngram-*`) listed before the model drafter; the MTP head keeps `--spec-draft-n-max` | this repo |
+| 0040 | ADD+RMS_NORM+MUL fusion on every NVIDIA GPU (it ran on GB10 only); the fusion range check accepts exact aliases (by @cklxx) | [#209](https://github.com/PrismML-Eng/llama.cpp/pull/209) |
 
 How each cut was found (CUPTI traces, L1 wavefront counts, what did not work):
 [`surgery/ADA4070_PTQ1.md`](surgery/ADA4070_PTQ1.md) and [`docs/Q8_FULL_CONTEXT.md`](docs/Q8_FULL_CONTEXT.md).
