@@ -59,6 +59,7 @@ has a receipt in the repository (`docs/Q8_FULL_CONTEXT.md`, `docs/RECEIPTS.md`, 
 | window on 12 GB with q8_0 KV | 96k (q4_0 KV to reach 262k) | **262,144 at q8_0** |
 | KV precision at depth | q4_0: 1 flipped top token in 48 | q8_0: **1 in 160** |
 | decode at 32k / 64k | 47.6 / 36.9 | **100 / 87** |
+| decode when the answer copies the context (file rewrite), 4k / 130k | 117 / 63 (MTP only) | **352 / 164** (lookup drafting) |
 | speculative decoding | up to 24k, then off | **at every depth**, outputs identical to drafting off |
 | apps that send `effort: "high"` (Cline, Kilo, Open WebUI) | HTTP 500 on every request | **answered** (normalized to medium) |
 | apps with a 256-4096 token output cap, thinking on | cut off mid-think | **answered** (cap raised to the thinking budget) |
@@ -78,7 +79,7 @@ those; the layer adds exact references and a sandbox. The weights are untouched.
 | file | what | size |
 | --- | --- | ---: |
 | `Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf` | PrismML's PTQ1_0 file with the on-policy Q8_0 MTP draft head from [ProCreations/Ternary-Bonsai-2-27B-MTP](https://huggingface.co/ProCreations/Ternary-Bonsai-2-27B-MTP) grafted on as `blk.64.*`; every original tensor byte-identical to PrismML's file (proof below). This is the file the launcher uses: lossless speculative decoding, 70.6% draft acceptance, +50-100% decode | 6.40 GB |
-| `bonsai-bundle-win-x64.zip` | Windows binaries: the patched llama.cpp (PrismML fork + 39 patches), sm_75 / 86 / 89 machine code (RTX 20 / 30 / 40) plus compute_89 PTX for RTX 50, CUDA 13 runtime included, NVIDIA driver only. Launcher, layer, suite and docs at the release tag (`bundle-20261008-lookup`) | 608 MB |
+| `bonsai-bundle-win-x64.zip` | Windows binaries: the patched llama.cpp (PrismML fork + 39 patches; 0040 lands with the next bundle), sm_75 / 86 / 89 machine code (RTX 20 / 30 / 40) plus compute_89 PTX for RTX 50, CUDA 13 runtime included, NVIDIA driver only. Launcher, layer, suite and docs at the release tag (`bundle-20261008-lookup`) | 608 MB |
 | `start-server.ps1` | the launcher (also inside the bundle): reads free VRAM, sizes the VRAM line, starts the layer and the server | |
 
 The original `Ternary-Bonsai-2-27B-PTQ1_0.gguf` without the head also works with everything here (`BONSAI_SPEC=0`
