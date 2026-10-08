@@ -1,0 +1,80 @@
+name: Speed or memory report
+description: The server is slower than the README numbers, or it runs out of memory.
+title: "[speed] "
+labels: ["performance"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for this report. Each field below makes your numbers comparable with ours. With all of them, we can
+        usually answer in one reply.
+
+        Before you send the report, do these two steps:
+        1. Open a new PowerShell window. A variable from an earlier test (for example `BONSAI_SPEC=0`) can stay set.
+        2. Start the server, run the speed test two times, and keep the second result. The first run after a start
+           can read low.
+  - type: input
+    id: card
+    attributes:
+      label: GPU and VRAM
+      placeholder: "RTX 4070 12 GB"
+    validations:
+      required: true
+  - type: dropdown
+    id: display
+    attributes:
+      label: Which GPU shows the desktop?
+      options:
+        - "This GPU (the one that runs the server)"
+        - "The integrated GPU of the CPU"
+        - "Another graphics card"
+        - "No monitor (headless)"
+    validations:
+      required: true
+  - type: input
+    id: driver
+    attributes:
+      label: NVIDIA driver version and power limit
+      description: "Run: nvidia-smi --query-gpu=driver_version,power.limit,pcie.link.gen.current,pcie.link.width.current --format=csv"
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: CPU, RAM (size and speed) and OS
+      placeholder: "i5-14500, 48 GB DDR5 6200, Windows 11"
+    validations:
+      required: true
+  - type: input
+    id: bundle
+    attributes:
+      label: Bundle or commit
+      description: "The release tag that you unzipped, or: git log --oneline -1"
+    validations:
+      required: true
+  - type: textarea
+    id: launcher
+    attributes:
+      label: Launcher output
+      description: The lines from `model` to `layer`, and the `env` and `warn` lines if there are some.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: speed
+    attributes:
+      label: Speed test
+      description: |
+        Use the server port behind the layer (your port + 10000), so that the layer does not change the test:
+        python bench\quick_tps.py --base http://127.0.0.1:18080 --key-file artifacts\api_key.txt
+        python bench\quick_tps.py --base http://127.0.0.1:18080 --key-file artifacts\api_key.txt --depth 100000
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: workload
+    attributes:
+      label: What you did when it was slow
+      description: The client (for example Pi, Cline, Open WebUI), the context size, and the speed that you saw.
+    validations:
+      required: true
