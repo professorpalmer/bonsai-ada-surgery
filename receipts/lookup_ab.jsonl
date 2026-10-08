@@ -224,3 +224,11 @@
 {"tag": "d250-mod+mtp-L32", "depth": 250000, "kind": "plain", "item": "code", "tps": 13.3, "n": 400, "draft_n": 465, "draft_acc": 282, "sha": "059c2f3695b6", "wall": 588.9}
 {"tag": "d250-mod+mtp-L32", "depth": 250000, "kind": "plain", "item": "prose", "tps": 8.5, "n": 400, "draft_n": 731, "draft_acc": 215, "sha": "016bd5597f6c", "wall": 49.4}
 {"tag": "d250-mod+mtp-L32", "depth": 250000, "kind": "plain", "item": "bash", "tps": 12.8, "n": 400, "draft_n": 484, "draft_acc": 277, "sha": "99ae50ec0fce", "wall": 33.6}
+{"tag": "e12-mtp", "depth": 0, "kind": "edit", "item": "textwrap.py", "tps": 116.6, "n": 160, "draft_n": 108, "draft_acc": 106, "sha": "66aaf31775d1", "wall": 3.2}
+{"tag": "e12-mtp", "depth": 0, "kind": "edit", "item": "shlex.py", "tps": 113.4, "n": 164, "draft_n": 110, "draft_acc": 110, "sha": "eed762da2c87", "wall": 2.5}
+{"tag": "e12-mtp", "depth": 0, "kind": "edit", "item": "fnmatch.py", "tps": 112.8, "n": 148, "draft_n": 100, "draft_acc": 99, "sha": "1d0a873adaf6", "wall": 2.7}
+{"tag": "e12-mtp", "depth": 0, "kind": "edit", "item": "csv.py", "tps": 117.7, "n": 237, "draft_n": 158, "draft_acc": 158, "sha": "34626552c9d9", "wall": 3.6}
+{"tag": "e12-mod+mtp-L32", "depth": 0, "kind": "edit", "item": "textwrap.py", "tps": 135.2, "n": 160, "draft_n": 132, "draft_acc": 124, "sha": "66aaf31775d1", "wall": 3.0}
+{"tag": "e12-mod+mtp-L32", "depth": 0, "kind": "edit", "item": "shlex.py", "tps": 126.8, "n": 164, "draft_n": 166, "draft_acc": 125, "sha": "eed762da2c87", "wall": 2.3}
+{"tag": "e12-mod+mtp-L32", "depth": 0, "kind": "edit", "item": "fnmatch.py", "tps": 113.3, "n": 148, "draft_n": 162, "draft_acc": 110, "sha": "1d0a873adaf6", "wall": 2.7}
+{"tag": "e12-mod+mtp-L32", "depth": 0, "kind": "edit", "item": "csv.py", "tps": 126.7, "n": 237, "draft_n": 298, "draft_acc": 189, "sha": "34626552c9d9", "wall": 3.4}
