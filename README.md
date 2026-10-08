@@ -129,6 +129,9 @@ launcher prints `layer on` when the runtime is present and falls back to the pla
 
 ### Knobs (environment variables)
 
+A variable stays set in a PowerShell window until you remove it or close the window. At start, the launcher lists
+every `BONSAI_*`, `LLAMA_ARG_*` and `GGML_*` variable that is set, and it says when MTP is off and why (issue #7).
+
 | Variable | Default | |
 | --- | --- | --- |
 | `BONSAI_CTX` | 262144 | context window |
