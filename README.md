@@ -58,7 +58,7 @@ How, and every receipt: [`docs/Q8_FULL_CONTEXT.md`](docs/Q8_FULL_CONTEXT.md). Sh
 | --- | --- | --- |
 | Windows, an NVIDIA card (RTX 20/30/40/50) | download the release zip, drop in the model, run `start-server.ps1` | [Quick start (Windows)](#quick-start-windows-nvidia) |
 | Hugging Face | the same bundle plus the ready-made MTP-grafted GGUF (`hf download`, no graft step) | [CaryPalmer/Ternary-Bonsai-2-27B-262k-GGUF](https://huggingface.co/CaryPalmer/Ternary-Bonsai-2-27B-262k-GGUF) |
-| Linux, NVIDIA driver + CUDA toolkit | `bash build/build_linux.sh` builds the pinned PrismML source with all 35 patches applied | [Quick start (Linux)](#quick-start-linux-nvidia) |
+| Linux, NVIDIA driver + CUDA toolkit | `bash build/build_linux.sh` builds the pinned PrismML source with all 38 patches applied | [Quick start (Linux)](#quick-start-linux-nvidia) |
 | your own llama.cpp workflow | build the fork branch `bonsai-q8-product`, or `git am` the series in `patches/` onto PrismML `adfffbe` | [The patch stack](#the-patch-stack) |
 | an older bundle of this repo | `git pull`, unzip the latest zip over it, run `layeretch_runtime.ps1` once | [Upgrading](#upgrading-from-an-older-bundle) |
 
@@ -72,8 +72,9 @@ The serving flags behind every number are listed under [Quick start (Linux)](#qu
    PTX that RTX 50 cards compile at first load; they need only the NVIDIA driver.
 2. Put `Ternary-Bonsai-2-27B-PTQ1_0.gguf` from [prism-ml on Hugging Face](https://huggingface.co/prism-ml) in
    `models\`.
-3. Recommended: the MTP draft-head file (lossless speculative decoding, +50-100% decode). Ready-made on Hugging Face
-   (`hf download CaryPalmer/Ternary-Bonsai-2-27B-262k-GGUF Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf --local-dir models`;
+3. Recommended: the MTP draft-head file (speculative decoding, +50-100% decode; every token is the target model's
+   greedy choice, at rounding level not bit-identical to decoding without it, see docs/Q8_FULL_CONTEXT.md). Ready-made on
+   Hugging Face (`hf download CaryPalmer/Ternary-Bonsai-2-27B-262k-GGUF Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf --local-dir models`;
    all 851 original tensors byte-identical to PrismML's file, `bench\gguf_tensor_identity.py`), or build it yourself:
 
    ```powershell
@@ -100,7 +101,9 @@ the tiered-KV runtime are detected and get the previous 96k all-VRAM recipe.
 
 ### Upgrading from an older bundle
 
-`bundle-20261007-budget` adds patch 0035: the server reports a forced close of the thinking (see *Reasoning budget
+`bundle-20261007-8gb` adds patches 0036-0038 for 8 GB cards (the Turing one-column decode, the shared CUDA pool,
+f16 prefill from pool memory; all off on 12 GB cards unless set) and the 8 GB launcher preset (`docs/8GB.md`).
+Greedy output on the 12 GB recipe is identical to the previous bundle. `bundle-20261007-budget` added patch 0035: the server reports a forced close of the thinking (see *Reasoning budget
 report* below), and a request that sends its own larger thinking budget gets an output cap to match. Greedy output
 is identical to the previous binaries. `bundle-20261007-fixes` rebuilt the engine binaries for the first time since
 `bundle-20260927`: the same 33 patches plus patch 0034, which stops JSON schemas with an empty `anyOf` / `oneOf` /
@@ -120,7 +123,7 @@ What the bundles between those two added runs beside the engine:
   `test_normal` tasks (95% CI 63.6-77.2) against the published 64.3% for the 2.13-bpw file on the stock fork, with
   the two serving-side failure classes of that analysis (wrong-format replies, step-cap exits) down to 1 each.
 
-To upgrade: `git pull` this repo, unzip the latest `bonsai-bundle-win-x64.zip` over it (new binaries in `bundle-20261007-budget`; it carries
+To upgrade: `git pull` this repo, unzip the latest `bonsai-bundle-win-x64.zip` over it (new binaries in `bundle-20261007-8gb`; it carries
 the launcher, layer, suite and docs at the tag), run `layer\fetch_runtime.ps1` once (downloads the sandbox runtime,
 installs the `wasmtime` Python package, runs the 14 isolation canaries), then `start-server.ps1` as before. The
 launcher prints `layer on` when the runtime is present and falls back to the plain server when it is not;
@@ -173,7 +176,7 @@ to the integrated GPU in **Settings > System > Display > Graphics**.
 | --- | --- | --- |
 | 12 GB | defaults | this README |
 | 16 GB and up | defaults | the whole q8_0 window fits: the tier switches itself off |
-| 8 GB (2060 Super, 3060 Ti, 4060) | defaults, or `BONSAI_CTX=65536` | tiered KV keeps q8_0; expect speed in the ratio of your bandwidth to 504 GB/s. Untested here |
+| 8 GB (2060 Super, 3060 Ti, 4060) | defaults (the launcher detects the card), plus `build\make_mtp_q4head.ps1` | q4_0, 131k window, Q4_0 head, 47k positions in VRAM; 2060 SUPER with the desktop on it: decode 51 / 48 / 43 / 29 tok/s at 4k / 16k / 32k / 60k. [docs/8GB.md](docs/8GB.md) |
 
 Past the VRAM line decode is bound by PCIe (4.0 x16 here, ~23 GB/s). PCIe 3.0 or x8 slots halve those rows.
 
@@ -271,7 +274,7 @@ Cards are proven on two library families and not on a third. Token cost through 
 
 ## The patch stack
 
-Everything is submitted upstream to PrismML; this repo ships the combined stack now: 35 commits on
+Everything is submitted upstream to PrismML; this repo ships the combined stack now: 38 commits on
 `prism@adfffbe`, as `git am`-able patches in [`patches/`](patches/), as the branch
 [`bonsai-q8-product`](https://github.com/professorpalmer/llama.cpp-ada-ternary/tree/bonsai-q8-product), and as
 Windows binaries on [Releases](../../releases). Merged upstream already: #214 (branch-free PTQ1_0 MMQ tile loader,
@@ -300,13 +303,16 @@ Hadamard-embedding fix of sudoingX's #217 landed through #205. #285 was split at
 | 0033 | `GGML_CUDA_OP_TIMING` per-node GPU time (diagnostics) | #285 |
 | 0034 | JSON schema to grammar: empty `anyOf` / `oneOf` / `type` unions are converted instead of failing the request (reported by Milor123, #3) | upstream ggml-org rejects them with a clear error since its September schema rewrite; PrismML PR |
 | 0035 | reasoning budget report (`reasoning_budget_exhausted`, `reasoning_n`, `usage.completion_tokens_details.reasoning_tokens`); a per-request budget above the server's raises the output cap to budget + 4096 | this repo |
+| 0036 | Turing takes the planar PTQ1_0 layout at one column as well as Ampere (8 GB cards, RTX 20) | [#325](https://github.com/PrismML-Eng/llama.cpp/pull/325) |
+| 0037 | `GGML_CUDA_SHARED_POOL=1`: one transient CUDA pool for the target and the draft context; `LLAMA_MTP_DRAFT_UBATCH` (off by default; the 8 GB preset sets them) | this repo |
+| 0038 | `GGML_CUDA_FA_PREFILL_F16=N`: prefill-sized attention converts a quantized cache of up to N cells to f16 in pool memory (off by default; the 8 GB preset sets it) | [#330](https://github.com/PrismML-Eng/llama.cpp/pull/330) |
 
 How each cut was found (CUPTI traces, L1 wavefront counts, what did not work):
 [`surgery/ADA4070_PTQ1.md`](surgery/ADA4070_PTQ1.md) and [`docs/Q8_FULL_CONTEXT.md`](docs/Q8_FULL_CONTEXT.md).
 
 ## Quick start (Linux, NVIDIA)
 
-`build/build_linux.sh` fetches the pinned PrismML source (`adfffbe`) and applies **all 35 bundled patches**,
+`build/build_linux.sh` fetches the pinned PrismML source (`adfffbe`) and applies **all 38 bundled patches**,
 including the `common.cuh` header fix (0024) and the Hopper/Blackwell PDL dependency wait (0026). No manual patch
 application or Git author configuration is needed. There is no prebuilt Linux binary yet.
 

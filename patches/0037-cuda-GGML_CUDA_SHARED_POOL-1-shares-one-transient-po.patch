@@ -1,0 +1,103 @@
+From 214f96e1165f15ed39537072f398c2cbf33cfdb4 Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Sun, 4 Oct 2026 22:15:39 -0500
+Subject: [PATCH] cuda: GGML_CUDA_SHARED_POOL=1 shares one transient pool per
+ device/stream across backend instances; spec: LLAMA_MTP_DRAFT_UBATCH=N for
+ the MTP draft context (both off by default; draft-context VRAM experiment)
+
+---
+ common/speculative.cpp          | 14 ++++++++++++++
+ ggml/src/ggml-cuda/common.cuh   |  7 +++++++
+ ggml/src/ggml-cuda/ggml-cuda.cu | 26 ++++++++++++++++++++++++++
+ 3 files changed, 47 insertions(+)
+
+diff --git a/common/speculative.cpp b/common/speculative.cpp
+index 2a6de502a..38e511c09 100644
+--- a/common/speculative.cpp
++++ b/common/speculative.cpp
+@@ -3462,6 +3462,20 @@ common_speculative_init_result::common_speculative_init_result(
+         }
+     }
+ 
++    // LLAMA_MTP_DRAFT_UBATCH=N: a smaller micro-batch for the MTP draft context. Its graph is one layer, but its
++    // compute buffer is reserved for n_ubatch rows (~300 MiB at 1024 on a 27B head), VRAM that a 12 GB card would
++    // rather spend on K/V cells. Catch-up rows still arrive in batches of n_batch and split into ubatches as any
++    // prompt does. Experimental (DECISIONS.md, draft-context VRAM); unset = unchanged.
++    if (spec_mtp) {
++        if (const char * s = std::getenv("LLAMA_MTP_DRAFT_UBATCH")) {
++            const int v = std::atoi(s);
++            if (v >= 32 && (uint32_t) v < cparams.n_ubatch) {
++                LOG_INF("%s: MTP draft context n_ubatch %u -> %d (LLAMA_MTP_DRAFT_UBATCH)\n", __func__, cparams.n_ubatch, v);
++                cparams.n_ubatch = (uint32_t) v;
++            }
++        }
++    }
++
+     // n_rs_seq stays as common_context_params_to_llama set it: the draft context needs the same rollback window as the target, with n_rs_seq == 0 its seq_rm fails silently on partial acceptance and keeps stale positions
+     cparams.ctx_other = ctx_tgt;
+ 
+diff --git a/ggml/src/ggml-cuda/common.cuh b/ggml/src/ggml-cuda/common.cuh
+index aba0c5914..f0b8c5547 100644
+--- a/ggml/src/ggml-cuda/common.cuh
++++ b/ggml/src/ggml-cuda/common.cuh
+@@ -1621,6 +1621,10 @@ struct ggml_cuda_fwht_q8_context {
+     }
+ };
+ 
++// GGML_CUDA_SHARED_POOL=1: process-wide transient pool per device/stream (see ggml-cuda.cu)
++bool ggml_cuda_shared_pool_enabled();
++ggml_cuda_pool & ggml_cuda_shared_pool(int device, int stream_no);
++
+ struct ggml_backend_cuda_context {
+     int device;
+     std::string name;
+@@ -1736,6 +1740,9 @@ struct ggml_backend_cuda_context {
+     static std::unique_ptr<ggml_cuda_pool> new_pool_for_device(int device, int stream_no);
+ 
+     ggml_cuda_pool & pool(int device) {
++        if (ggml_cuda_shared_pool_enabled()) {
++            return ggml_cuda_shared_pool(device, curr_stream_no);
++        }
+         if (pools[device][curr_stream_no] == nullptr) {
+             pools[device][curr_stream_no] = new_pool_for_device(device, curr_stream_no);
+         }
+diff --git a/ggml/src/ggml-cuda/ggml-cuda.cu b/ggml/src/ggml-cuda/ggml-cuda.cu
+index 81cad7c44..0ee31291d 100644
+--- a/ggml/src/ggml-cuda/ggml-cuda.cu
++++ b/ggml/src/ggml-cuda/ggml-cuda.cu
+@@ -694,6 +694,32 @@ std::unique_ptr<ggml_cuda_pool> ggml_backend_cuda_context::new_pool_for_device(i
+     return std::unique_ptr<ggml_cuda_pool>(new ggml_cuda_pool_leg(device));
+ }
+ 
++// GGML_CUDA_SHARED_POOL=1: one transient pool per device and stream for the whole process instead of one per
++// backend instance. llama.cpp creates a backend instance per llama_context, so a speculative draft context carries
++// a second pool whose high-water mark is never returned; sharing makes the two high-water marks overlap instead of
++// adding up. The pool is a LIFO stack, so this is only valid when one thread computes on the device at a time
++// (llama-server does; two contexts computing concurrently from different threads would corrupt it). The pools are
++// leaked on purpose: static destruction may run after the CUDA driver is torn down. Experimental; off by default.
++bool ggml_cuda_shared_pool_enabled() {
++    static const bool enabled = getenv("GGML_CUDA_SHARED_POOL") != nullptr;
++    return enabled;
++}
++
++ggml_cuda_pool & ggml_cuda_shared_pool(int device, int stream_no) {
++    static std::mutex mutex;
++    static ggml_cuda_pool * pools[GGML_CUDA_MAX_DEVICES][GGML_CUDA_MAX_STREAMS] = {};
++    ggml_cuda_pool * p = pools[device][stream_no];
++    if (p == nullptr) {
++        std::lock_guard<std::mutex> lock(mutex);
++        p = pools[device][stream_no];
++        if (p == nullptr) {
++            p = ggml_backend_cuda_context::new_pool_for_device(device, stream_no).release();
++            pools[device][stream_no] = p;
++        }
++    }
++    return *p;
++}
++
+ // destroying a cuBLAS handle while a graph is being captured in a different thread can result in a CUDA error
+ // this lock is used to ensure that no cuBLAS handle is destroyed while a graph is being captured
+ 
+-- 
+2.55.0.windows.3
+

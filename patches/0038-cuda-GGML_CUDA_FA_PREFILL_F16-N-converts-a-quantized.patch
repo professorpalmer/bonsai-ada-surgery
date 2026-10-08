@@ -1,0 +1,106 @@
+From 1d71dca1071972f3863d94889016cb56468123e0 Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Wed, 7 Oct 2026 04:36:17 -0500
+Subject: [PATCH] cuda: GGML_CUDA_FA_PREFILL_F16=N converts a quantized K/V
+ cache of up to N cells to f16 in pool memory for prefill-sized FA batches
+
+Decode keeps the in-place quantized read. The f16 copies are sized by the actual KV length and nothing is reserved at load. Off by default.
+---
+ ggml/src/ggml-cuda/fattn-common.cuh  | 28 +++++++++++++++++++++++-----
+ ggml/src/ggml-cuda/fattn-mma-f16.cuh |  3 +++
+ ggml/src/ggml-cuda/fattn.cu          |  4 ++--
+ 3 files changed, 28 insertions(+), 7 deletions(-)
+
+diff --git a/ggml/src/ggml-cuda/fattn-common.cuh b/ggml/src/ggml-cuda/fattn-common.cuh
+index 85d34024f..263d14023 100644
+--- a/ggml/src/ggml-cuda/fattn-common.cuh
++++ b/ggml/src/ggml-cuda/fattn-common.cuh
+@@ -50,6 +50,20 @@ struct ggml_cuda_flash_attn_ext_f16_extra_data {
+     uintptr_t end;
+ };
+ 
++// GGML_CUDA_FA_PREFILL_F16=N: prefill-sized batches (more than 8 queries) over a quantized K/V cache of at most N cells
++// convert K/V to f16 in pool memory sized by the actual KV length and run the f16 MMA kernel; decode keeps the in-place
++// quantized read. Nothing is reserved at load (the reserved f16 copy would be n_ctx cells).
++static inline bool ggml_cuda_fattn_prefill_f16(const ggml_tensor * dst) {
++    static const int64_t max_kv = [] {
++        const char * e = getenv("GGML_CUDA_FA_PREFILL_F16");
++        return e ? (int64_t) atoll(e) : (int64_t) 0;
++    }();
++    const ggml_tensor * Q = dst->src[0];
++    const ggml_tensor * K = dst->src[1];
++    const ggml_tensor * V = dst->src[2];
++    return max_kv > 0 && Q->ne[1] > 8 && K->ne[1] <= max_kv && K->type == V->type && ggml_is_quantized(K->type);
++}
++
+ static inline ggml_cuda_flash_attn_ext_f16_extra_data ggml_cuda_flash_attn_ext_get_f16_extra_data(
+         const ggml_tensor * dst, const bool need_f16_K, const bool need_f16_V) {
+     GGML_ASSERT(dst->op == GGML_OP_FLASH_ATTN_EXT);
+@@ -1002,8 +1016,12 @@ void launch_fattn(
+     const int cc  = ggml_cuda_info().devices[id].cc;
+     const int nsm = ggml_cuda_info().devices[id].nsm;
+ 
++    // GGML_CUDA_FA_PREFILL_F16: the f16 copies come from the pool, not from the space reserved behind dst
++    const bool prefill_f16 = ggml_cuda_fattn_prefill_f16(dst);
+     const ggml_cuda_flash_attn_ext_f16_extra_data f16_extra =
+-        ggml_cuda_flash_attn_ext_get_f16_extra_data(KQV, need_f16_K, need_f16_V);
++        ggml_cuda_flash_attn_ext_get_f16_extra_data(KQV, need_f16_K && !prefill_f16, need_f16_V && !prefill_f16);
++    ggml_cuda_pool_alloc<half> K_f16_pool(pool);
++    ggml_cuda_pool_alloc<half> V_f16_pool(pool);
+ 
+     ggml_cuda_pool_alloc<int>    KV_max(pool);
+     ggml_cuda_pool_alloc<float>  dst_tmp(pool);
+@@ -1023,8 +1041,8 @@ void launch_fattn(
+         const size_t bs = ggml_blck_size(K->type);
+         const size_t ts = ggml_type_size(K->type);
+ 
+-        GGML_ASSERT(f16_extra.K != 0);
+-        half * K_f16 = (half *) f16_extra.K;
++        half * K_f16 = prefill_f16 ? K_f16_pool.alloc(ggml_nelements(K)) : (half *) f16_extra.K;
++        GGML_ASSERT(K_f16 != nullptr);
+         if (ggml_is_contiguously_allocated(K)) {
+             to_fp16_cuda_t to_fp16 = ggml_get_to_fp16_cuda(K->type);
+             to_fp16(K_data, K_f16, ggml_nelements(K), main_stream);
+@@ -1057,8 +1075,8 @@ void launch_fattn(
+             const size_t bs = ggml_blck_size(V->type);
+             const size_t ts = ggml_type_size(V->type);
+ 
+-            GGML_ASSERT(f16_extra.V != 0);
+-            half * V_f16 = (half *) f16_extra.V;
++            half * V_f16 = prefill_f16 ? V_f16_pool.alloc(ggml_nelements(V)) : (half *) f16_extra.V;
++            GGML_ASSERT(V_f16 != nullptr);
+             if (ggml_is_contiguously_allocated(V)) {
+                 to_fp16_cuda_t to_fp16 = ggml_get_to_fp16_cuda(V->type);
+                 to_fp16(V_data, V_f16, ggml_nelements(V), main_stream);
+diff --git a/ggml/src/ggml-cuda/fattn-mma-f16.cuh b/ggml/src/ggml-cuda/fattn-mma-f16.cuh
+index 0783e0d86..b8b6bf1f2 100644
+--- a/ggml/src/ggml-cuda/fattn-mma-f16.cuh
++++ b/ggml/src/ggml-cuda/fattn-mma-f16.cuh
+@@ -2148,6 +2148,9 @@ static inline bool ggml_cuda_fattn_mma_kv_native_supported(const ggml_tensor * d
+     if (!(Q->ne[0] == 128 || Q->ne[0] == 256) || V->ne[0] != Q->ne[0]) {
+         return false;
+     }
++    if (ggml_cuda_fattn_prefill_f16(dst)) {
++        return false;
++    }
+     return ggml_cuda_is_aligned(K, 4) && ggml_cuda_is_aligned(V, 4);
+ #endif
+ }
+diff --git a/ggml/src/ggml-cuda/fattn.cu b/ggml/src/ggml-cuda/fattn.cu
+index e099ec374..45d4bbe72 100644
+--- a/ggml/src/ggml-cuda/fattn.cu
++++ b/ggml/src/ggml-cuda/fattn.cu
+@@ -587,8 +587,8 @@ size_t ggml_cuda_flash_attn_ext_get_alloc_size(int device, const ggml_tensor * d
+ 
+     switch (kernel) {
+         case BEST_FATTN_KERNEL_MMA_F16:
+-            if (ggml_cuda_fattn_mma_kv_native_supported(dst)) {
+-                // In-place quantized K/V kernel: nothing to reserve beyond dst.
++            if (ggml_cuda_fattn_mma_kv_native_supported(dst) || ggml_cuda_fattn_prefill_f16(dst)) {
++                // In-place quantized K/V kernel, or f16 copies taken from the pool: nothing to reserve beyond dst.
+                 break;
+             }
+             need_f16_K = true;
+-- 
+2.55.0.windows.3
+
