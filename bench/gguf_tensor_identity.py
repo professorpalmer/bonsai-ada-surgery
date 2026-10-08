@@ -51,7 +51,8 @@ def main():
     print(f"metadata: {len(kb)} keys in base, {len(ko)} in other; added {added}; removed {removed}; changed {changed}")
     for k in changed[:10]:
         print(f"  {k}: base={str(kb[k])[:120]!r} other={str(ko[k])[:120]!r}")
-    ok = (diff == 0 and not only_b and not extra)
+    diff_outside = [n for n in differing if not n.startswith(a.ignore_prefix)]   # changes inside the prefix are expected
+    ok = (not diff_outside and not only_b and not extra)
     print("RESULT:", "every shared tensor outside the prefix is byte-identical" if ok else "DIFFERENCES FOUND")
     sys.exit(0 if ok else 1)
 

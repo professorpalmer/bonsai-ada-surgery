@@ -19,11 +19,9 @@ Write-Host "== requantizing blk.64.* Q8_0 -> Q4_0 -> $out"
 python build\requant_mtp.py $Src $out
 if ($LASTEXITCODE -ne 0) { throw "requant failed" }
 
-Write-Host "== proof: strip the head and compare with the base"
-$check = Join-Path $Work "q4head-strip-check.gguf"
-python "$graft\graft\tools\merge.py" --strip $out $check
-$a = (Get-FileHash $Base -Algorithm SHA256).Hash
-$b = (Get-FileHash $check -Algorithm SHA256).Hash
-Remove-Item $check
-if ($a -ne $b) { throw "stripped file differs from the base: the requant changed Bonsai 2 bytes" }
-Write-Host "stripped sha256 == base sha256 ($($a.ToLower()))"
+Write-Host "== proof: every tensor outside blk.64 is byte-identical to the source file"
+# A whole-file hash of the stripped file matches the base only when the metadata matches; a file with this
+# repository's chat template embedded differs in metadata, so the proof compares the tensor bytes.
+python bench\gguf_tensor_identity.py $Src $out --ignore-prefix blk.64.
+if ($LASTEXITCODE -ne 0) { throw "a tensor outside the MTP head differs: the requant changed Bonsai 2 bytes" }
+Write-Host "all tensors outside blk.64 byte-identical; done: $out"
