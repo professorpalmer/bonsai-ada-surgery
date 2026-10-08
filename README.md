@@ -27,6 +27,7 @@ number in this repo since #221), display on the CPU's iGPU. What those numbers r
 | --- | --- | --- |
 | window on 12 GB with q8_0 KV | 96k (q4_0 for 262k) | **262,144** |
 | decode at 32k / 64k | 47.6 / 36.9 | **100 / 87** |
+| decode when the answer copies the context (file rewrite), 4k / 130k | 117 / 63 (MTP only) | **352 / 164** (lookup drafting) |
 | KV precision at 262k | q4_0: 1 flipped top token in 48 | q8_0: **1 in 160** |
 | apps that send `effort: "high"` | HTTP 500 on every request | answered (normalized to medium) |
 | apps with a 256-4096 token cap, thinking on | cut off mid-think | answered (cap raised to the think budget) |
