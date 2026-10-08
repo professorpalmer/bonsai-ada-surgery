@@ -1,0 +1,20 @@
+23:19 === release smoke 0039: old = C:/Users/pwall/Projects/bonsai-2-27b-serve\bin, new = C:\Users\pwall\AppData\Local\Temp\bundle-0039
+23:19 old: health=1 version: 
+  old  code   sha 33cf4e00f8f31f03  tok   256    91.8 tok/s  exhausted=False
+  old  prose  sha 6e202c20339818bc  tok   256    88.2 tok/s  exhausted=False
+  old  think  sha f6fb82f84e485f7f  tok   110   105.0 tok/s  exhausted=False
+23:19 new: health=1 version: 
+  new  code   sha 33cf4e00f8f31f03  tok   256    92.0 tok/s  exhausted=False
+  new  prose  sha 6e202c20339818bc  tok   256    88.2 tok/s  exhausted=False
+  new  think  sha f6fb82f84e485f7f  tok   110   106.0 tok/s  exhausted=False
+23:19 budget report probe (new):
+1. budget 64, non-streaming        finish=stop    completion=1632 reasoning_n=71 exhausted=True usage.reasoning_tokens=71
+1b. budget 64, streaming           finish=stop    completion=5529 reasoning_n=71 exhausted=True usage.reasoning_tokens=71
+2. easy, server budget             finish=stop    completion=25 reasoning_n=23 exhausted=False usage.reasoning_tokens=23
+3. budget 40960, no max_tokens     finish=stop    completion=32 reasoning_n=30 exhausted=False usage.reasoning_tokens=30
+PASS
+  code   identical: True
+  prose  identical: True
+  think  identical: True
+GREEDY IDENTICAL
+23:21 === done
