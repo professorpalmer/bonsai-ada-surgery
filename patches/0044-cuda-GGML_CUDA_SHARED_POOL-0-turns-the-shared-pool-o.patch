@@ -1,0 +1,33 @@
+From 55db5e2c2a47b93c7edd78e4c8716e12c171a6ee Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Thu, 8 Oct 2026 16:51:25 -0500
+Subject: [PATCH 44/44] cuda: GGML_CUDA_SHARED_POOL=0 turns the shared pool off
+ (any value turned it on); note why it is not safe with an MTP draft context
+
+---
+ ggml/src/ggml-cuda/ggml-cuda.cu | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/ggml/src/ggml-cuda/ggml-cuda.cu b/ggml/src/ggml-cuda/ggml-cuda.cu
+index 8a7e22147..9121eb22e 100644
+--- a/ggml/src/ggml-cuda/ggml-cuda.cu
++++ b/ggml/src/ggml-cuda/ggml-cuda.cu
+@@ -700,8 +700,14 @@ std::unique_ptr<ggml_cuda_pool> ggml_backend_cuda_context::new_pool_for_device(i
+ // adding up. The pool is a LIFO stack, so this is only valid when one thread computes on the device at a time
+ // (llama-server does; two contexts computing concurrently from different threads would corrupt it). The pools are
+ // leaked on purpose: static destruction may run after the CUDA driver is torn down. Experimental; off by default.
++// Not safe with an MTP draft context: it runs on its own CUDA stream with the same stream index, so the two streams
++// share one LIFO pool and a freed block can be reused before the other stream is done with it (1-token answers to
++// fresh long prompts on an RTX 2060 SUPER). 0 or no value: off.
+ bool ggml_cuda_shared_pool_enabled() {
+-    static const bool enabled = getenv("GGML_CUDA_SHARED_POOL") != nullptr;
++    static const bool enabled = [] {
++        const char * e = getenv("GGML_CUDA_SHARED_POOL");
++        return e != nullptr && atoi(e) != 0;
++    }();
+     return enabled;
+ }
+ 
+-- 
+2.55.0.windows.3
+

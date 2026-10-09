@@ -74,7 +74,7 @@ How, and every receipt: [`docs/Q8_FULL_CONTEXT.md`](docs/Q8_FULL_CONTEXT.md). Sh
 | --- | --- | --- |
 | Windows, an NVIDIA card (RTX 20/30/40/50) | download the release zip, drop in the model, run `start-server.ps1` | [Quick start (Windows)](#quick-start-windows-nvidia) |
 | Hugging Face | the same bundle plus the ready-made MTP-grafted GGUF (`hf download`, no graft step) | [CaryPalmer/Ternary-Bonsai-2-27B-262k-GGUF](https://huggingface.co/CaryPalmer/Ternary-Bonsai-2-27B-262k-GGUF) |
-| Linux, NVIDIA driver + CUDA toolkit | `bash build/build_linux.sh` builds the pinned PrismML source with all 42 patches applied | [Quick start (Linux)](#quick-start-linux-nvidia) |
+| Linux, NVIDIA driver + CUDA toolkit | `bash build/build_linux.sh` builds the pinned PrismML source with all 45 patches applied | [Quick start (Linux)](#quick-start-linux-nvidia) |
 | your own llama.cpp workflow | build the fork branch `bonsai-q8-product`, or `git am` the series in `patches/` onto PrismML `adfffbe` | [The patch stack](#the-patch-stack) |
 | an older bundle of this repo | `git pull`, unzip the latest zip over it, run `layeretch_runtime.ps1` once | [Upgrading](#upgrading-from-an-older-bundle) |
 
@@ -117,6 +117,15 @@ the tiered-KV runtime are detected and get the previous 96k all-VRAM recipe.
 
 ### Upgrading from an older bundle
 
+`bundle-20261008-8gbfix` fixes **1-token answers on 8 GB cards**. Since `bundle-20261007-8gb` the 8 GB preset turned
+on a shared CUDA memory pool for the main and the MTP draft context. The two contexts run on two CUDA streams, and a
+block freed by one could be reused by the other too early: on an RTX 2060 SUPER, a fresh prompt longer than about
+30k sometimes got a 1-token answer (60k: 3 of 3 before, 0 of 3 now). The preset no longer turns the pool on; patch
+0044 makes `GGML_CUDA_SHARED_POOL=0` turn it off, and patch 0045 orders the two streams so the pool is safe when it
+is on (0 of 18 against 18 of 18). Patch 0043: the f16 prefill switch converts the cache only for batches of at least
+64 queries, so lookup verify batches keep the in-place read (RTX 4070, switch on: 195.4 -> 212.4 tok/s on
+copy-heavy decode; RTX 2060 SUPER: no change). The 8 GB preset now also turns on lookup drafting (RTX 2060 SUPER: file rewrites 58.2 -> 125.9 tok/s; `BONSAI_LOOKUP=0` turns it off). 12 GB cards with the default recipe: nothing changes. Unzip the new
+bundle after `git pull`: an older zip has the old launcher.
 `bundle-20261008-tools` makes **agent requests with many tools** faster (patch 0042). With speculative decoding the
 server copies the sampler on each draft step, so that it can go back when a draft is rejected. With tools, the
 sampler holds the tool-call grammar, and the grammar copy found each stack entry with a search over every element of
@@ -176,7 +185,7 @@ every `BONSAI_*`, `LLAMA_ARG_*` and `GGML_*` variable that is set, and it says w
 | `BONSAI_KV_VRAM_CELLS` | auto | pin the VRAM line |
 | `BONSAI_VRAM_MARGIN` | 1000 (display on iGPU) / 1300 | MiB kept free below the demotion point |
 | `BONSAI_SPEC` / `BONSAI_SPEC_DEEP` | 2 / 4 | draft size, and past the VRAM line |
-| `BONSAI_LOOKUP` / `BONSAI_LOOKUP_N` | on / 32 | lookup drafting from the context and its draft limit; `BONSAI_LOOKUP=0` turns it off (off by default on 8 GB cards, `1` forces it) |
+| `BONSAI_LOOKUP` / `BONSAI_LOOKUP_N` | on / 32 | lookup drafting from the context and its draft limit; `BONSAI_LOOKUP=0` turns it off |
 | `BONSAI_DRAFT_WINDOW` | 16384 | rows the draft head keeps |
 | `BONSAI_EFFORT` | medium | server default reasoning effort |
 | `BONSAI_THINK` | 1 | 0 = thinking off for every request |
@@ -308,7 +317,7 @@ Cards are proven on two library families and not on a third. Token cost through 
 
 ## The patch stack
 
-Everything is submitted upstream to PrismML; this repo ships the combined stack now: 42 commits on
+Everything is submitted upstream to PrismML; this repo ships the combined stack now: 45 commits on
 `prism@adfffbe`, as `git am`-able patches in [`patches/`](patches/), as the branch
 [`bonsai-q8-product`](https://github.com/professorpalmer/llama.cpp-ada-ternary/tree/bonsai-q8-product), and as
 Windows binaries on [Releases](../../releases). Merged upstream already: #214 (branch-free PTQ1_0 MMQ tile loader,
@@ -344,13 +353,16 @@ Hadamard-embedding fix of sudoingX's #217 landed through #205. #285 was split at
 | 0040 | ADD+RMS_NORM+MUL fusion on every NVIDIA GPU (it ran on GB10 only); the fusion range check accepts exact aliases (by @cklxx) | [#209](https://github.com/PrismML-Eng/llama.cpp/pull/209) |
 | 0041 | Tiered KV prefill: rows that a prefill micro-batch writes past the VRAM line go to VRAM first and then to system RAM as whole 16-byte stores (the quantizing write cost ~0.68 ms per prefill token over PCIe); the host rows of the next attention layer are copied on a second stream while the layers before it compute | this repo |
 | 0042 | Grammar copy: `llama_grammar_clone_impl` finds each stack entry by a binary search over the rule start addresses (it searched every element of every rule; the server copies the sampler on each speculative step, so a request with 107 tools lost ~15 ms per step) | this repo |
+| 0043 | `GGML_CUDA_FA_PREFILL_F16` converts the cache only for batches of at least 64 queries (`GGML_CUDA_FA_PREFILL_F16_MIN_Q`): speculative verify batches keep the in-place quantized read (Ada: 195.4 -> 212.4 tok/s on copy-heavy decode with the switch on; Turing: no change) | [#330](https://github.com/PrismML-Eng/llama.cpp/pull/330) (offered) |
+| 0044 | `GGML_CUDA_SHARED_POOL=0` turns the shared pool off (any value turned it on) | this repo |
+| 0045 | Shared pool: each graph waits for the other stream's last graph, so the target and the MTP draft stream cannot reuse each other's freed blocks too early (RTX 2060 SUPER, fresh 60k: 0 of 18 1-token answers against 18 of 18) | this repo |
 
 How each cut was found (CUPTI traces, L1 wavefront counts, what did not work):
 [`surgery/ADA4070_PTQ1.md`](surgery/ADA4070_PTQ1.md) and [`docs/Q8_FULL_CONTEXT.md`](docs/Q8_FULL_CONTEXT.md).
 
 ## Quick start (Linux, NVIDIA)
 
-`build/build_linux.sh` fetches the pinned PrismML source (`adfffbe`) and applies **all 42 bundled patches**,
+`build/build_linux.sh` fetches the pinned PrismML source (`adfffbe`) and applies **all 45 bundled patches**,
 including the `common.cuh` header fix (0024) and the Hopper/Blackwell PDL dependency wait (0026). No manual patch
 application or Git author configuration is needed. There is no prebuilt Linux binary yet.
 

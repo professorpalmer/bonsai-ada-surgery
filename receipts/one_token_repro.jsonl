@@ -18,3 +18,8 @@
 {"tag": "q4-f16cap32k", "depth": 33000, "prompt_n": 32712, "completion": 52, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 32.4}
 {"tag": "q4-f16cap32k", "depth": 40000, "prompt_n": 39721, "completion": 52, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 40.5}
 {"tag": "q4-f16cap32k", "depth": 60000, "prompt_n": 59684, "completion": 48, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 66.4}
+{"tag": "8gb-bundle0045", "depth": 20000, "prompt_n": 20126, "completion": 40, "finish": "stop", "head": "The records above are a sequence of numbered notes, each describing a ", "seconds": 18.5}
+{"tag": "8gb-bundle0045", "depth": 30000, "prompt_n": 29764, "completion": 40, "finish": "stop", "head": "The records above are a sequence of numbered notes, each describing a ", "seconds": 28.9}
+{"tag": "8gb-bundle0045", "depth": 33000, "prompt_n": 32737, "completion": 31, "finish": "stop", "head": "The records are a sequence of report entries that each list a specific", "seconds": 32.3}
+{"tag": "8gb-bundle0045", "depth": 40000, "prompt_n": 39745, "completion": 35, "finish": "stop", "head": "The records are a sequence of numbered notes, each describing a specif", "seconds": 40.5}
+{"tag": "8gb-bundle0045", "depth": 60000, "prompt_n": 59722, "completion": 44, "finish": "stop", "head": "The records above are a list of report entries that each specify a rep", "seconds": 66.6}

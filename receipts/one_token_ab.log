@@ -23,3 +23,11 @@
 {"tag": "q4-f16cap32k", "depth": 40000, "prompt_n": 39721, "completion": 52, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 40.5}
 {"tag": "q4-f16cap32k", "depth": 60000, "prompt_n": 59684, "completion": 48, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 66.4}
 16:41 === done
+22:09 arm 8gb-bundle0045: the first run stopped at the first request with HTTP 401 (the stage had no artifacts/api_key.txt, so the bundle made a new key); the rerun with the key is below
+22:12 arm 8gb-bundle0045 (BONSAI_8GB=1,BONSAI_TIER=1,BONSAI_CTX=131072): health=1; window 131072 / q4_0  (trained max 262144) 
+{"tag": "8gb-bundle0045", "depth": 20000, "prompt_n": 20126, "completion": 40, "finish": "stop", "head": "The records above are a sequence of numbered notes, each describing a ", "seconds": 18.5}
+{"tag": "8gb-bundle0045", "depth": 30000, "prompt_n": 29764, "completion": 40, "finish": "stop", "head": "The records above are a sequence of numbered notes, each describing a ", "seconds": 28.9}
+{"tag": "8gb-bundle0045", "depth": 33000, "prompt_n": 32737, "completion": 31, "finish": "stop", "head": "The records are a sequence of report entries that each list a specific", "seconds": 32.3}
+{"tag": "8gb-bundle0045", "depth": 40000, "prompt_n": 39745, "completion": 35, "finish": "stop", "head": "The records are a sequence of numbered notes, each describing a specif", "seconds": 40.5}
+{"tag": "8gb-bundle0045", "depth": 60000, "prompt_n": 59722, "completion": 44, "finish": "stop", "head": "The records above are a list of report entries that each specify a rep", "seconds": 66.6}
+22:16 === done

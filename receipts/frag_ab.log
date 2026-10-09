@@ -1,0 +1,22 @@
+22:09 server long: health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
+{"tag": "long", "turn": 1, "ctx": 3262, "prompt_n": 3160, "cached": 0, "gen": 102, "tps": 85.6, "acceptance": 0.622, "ms_step": 26.2}
+{"tag": "long", "turn": 2, "ctx": 5832, "prompt_n": 2468, "cached": 3261, "gen": 103, "tps": 166.1, "acceptance": 0.936, "ms_step": 17.3}
+{"tag": "long", "turn": 3, "ctx": 8403, "prompt_n": 2466, "cached": 5834, "gen": 103, "tps": 137.0, "acceptance": 0.702, "ms_step": 17.5}
+{"tag": "long", "turn": 4, "ctx": 10975, "prompt_n": 2576, "cached": 8296, "gen": 103, "tps": 150.4, "acceptance": 0.734, "ms_step": 16.4}
+{"tag": "long", "turn": 5, "ctx": 13544, "prompt_n": 2460, "cached": 10981, "gen": 103, "tps": 131.6, "acceptance": 0.702, "ms_step": 18.3}
+{"tag": "long", "turn": 6, "event": "tool list changed (6 -> 26 tools)"}
+{"tag": "long", "turn": 6, "ctx": 17353, "prompt_n": 17250, "cached": 0, "gen": 103, "tps": 142.7, "acceptance": 0.758, "ms_step": 17.6}
+{"tag": "long", "turn": 7, "ctx": 19923, "prompt_n": 2461, "cached": 17359, "gen": 103, "tps": 132.7, "acceptance": 0.758, "ms_step": 19.0}
+{"tag": "long", "turn": 8, "ctx": 22492, "prompt_n": 2460, "cached": 19929, "gen": 103, "tps": 126.2, "acceptance": 0.758, "ms_step": 19.9}
+{"tag": "long", "turn": 9, "ctx": 25060, "prompt_n": 2459, "cached": 22498, "gen": 103, "tps": 120.3, "acceptance": 0.758, "ms_step": 20.9}
+{"tag": "long", "turn": 10, "ctx": 27744, "prompt_n": 2572, "cached": 25066, "gen": 106, "tps": 111.7, "acceptance": 0.758, "ms_step": 22.5}
+{"tag": "long", "turn": 11, "ctx": 30428, "prompt_n": 2571, "cached": 27751, "gen": 106, "tps": 105.2, "acceptance": 0.758, "ms_step": 23.9}
+{"tag": "long", "turn": 12, "ctx": 33114, "prompt_n": 2573, "cached": 30435, "gen": 106, "tps": 93.2, "acceptance": 0.72, "ms_step": 26.2}
+{"tag": "long", "turn": 13, "ctx": 35800, "prompt_n": 2690, "cached": 33004, "gen": 106, "tps": 88.4, "acceptance": 0.72, "ms_step": 27.6}
+{"tag": "long", "turn": 14, "ctx": 38486, "prompt_n": 2690, "cached": 35690, "gen": 106, "tps": 94.2, "acceptance": 0.758, "ms_step": 26.7}
+{"tag": "long", "turn": 15, "ctx": 41172, "prompt_n": 2573, "cached": 38493, "gen": 106, "tps": 88.9, "acceptance": 0.758, "ms_step": 28.3}
+{"tag": "long", "turn": 16, "ctx": 43859, "prompt_n": 2574, "cached": 41179, "gen": 106, "tps": 87.9, "acceptance": 0.758, "ms_step": 28.6}
+{"tag": "long", "turn": 17, "ctx": 46546, "prompt_n": 2574, "cached": 43866, "gen": 106, "tps": 82.7, "acceptance": 0.758, "ms_step": 30.4}
+22:11 server fresh: health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
+{"tag": "fresh", "turn": "replay", "ctx": 46546, "prompt_n": 46440, "cached": 0, "gen": 106, "tps": 80.4, "acceptance": 0.758, "ms_step": 31.3}
+22:12 === done

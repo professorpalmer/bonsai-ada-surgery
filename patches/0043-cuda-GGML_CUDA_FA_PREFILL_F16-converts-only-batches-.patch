@@ -1,0 +1,50 @@
+From 2096db283153f918f6d26874481d65e4dfaacf16 Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Thu, 8 Oct 2026 10:36:57 -0500
+Subject: [PATCH 43/44] cuda: GGML_CUDA_FA_PREFILL_F16 converts only batches of
+ at least 64 queries (GGML_CUDA_FA_PREFILL_F16_MIN_Q): speculative verify
+ batches keep the in-place quantized read
+
+A lookup drafter in front of the MTP head makes verify batches of up to 33 queries. With the threshold at 8, every verify
+step converted the whole cache to f16 again: file-rewrite decode 9-10% slower at 30k context (RTX 4070, switch forced on).
+Prefill micro-batches (256-1024 queries) still convert.
+---
+ ggml/src/ggml-cuda/fattn-common.cuh | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
+
+diff --git a/ggml/src/ggml-cuda/fattn-common.cuh b/ggml/src/ggml-cuda/fattn-common.cuh
+index 263d14023..a9b7b1c5e 100644
+--- a/ggml/src/ggml-cuda/fattn-common.cuh
++++ b/ggml/src/ggml-cuda/fattn-common.cuh
+@@ -50,18 +50,24 @@ struct ggml_cuda_flash_attn_ext_f16_extra_data {
+     uintptr_t end;
+ };
+ 
+-// GGML_CUDA_FA_PREFILL_F16=N: prefill-sized batches (more than 8 queries) over a quantized K/V cache of at most N cells
+-// convert K/V to f16 in pool memory sized by the actual KV length and run the f16 MMA kernel; decode keeps the in-place
+-// quantized read. Nothing is reserved at load (the reserved f16 copy would be n_ctx cells).
++// GGML_CUDA_FA_PREFILL_F16=N: prefill-sized batches (at least GGML_CUDA_FA_PREFILL_F16_MIN_Q queries, default 64) over a
++// quantized K/V cache of at most N cells convert K/V to f16 in pool memory sized by the actual KV length and run the f16
++// MMA kernel; decode keeps the in-place quantized read. Nothing is reserved at load (the reserved f16 copy would be n_ctx
++// cells). The minimum keeps speculative verify batches (a lookup drafter makes them up to 33 queries) on the in-place
++// read: converting the whole cache for each verify step cost 9-10% of decode on file rewrites (RTX 4070, 30k context).
+ static inline bool ggml_cuda_fattn_prefill_f16(const ggml_tensor * dst) {
+     static const int64_t max_kv = [] {
+         const char * e = getenv("GGML_CUDA_FA_PREFILL_F16");
+         return e ? (int64_t) atoll(e) : (int64_t) 0;
+     }();
++    static const int64_t min_q = [] {
++        const char * e = getenv("GGML_CUDA_FA_PREFILL_F16_MIN_Q");
++        return e ? std::max<int64_t>(1, atoll(e)) : (int64_t) 64;
++    }();
+     const ggml_tensor * Q = dst->src[0];
+     const ggml_tensor * K = dst->src[1];
+     const ggml_tensor * V = dst->src[2];
+-    return max_kv > 0 && Q->ne[1] > 8 && K->ne[1] <= max_kv && K->type == V->type && ggml_is_quantized(K->type);
++    return max_kv > 0 && Q->ne[1] >= min_q && K->ne[1] <= max_kv && K->type == V->type && ggml_is_quantized(K->type);
+ }
+ 
+ static inline ggml_cuda_flash_attn_ext_f16_extra_data ggml_cuda_flash_attn_ext_get_f16_extra_data(
+-- 
+2.55.0.windows.3
+
