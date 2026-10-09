@@ -252,6 +252,17 @@ if ($Small) { Write-Host "8gb    preset on ($TotalMiB MiB card; BONSAI_8GB=0 tur
 Write-Host "model  $(Split-Path $Model -Leaf)"
 Write-Host "window $Ctx / $Ctk  (trained max 262144)"
 if ($TierCells -gt 0) { Write-Host "kv     tiered: cells 0..$TierCells in VRAM, $TierCells..$Ctx in system RAM$(if ($Margin) { " (VRAM margin $Margin MiB)" })" }
+if ($TierCells -gt 0 -and $FreeMiB) {
+    # Issue #7: other programs held 2.3 GB at one start, so the line was at 105k instead of 243k and a 147k session
+    # read 41k cells over PCIe each step. Show the free VRAM, so a low line has a visible cause.
+    $OtherMiB = $TotalMiB - $FreeMiB
+    $CellsPerGiB = [int](1GB / ($CellBytes * 15 / 16) / 1000)
+    Write-Host "vram   $FreeMiB of $TotalMiB MiB free at start (other programs: $OtherMiB MiB); each GiB more free moves the line by about ${CellsPerGiB}k cells"
+    if ($OtherMiB -gt $(if ($Headless) { 768 } else { 2048 })) {
+        Write-Host "       Other programs hold much VRAM now (Task Manager > Performance > GPU > Dedicated GPU memory)."
+        Write-Host "       Close them, or wait until an old server has stopped, then start again for a higher VRAM line."
+    }
+}
 if (-not $HasTier) { Write-Host "note   this llama-server predates the tiered-KV runtime: 96k all-VRAM recipe (see README, Quick start)" }
 if ($Spec -gt 0) {
     Write-Host "spec   draft $Spec$(if ($TierCells -gt 0) { " ($SpecDeep past the VRAM line)" })$(if ($HasTier) { ", draft window $DraftWindow" }) (MTP on)$(if ($LookupOn -and -not $env:BONSAI_SPEC_TYPE) { "; lookup drafting up to $LookupN (BONSAI_LOOKUP=0 turns it off)" } elseif ($SpecType -ne 'draft-mtp') { "; types $SpecType" })$(if ($env:BONSAI_SPEC_ARGS) { " $($env:BONSAI_SPEC_ARGS)" })"
