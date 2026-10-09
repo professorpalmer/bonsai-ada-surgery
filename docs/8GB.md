@@ -48,8 +48,10 @@ q4_0 also missed. For exact-syntax work that fits in ~20k tokens, `BONSAI_CTK=q8
 3. **Turing one-column decode** ([PrismML #325](https://github.com/PrismML-Eng/llama.cpp/pull/325)): Turing takes the
    planar PT mat-vec from #218 at one column, as Ampere does. +13.7% decode (38.07 -> 43.3 tok/s).
 4. **Cheap draft head.** Q4_0 head -214 MiB (acceptance 0.875 -> 0.848, decode -1%). Tail draft 1 instead of 2 drops one
-   recurrent-state snapshot plane (149.6 MiB) because the rollback ring is sized max(draft, tail). Shared CUDA pool
-   (`GGML_CUDA_SHARED_POOL=1`, `LLAMA_MTP_DRAFT_UBATCH=256`) -62 MiB and no prefill cliff in this mode.
+   recurrent-state snapshot plane (149.6 MiB) because the rollback ring is sized max(draft, tail). A smaller draft
+   micro-batch (`LLAMA_MTP_DRAFT_UBATCH=256`). The shared CUDA pool (`GGML_CUDA_SHARED_POOL=1`) saved 62 MiB more, but
+   with MTP drafting it gave 1-token answers to fresh long prompts on this card (60k: 3 of 3 with it, 0 of 3 without),
+   so the preset does not set it.
 5. **f16 prefill from pool memory.** Prefill-sized attention batches convert the q4_0 cache to f16 in transient pool
    memory sized by the actual context (128 MiB at 32k) and run the f16 tensor-core kernel; decode keeps the in-place
    quantized read, and nothing is reserved at load (a reserved copy would be 512 MiB at a 131k window). Prefill +9% at
