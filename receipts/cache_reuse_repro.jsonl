@@ -1,0 +1,13 @@
+{"tag": "product-0045", "event": "start", "prompt_n": 29929, "cache_n": 0, "wall": 28.9}
+{"tag": "product-0045", "event": "step 5", "prompt_n": 3220, "cache_n": 42789, "wall": 4.5}
+{"tag": "product-0045", "event": "step 10", "prompt_n": 3220, "cache_n": 58869, "wall": 5.1}
+{"tag": "product-0045", "event": "step 15", "prompt_n": 3322, "cache_n": 75357, "wall": 5.9}
+{"tag": "product-0045", "event": "step 20", "prompt_n": 3322, "cache_n": 91947, "wall": 6.6}
+{"tag": "product-0045", "event": "step 25", "prompt_n": 3322, "cache_n": 108537, "wall": 7.3}
+{"tag": "product-0045", "event": "step 30", "prompt_n": 3322, "cache_n": 125127, "wall": 8.0}
+{"tag": "product-0045", "event": "step 35", "prompt_n": 3322, "cache_n": 141717, "wall": 8.6}
+{"tag": "product-0045", "event": "a new message", "prompt_n": 535, "cache_n": 144523, "wall": 1.9}
+{"tag": "product-0045", "event": "b stopped answer (256 stream lines) then a new message", "prompt_n": 26, "cache_n": 145052, "wall": 0.9}
+{"tag": "product-0045", "event": "c first user message changed at its end", "prompt_n": 115678, "cache_n": 29413, "wall": 211.2}
+{"tag": "product-0045", "event": "d thinking removed from every assistant message", "prompt_n": 114509, "cache_n": 29894, "wall": 207.9}
+{"tag": "product-0045", "event": "done", "prompt_tokens_total": 144403}
