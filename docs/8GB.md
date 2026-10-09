@@ -6,9 +6,10 @@
 $env:BONSAI_MODEL = 'Ternary-Bonsai-2-27B-PTQ1_0.gguf'; .\start-server.ps1   # long-context mode
 ```
 
-Needs `bundle-20261007-8gb` or later (patches 0036-0038: `GGML_CUDA_SHARED_POOL`, `GGML_CUDA_FA_PREFILL_F16`, the
-Turing one-column decode). An older engine ignores the switches; the measured fixed costs then do not hold, and the
-launcher warns before the start. `BONSAI_8GB=0` turns the preset off.
+Needs `bundle-20261007-8gb` or later (patches 0036-0038: the Turing one-column decode, `GGML_CUDA_FA_PREFILL_F16`);
+`bundle-20261008-8gbfix` or later is recommended (no 1-token answers, lookup drafting, patches 0041-0045). An older
+engine ignores the switches; the measured fixed costs then do not hold, and the launcher warns before the start.
+`BONSAI_8GB=0` turns the preset off.
 
 Measured 2026-10-06/07 on an RTX 2060 SUPER 8 GB (Turing sm_75, PCIe 3.0 x16, stock clocks, power limit 175 W, fan
 100%) that also draws the Windows desktop at 1280x1024 (idle 323-404 MiB), Ryzen 5 2600, 32 GB. Bonsai 2 27B `PTQ1_0`,
@@ -30,6 +31,17 @@ extending the previous prompt). Plans and gates were written before each run; ra
 
 Same weights on this card with a community 8 GB recipe (64k window, q4_0, all in VRAM, no head) measured decode
 37.2 / 30.4 / 24.5 / 17.5 and prefill 427 / 382 / 320 / 256 at the same depths.
+
+The deep end on `bundle-20261008-8gbfix` (engine `142d5105d`, drafting preset with lookup, same method; 4k-64k from the
+release check, 96k-126k from the same engine family `8a6d2ea12`):
+
+| depth | 4k | 32k | 64k | 96k | 126k |
+| --- | --- | --- | --- | --- | --- |
+| decode (tok/s, mean of code / prose / bash) | 51.5 | 46.4 | 30.4 | 17.7 | 14.1 |
+| prefill (tok/s) | 410 | 331 | 193 | 140 | 112 |
+
+Past the VRAM line (about 54k positions here) decode reads the host part of the cache over PCIe 3.0 on every token.
+For copy-heavy work, lookup drafting keeps the deep end usable (file rewrites: 69 tok/s at 64k, 42 at 120k).
 
 ## Quality
 
@@ -94,10 +106,22 @@ prefill the lowest free VRAM during a 60k prefill was 118 MiB, with no cliff.
 
 ## Not used
 
-- Memory overclock: +250..+1000 MHz moved decode by less than run-to-run drift (decode is core-bound on Turing).
 - Core +150 / 215 W: +2-4%; 86 C without extra airflow, 74 C with desk fans; outputs matched stock 25/25 in one
   10-minute soak and 25/26 in the second (cause of the one divergence unresolved).
 - PrismML #314's L2 prefetch at its 4070 defaults (16 MiB): -2.4% on this 4 MB-L2 card (receipt on the PR).
 - Packed 1-bit KQ mask: exact without the draft head (-128 MiB), but combined with MTP drafting the output past 16k was
-  corrupted; not used in either mode.
-- Draft 1 / tail 2: rare one-token answers after a long prompt-cache restore (2 of 6 runs); tail 1 0 of 54.
+  corrupted; not used in either mode. That run also had the shared CUDA pool on (see the next line); not tested again.
+- Draft 1 / tail 2: rare one-token answers after a long prompt-cache restore (2 of 6 runs) - those runs had the shared
+  CUDA pool on. With it off: 0 of 81 answers (tail 1 and tail 2). Tail 2 is still not used: more drafts past the VRAM
+  line gained at most +9 % at 126k and cost up to 41 % at 32k (fewer positions in VRAM).
+- The shared CUDA pool (`GGML_CUDA_SHARED_POOL=1`): 1-token answers to fresh long prompts with MTP drafting (60k: 18 of
+  18 without patch 0045, 0 of 38 with it). The preset does not turn it on.
+
+## Optional: memory clock
+
+On this card decode reads the ternary weights at about 80 % of the memory bandwidth, so the memory clock matters.
+llama-bench, plain decode: +500 MHz +4.2 %, +1000 MHz +7.7 %. With the drafting preset (server): +1000 MHz gives
++2.4-2.7 % at 4k-32k, and a 60-minute soak gave byte-identical text with no driver errors. +1250 MHz faulted the GPU
+after about 10 minutes of load, and +1500 MHz stopped the PC (bugcheck). Set the clock before the server starts:
+switching it while a server runs stopped the server twice. Clocks are the owner's choice; the launcher does not touch
+them.
