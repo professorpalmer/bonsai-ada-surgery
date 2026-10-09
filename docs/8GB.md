@@ -38,6 +38,22 @@ q4_0 K/V 157/164, q8_0 K/V 159/164 (the 12 GB q8_0 runs: 159-161). The two failu
 q4_0 also missed. For exact-syntax work that fits in ~20k tokens, `BONSAI_CTK=q8_0` trades positions in VRAM (about
 21k instead of 47k) for that margin; the launcher sizes the line for it.
 
+## Lookup drafting
+
+The drafting mode also takes lookup drafting (patch 0039, on by default; `BONSAI_LOOKUP=0` turns it off): an n-gram
+drafter proposes up to 32 tokens of text that is already in the context, and the MTP head drafts new text. A long
+lookup draft uses the server's state checkpoint, not more recurrent-state planes, so the VRAM line does not change.
+`bench/lookup_ab.py`, drafting preset, decode tok/s (`receipts/lookup_ab_8gb.jsonl`):
+
+| depth | file rewrite | edit call | plain |
+| --- | --- | --- | --- |
+| 0, MTP only / with lookup | 58.2 / 125.9 | 56.9 / 60.5 | 52.5 / 52.8 |
+| 64k, MTP only / with lookup | 32.5 / 69.3 | 32.5 / 37.7 | 31.4 / 31.3 |
+
+At depth 0 the text is the same with and without lookup (11 of 11). At 64k one file rewrite of 11 items differs: a wider
+verify batch changes attention rounding, as MTP drafting itself does. Lowest free VRAM at 64k: 82 MiB with lookup, 90 MiB without it (at depth 0: 207 and 211 MiB), so lookup adds
+about 8 MiB and the low point comes from the depth.
+
 ## What decides it on 8 GB
 
 1. **Positions are the product.** Past the VRAM line, decode on PCIe 3.0 reads the host tail: q8_0 with 16,384

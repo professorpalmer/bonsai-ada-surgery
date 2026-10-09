@@ -77,7 +77,10 @@ def run(base, key, tag, out, depth=0):
         body.update(temperature=0, top_p=1, chat_template_kwargs={"enable_thinking": False})
         r, dt = post(base, key, body)
         t, m = r.get("timings") or {}, r["choices"][0]["message"]
-        text = (m.get("content") or "") + json.dumps(m.get("tool_calls") or [], sort_keys=True)
+        # hash name + arguments only: the server makes a new tool-call id for every request
+        calls = [{"name": c.get("function", {}).get("name"), "arguments": c.get("function", {}).get("arguments")}
+                 for c in (m.get("tool_calls") or [])]
+        text = (m.get("content") or "") + json.dumps(calls, sort_keys=True)
         rec = {"tag": tag, "depth": depth, "kind": kind, "item": item, "tps": round(t.get("predicted_per_second") or 0, 1),
                "n": t.get("predicted_n"), "draft_n": t.get("draft_n"), "draft_acc": t.get("draft_n_accepted"),
                "sha": hashlib.sha256(text.encode()).hexdigest()[:12], "wall": round(dt, 1)}
