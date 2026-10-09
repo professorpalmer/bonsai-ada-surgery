@@ -117,6 +117,11 @@ the tiered-KV runtime are detected and get the previous 96k all-VRAM recipe.
 
 ### Upgrading from an older bundle
 
+`bundle-20261009-pool` turns on the **shared CUDA pool** for the 12 GB recipe (one memory pool for the main and the
+MTP draft context, and a 256-token draft micro-batch). It saves 74 MiB of VRAM, so the VRAM line moves up about 1.3k
+positions: decode 39.3 -> 41.0 tok/s at 131k and 20.7 -> 21.2 at 180k on the RTX 4070, the same below the line; fresh
+20k-60k prompts gave normal answers. It is on only with an engine that has patch 0045 (the stream order that makes
+the pool safe with drafting); `BONSAI_SHARED_POOL=0` turns it off. Engine unchanged from `bundle-20261009-ckpt`.
 `bundle-20261009-ckpt` adds patch 0046: **context checkpoints inside long messages**. This model keeps its
 recurrent state only at user-message starts and at the prompt end, so a prompt that changes inside one long message
 (an edited tool result, a file sent again) was processed again from the start. With `--checkpoint-every-nt` the
