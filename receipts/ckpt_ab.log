@@ -1,0 +1,17 @@
+02:08 arm n0-64k (checkpoint-every-nt 0, depth 64000): health=1; kv     tiered: cells 0..118784 in VRAM, 118784..262144 in system RAM (VRAM margin 1000 MiB)
+{"tag": "n0-64k", "depth": 64000, "kind": "edit", "item": "fnmatch.py", "tps": 115.6, "n": 148, "draft_n": 124, "draft_acc": 115, "sha": "1d0a873adaf6", "wall": 77.6}
+{"tag": "n0-64k", "depth": 64000, "kind": "edit", "item": "csv.py", "tps": 118.2, "n": 237, "draft_n": 282, "draft_acc": 197, "sha": "34626552c9d9", "wall": 78.5}
+02:20 arm n0-64k: peak_ws_mib=11473 private_mib=18560; checkpoints created 0, restored 0
+02:20 arm n8192-64k (checkpoint-every-nt 8192, depth 64000): health=1; kv     tiered: cells 0..118784 in VRAM, 118784..262144 in system RAM (VRAM margin 1000 MiB)
+{"tag": "n8192-64k", "depth": 64000, "kind": "edit", "item": "fnmatch.py", "tps": 115.5, "n": 148, "draft_n": 124, "draft_acc": 115, "sha": "1d0a873adaf6", "wall": 7.4}
+{"tag": "n8192-64k", "depth": 64000, "kind": "edit", "item": "csv.py", "tps": 118.9, "n": 237, "draft_n": 282, "draft_acc": 197, "sha": "34626552c9d9", "wall": 8.3}
+02:24 arm n8192-64k: peak_ws_mib=13364 private_mib=20454; checkpoints created 0, restored 0
+02:24 arm n0-160k (checkpoint-every-nt 0, depth 160000): health=1; kv     tiered: cells 0..118784 in VRAM, 118784..262144 in system RAM (VRAM margin 1000 MiB)
+{"tag": "n0-160k", "depth": 160000, "kind": "edit", "item": "fnmatch.py", "tps": 54.8, "n": 148, "draft_n": 140, "draft_acc": 125, "sha": "1d0a873adaf6", "wall": 279.6}
+{"tag": "n0-160k", "depth": 160000, "kind": "edit", "item": "csv.py", "tps": 67.1, "n": 237, "draft_n": 264, "draft_acc": 209, "sha": "34626552c9d9", "wall": 280.9}
+03:07 arm n0-160k: peak_ws_mib=14638 private_mib=21733; checkpoints created 0, restored 0
+03:08 arm n8192-160k (checkpoint-every-nt 8192, depth 160000): health=1; kv     tiered: cells 0..118784 in VRAM, 118784..262144 in system RAM (VRAM margin 1000 MiB)
+{"tag": "n8192-160k", "depth": 160000, "kind": "edit", "item": "fnmatch.py", "tps": 54.9, "n": 148, "draft_n": 140, "draft_acc": 125, "sha": "1d0a873adaf6", "wall": 20.8}
+{"tag": "n8192-160k", "depth": 160000, "kind": "edit", "item": "csv.py", "tps": 66.8, "n": 237, "draft_n": 264, "draft_acc": 209, "sha": "34626552c9d9", "wall": 22.1}
+03:21 arm n8192-160k: peak_ws_mib=11237 private_mib=18194; checkpoints created 0, restored 0
+03:21 === done
