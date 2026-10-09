@@ -198,11 +198,13 @@ def apply_finish_note(body, msgs):
     # Only when the user asks for code. Measured on coding tasks that offer a run tool, including clients' own tools
     # (E15; E21 on the suite's coding family: 7/12 with it vs 4/12 without). Agents that offer run tools on every turn
     # (Hermes, Cline) would otherwise get it on turns with no program, and the model writes one (2026-10-07).
-    if not any(CODE_TASK_RE.search(m["content"]) for m in msgs if m.get("role") == "user" and isinstance(m.get("content"), str)):
-        return msgs, 0
+    # The decision uses the first user message only (as the API cards do), so a later message cannot add the note to
+    # the first message in the middle of a conversation. Issue #7: a later message with a pasted code block added it at
+    # the end of the first user message (~39k tokens in, after a long tool list), and the server read the whole prompt
+    # again.
     for i, m in enumerate(msgs):
         if m.get("role") == "user" and isinstance(m.get("content"), str):
-            if FINISH_NOTE in m["content"]:
+            if FINISH_NOTE in m["content"] or not CODE_TASK_RE.search(m["content"]):
                 return msgs, 0
             return msgs[:i] + [dict(m, content=m["content"] + chr(10) + chr(10) + FINISH_NOTE)] + msgs[i + 1:], 1
     return msgs, 0
