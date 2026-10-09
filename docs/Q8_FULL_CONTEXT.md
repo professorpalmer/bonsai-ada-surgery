@@ -67,6 +67,10 @@ agreement 99.38%; q4_0 0.00218, 97.93%. The previous 12 GB routes to 262k all us
    Larger sizes at 160k (2026-10-09, `bench/tail_draft_ab.sh`, `receipts/tail_draft_ab.jsonl`, with lookup): 6 against
    4 gives file rewrites +4%, edit calls +6%, new text -3% (prose and bash -8%); 8 is slower in all three groups
    (-15% to -19%). 4 stays.
+   PCIe check (2026-10-09, `bench/tier_bw.sh`, `receipts/tier_bw.log`): at 100k with MTP and lookup off, the line at
+   64k and at 32k adds 51.3 and 99.1 ms per token for 1.22 and 2.35 GB of rows in system RAM, 23.7 GB/s both times;
+   a pinned copy on this link moves 23.8 GB/s. Decode past the line is at the PCIe limit: only fewer bytes (q4_0
+   K/V) or more VRAM make it faster.
 6. **Harness-proofing** (`--reasoning-effort-allow medium`, `--reasoning-max-tokens-floor 24576`). Effort words the
    template does not accept ("high" -> HTTP 500 in Cline, Kilo, Open WebUI) become medium, and so do `low` and
    `xhigh` (medium beats both at every output cap in Killy's grid; PrismML's card says low behaves close to xhigh).

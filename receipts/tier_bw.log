@@ -1,0 +1,16 @@
+09:24 arm vram: health=1; kv     tiered: cells 0..120320 in VRAM, 120320..262144 in system RAM (VRAM margin 1000 MiB)
+code   depth 100000 (evaluated 99933): prefill   755.8 tok/s  ttft 132.22s  decode   43.7 tok/s (400 tok)
+prose  depth 100000 (evaluated 512): prefill   472.2 tok/s  ttft   1.08s  decode   43.8 tok/s (400 tok)
+bash   depth 100000 (evaluated 516): prefill   475.5 tok/s  ttft   1.09s  decode   43.8 tok/s (400 tok)
+mean decode 43.8 tok/s
+09:27 arm line64k: health=1; kv     tiered: cells 0..65536 in VRAM, 65536..262144 in system RAM
+code   depth 100000 (evaluated 99933): prefill   753.3 tok/s  ttft 132.66s  decode   13.5 tok/s (400 tok)
+prose  depth 100000 (evaluated 512): prefill   454.3 tok/s  ttft   1.13s  decode   13.5 tok/s (400 tok)
+bash   depth 100000 (evaluated 516): prefill   465.4 tok/s  ttft   1.11s  decode   13.5 tok/s (400 tok)
+mean decode 13.5 tok/s
+09:31 arm line32k: health=1; kv     tiered: cells 0..32768 in VRAM, 32768..262144 in system RAM
+code   depth 100000 (evaluated 99933): prefill   752.2 tok/s  ttft 132.85s  decode    8.2 tok/s (400 tok)
+prose  depth 100000 (evaluated 512): prefill   441.7 tok/s  ttft   1.16s  decode    8.2 tok/s (400 tok)
+bash   depth 100000 (evaluated 516): prefill   445.0 tok/s  ttft   1.16s  decode    8.2 tok/s (400 tok)
+mean decode 8.2 tok/s
+09:36 === done
