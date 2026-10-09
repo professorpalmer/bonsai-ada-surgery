@@ -54,6 +54,16 @@ At depth 0 the text is the same with and without lookup (11 of 11). At 64k one f
 verify batch changes attention rounding, as MTP drafting itself does. Lowest free VRAM at 64k: 82 MiB with lookup, 90 MiB without it (at depth 0: 207 and 211 MiB), so lookup adds
 about 8 MiB and the low point comes from the depth.
 
+## Long prompts that change inside a message
+
+This model keeps context checkpoints (its recurrent state) at user-message starts and at the prompt end. Without more,
+a prompt that changes inside one long message (an edited tool result, a file sent again) is processed again from the
+start: about 4.5 minutes at 64k on this card. Patch 0046 (`--checkpoint-every-nt`) also keeps a checkpoint every N
+tokens inside a message; the 8 GB preset sets 8192 when the engine has it (`BONSAI_CKPT_EVERY` changes it, 0 turns it
+off). RTX 2060 SUPER, `lookup_ab.py` at 64k, requests after the first: 18-58 s instead of 272-294 s, and the text of all
+22 requests is identical to the run without it (`receipts/ckpt_every_nt_8gb.jsonl`). Each checkpoint takes about
+170 MiB of system RAM (at most 32).
+
 ## What decides it on 8 GB
 
 1. **Positions are the product.** Past the VRAM line, decode on PCIe 3.0 reads the host tail: q8_0 with 16,384

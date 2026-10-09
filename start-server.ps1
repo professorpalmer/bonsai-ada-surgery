@@ -157,6 +157,13 @@ if ($Small) {
         if (-not $env:LLAMA_MTP_DRAFT_UBATCH) { $env:LLAMA_MTP_DRAFT_UBATCH = '256' }
     }
     if (-not $env:GGML_CUDA_FA_PREFILL_F16) { $env:GGML_CUDA_FA_PREFILL_F16 = if ($Spec -gt 0) { '32768' } else { '65536' } }
+    # mid-message context checkpoints (patch 0046): a prompt that changes inside one long message (an edited tool result,
+    # a file sent again) restores the nearest checkpoint instead of processing the whole prompt again. RTX 2060 SUPER, 64k:
+    # 18-58 s instead of 272-294 s per request, same text. Each checkpoint holds the recurrent state (about 170 MiB of
+    # system RAM, at most 32). BONSAI_CKPT_EVERY sets the spacing in tokens; 0 turns it off.
+    if (-not $env:LLAMA_ARG_CHECKPOINT_EVERY_NT -and $Help -match '--checkpoint-every-nt') {
+        $env:LLAMA_ARG_CHECKPOINT_EVERY_NT = if ($env:BONSAI_CKPT_EVERY) { $env:BONSAI_CKPT_EVERY } else { '8192' }
+    }
     # The fixed costs below were measured with these switches. An older engine ignores them, and then the VRAM line
     # is too high for the card: Windows moves memory out of VRAM and prefill collapses. Say so before the start.
     $Has8gb = $false
@@ -278,7 +285,8 @@ if ($Spec -gt 0) {
 # Variables the launcher sets itself. It removes them when it stops (finally block below). A window that ran an
 # older launcher can still hold them, so they are not listed as the user's settings either.
 $LauncherVars = @('BONSAI_LAYER_KEY', 'LLAMA_ARG_CHAT_TEMPLATE_KWARGS', 'GGML_CUDA_BATCH_INVARIANT',
-                  'GGML_CUDA_SHARED_POOL', 'LLAMA_MTP_DRAFT_UBATCH', 'GGML_CUDA_FA_PREFILL_F16')
+                  'GGML_CUDA_SHARED_POOL', 'LLAMA_MTP_DRAFT_UBATCH', 'GGML_CUDA_FA_PREFILL_F16',
+                  'LLAMA_ARG_CHECKPOINT_EVERY_NT')
 $Listed = @($UserEnv | Where-Object { $_.Name -notin $LauncherVars -and $_.Value })
 if ($Listed.Count -gt 0) {
     Write-Host ("env    set in this window, these change the defaults: " + (($Listed | ForEach-Object { "$($_.Name)=$($_.Value)" }) -join '  '))

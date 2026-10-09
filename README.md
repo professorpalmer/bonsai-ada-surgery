@@ -74,7 +74,7 @@ How, and every receipt: [`docs/Q8_FULL_CONTEXT.md`](docs/Q8_FULL_CONTEXT.md). Sh
 | --- | --- | --- |
 | Windows, an NVIDIA card (RTX 20/30/40/50) | download the release zip, drop in the model, run `start-server.ps1` | [Quick start (Windows)](#quick-start-windows-nvidia) |
 | Hugging Face | the same bundle plus the ready-made MTP-grafted GGUF (`hf download`, no graft step) | [CaryPalmer/Ternary-Bonsai-2-27B-262k-GGUF](https://huggingface.co/CaryPalmer/Ternary-Bonsai-2-27B-262k-GGUF) |
-| Linux, NVIDIA driver + CUDA toolkit | `bash build/build_linux.sh` builds the pinned PrismML source with all 45 patches applied | [Quick start (Linux)](#quick-start-linux-nvidia) |
+| Linux, NVIDIA driver + CUDA toolkit | `bash build/build_linux.sh` builds the pinned PrismML source with all 46 patches applied | [Quick start (Linux)](#quick-start-linux-nvidia) |
 | your own llama.cpp workflow | build the fork branch `bonsai-q8-product`, or `git am` the series in `patches/` onto PrismML `adfffbe` | [The patch stack](#the-patch-stack) |
 | an older bundle of this repo | `git pull`, unzip the latest zip over it, run `layeretch_runtime.ps1` once | [Upgrading](#upgrading-from-an-older-bundle) |
 
@@ -356,6 +356,7 @@ Hadamard-embedding fix of sudoingX's #217 landed through #205. #285 was split at
 | 0043 | `GGML_CUDA_FA_PREFILL_F16` converts the cache only for batches of at least 64 queries (`GGML_CUDA_FA_PREFILL_F16_MIN_Q`): speculative verify batches keep the in-place quantized read (Ada: 195.4 -> 212.4 tok/s on copy-heavy decode with the switch on; Turing: no change) | [#330](https://github.com/PrismML-Eng/llama.cpp/pull/330) (offered) |
 | 0044 | `GGML_CUDA_SHARED_POOL=0` turns the shared pool off (any value turned it on) | this repo |
 | 0045 | Shared pool: each graph waits for the other stream's last graph, so the target and the MTP draft stream cannot reuse each other's freed blocks too early (RTX 2060 SUPER, fresh 60k: 0 of 18 1-token answers against 18 of 18) | this repo |
+| 0046 | `--checkpoint-every-nt N` (`LLAMA_ARG_CHECKPOINT_EVERY_NT`): context checkpoints also inside a long message, every N prompt tokens, so a prompt that changes inside that message is not processed again from the start (off by default; the 8 GB preset sets 8192; RTX 2060 SUPER at 64k: 18-58 s instead of 272-294 s per request, same text) | this repo |
 
 How each cut was found (CUPTI traces, L1 wavefront counts, what did not work):
 [`surgery/ADA4070_PTQ1.md`](surgery/ADA4070_PTQ1.md) and [`docs/Q8_FULL_CONTEXT.md`](docs/Q8_FULL_CONTEXT.md).
