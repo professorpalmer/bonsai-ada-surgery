@@ -1,0 +1,26 @@
+11:38 arm base (C:/Users/pwall/Projects/bonsai-2-27b-serve; ): health=1
+{"tag": "i7f-base", "depth": 36000, "tools": 107, "arm": "server", "ask": 0, "tps": 72.9, "n": 2114, "evaluated": 62994, "acceptance": 0.718}
+{"tag": "i7f-base", "depth": 36000, "tools": 107, "arm": "server", "ask": 1, "tps": 41.8, "n": 1445, "evaluated": 515, "acceptance": 0.452}
+{"tag": "i7f-base", "depth": 36000, "tools": 107, "arm": "greedy", "ask": 0, "tps": 65.6, "n": 4936, "evaluated": 516, "acceptance": 0.713}
+{"tag": "i7f-base", "depth": 36000, "tools": 107, "arm": "greedy", "ask": 1, "tps": 47.6, "n": 1632, "evaluated": 515, "acceptance": 0.577}
+{"tag": "i7f-base", "tools": 107, "calls": ["read", "read", "github_search_issue"], "finish": "tool_calls", "sha": "f544aac5db5c", "tps": 60.1, "n": 401, "acceptance": 0.69}
+11:43 arm fix (C:/Users/pwall/AppData/Local/Temp/root-fix; ): health=1
+{"tag": "i7f-fix", "depth": 36000, "tools": 107, "arm": "server", "ask": 0, "tps": 79.6, "n": 2114, "evaluated": 62994, "acceptance": 0.718}
+{"tag": "i7f-fix", "depth": 36000, "tools": 107, "arm": "server", "ask": 1, "tps": 61.2, "n": 1445, "evaluated": 515, "acceptance": 0.452}
+{"tag": "i7f-fix", "depth": 36000, "tools": 107, "arm": "greedy", "ask": 0, "tps": 88.7, "n": 4936, "evaluated": 516, "acceptance": 0.713}
+{"tag": "i7f-fix", "depth": 36000, "tools": 107, "arm": "greedy", "ask": 1, "tps": 69.9, "n": 1632, "evaluated": 515, "acceptance": 0.577}
+{"tag": "i7f-fix", "tools": 107, "calls": ["read", "read", "github_search_issue"], "finish": "tool_calls", "sha": "f544aac5db5c", "tps": 87.7, "n": 401, "acceptance": 0.69}
+11:46 arm fix-gate (C:/Users/pwall/AppData/Local/Temp/root-fix; LLAMA_SPEC_LOOKUP_GATE=1): health=1
+{"tag": "i7f-fix-gate", "depth": 36000, "tools": 107, "arm": "server", "ask": 0, "tps": 79.6, "n": 2114, "evaluated": 62994, "acceptance": 0.718}
+{"tag": "i7f-fix-gate", "depth": 36000, "tools": 107, "arm": "server", "ask": 1, "tps": 61.4, "n": 1445, "evaluated": 515, "acceptance": 0.452}
+{"tag": "i7f-fix-gate", "depth": 36000, "tools": 107, "arm": "greedy", "ask": 0, "tps": 89.2, "n": 3479, "evaluated": 516, "acceptance": 0.718}
+{"tag": "i7f-fix-gate", "depth": 36000, "tools": 107, "arm": "greedy", "ask": 1, "tps": 69.9, "n": 1739, "evaluated": 515, "acceptance": 0.596}
+{"tag": "i7f-fix-gate", "tools": 107, "calls": ["read", "read", "github_search_issue"], "finish": "tool_calls", "sha": "f544aac5db5c", "tps": 87.4, "n": 401, "acceptance": 0.69}
+3.23.309.020 I lookup gate: 44 lookup drafts kept, 2 replaced by the MTP draft, 0 kept without an MTP draft (totals since start)
+11:50 arm fix-nolookup (C:/Users/pwall/AppData/Local/Temp/root-fix; BONSAI_LOOKUP=0): health=1
+{"tag": "i7f-fix-nolookup", "depth": 36000, "tools": 107, "arm": "server", "ask": 0, "tps": 79.4, "n": 2114, "evaluated": 62994, "acceptance": 0.718}
+{"tag": "i7f-fix-nolookup", "depth": 36000, "tools": 107, "arm": "server", "ask": 1, "tps": 61.9, "n": 1436, "evaluated": 515, "acceptance": 0.463}
+{"tag": "i7f-fix-nolookup", "depth": 36000, "tools": 107, "arm": "greedy", "ask": 0, "tps": 83.6, "n": 4770, "evaluated": 516, "acceptance": 0.785}
+{"tag": "i7f-fix-nolookup", "depth": 36000, "tools": 107, "arm": "greedy", "ask": 1, "tps": 70.9, "n": 1676, "evaluated": 515, "acceptance": 0.61}
+{"tag": "i7f-fix-nolookup", "tools": 107, "calls": ["read", "read", "github_search_issue"], "finish": "tool_calls", "sha": "f544aac5db5c", "tps": 88.6, "n": 369, "acceptance": 0.75}
+11:54 === done

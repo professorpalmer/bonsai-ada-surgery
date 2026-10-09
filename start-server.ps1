@@ -150,10 +150,10 @@ $Spec = if ($env:BONSAI_SPEC) { [int]$env:BONSAI_SPEC } elseif ((Split-Path $Mod
 $SpecDeep = if ($env:BONSAI_SPEC_DEEP) { [int]$env:BONSAI_SPEC_DEEP } elseif ($Small) { 1 } else { 4 }
 $Ubatch = if ($env:BONSAI_UBATCH) { [int]$env:BONSAI_UBATCH } elseif ($Small -and $Spec -eq 0) { 1024 } else { 512 }
 if ($Small) {
-    # engine switches (ignored by older binaries): one CUDA pool for target and draft, a smaller draft micro-batch,
-    # and f16 prefill from pool memory up to the depth the margin holds
+    # engine switches (ignored by older binaries): a smaller draft micro-batch, and f16 prefill from pool memory up to
+    # the depth the margin holds. Not the shared CUDA pool (GGML_CUDA_SHARED_POOL): with MTP drafting it gave 1-token
+    # answers to fresh long prompts on the RTX 2060 SUPER (60k: 3 of 3 with it, 0 of 3 without, PR #9).
     if ($Spec -gt 0) {
-        if (-not $env:GGML_CUDA_SHARED_POOL) { $env:GGML_CUDA_SHARED_POOL = '1' }
         if (-not $env:LLAMA_MTP_DRAFT_UBATCH) { $env:LLAMA_MTP_DRAFT_UBATCH = '256' }
     }
     if (-not $env:GGML_CUDA_FA_PREFILL_F16) { $env:GGML_CUDA_FA_PREFILL_F16 = if ($Spec -gt 0) { '32768' } else { '65536' } }
@@ -230,7 +230,7 @@ if ($Tier) {
         if ($Small) {
             # measured on an RTX 2060 SUPER with the desktop on it (docs/8GB.md): the server's fixed cost per mode
             # and the free VRAM that held (drafting: 225 MiB; no head: 400, room for the f16 prefill copy at 64k)
-            $FixedMiB = if ($Spec -gt 0) { 6469 + $MmprojMiB } elseif ($Ubatch -ge 1024) { 6218 + $MmprojMiB } else { 5955 + $MmprojMiB }
+            $FixedMiB = if ($Spec -gt 0) { 6531 + $MmprojMiB } elseif ($Ubatch -ge 1024) { 6218 + $MmprojMiB } else { 5955 + $MmprojMiB }
             $Margin = if ($env:BONSAI_VRAM_MARGIN) { [int]$env:BONSAI_VRAM_MARGIN } elseif ($Spec -gt 0) { 225 } else { 400 }
         }
         # KV head N*CellBytes plus the staging buffer (Ctx-N)*CellBytes/16 must fit in what is left

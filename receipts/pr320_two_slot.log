@@ -1,0 +1,8 @@
+16:41 === PrismML #320 two-slot check: window 1024, deep request about 8000 tokens, bin C:/Users/pwall/AppData/Local/Temp/build-sdw/bin
+16:46 === PrismML #320 two-slot check: window 1024, deep request about 8000 tokens, bin C:/Users/pwall/AppData/Local/Temp/build-sdw/bin
+16:46 two slots: B1 (slot 1) {"prompt_n": 185, "n": 200, "tps": 85.1, "acceptance": 0.452, "sha": "b968dbb6f70d"}
+16:46 two slots: A  (slot 0, deep, alone) {"prompt_n": 8869, "n": 115, "tps": 91.5, "acceptance": 0.585, "sha": "46ecd2fe16bf"}
+16:46 two slots: B2 (slot 1, after A) {"prompt_n": 26, "n": 200, "tps": 87.9, "acceptance": 0.495, "sha": "c3ae1c5a9f45"}
+16:47 one slot:  B1 {"prompt_n": 185, "n": 200, "tps": 83.7, "acceptance": 0.452, "sha": "b968dbb6f70d"}
+16:47 one slot:  B2 {"prompt_n": 26, "n": 200, "tps": 88.6, "acceptance": 0.495, "sha": "c3ae1c5a9f45"}
+16:47 B2 text same as one slot: True; B2 acceptance two slots 0.495 vs one slot 0.495; B2 prompt tokens evaluated 26 vs 26

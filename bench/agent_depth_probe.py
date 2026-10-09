@@ -22,10 +22,27 @@ if os.environ.get("PROBE_MANY_TOOLS"):   # MCP-like: many tools with nested obje
                 "fields": {"type": "array", "items": {"type": "string"}},
                 "update": {"type": "object", "additionalProperties": {"type": "string"}}},
                 "required": ["query"]}}})
+if os.environ.get("PROBE_TOOL_CHARS"):   # issue #7: real MCP tool lists are larger and varied (Pi: 107 tools, 104k chars)
+    import random
+    _rng = random.Random(7)
+    _words = ("repository branch commit issue label milestone page browser tab selector screenshot table row column index "
+              "schema migration bucket object prefix region cluster pod namespace secret channel thread message user "
+              "calendar event attendee document folder permission ticket sprint board card memory note embedding vector "
+              "collection query cursor offset timeout retry webhook payload header token scope build artifact pipeline").split()
+    _servers = ["github", "filesystem", "playwright", "postgres", "s3", "kubernetes", "slack", "calendar", "drive",
+                "jira", "memory", "search"]
+    _verbs = ["list", "get", "create", "update", "delete", "search", "move", "export", "sync", "watch"]
+    for t in TOOLS[2:]:
+        k = int(t["function"]["name"].rsplit("tool", 1)[1])
+        f = t["function"]
+        f["name"] = f"{_servers[k % 12]}_{_verbs[(k // 12) % 10]}_{_words[k % len(_words)]}"
+        while len(json.dumps(t)) < int(os.environ["PROBE_TOOL_CHARS"]):
+            f["description"] += " " + " ".join(_rng.choice(_words) for _ in range(8)) + "."
 ASKS = ["Do not call any tool. Explain step by step how you would add a retry with exponential backoff to an HTTP "
         "client in Python, then write the code.",
         "Do not call any tool. Plan a refactor of a 2,000-line Flask app into blueprints. List the steps and the risks."]
-ARMS = [(n, s) for n, s in [("greedy", {"temperature": 0, "top_p": 1}),
+ARMS = [(n, s) for n, s in [("server", {}),   # no sampler fields: the server defaults (temperature 1.0, top_k 20), as Pi sends
+        ("greedy", {"temperature": 0, "top_p": 1}),
         ("sampled", {"temperature": 0.6, "top_p": 0.95, "top_k": 20}),
         ("sampled-topk0", {"temperature": 0.6, "top_p": 0.95, "top_k": 0}),
         ("sampled-minp", {"temperature": 0.6, "top_p": 1.0, "top_k": 0, "min_p": 0.05})] if not os.environ.get("PROBE_ARMS") or n in os.environ["PROBE_ARMS"].split(",")]
@@ -43,11 +60,14 @@ for arm, samp in ARMS:
     for i, q in enumerate(ASKS):
         body = dict(samp, messages=[{"role": "user", "content": pre + q}], tools=TOOLS, max_tokens=1500, seed=7,
                     chat_template_kwargs={"enable_thinking": True})
+        if os.environ.get("PROBE_PI"):   # the fields Pi sends (issue #7 capture)
+            body.pop("chat_template_kwargs")
+            body.update(reasoning_effort="medium", thinking_budget_tokens=8192)
         req = urllib.request.Request(a.base.rstrip("/") + "/v1/chat/completions", data=json.dumps(body).encode(), headers=_headers(key))
         r = json.loads(urllib.request.urlopen(req, timeout=3600).read())
         t = r.get("timings") or {}
         acc = (t.get("draft_n_accepted") or 0) / max(1, t.get("draft_n") or 0) if t.get("draft_n") else None
-        rec = {"tag": a.tag, "depth": a.depth, "arm": arm, "ask": i, "tps": round(t.get("predicted_per_second") or 0, 1),
+        rec = {"tag": a.tag, "depth": a.depth, "tools": len(TOOLS), "arm": arm, "ask": i, "tps": round(t.get("predicted_per_second") or 0, 1),
                "n": t.get("predicted_n"), "evaluated": t.get("prompt_n"), "acceptance": None if acc is None else round(acc, 3)}
         print(json.dumps(rec), flush=True)
         with open(a.out, "a", encoding="utf-8") as f:

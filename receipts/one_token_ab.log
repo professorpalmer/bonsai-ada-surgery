@@ -1,0 +1,25 @@
+16:28 arm 8gb-preset (BONSAI_8GB=1,BONSAI_LOOKUP=1,BONSAI_TIER=1,BONSAI_CTX=131072): health=1; window 131072 / q4_0  (trained max 262144) 
+{"tag": "8gb-preset", "depth": 20000, "prompt_n": 20121, "completion": 40, "finish": "stop", "head": "The records above are a list of report entries that pair a specific re", "seconds": 18.6}
+{"tag": "8gb-preset", "depth": 30000, "prompt_n": 29739, "completion": 40, "finish": "stop", "head": "The records above are a list of report entries that each specify a rep", "seconds": 28.7}
+{"tag": "8gb-preset", "depth": 33000, "prompt_n": 32712, "completion": 52, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 32.4}
+{"tag": "8gb-preset", "depth": 40000, "prompt_n": 39726, "completion": 34, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 40.3}
+{"tag": "8gb-preset", "depth": 60000, "prompt_n": 59720, "completion": 49, "finish": "stop", "head": "The records above are a sequence of site reports, each listing a speci", "seconds": 66.7}
+16:31 arm 8gb-nopool (BONSAI_8GB=1,BONSAI_LOOKUP=1,BONSAI_TIER=1,BONSAI_CTX=131072,GGML_CUDA_SHARED_POOL=0): health=1; window 131072 / q4_0  (trained max 262144) 
+{"tag": "8gb-nopool", "depth": 20000, "prompt_n": 20129, "completion": 40, "finish": "stop", "head": "The records above are a sequence of numbered notes, each describing a ", "seconds": 18.5}
+{"tag": "8gb-nopool", "depth": 30000, "prompt_n": 29736, "completion": 50, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 29.0}
+{"tag": "8gb-nopool", "depth": 33000, "prompt_n": 32715, "completion": 37, "finish": "stop", "head": "The records above are a sequence of numbered notes, each describing a ", "seconds": 32.3}
+{"tag": "8gb-nopool", "depth": 40000, "prompt_n": 39721, "completion": 40, "finish": "stop", "head": "The records above are a list of report entries that each specify a rep", "seconds": 40.5}
+{"tag": "8gb-nopool", "depth": 60000, "prompt_n": 59687, "completion": 39, "finish": "stop", "head": "The records above are a list of site-specific count reports, each iden", "seconds": 66.3}
+16:35 arm 8gb-nof16 (BONSAI_8GB=1,BONSAI_LOOKUP=1,BONSAI_TIER=1,BONSAI_CTX=131072,GGML_CUDA_FA_PREFILL_F16=0): health=1; window 131072 / q4_0  (trained max 262144) 
+{"tag": "8gb-nof16", "depth": 20000, "prompt_n": 20121, "completion": 39, "finish": "stop", "head": "The records above are a list of site-specific count reports, each iden", "seconds": 18.4}
+{"tag": "8gb-nof16", "depth": 30000, "prompt_n": 29733, "completion": 46, "finish": "stop", "head": "The records above are a list of site-specific count reports, each iden", "seconds": 28.5}
+{"tag": "8gb-nof16", "depth": 33000, "prompt_n": 32710, "completion": 50, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 31.9}
+{"tag": "8gb-nof16", "depth": 40000, "prompt_n": 39727, "completion": 52, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 40.1}
+{"tag": "8gb-nof16", "depth": 60000, "prompt_n": 59715, "completion": 41, "finish": "stop", "head": "The records above are a list of report entries that each specify a rep", "seconds": 66.0}
+16:38 arm q4-f16cap32k (BONSAI_CTK=q4_0,GGML_CUDA_FA_PREFILL_F16=32768): health=1; window 65536 / q4_0  (trained max 262144) 
+{"tag": "q4-f16cap32k", "depth": 20000, "prompt_n": 20123, "completion": 36, "finish": "stop", "head": "The records above are a sequence of numbered notes, each describing a ", "seconds": 18.5}
+{"tag": "q4-f16cap32k", "depth": 30000, "prompt_n": 29735, "completion": 44, "finish": "stop", "head": "The records above are a list of site-specific count reports, where eac", "seconds": 28.8}
+{"tag": "q4-f16cap32k", "depth": 33000, "prompt_n": 32712, "completion": 52, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 32.4}
+{"tag": "q4-f16cap32k", "depth": 40000, "prompt_n": 39721, "completion": 52, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 40.5}
+{"tag": "q4-f16cap32k", "depth": 60000, "prompt_n": 59684, "completion": 48, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 66.4}
+16:41 === done

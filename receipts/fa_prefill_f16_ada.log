@@ -1,0 +1,39 @@
+10:14 === FLASH_ATTN_EXT perf, RTX 4070, served prefill shape, q8_0 vs f16 (test-backend-ops, C:\Users\pwall\AppData\Local\Temp\build-0040\bin)
+  FLASH_ATTN_EXT(hsk=256,hsv=256,nh=4,nr23=[6,1],kv=4096,nb=512,mask=1,sinks=0,max_bias=0.000000,logit_softcap=0.000000,prec=f32,type_K=q8_0,type_V=q8_0,permute=[0,1,2,3],kv_view=1,v_is_view_of_k=0):                  786 runs -  1272.55 us/run -  51.54 GFLOP/run - [1;34m 40.50 TFLOPS[0m
+  FLASH_ATTN_EXT(hsk=256,hsv=256,nh=4,nr23=[6,1],kv=32768,nb=512,mask=1,sinks=0,max_bias=0.000000,logit_softcap=0.000000,prec=f32,type_K=q8_0,type_V=q8_0,permute=[0,1,2,3],kv_view=1,v_is_view_of_k=0):                  90 runs - 11155.94 us/run - 412.32 GFLOP/run - [1;34m 36.96 TFLOPS[0m
+  FLASH_ATTN_EXT(hsk=256,hsv=256,nh=4,nr23=[6,1],kv=65536,nb=512,mask=1,sinks=0,max_bias=0.000000,logit_softcap=0.000000,prec=f32,type_K=q8_0,type_V=q8_0,permute=[0,1,2,3],kv_view=1,v_is_view_of_k=0):                  45 runs - 22556.67 us/run - 824.63 GFLOP/run - [1;34m 36.56 TFLOPS[0m
+  FLASH_ATTN_EXT(hsk=256,hsv=256,nh=4,nr23=[6,1],kv=131072,nb=512,mask=1,sinks=0,max_bias=0.000000,logit_softcap=0.000000,prec=f32,type_K=q8_0,type_V=q8_0,permute=[0,1,2,3],kv_view=1,v_is_view_of_k=0):                 22 runs - 45663.45 us/run -   1.65 TFLOP/run - [1;34m 36.12 TFLOPS[0m
+  FLASH_ATTN_EXT(hsk=256,hsv=256,nh=4,nr23=[6,1],kv=4096,nb=512,mask=1,sinks=0,max_bias=0.000000,logit_softcap=0.000000,prec=f32,type_K=f16,type_V=f16,permute=[0,1,2,3],kv_view=1,v_is_view_of_k=0):                    888 runs -  1128.37 us/run -  51.54 GFLOP/run - [1;34m 45.68 TFLOPS[0m
+  FLASH_ATTN_EXT(hsk=256,hsv=256,nh=4,nr23=[6,1],kv=32768,nb=512,mask=1,sinks=0,max_bias=0.000000,logit_softcap=0.000000,prec=f32,type_K=f16,type_V=f16,permute=[0,1,2,3],kv_view=1,v_is_view_of_k=0):                    93 runs - 10857.96 us/run - 412.32 GFLOP/run - [1;34m 37.97 TFLOPS[0m
+  FLASH_ATTN_EXT(hsk=256,hsv=256,nh=4,nr23=[6,1],kv=65536,nb=512,mask=1,sinks=0,max_bias=0.000000,logit_softcap=0.000000,prec=f32,type_K=f16,type_V=f16,permute=[0,1,2,3],kv_view=1,v_is_view_of_k=0):                    45 runs - 22377.80 us/run - 824.63 GFLOP/run - [1;34m 36.85 TFLOPS[0m
+  FLASH_ATTN_EXT(hsk=256,hsv=256,nh=4,nr23=[6,1],kv=131072,nb=512,mask=1,sinks=0,max_bias=0.000000,logit_softcap=0.000000,prec=f32,type_K=f16,type_V=f16,permute=[0,1,2,3],kv_view=1,v_is_view_of_k=0):                   22 runs - 46271.41 us/run -   1.65 TFLOP/run - [1;34m 35.64 TFLOPS[0m
+10:15 === serving A/B, GGML_CUDA_FA_PREFILL_F16 off / 131072, one 100k prompt
+10:15 === tier A/B, depth 100000
+10:15 arm f16off (C:/Users/pwall/Projects/bonsai-2-27b-serve; GGML_CUDA_FA_PREFILL_F16=0): health=1; kv     tiered: cells 0..119040 in VRAM, 119040..262144 in system RAM (VRAM margin 1000 MiB)
+f16off: code   depth 100000 (evaluated 99933): prefill   735.3 tok/s  ttft 135.90s  decode   78.6 tok/s (400 tok)
+10:21 arm f16on (C:/Users/pwall/Projects/bonsai-2-27b-serve; GGML_CUDA_FA_PREFILL_F16=131072): health=1; kv     tiered: cells 0..119040 in VRAM, 119040..262144 in system RAM (VRAM margin 1000 MiB)
+f16on:     t = go(a.base, key, p, n, a.depth)
+greedy text tierab-f16on vs tierab-f16off: 0/0 identical
+tierab-f16off: decode mean 208.8 tok/s over 7 jobs
+tierab-f16on: decode mean 0.0 tok/s over 0 jobs
+10:21 === done
+10:21 === done
+10:23 === FLASH_ATTN_EXT perf, RTX 4070, served prefill shape (head 256, 4 KV heads x 6, 512 queries), q8_0 vs f16
+kv       q8_0 us/run   f16 us/run   f16 vs q8_0
+10:24 === serving A/B, all-VRAM cache (64k window), GGML_CUDA_FA_PREFILL_F16 off / 65536, one 60k prompt
+(re-parsed: stderr lines split the result lines)
+kv       q8_0 us/run   f16 us/run   f16 kernel vs q8_0
+  4096          1276         1129   +13.0% faster
+ 32768         11157        10811    +3.2% faster
+ 65536         22605        22358    +1.1% faster
+131072         45576        46464    -1.9% faster
+10:24 === tier A/B, depth 60000
+10:24 arm f16off-64k (C:/Users/pwall/Projects/bonsai-2-27b-serve; BONSAI_TIER=0,BONSAI_CTX=65536,GGML_CUDA_FA_PREFILL_F16=0): health=1; 
+f16off-64k: code   depth  60000 (evaluated 59953): prefill   888.7 tok/s  ttft  67.46s  decode   87.6 tok/s (400 tok)
+10:29 arm f16on-64k (C:/Users/pwall/Projects/bonsai-2-27b-serve; BONSAI_TIER=0,BONSAI_CTX=65536,GGML_CUDA_FA_PREFILL_F16=65536): health=1; 
+f16on-64k: code   depth  60000 (evaluated 59953): prefill   898.2 tok/s  ttft  66.75s  decode   87.5 tok/s (400 tok)
+greedy text tierab-f16on-64k vs tierab-f16off-64k: 7/7 identical
+tierab-f16off-64k: decode mean 211.6 tok/s over 7 jobs
+tierab-f16on-64k: decode mean 194.9 tok/s over 7 jobs
+10:33 === done
+10:33 === done

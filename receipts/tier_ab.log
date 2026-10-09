@@ -374,3 +374,229 @@ greedy text tierab-q4-v2 vs tierab-q4-base: 7/7 identical
 tierab-q4-base: decode mean 169.7 tok/s over 7 jobs
 tierab-q4-v2: decode mean 175.8 tok/s over 7 jobs
 02:55 === done
+10:15 === tier A/B, depth 100000
+10:15 arm f16off (C:/Users/pwall/Projects/bonsai-2-27b-serve; GGML_CUDA_FA_PREFILL_F16=0): health=1; kv     tiered: cells 0..119040 in VRAM, 119040..262144 in system RAM (VRAM margin 1000 MiB)
+f16off: code   depth 100000 (evaluated 99933): prefill   735.3 tok/s  ttft 135.90s  decode   78.6 tok/s (400 tok)
+f16off chunk to   6144: 0.825 ms/tok
+f16off chunk to   8192: 0.850 ms/tok
+f16off chunk to  10240: 0.869 ms/tok
+f16off chunk to  12288: 0.894 ms/tok
+f16off chunk to  14336: 0.908 ms/tok
+f16off chunk to  16384: 0.942 ms/tok
+f16off chunk to  18432: 0.962 ms/tok
+f16off chunk to  20480: 0.996 ms/tok
+f16off chunk to  22528: 1.021 ms/tok
+f16off chunk to  24576: 1.045 ms/tok
+f16off chunk to  26624: 1.069 ms/tok
+f16off chunk to  28672: 1.094 ms/tok
+f16off chunk to  30720: 1.118 ms/tok
+f16off chunk to  32768: 1.143 ms/tok
+f16off chunk to  34816: 1.167 ms/tok
+f16off chunk to  36864: 1.191 ms/tok
+f16off chunk to  38912: 1.211 ms/tok
+f16off chunk to  40960: 1.245 ms/tok
+f16off chunk to  43008: 1.255 ms/tok
+f16off chunk to  45056: 1.289 ms/tok
+f16off chunk to  47104: 1.309 ms/tok
+f16off chunk to  49152: 1.333 ms/tok
+f16off chunk to  51200: 1.357 ms/tok
+f16off chunk to  53248: 1.387 ms/tok
+f16off chunk to  55296: 1.406 ms/tok
+f16off chunk to  57344: 1.431 ms/tok
+f16off chunk to  59392: 1.450 ms/tok
+f16off chunk to  61440: 1.489 ms/tok
+f16off chunk to  63488: 1.499 ms/tok
+f16off chunk to  65536: 1.528 ms/tok
+f16off chunk to  67584: 1.553 ms/tok
+f16off chunk to  69632: 1.582 ms/tok
+f16off chunk to  71680: 1.597 ms/tok
+f16off chunk to  73728: 1.626 ms/tok
+f16off chunk to  75776: 1.646 ms/tok
+f16off chunk to  77824: 1.675 ms/tok
+f16off chunk to  79872: 1.699 ms/tok
+f16off chunk to  81920: 1.719 ms/tok
+f16off chunk to  83968: 1.738 ms/tok
+f16off chunk to  86016: 1.772 ms/tok
+f16off chunk to  88064: 1.787 ms/tok
+f16off chunk to  90112: 1.816 ms/tok
+f16off chunk to  92160: 1.841 ms/tok
+f16off chunk to  94208: 1.860 ms/tok
+f16off chunk to  96256: 1.890 ms/tok
+f16off chunk to  98304: 1.909 ms/tok
+f16off chunk to  99417: 2.273 ms/tok
+f16off chunk to  99929: 1.465 ms/tok
+10:21 arm f16on (C:/Users/pwall/Projects/bonsai-2-27b-serve; GGML_CUDA_FA_PREFILL_F16=131072): health=1; kv     tiered: cells 0..119040 in VRAM, 119040..262144 in system RAM (VRAM margin 1000 MiB)
+f16on:     t = go(a.base, key, p, n, a.depth)
+f16on chunk to   6144: 0.820 ms/tok
+f16on chunk to   8192: 0.835 ms/tok
+greedy text tierab-f16on vs tierab-f16off: 0/0 identical
+tierab-f16off: decode mean 208.8 tok/s over 7 jobs
+tierab-f16on: decode mean 0.0 tok/s over 0 jobs
+10:21 === done
+10:24 === tier A/B, depth 60000
+10:24 arm f16off-64k (C:/Users/pwall/Projects/bonsai-2-27b-serve; BONSAI_TIER=0,BONSAI_CTX=65536,GGML_CUDA_FA_PREFILL_F16=0): health=1; 
+f16off-64k: code   depth  60000 (evaluated 59953): prefill   888.7 tok/s  ttft  67.46s  decode   87.6 tok/s (400 tok)
+f16off-64k chunk to   6144: 0.820 ms/tok
+f16off-64k chunk to   8192: 0.850 ms/tok
+f16off-64k chunk to  10240: 0.869 ms/tok
+f16off-64k chunk to  12288: 0.894 ms/tok
+f16off-64k chunk to  14336: 0.913 ms/tok
+f16off-64k chunk to  16384: 0.933 ms/tok
+f16off-64k chunk to  18432: 0.962 ms/tok
+f16off-64k chunk to  20480: 0.996 ms/tok
+f16off-64k chunk to  22528: 1.025 ms/tok
+f16off-64k chunk to  24576: 1.040 ms/tok
+f16off-64k chunk to  26624: 1.074 ms/tok
+f16off-64k chunk to  28672: 1.089 ms/tok
+f16off-64k chunk to  30720: 1.123 ms/tok
+f16off-64k chunk to  32768: 1.143 ms/tok
+f16off-64k chunk to  34816: 1.167 ms/tok
+f16off-64k chunk to  36864: 1.191 ms/tok
+f16off-64k chunk to  38912: 1.216 ms/tok
+f16off-64k chunk to  40960: 1.240 ms/tok
+f16off-64k chunk to  43008: 1.260 ms/tok
+f16off-64k chunk to  45056: 1.284 ms/tok
+f16off-64k chunk to  47104: 1.309 ms/tok
+f16off-64k chunk to  49152: 1.333 ms/tok
+f16off-64k chunk to  51200: 1.357 ms/tok
+f16off-64k chunk to  53248: 1.382 ms/tok
+f16off-64k chunk to  55296: 1.406 ms/tok
+f16off-64k chunk to  57344: 1.426 ms/tok
+f16off-64k chunk to  59392: 1.460 ms/tok
+f16off-64k chunk to  59437: 9.556 ms/tok
+f16off-64k chunk to  59949: 0.996 ms/tok
+10:29 arm f16on-64k (C:/Users/pwall/Projects/bonsai-2-27b-serve; BONSAI_TIER=0,BONSAI_CTX=65536,GGML_CUDA_FA_PREFILL_F16=65536): health=1; 
+f16on-64k: code   depth  60000 (evaluated 59953): prefill   898.2 tok/s  ttft  66.75s  decode   87.5 tok/s (400 tok)
+f16on-64k chunk to   6144: 0.820 ms/tok
+f16on-64k chunk to   8192: 0.835 ms/tok
+f16on-64k chunk to  10240: 0.864 ms/tok
+f16on-64k chunk to  12288: 0.889 ms/tok
+f16on-64k chunk to  14336: 0.913 ms/tok
+f16on-64k chunk to  16384: 0.938 ms/tok
+f16on-64k chunk to  18432: 0.962 ms/tok
+f16on-64k chunk to  20480: 0.981 ms/tok
+f16on-64k chunk to  22528: 1.011 ms/tok
+f16on-64k chunk to  24576: 1.030 ms/tok
+f16on-64k chunk to  26624: 1.055 ms/tok
+f16on-64k chunk to  28672: 1.079 ms/tok
+f16on-64k chunk to  30720: 1.099 ms/tok
+f16on-64k chunk to  32768: 1.123 ms/tok
+f16on-64k chunk to  34816: 1.157 ms/tok
+f16on-64k chunk to  36864: 1.172 ms/tok
+f16on-64k chunk to  38912: 1.191 ms/tok
+f16on-64k chunk to  40960: 1.230 ms/tok
+f16on-64k chunk to  43008: 1.240 ms/tok
+f16on-64k chunk to  45056: 1.274 ms/tok
+f16on-64k chunk to  47104: 1.294 ms/tok
+f16on-64k chunk to  49152: 1.309 ms/tok
+f16on-64k chunk to  51200: 1.338 ms/tok
+f16on-64k chunk to  53248: 1.367 ms/tok
+f16on-64k chunk to  55296: 1.387 ms/tok
+f16on-64k chunk to  57344: 1.416 ms/tok
+f16on-64k chunk to  59392: 1.445 ms/tok
+f16on-64k chunk to  59437: 9.556 ms/tok
+f16on-64k chunk to  59949: 1.016 ms/tok
+greedy text tierab-f16on-64k vs tierab-f16off-64k: 7/7 identical
+tierab-f16off-64k: decode mean 211.6 tok/s over 7 jobs
+tierab-f16on-64k: decode mean 194.9 tok/s over 7 jobs
+10:33 === done
+11:55 === tier A/B, depth 60000
+11:55 arm f16off-64k (C:/Users/pwall/Projects/bonsai-2-27b-serve; BONSAI_TIER=0,BONSAI_CTX=65536,GGML_CUDA_FA_PREFILL_F16=0): health=1; 
+f16off-64k: code   depth  60000 (evaluated 59953): prefill   887.6 tok/s  ttft  67.54s  decode   88.0 tok/s (400 tok)
+f16off-64k chunk to   6144: 0.825 ms/tok
+f16off-64k chunk to   8192: 0.850 ms/tok
+f16off-64k chunk to  10240: 0.869 ms/tok
+f16off-64k chunk to  12288: 0.894 ms/tok
+f16off-64k chunk to  14336: 0.913 ms/tok
+f16off-64k chunk to  16384: 0.933 ms/tok
+f16off-64k chunk to  18432: 0.962 ms/tok
+f16off-64k chunk to  20480: 1.001 ms/tok
+f16off-64k chunk to  22528: 1.021 ms/tok
+f16off-64k chunk to  24576: 1.045 ms/tok
+f16off-64k chunk to  26624: 1.069 ms/tok
+f16off-64k chunk to  28672: 1.099 ms/tok
+f16off-64k chunk to  30720: 1.118 ms/tok
+f16off-64k chunk to  32768: 1.147 ms/tok
+f16off-64k chunk to  34816: 1.162 ms/tok
+f16off-64k chunk to  36864: 1.191 ms/tok
+f16off-64k chunk to  38912: 1.216 ms/tok
+f16off-64k chunk to  40960: 1.240 ms/tok
+f16off-64k chunk to  43008: 1.260 ms/tok
+f16off-64k chunk to  45056: 1.284 ms/tok
+f16off-64k chunk to  47104: 1.313 ms/tok
+f16off-64k chunk to  49152: 1.338 ms/tok
+f16off-64k chunk to  51200: 1.353 ms/tok
+f16off-64k chunk to  53248: 1.382 ms/tok
+f16off-64k chunk to  55296: 1.411 ms/tok
+f16off-64k chunk to  57344: 1.436 ms/tok
+f16off-64k chunk to  59392: 1.460 ms/tok
+f16off-64k chunk to  59437: 9.778 ms/tok
+f16off-64k chunk to  59949: 0.996 ms/tok
+12:00 arm minq64-64k (C:/Users/pwall/AppData/Local/Temp/root-minq; BONSAI_TIER=0,BONSAI_CTX=65536,GGML_CUDA_FA_PREFILL_F16=65536): health=1; 
+minq64-64k: code   depth  60000 (evaluated 59953): prefill   898.0 tok/s  ttft  66.77s  decode   87.6 tok/s (400 tok)
+minq64-64k chunk to   6144: 0.815 ms/tok
+minq64-64k chunk to   8192: 0.840 ms/tok
+minq64-64k chunk to  10240: 0.864 ms/tok
+minq64-64k chunk to  12288: 0.889 ms/tok
+minq64-64k chunk to  14336: 0.913 ms/tok
+minq64-64k chunk to  16384: 0.933 ms/tok
+minq64-64k chunk to  18432: 0.967 ms/tok
+minq64-64k chunk to  20480: 0.986 ms/tok
+minq64-64k chunk to  22528: 1.006 ms/tok
+minq64-64k chunk to  24576: 1.035 ms/tok
+minq64-64k chunk to  26624: 1.055 ms/tok
+minq64-64k chunk to  28672: 1.079 ms/tok
+minq64-64k chunk to  30720: 1.108 ms/tok
+minq64-64k chunk to  32768: 1.128 ms/tok
+minq64-64k chunk to  34816: 1.147 ms/tok
+minq64-64k chunk to  36864: 1.177 ms/tok
+minq64-64k chunk to  38912: 1.191 ms/tok
+minq64-64k chunk to  40960: 1.226 ms/tok
+minq64-64k chunk to  43008: 1.245 ms/tok
+minq64-64k chunk to  45056: 1.270 ms/tok
+minq64-64k chunk to  47104: 1.294 ms/tok
+minq64-64k chunk to  49152: 1.318 ms/tok
+minq64-64k chunk to  51200: 1.343 ms/tok
+minq64-64k chunk to  53248: 1.362 ms/tok
+minq64-64k chunk to  55296: 1.392 ms/tok
+minq64-64k chunk to  57344: 1.416 ms/tok
+minq64-64k chunk to  59392: 1.440 ms/tok
+minq64-64k chunk to  59437: 9.333 ms/tok
+minq64-64k chunk to  59949: 1.016 ms/tok
+12:04 arm minq9-64k (C:/Users/pwall/AppData/Local/Temp/root-minq; BONSAI_TIER=0,BONSAI_CTX=65536,GGML_CUDA_FA_PREFILL_F16=65536,GGML_CUDA_FA_PREFILL_F16_MIN_Q=9): health=1; 
+minq9-64k: code   depth  60000 (evaluated 59953): prefill   896.3 tok/s  ttft  66.89s  decode   88.3 tok/s (400 tok)
+minq9-64k chunk to   6144: 0.820 ms/tok
+minq9-64k chunk to   8192: 0.840 ms/tok
+minq9-64k chunk to  10240: 0.869 ms/tok
+minq9-64k chunk to  12288: 0.889 ms/tok
+minq9-64k chunk to  14336: 0.908 ms/tok
+minq9-64k chunk to  16384: 0.942 ms/tok
+minq9-64k chunk to  18432: 0.957 ms/tok
+minq9-64k chunk to  20480: 1.006 ms/tok
+minq9-64k chunk to  22528: 1.011 ms/tok
+minq9-64k chunk to  24576: 1.025 ms/tok
+minq9-64k chunk to  26624: 1.060 ms/tok
+minq9-64k chunk to  28672: 1.079 ms/tok
+minq9-64k chunk to  30720: 1.104 ms/tok
+minq9-64k chunk to  32768: 1.133 ms/tok
+minq9-64k chunk to  34816: 1.147 ms/tok
+minq9-64k chunk to  36864: 1.172 ms/tok
+minq9-64k chunk to  38912: 1.201 ms/tok
+minq9-64k chunk to  40960: 1.226 ms/tok
+minq9-64k chunk to  43008: 1.240 ms/tok
+minq9-64k chunk to  45056: 1.274 ms/tok
+minq9-64k chunk to  47104: 1.299 ms/tok
+minq9-64k chunk to  49152: 1.323 ms/tok
+minq9-64k chunk to  51200: 1.338 ms/tok
+minq9-64k chunk to  53248: 1.372 ms/tok
+minq9-64k chunk to  55296: 1.387 ms/tok
+minq9-64k chunk to  57344: 1.416 ms/tok
+minq9-64k chunk to  59392: 1.440 ms/tok
+minq9-64k chunk to  59437: 9.778 ms/tok
+minq9-64k chunk to  59949: 1.035 ms/tok
+greedy text tierab-minq64-64k vs tierab-f16off-64k: 7/7 identical
+greedy text tierab-minq9-64k vs tierab-f16off-64k: 7/7 identical
+tierab-f16off-64k: decode mean 212.3 tok/s over 7 jobs
+tierab-minq64-64k: decode mean 212.4 tok/s over 7 jobs
+tierab-minq9-64k: decode mean 195.4 tok/s over 7 jobs
+12:09 === done

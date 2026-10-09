@@ -1,0 +1,13 @@
+11:55 === tier A/B, depth 60000
+11:55 arm f16off-64k (C:/Users/pwall/Projects/bonsai-2-27b-serve; BONSAI_TIER=0,BONSAI_CTX=65536,GGML_CUDA_FA_PREFILL_F16=0): health=1; 
+f16off-64k: code   depth  60000 (evaluated 59953): prefill   887.6 tok/s  ttft  67.54s  decode   88.0 tok/s (400 tok)
+12:00 arm minq64-64k (C:/Users/pwall/AppData/Local/Temp/root-minq; BONSAI_TIER=0,BONSAI_CTX=65536,GGML_CUDA_FA_PREFILL_F16=65536): health=1; 
+minq64-64k: code   depth  60000 (evaluated 59953): prefill   898.0 tok/s  ttft  66.77s  decode   87.6 tok/s (400 tok)
+12:04 arm minq9-64k (C:/Users/pwall/AppData/Local/Temp/root-minq; BONSAI_TIER=0,BONSAI_CTX=65536,GGML_CUDA_FA_PREFILL_F16=65536,GGML_CUDA_FA_PREFILL_F16_MIN_Q=9): health=1; 
+minq9-64k: code   depth  60000 (evaluated 59953): prefill   896.3 tok/s  ttft  66.89s  decode   88.3 tok/s (400 tok)
+greedy text tierab-minq64-64k vs tierab-f16off-64k: 7/7 identical
+greedy text tierab-minq9-64k vs tierab-f16off-64k: 7/7 identical
+tierab-f16off-64k: decode mean 212.3 tok/s over 7 jobs
+tierab-minq64-64k: decode mean 212.4 tok/s over 7 jobs
+tierab-minq9-64k: decode mean 195.4 tok/s over 7 jobs
+12:09 === done
