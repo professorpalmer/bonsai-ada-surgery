@@ -1,0 +1,71 @@
+From 5251968b01a28ca6b59613254efd58e639586ad8 Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Thu, 8 Oct 2026 12:06:26 -0500
+Subject: [PATCH] server: --checkpoint-every-nt N also checkpoints inside a
+ long message every N prompt tokens (off by default); a prompt that diverges
+ inside a long message restores the nearest checkpoint instead of processing
+ the whole prompt again
+
+---
+ common/arg.cpp                  | 13 +++++++++++++
+ common/common.h                 |  1 +
+ tools/server/server-context.cpp |  7 +++++--
+ 3 files changed, 19 insertions(+), 2 deletions(-)
+
+diff --git a/common/arg.cpp b/common/arg.cpp
+index 60e019009..0ebbf42fa 100644
+--- a/common/arg.cpp
++++ b/common/arg.cpp
+@@ -1701,6 +1701,19 @@ common_params_context common_params_parser_init(common_params & params, llama_ex
+             params.checkpoint_min_step = value;
+         }
+     ).set_env("LLAMA_ARG_CHECKPOINT_MIN_SPACING_NT").set_examples({LLAMA_EXAMPLE_SERVER}));
++    add_opt(common_arg(
++        {"-cent", "--checkpoint-every-nt"}, "N",
++        string_format("also create a context checkpoint inside a long message every N prompt tokens, so a later prompt\n"
++                      "that diverges inside that message restores the nearest checkpoint instead of processing the whole\n"
++                      "prompt again (hybrid / recurrent models; default: %d, 0 = only at user messages and the prompt end)",
++                      params.checkpoint_every_nt),
++        [](common_params & params, int value) {
++            if (value < 0) {
++                throw std::invalid_argument("checkpoint-every-nt must be non-negative");
++            }
++            params.checkpoint_every_nt = value;
++        }
++    ).set_examples({LLAMA_EXAMPLE_SERVER}).set_env("LLAMA_ARG_CHECKPOINT_EVERY_NT"));
+     add_opt(common_arg(
+         {"-cram", "--cache-ram"}, "N",
+         string_format("set the maximum cache size in MiB (default: %d, -1 - no limit, 0 - disable)"
+diff --git a/common/common.h b/common/common.h
+index 400795253..c3c8ec874 100644
+--- a/common/common.h
++++ b/common/common.h
+@@ -642,6 +642,7 @@ struct common_params {
+     bool    cache_idle_slots    = true;  // save and clear idle slots upon starting a new task
+     int32_t n_ctx_checkpoints   = 32;    // max number of context checkpoints per slot
+     int32_t checkpoint_min_step = 8192;  // minimum spacing between context checkpoints
++    int32_t checkpoint_every_nt = 0;     // also checkpoint inside a long message every N prompt tokens (0 = off)
+     int32_t cache_ram_mib       = 8192;  // -1 = no limit, 0 - disable, 1 = 1 MiB, etc.
+ 
+     std::string hostname      = "127.0.0.1";
+diff --git a/tools/server/server-context.cpp b/tools/server/server-context.cpp
+index 97d4e0c09..63e4fa930 100644
+--- a/tools/server/server-context.cpp
++++ b/tools/server/server-context.cpp
+@@ -3576,8 +3576,11 @@ private:
+                         slot.init_sampler();
+                     } else {
+                         // skip ordinary mid-prompt checkpoints, unless the batch starts a user
+-                        // message or we are near the end of the prompt
+-                        if (!is_user_start && !near_prompt_end) {
++                        // message, we are near the end of the prompt, or --checkpoint-every-nt is due
++                        const bool every_nt_due = params_base.checkpoint_every_nt > 0 &&
++                            n_tokens_start >= (slot.prompt.checkpoints.empty() ? 0 : slot.prompt.checkpoints.back().n_tokens) +
++                                              params_base.checkpoint_every_nt;
++                        if (!is_user_start && !near_prompt_end && !every_nt_due) {
+                             do_checkpoint = false;
+                         }
+                     }
+-- 
+2.52.0.windows.1
+
