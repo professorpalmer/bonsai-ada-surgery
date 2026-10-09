@@ -268,10 +268,28 @@ if ($Tier) {
     }
 }
 
+# Checkpoints inside long messages (patch 0046) on the 12 GB recipe too. A prompt that changes inside one long message
+# (an edited tool result, a file sent again) then restores the nearest checkpoint instead of reading the whole prompt
+# again: RTX 4070, 64.5 -> 15.5 s at 64k and 230 -> 49 s at 160k per request, text identical
+# (receipts/ckpt_every_nt_12gb.jsonl). It costs no VRAM, and it does not raise the server's limit of 32 checkpoints per
+# slot (~170 MiB of system RAM each), which the server already fills in a long session with checkpoints at the ends of
+# requests; it only places some inside long messages too. Long prompts that need no restore take about 1 s longer.
+# BONSAI_CKPT_EVERY=0 turns it off; a number sets the spacing in tokens.
+$CkptNote = ''
+if (-not $Small -and $Help -match '--checkpoint-every-nt' -and -not $env:LLAMA_ARG_CHECKPOINT_EVERY_NT) {
+    if ($env:BONSAI_CKPT_EVERY -eq '0') {
+        $CkptNote = 'only at user messages and prompt ends (BONSAI_CKPT_EVERY=0)'
+    } else {
+        $env:LLAMA_ARG_CHECKPOINT_EVERY_NT = if ($env:BONSAI_CKPT_EVERY) { $env:BONSAI_CKPT_EVERY } else { '8192' }
+        $CkptNote = "also every $($env:LLAMA_ARG_CHECKPOINT_EVERY_NT) tokens inside long messages (BONSAI_CKPT_EVERY=0 turns it off)"
+    }
+}
+
 if ($Small) { Write-Host "8gb    preset on ($TotalMiB MiB card; BONSAI_8GB=0 turns it off): ub $Ubatch, f16 prefill to $($env:GGML_CUDA_FA_PREFILL_F16) cells" }
 Write-Host "model  $(Split-Path $Model -Leaf)"
 Write-Host "window $Ctx / $Ctk  (trained max 262144)"
 if ($TierCells -gt 0) { Write-Host "kv     tiered: cells 0..$TierCells in VRAM, $TierCells..$Ctx in system RAM$(if ($Margin) { " (VRAM margin $Margin MiB)" })$(if ($PoolMiB) { "; shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off)" })" }
+if ($CkptNote) { Write-Host "ckpt   $CkptNote" }
 if ($TierCells -gt 0 -and $FreeMiB) {
     # Issue #7: other programs held 2.3 GB at one start, so the line was at 105k instead of 243k and a 147k session
     # read 41k cells over PCIe each step. Show the free VRAM, so a low line has a visible cause.
