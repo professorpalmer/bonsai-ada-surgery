@@ -1,0 +1,41 @@
+12:31 arm m-off (BONSAI_KV_VRAM_CELLS=110592): health=1; kv     tiered: cells 0..110592 in VRAM, 110592..262144 in system RAM
+code   depth  32000 (evaluated 32044): prefill  1033.6 tok/s  ttft  31.00s  decode   93.6 tok/s (400 tok)
+prose  depth  32000 (evaluated 512): prefill   653.2 tok/s  ttft   0.78s  decode   77.8 tok/s (400 tok)
+bash   depth  32000 (evaluated 516): prefill   693.0 tok/s  ttft   0.74s  decode   84.5 tok/s (400 tok)
+mean decode 85.3 tok/s
+12:32 m-off used 11422 MiB
+12:32 arm m-on (BONSAI_KV_VRAM_CELLS=110592 BONSAI_SHARED_POOL=1): health=1; kv     tiered: cells 0..110592 in VRAM, 110592..262144 in system RAM
+code   depth  32000 (evaluated 32044): prefill  1029.9 tok/s  ttft  31.11s  decode   93.6 tok/s (400 tok)
+prose  depth  32000 (evaluated 512): prefill   680.0 tok/s  ttft   0.75s  decode   77.0 tok/s (400 tok)
+bash   depth  32000 (evaluated 516): prefill   691.5 tok/s  ttft   0.75s  decode   84.1 tok/s (400 tok)
+mean decode 84.9 tok/s
+12:33 m-on used 11348 MiB
+12:33 saving: 11422 - 11348 MiB, BONSAI_POOL_MIB=42
+12:33 arm off-131000 (): health=1; kv     tiered: cells 0..118784 in VRAM, 118784..262144 in system RAM (VRAM margin 1000 MiB)
+code   depth 131000 (evaluated 130306): prefill   646.2 tok/s  ttft 201.66s  decode   45.5 tok/s (400 tok)
+prose  depth 131000 (evaluated 512): prefill   361.2 tok/s  ttft   1.42s  decode   30.4 tok/s (400 tok)
+bash   depth 131000 (evaluated 516): prefill   377.0 tok/s  ttft   1.37s  decode   41.9 tok/s (400 tok)
+mean decode 39.3 tok/s
+12:37 arm on-131000 (BONSAI_SHARED_POOL=1 BONSAI_POOL_MIB=42): health=1; kv     tiered: cells 0..120064 in VRAM, 120064..262144 in system RAM (VRAM margin 1000 MiB)
+code   depth 131000 (evaluated 130306): prefill   645.7 tok/s  ttft 201.80s  decode   47.4 tok/s (400 tok)
+prose  depth 131000 (evaluated 512): prefill   376.1 tok/s  ttft   1.36s  decode   31.8 tok/s (400 tok)
+bash   depth 131000 (evaluated 516): prefill   378.3 tok/s  ttft   1.36s  decode   43.7 tok/s (400 tok)
+mean decode 41.0 tok/s
+12:42 arm off-180000 (): health=1; kv     tiered: cells 0..118784 in VRAM, 118784..262144 in system RAM (VRAM margin 1000 MiB)
+code   depth 180000 (evaluated 179048): prefill   544.7 tok/s  ttft 328.71s  decode   23.7 tok/s (400 tok)
+prose  depth 180000 (evaluated 512): prefill   289.8 tok/s  ttft   1.77s  decode   17.8 tok/s (400 tok)
+bash   depth 180000 (evaluated 516): prefill   295.9 tok/s  ttft   1.74s  decode   20.4 tok/s (400 tok)
+mean decode 20.7 tok/s
+12:48 arm on-180000 (BONSAI_SHARED_POOL=1 BONSAI_POOL_MIB=42): health=1; kv     tiered: cells 0..120064 in VRAM, 120064..262144 in system RAM (VRAM margin 1000 MiB)
+code   depth 180000 (evaluated 179048): prefill   544.3 tok/s  ttft 328.94s  decode   24.4 tok/s (400 tok)
+prose  depth 180000 (evaluated 512): prefill   294.6 tok/s  ttft   1.74s  decode   18.4 tok/s (400 tok)
+bash   depth 180000 (evaluated 516): prefill   299.9 tok/s  ttft   1.72s  decode   20.9 tok/s (400 tok)
+mean decode 21.2 tok/s
+12:55 fresh long prompts with the pool on (1-token check)
+{"tag": "pool-on", "depth": 20000, "prompt_n": 20123, "completion": 42, "finish": "stop", "head": "The records above are a sequence of numbered notes, each describing a ", "seconds": 18.9}
+{"tag": "pool-on", "depth": 30000, "prompt_n": 29730, "completion": 36, "finish": "stop", "head": "The records are a sequence of numbered notes, each describing a specif", "seconds": 29.1}
+{"tag": "pool-on", "depth": 33000, "prompt_n": 32741, "completion": 40, "finish": "stop", "head": "The records above are a list of report entries that each specify a rep", "seconds": 32.9}
+{"tag": "pool-on", "depth": 40000, "prompt_n": 39739, "completion": 49, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 41.5}
+{"tag": "pool-on", "depth": 60000, "prompt_n": 59685, "completion": 52, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 68.9}
+12:59 === done
+12:59 === done

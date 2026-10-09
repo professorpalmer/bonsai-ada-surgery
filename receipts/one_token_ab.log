@@ -38,3 +38,10 @@
 {"tag": "8gb-bundle0046", "depth": 40000, "prompt_n": 39742, "completion": 49, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 40.7}
 {"tag": "8gb-bundle0046", "depth": 60000, "prompt_n": 59724, "completion": 52, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 66.9}
 08:07 === done
+12:55 arm pool-on (BONSAI_TIER=1,BONSAI_CTX=262144,BONSAI_SHARED_POOL=1,BONSAI_POOL_MIB=42): health=1; window 262144 / q8_0  (trained max 262144) kv     tiered: cells 0..120064 in VRAM, 120064..262144 in system RAM (VRAM margin 1000 MiB) 
+{"tag": "pool-on", "depth": 20000, "prompt_n": 20123, "completion": 42, "finish": "stop", "head": "The records above are a sequence of numbered notes, each describing a ", "seconds": 18.9}
+{"tag": "pool-on", "depth": 30000, "prompt_n": 29730, "completion": 36, "finish": "stop", "head": "The records are a sequence of numbered notes, each describing a specif", "seconds": 29.1}
+{"tag": "pool-on", "depth": 33000, "prompt_n": 32741, "completion": 40, "finish": "stop", "head": "The records above are a list of report entries that each specify a rep", "seconds": 32.9}
+{"tag": "pool-on", "depth": 40000, "prompt_n": 39739, "completion": 49, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 41.5}
+{"tag": "pool-on", "depth": 60000, "prompt_n": 59685, "completion": 52, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 68.9}
+12:59 === done
