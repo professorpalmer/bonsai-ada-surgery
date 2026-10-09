@@ -149,6 +149,19 @@ $Spec = if ($env:BONSAI_SPEC) { [int]$env:BONSAI_SPEC } elseif ((Split-Path $Mod
 # 8 GB: tail 1. The recurrent-state rollback ring is sized max(draft, tail); tail 2 holds one more 150 MiB plane.
 $SpecDeep = if ($env:BONSAI_SPEC_DEEP) { [int]$env:BONSAI_SPEC_DEEP } elseif ($Small) { 1 } else { 4 }
 $Ubatch = if ($env:BONSAI_UBATCH) { [int]$env:BONSAI_UBATCH } elseif ($Small -and $Spec -eq 0) { 1024 } else { 512 }
+# 12 GB recipe: one CUDA pool for the main and the MTP draft context and a 256-token draft micro-batch, as the Mirai S
+# serve does. Measured on the RTX 4070 (receipts/pool_ab.log): 74 MiB less VRAM after a 32k request, so the VRAM line
+# moves up ~1.3k positions (118,784 -> 120,064); decode 39.3 -> 41.0 tok/s at 131k, 20.7 -> 21.2 at 180k, the same at
+# 32k; fresh 20k-60k prompts: normal answers. Safe with MTP drafting only since patch 0045 (the two streams are
+# ordered), so it is on only with an engine that has 0046 (every bundle with 0046 has 0045); BONSAI_SHARED_POOL=0 turns
+# it off. BONSAI_POOL_MIB = the VRAM it saves, added to the VRAM line (42 = the 74 measured, minus a 32 MiB reserve).
+$PoolMiB = 0
+$PoolOn = if ($env:BONSAI_SHARED_POOL) { $env:BONSAI_SHARED_POOL -eq '1' } else { $Help -match '--checkpoint-every-nt' }
+if (-not $Small -and $PoolOn -and $Spec -gt 0) {
+    if (-not $env:GGML_CUDA_SHARED_POOL) { $env:GGML_CUDA_SHARED_POOL = '1' }
+    if (-not $env:LLAMA_MTP_DRAFT_UBATCH) { $env:LLAMA_MTP_DRAFT_UBATCH = '256' }
+    $PoolMiB = if ($env:BONSAI_POOL_MIB) { [int]$env:BONSAI_POOL_MIB } else { 42 }
+}
 if ($Small) {
     # engine switches (ignored by older binaries): a smaller draft micro-batch, and f16 prefill from pool memory up to
     # the depth the margin holds. Not the shared CUDA pool (GGML_CUDA_SHARED_POOL): with MTP drafting it gave 1-token
@@ -233,7 +246,7 @@ if ($Tier) {
         if ($Adapters.Count -eq 1 -and $Adapters[0].CurrentHorizontalResolution -and $OtherDisplays.Count -eq 0) { $Headless = $false }
         $Margin = if ($env:BONSAI_VRAM_MARGIN) { [int]$env:BONSAI_VRAM_MARGIN } elseif ($Headless) { 1000 } else { 1300 }
         # weights (the token embedding stays in system RAM), recurrent state, compute buffers, CUDA context
-        $FixedMiB = (Get-Item $Model).Length / 1MB - 265 + 150 + 400 + 300 + $DraftCells * $CellBytes / 16 / 1MB + $MmprojMiB
+        $FixedMiB = (Get-Item $Model).Length / 1MB - 265 + 150 + 400 + 300 + $DraftCells * $CellBytes / 16 / 1MB + $MmprojMiB - $PoolMiB
         if ($Small) {
             # measured on an RTX 2060 SUPER with the desktop on it (docs/8GB.md): the server's fixed cost per mode
             # and the free VRAM that held (drafting: 225 MiB; no head: 400, room for the f16 prefill copy at 64k)
@@ -258,7 +271,7 @@ if ($Tier) {
 if ($Small) { Write-Host "8gb    preset on ($TotalMiB MiB card; BONSAI_8GB=0 turns it off): ub $Ubatch, f16 prefill to $($env:GGML_CUDA_FA_PREFILL_F16) cells" }
 Write-Host "model  $(Split-Path $Model -Leaf)"
 Write-Host "window $Ctx / $Ctk  (trained max 262144)"
-if ($TierCells -gt 0) { Write-Host "kv     tiered: cells 0..$TierCells in VRAM, $TierCells..$Ctx in system RAM$(if ($Margin) { " (VRAM margin $Margin MiB)" })" }
+if ($TierCells -gt 0) { Write-Host "kv     tiered: cells 0..$TierCells in VRAM, $TierCells..$Ctx in system RAM$(if ($Margin) { " (VRAM margin $Margin MiB)" })$(if ($PoolMiB) { "; shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off)" })" }
 if ($TierCells -gt 0 -and $FreeMiB) {
     # Issue #7: other programs held 2.3 GB at one start, so the line was at 105k instead of 243k and a 147k session
     # read 41k cells over PCIe each step. Show the free VRAM, so a low line has a visible cause.
