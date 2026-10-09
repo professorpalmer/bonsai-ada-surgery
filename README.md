@@ -117,6 +117,11 @@ the tiered-KV runtime are detected and get the previous 96k all-VRAM recipe.
 
 ### Upgrading from an older bundle
 
+`bundle-20261009-agent` turns on **checkpoints inside long messages** for the 12 GB recipe too (patch 0046; the 8 GB
+preset had it already). When an agent edits a tool result or sends a file again, the server restores the nearest
+checkpoint instead of reading the whole prompt again: RTX 4070, 64.5 -> 15.5 s per request at 64k and 230 -> 49 s at
+160k, text identical. It costs no VRAM and does not raise the server's limit of 32 checkpoints per slot (which a long
+session already fills); long prompts that need no restore take about 1 s longer. `BONSAI_CKPT_EVERY=0` turns it off.
 `bundle-20261009-pool` turns on the **shared CUDA pool** for the 12 GB recipe (one memory pool for the main and the
 MTP draft context, and a 256-token draft micro-batch). It saves 74 MiB of VRAM, so the VRAM line moves up about 1.3k
 positions: decode 39.3 -> 41.0 tok/s at 131k and 20.7 -> 21.2 at 180k on the RTX 4070, the same below the line; fresh
@@ -126,8 +131,8 @@ the pool safe with drafting); `BONSAI_SHARED_POOL=0` turns it off. Engine unchan
 recurrent state only at user-message starts and at the prompt end, so a prompt that changes inside one long message
 (an edited tool result, a file sent again) was processed again from the start. With `--checkpoint-every-nt` the
 server also keeps a checkpoint every N tokens. The 8 GB preset sets 8192 (RTX 2060 SUPER at 64k: 227 -> 60.5 s per
-request; `BONSAI_CKPT_EVERY=0` turns it off). The 12 GB default stays off, because each checkpoint takes about
-170 MiB of system RAM (at most 32); measured there for reference: 64.5 -> 15.5 s at 64k, 230 -> 49 s at 160k, text
+request; `BONSAI_CKPT_EVERY=0` turns it off). On the 12 GB recipe it is on since `bundle-20261009-agent`;
+measured there: 64.5 -> 15.5 s at 64k, 230 -> 49 s at 160k, text
 identical. The launcher also shows the free VRAM at start and gives a warning when other programs hold much of it
 (a start with 2.3 GB held put the VRAM line at 105k instead of 243k).
 `bundle-20261008-8gbfix` fixes **1-token answers on 8 GB cards**. Since `bundle-20261007-8gb` the 8 GB preset turned
