@@ -31,3 +31,10 @@
 {"tag": "8gb-bundle0045", "depth": 40000, "prompt_n": 39745, "completion": 35, "finish": "stop", "head": "The records are a sequence of numbered notes, each describing a specif", "seconds": 40.5}
 {"tag": "8gb-bundle0045", "depth": 60000, "prompt_n": 59722, "completion": 44, "finish": "stop", "head": "The records above are a list of report entries that each specify a rep", "seconds": 66.6}
 22:16 === done
+08:04 arm 8gb-bundle0046 (BONSAI_8GB=1,BONSAI_TIER=1,BONSAI_CTX=131072): health=1; window 131072 / q4_0  (trained max 262144) 
+{"tag": "8gb-bundle0046", "depth": 20000, "prompt_n": 20124, "completion": 52, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 18.7}
+{"tag": "8gb-bundle0046", "depth": 30000, "prompt_n": 29730, "completion": 32, "finish": "stop", "head": "The records above are a sequence of report entries that each list a sp", "seconds": 28.8}
+{"tag": "8gb-bundle0046", "depth": 33000, "prompt_n": 32743, "completion": 37, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 32.4}
+{"tag": "8gb-bundle0046", "depth": 40000, "prompt_n": 39742, "completion": 49, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 40.7}
+{"tag": "8gb-bundle0046", "depth": 60000, "prompt_n": 59724, "completion": 52, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 66.9}
+08:07 === done

@@ -117,6 +117,14 @@ the tiered-KV runtime are detected and get the previous 96k all-VRAM recipe.
 
 ### Upgrading from an older bundle
 
+`bundle-20261009-ckpt` adds patch 0046: **context checkpoints inside long messages**. This model keeps its
+recurrent state only at user-message starts and at the prompt end, so a prompt that changes inside one long message
+(an edited tool result, a file sent again) was processed again from the start. With `--checkpoint-every-nt` the
+server also keeps a checkpoint every N tokens. The 8 GB preset sets 8192 (RTX 2060 SUPER at 64k: 227 -> 60.5 s per
+request; `BONSAI_CKPT_EVERY=0` turns it off). The 12 GB default stays off, because each checkpoint takes about
+170 MiB of system RAM (at most 32); measured there for reference: 64.5 -> 15.5 s at 64k, 230 -> 49 s at 160k, text
+identical. The launcher also shows the free VRAM at start and gives a warning when other programs hold much of it
+(a start with 2.3 GB held put the VRAM line at 105k instead of 243k).
 `bundle-20261008-8gbfix` fixes **1-token answers on 8 GB cards**. Since `bundle-20261007-8gb` the 8 GB preset turned
 on a shared CUDA memory pool for the main and the MTP draft context. The two contexts run on two CUDA streams, and a
 block freed by one could be reused by the other too early: on an RTX 2060 SUPER, a fresh prompt longer than about
@@ -317,7 +325,7 @@ Cards are proven on two library families and not on a third. Token cost through 
 
 ## The patch stack
 
-Everything is submitted upstream to PrismML; this repo ships the combined stack now: 45 commits on
+Everything is submitted upstream to PrismML; this repo ships the combined stack now: 46 commits on
 `prism@adfffbe`, as `git am`-able patches in [`patches/`](patches/), as the branch
 [`bonsai-q8-product`](https://github.com/professorpalmer/llama.cpp-ada-ternary/tree/bonsai-q8-product), and as
 Windows binaries on [Releases](../../releases). Merged upstream already: #214 (branch-free PTQ1_0 MMQ tile loader,
@@ -363,7 +371,7 @@ How each cut was found (CUPTI traces, L1 wavefront counts, what did not work):
 
 ## Quick start (Linux, NVIDIA)
 
-`build/build_linux.sh` fetches the pinned PrismML source (`adfffbe`) and applies **all 45 bundled patches**,
+`build/build_linux.sh` fetches the pinned PrismML source (`adfffbe`) and applies **all 46 bundled patches**,
 including the `common.cuh` header fix (0024) and the Hopper/Blackwell PDL dependency wait (0026). No manual patch
 application or Git author configuration is needed. There is no prebuilt Linux binary yet.
 
