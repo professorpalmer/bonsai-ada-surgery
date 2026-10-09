@@ -64,6 +64,9 @@ agreement 99.38%; q4_0 0.00218, 97.93%. The previous 12 GB routes to 262k all us
 5. **Draft size past the VRAM line** (`--spec-draft-n-max-tail 4`): a PCIe-bound step makes each extra verify
    column nearly free. +26% code / +15% prose at 180k for 4 vs 2. Below the line 2 stays best (prose at 16k: 87 vs
    82.5 for 3; code +3% for 3).
+   Larger sizes at 160k (2026-10-09, `bench/tail_draft_ab.sh`, `receipts/tail_draft_ab.jsonl`, with lookup): 6 against
+   4 gives file rewrites +4%, edit calls +6%, new text -3% (prose and bash -8%); 8 is slower in all three groups
+   (-15% to -19%). 4 stays.
 6. **Harness-proofing** (`--reasoning-effort-allow medium`, `--reasoning-max-tokens-floor 24576`). Effort words the
    template does not accept ("high" -> HTTP 500 in Cline, Kilo, Open WebUI) become medium, and so do `low` and
    `xhigh` (medium beats both at every output cap in Killy's grid; PrismML's card says low behaves close to xhigh).

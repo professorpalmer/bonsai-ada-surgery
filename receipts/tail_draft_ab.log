@@ -1,0 +1,7 @@
+08:26 arm tail4: health=1; spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lookup draft; kv     tiered: cells 0..118784 in VRAM, 118784..262144 in system RAM (VRAM margin 1000 MiB)
+{"tag": "tail4", "depth": 160000, "kind": "edit", "item": "csv.py", "tps": 66.9, "n": 237, "draft_n": 264, "draft_acc": 209, "sha": "34626552c9d9", "wall": 22.1}
+08:39 arm tail6: health=1; spec   draft 2 (6 past the VRAM line), draft window 16384 (MTP on); lookup draft; kv     tiered: cells 0..118784 in VRAM, 118784..262144 in system RAM (VRAM margin 1000 MiB)
+{"tag": "tail6", "depth": 160000, "kind": "edit", "item": "csv.py", "tps": 67.9, "n": 237, "draft_n": 288, "draft_acc": 213, "sha": "34626552c9d9", "wall": 22.1}
+08:52 arm tail8: health=1; spec   draft 2 (8 past the VRAM line), draft window 16384 (MTP on); lookup draft; kv     tiered: cells 0..118784 in VRAM, 118784..262144 in system RAM (VRAM margin 1000 MiB)
+{"tag": "tail8", "depth": 160000, "kind": "edit", "item": "csv.py", "tps": 58.8, "n": 237, "draft_n": 296, "draft_acc": 216, "sha": "34626552c9d9", "wall": 34.2}
+09:16 === done
