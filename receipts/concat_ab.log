@@ -1,0 +1,30 @@
+23:53 arm old (C:/Users/pwall/Projects/bonsai-2-27b-serve): health=1; kv     tiered: cells 0..128000 in VRAM, 128000..262144 in system RAM (VRAM margi
+code   depth      0 (evaluated 32): prefill   181.0 tok/s  ttft   0.18s  decode   95.6 tok/s (400 tok)
+prose  depth      0 (evaluated 28): prefill   158.1 tok/s  ttft   0.18s  decode   77.9 tok/s (400 tok)
+bash   depth      0 (evaluated 32): prefill   172.6 tok/s  ttft   0.19s  decode   96.6 tok/s (400 tok)
+mean decode 90.0 tok/s
+code   depth  16000 (evaluated 16036): prefill  1139.5 tok/s  ttft  14.07s  decode  103.3 tok/s (400 tok)
+prose  depth  16000 (evaluated 512): prefill   777.7 tok/s  ttft   0.66s  decode   79.8 tok/s (400 tok)
+bash   depth  16000 (evaluated 516): prefill   817.3 tok/s  ttft   0.63s  decode  105.2 tok/s (400 tok)
+mean decode 96.1 tok/s
+23:54 arm new (C:\Users\pwall\AppData\Local\Temp\bonsai-root-concat): health=1; kv     tiered: cells 0..128000 in VRAM, 128000..262144 in system RAM (VRAM margi
+code   depth      0 (evaluated 32): prefill   187.1 tok/s  ttft   0.17s  decode   97.3 tok/s (400 tok)
+prose  depth      0 (evaluated 28): prefill   162.9 tok/s  ttft   0.17s  decode   79.7 tok/s (400 tok)
+bash   depth      0 (evaluated 32): prefill   184.2 tok/s  ttft   0.17s  decode   98.5 tok/s (400 tok)
+mean decode 91.8 tok/s
+code   depth  16000 (evaluated 16036): prefill  1145.1 tok/s  ttft  14.00s  decode  105.4 tok/s (400 tok)
+prose  depth  16000 (evaluated 512): prefill   804.4 tok/s  ttft   0.64s  decode   80.4 tok/s (400 tok)
+bash   depth  16000 (evaluated 516): prefill   814.5 tok/s  ttft   0.63s  decode  106.2 tok/s (400 tok)
+mean decode 97.4 tok/s
+23:55 arm old2 (C:/Users/pwall/Projects/bonsai-2-27b-serve): health=1; kv     tiered: cells 0..128000 in VRAM, 128000..262144 in system RAM (VRAM margi
+code   depth      0 (evaluated 32): prefill   185.4 tok/s  ttft   0.17s  decode   96.4 tok/s (400 tok)
+prose  depth      0 (evaluated 28): prefill   165.2 tok/s  ttft   0.17s  decode   78.8 tok/s (400 tok)
+bash   depth      0 (evaluated 32): prefill   184.8 tok/s  ttft   0.17s  decode   97.6 tok/s (400 tok)
+mean decode 91.0 tok/s
+code   depth  16000 (evaluated 16036): prefill  1139.7 tok/s  ttft  14.07s  decode  103.7 tok/s (400 tok)
+prose  depth  16000 (evaluated 512): prefill   793.3 tok/s  ttft   0.65s  decode   79.3 tok/s (400 tok)
+bash   depth  16000 (evaluated 516): prefill   804.8 tok/s  ttft   0.64s  decode  104.4 tok/s (400 tok)
+mean decode 95.8 tok/s
+identity old vs new: 6/6 same
+identity old vs old2: 6/6 same
+23:56 === concat ab done
