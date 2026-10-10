@@ -1,0 +1,7 @@
+13:24 arm dense: health=1; 
+{"tag": "dense", "depth": 160000, "correct": 10, "of": 10}
+13:30 arm sparse8192: health=1; 
+{"tag": "sparse8192", "depth": 160000, "correct": 10, "of": 10}
+13:40 arm sparse4096: health=1; 
+{"tag": "sparse4096", "depth": 160000, "correct": 8, "of": 10}
+13:49 === done

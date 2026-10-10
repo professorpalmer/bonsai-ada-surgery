@@ -1,0 +1,9 @@
+{"tag": "np1", "step": "turn1", "evaluated": 120080, "cached": 0, "wall_s": 178.5}
+{"tag": "np1", "step": "side", "evaluated": 25, "cached": 121, "wall_s": 0.3}
+{"tag": "np1", "step": "turn2", "evaluated": 119995, "cached": 121, "wall_s": 178.8}
+{"tag": "np2", "step": "turn1", "evaluated": 120080, "cached": 0, "wall_s": 231.9}
+{"tag": "np2", "step": "side", "evaluated": 25, "cached": 121, "wall_s": 0.3}
+{"tag": "np2", "step": "turn2", "evaluated": 120116, "cached": 0, "wall_s": 232.3}
+{"tag": "np2keep", "step": "turn1", "evaluated": 120080, "cached": 0, "wall_s": 217.1}
+{"tag": "np2keep", "step": "side", "evaluated": 146, "cached": 0, "wall_s": 0.6}
+{"tag": "np2keep", "step": "turn2", "evaluated": 19, "cached": 120097, "wall_s": 0.7}

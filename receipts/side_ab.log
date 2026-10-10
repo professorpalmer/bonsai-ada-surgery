@@ -1,0 +1,21 @@
+09:48 arm np1 (): health=1; kv     tiered: cells 0..128000 in VRAM, 128000..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off); packed KQ mask (240 
+{"tag": "np1", "step": "turn1", "evaluated": 120080, "cached": 0, "wall_s": 178.5}
+{"tag": "np1", "step": "side", "evaluated": 25, "cached": 121, "wall_s": 0.3}
+{"tag": "np1", "step": "turn2", "evaluated": 119995, "cached": 121, "wall_s": 178.8}
+09:54 np1 slots line: n_slots = 1, n_ctx_slot = 262144, kv_unified = 'false'
+09:54 arm np2 (BONSAI_SLOTS=2 LLAMA_ARG_KV_UNIFIED=1 LLAMA_ARG_CACHE_IDLE_SLOTS=0 BONSAI_VRAM_MARGIN=1300): health=1; kv     tiered: cells 0..118272 in VRAM, 118272..262144 in system RAM (VRAM margin 1300 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off); packed KQ mask (240 
+{"tag": "np2", "step": "turn1", "evaluated": 120080, "cached": 0, "wall_s": 231.9}
+{"tag": "np2", "step": "side", "evaluated": 25, "cached": 121, "wall_s": 0.3}
+{"tag": "np2", "step": "turn2", "evaluated": 120116, "cached": 0, "wall_s": 232.3}
+10:02 np2 slots line: n_slots = 2, n_ctx_slot = 262144, kv_unified = 'true'
+10:02 === done
+11:23 arm np2keep (BONSAI_SLOTS=2 LLAMA_ARG_KV_UNIFIED=1 LLAMA_ARG_CACHE_IDLE_SLOTS=0 BONSAI_VRAM_MARGIN=1300 LLAMA_SLOT_KEEP_TOKENS=4096): health=0; kv     tiered: cells 0..118272 in VRAM, 118272..262144 in system RAM (VRAM margin 1300 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off); packed KQ mask (240 
+11:23 np2keep slots line: 
+11:23 === done
+11:27 VOID above from 11:16: two test chains ran at the same time on the GPU (OOM, crashes); rerun below
+11:47 arm np2keep (BONSAI_SLOTS=2 LLAMA_ARG_KV_UNIFIED=1 LLAMA_ARG_CACHE_IDLE_SLOTS=0 BONSAI_VRAM_MARGIN=1300 LLAMA_SLOT_KEEP_TOKENS=4096): health=1; kv     tiered: cells 0..118528 in VRAM, 118528..262144 in system RAM (VRAM margin 1300 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off); packed KQ mask (240 
+{"tag": "np2keep", "step": "turn1", "evaluated": 120080, "cached": 0, "wall_s": 217.1}
+{"tag": "np2keep", "step": "side", "evaluated": 146, "cached": 0, "wall_s": 0.6}
+{"tag": "np2keep", "step": "turn2", "evaluated": 19, "cached": 120097, "wall_s": 0.7}
+11:51 np2keep slots line: n_slots = 2, n_ctx_slot = 262144, kv_unified = 'true'
+11:51 === done

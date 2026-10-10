@@ -1,0 +1,6 @@
+12:24 np1 (BONSAI_VRAM_MARGIN=1300): code depth 32000 (evaluated 32044): prefill 1045.5 tok/s ttft 30.65s decode 94.3 tok/s (400 tok) mean decode 85.5 tok/s 
+12:25 np1kvu (BONSAI_VRAM_MARGIN=1300 LLAMA_ARG_KV_UNIFIED=1): code depth 32000 (evaluated 32044): prefill 1041.8 tok/s ttft 30.76s decode 94.7 tok/s (400 tok) mean decode 86.0 tok/s 
+12:30 np2 (BONSAI_VRAM_MARGIN=1300 BONSAI_SLOTS=2): code depth 32000 (evaluated 32165): prefill 161.4 tok/s ttft 199.32s decode 13.9 tok/s (400 tok) mean decode 12.6 tok/s 
+12:31 np2kvu (BONSAI_VRAM_MARGIN=1300 BONSAI_SLOTS=2 LLAMA_ARG_KV_UNIFIED=1): code depth 32000 (evaluated 32165): prefill 819.9 tok/s ttft 39.23s decode 78.9 tok/s (400 tok) mean decode 71.9 tok/s 
+12:32 np1-again (BONSAI_VRAM_MARGIN=1300): code depth 32000 (evaluated 32044): prefill 1040.6 tok/s ttft 30.79s decode 95.2 tok/s (400 tok) mean decode 86.1 tok/s 
+12:33 === done

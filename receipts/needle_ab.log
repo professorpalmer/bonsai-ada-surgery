@@ -1,0 +1,11 @@
+11:23 arm dense: health=0; kv     tiered: cells 0..32768 in VRAM, 32768..262144 in system RAM; shared CUDA pool on (BONSAI_SHARED_POOL=0 
+11:23 arm sparse4096: health=1; 
+11:23 arm dense: health=1; kv     tiered: cells 0..32768 in VRAM, 32768..262144 in system RAM; shared CUDA pool on (BONSAI_SHARED_POOL=0 
+11:27 VOID above from 11:16: two test chains ran at the same time on the GPU (OOM, crashes); rerun below
+11:51 arm dense: health=1; kv     tiered: cells 0..32768 in VRAM, 32768..262144 in system RAM; shared CUDA pool on (BONSAI_SHARED_POOL=0 
+{"tag": "dense", "depth": 160000, "correct": 12, "of": 12}
+11:56 arm sparse8192: health=1; kv     tiered: cells 0..32768 in VRAM, 32768..262144 in system RAM; shared CUDA pool on (BONSAI_SHARED_POOL=0 
+{"tag": "sparse8192", "depth": 160000, "correct": 12, "of": 12}
+12:04 arm sparse4096: health=1; kv     tiered: cells 0..32768 in VRAM, 32768..262144 in system RAM; shared CUDA pool on (BONSAI_SHARED_POOL=0 
+{"tag": "sparse4096", "depth": 160000, "correct": 12, "of": 12}
+12:12 === done

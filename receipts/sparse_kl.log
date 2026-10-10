@@ -1,0 +1,27 @@
+10:02 base: dense tiered cache
+10:20 restarted with --chunks 1 (3 chunks wrote 16 GB of logits each)
+10:20 base: 
+10:20 base: dense tiered cache
+10:21 B=8192:  | 
+10:21 B=4096:  | 
+10:21 (the two empty B= lines above are void: an old instance ran against a deleted base file; killed)
+10:41 base: 20.34.937.713 I Final estimate: PPL = 7.9458 +/- 0.11443
+10:56 B=8192: chunk PPL ln(PPL(Q)/PPL(base)) KL Divergence Δp RMS Same top p Mean KLD: 0.002998 ± 0.000059 Maximum KLD: 0.623827 99.9% KLD: 0.154983 Same top p: 97.720 ± 0.082 %  | 
+11:16 B=4096: chunk PPL ln(PPL(Q)/PPL(base)) KL Divergence Δp RMS Same top p Mean KLD: 0.008089 ± 0.000195 Maximum KLD: 3.134608 99.9% KLD: 0.370271 Same top p: 96.356 ± 0.104 %  | 
+11:16 B=2048:  | 
+11:16 === done
+11:27 VOID above from 11:16: two test chains ran at the same time on the GPU (OOM, crashes); rerun below
+11:47 B=2048: chunk PPL ln(PPL(Q)/PPL(base)) KL Divergence Δp RMS Same top p Mean KLD: 0.016010 ± 0.000381 Maximum KLD: 6.203150 99.9% KLD: 0.804623 Same top p: 95.062 ± 0.120 %  | 
+11:47 === done
+12:54 base: dense tiered cache
+13:07 (PC restart killed the pycode run; restarted)
+13:07 base: dense tiered cache
+13:22 --- safe size from here: ctx 16384, line 2048 (64k runs froze the PC) ---
+13:22 base: dense tiered cache
+13:23 wiki base (ctx 16384, line 2048): 
+13:23 wiki B=2048:  | 
+13:23 wiki B=1024:  | 
+13:23 === done
+13:23 base: dense tiered cache
+13:23 pycode base (ctx 16384, line 2048): 
+13:23 pycode B=2048:  | 
