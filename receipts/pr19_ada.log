@@ -1,0 +1,65 @@
+07:41 === PR #19 Ada check, engine commit 2f213ff96, chunk 32768
+07:43 test-backend-ops FLASH_ATTN_EXT chunk=0: 3007 OK; fails: 0
+07:45 test-backend-ops FLASH_ATTN_EXT chunk=256: 3007 OK; fails: 0
+07:47 test-backend-ops FLASH_ATTN_EXT chunk=768: 3007 OK; fails: 0
+07:48 arm depth-off (GGML_CUDA_FA_CHUNK=0): health=1; kv     tiered: cells 0..128000 in VRAM, 128000..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool 
+off code   depth   4000 (evaluated 4048): prefill  1201.3 tok/s  ttft   3.37s  decode  105.5 tok/s (400 tok)
+off prose  depth   4000 (evaluated 512): prefill   943.2 tok/s  ttft   0.54s  decode   85.7 tok/s (400 tok)
+off bash   depth   4000 (evaluated 516): prefill   952.3 tok/s  ttft   0.54s  decode   97.3 tok/s (400 tok)
+off mean decode 96.1 tok/s
+off code   depth  64000 (evaluated 60477): prefill   855.9 tok/s  ttft  70.66s  decode  110.9 tok/s (400 tok)
+off prose  depth  64000 (evaluated 512): prefill   550.6 tok/s  ttft   0.93s  decode   69.5 tok/s (400 tok)
+off bash   depth  64000 (evaluated 516): prefill   550.9 tok/s  ttft   0.94s  decode   80.8 tok/s (400 tok)
+off mean decode 87.1 tok/s
+off code   depth 128000 (evaluated 63847): prefill   524.1 tok/s  ttft 121.82s  decode   80.5 tok/s (400 tok)
+off prose  depth 128000 (evaluated 512): prefill   384.2 tok/s  ttft   1.33s  decode   60.2 tok/s (400 tok)
+off bash   depth 128000 (evaluated 516): prefill   387.4 tok/s  ttft   1.33s  decode   71.2 tok/s (400 tok)
+off mean decode 70.6 tok/s
+off code   depth 192000 (evaluated 64186): prefill   375.6 tok/s  ttft 170.91s  decode   33.1 tok/s (400 tok)
+off prose  depth 192000 (evaluated 512): prefill   285.7 tok/s  ttft   1.79s  decode   16.1 tok/s (400 tok)
+off bash   depth 192000 (evaluated 516): prefill   287.5 tok/s  ttft   1.79s  decode   21.9 tok/s (400 tok)
+off mean decode 23.7 tok/s
+off code   depth 250000 (evaluated 248886): prefill   443.9 tok/s  ttft 560.66s  decode   15.5 tok/s (400 tok)
+off prose  depth 250000 (evaluated 512): prefill   228.5 tok/s  ttft   2.24s  decode    9.0 tok/s (400 tok)
+off bash   depth 250000 (evaluated 516): prefill   230.5 tok/s  ttft   2.24s  decode   13.3 tok/s (400 tok)
+off mean decode 12.6 tok/s
+08:07 off lowest free VRAM 361 MiB
+08:07 arm depth-on (GGML_CUDA_FA_CHUNK=32768): health=1; kv     tiered: cells 0..128000 in VRAM, 128000..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool 
+on code   depth   4000 (evaluated 4048): prefill  1204.6 tok/s  ttft   3.36s  decode  104.8 tok/s (400 tok)
+on prose  depth   4000 (evaluated 512): prefill   937.0 tok/s  ttft   0.55s  decode   85.8 tok/s (400 tok)
+on bash   depth   4000 (evaluated 516): prefill   956.2 tok/s  ttft   0.54s  decode   97.0 tok/s (400 tok)
+on mean decode 95.8 tok/s
+on code   depth  64000 (evaluated 60477): prefill   898.6 tok/s  ttft  67.30s  decode  106.5 tok/s (400 tok)
+on prose  depth  64000 (evaluated 512): prefill   580.7 tok/s  ttft   0.88s  decode   68.8 tok/s (400 tok)
+on bash   depth  64000 (evaluated 516): prefill   598.0 tok/s  ttft   0.86s  decode   88.7 tok/s (400 tok)
+on mean decode 88.0 tok/s
+on code   depth 128000 (evaluated 63847): prefill   598.5 tok/s  ttft 106.68s  decode   85.8 tok/s (400 tok)
+on prose  depth 128000 (evaluated 512): prefill   438.5 tok/s  ttft   1.17s  decode   58.7 tok/s (400 tok)
+on bash   depth 128000 (evaluated 516): prefill   443.6 tok/s  ttft   1.16s  decode   80.3 tok/s (400 tok)
+on mean decode 74.9 tok/s
+on code   depth 192000 (evaluated 64186): prefill   427.3 tok/s  ttft 150.21s  decode   26.8 tok/s (400 tok)
+on prose  depth 192000 (evaluated 512): prefill   315.3 tok/s  ttft   1.62s  decode   17.8 tok/s (400 tok)
+on bash   depth 192000 (evaluated 516): prefill   317.1 tok/s  ttft   1.63s  decode   19.7 tok/s (400 tok)
+on mean decode 21.4 tok/s
+on code   depth 250000 (evaluated 248886): prefill   496.0 tok/s  ttft 501.83s  decode   13.6 tok/s (400 tok)
+on prose  depth 250000 (evaluated 512): prefill   246.7 tok/s  ttft   2.08s  decode    9.1 tok/s (400 tok)
+on bash   depth 250000 (evaluated 516): prefill   249.9 tok/s  ttft   2.06s  decode   12.6 tok/s (400 tok)
+on mean decode 11.8 tok/s
+08:25 on lowest free VRAM 165 MiB
+08:25 arm text-d64000-off (GGML_CUDA_FA_CHUNK=0): health=1; kv     tiered: cells 0..128000 in VRAM, 128000..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool 
+{"tag": "d64000-off", "depth": 64000, "kind": "edit", "item": "csv.py", "tps": 118.5, "n": 237, "draft_n": 282, "draft_acc": 197, "sha": "34626552c9d9", "wall": 8.3}
+08:29 arm text-d64000-on (GGML_CUDA_FA_CHUNK=32768): health=1; kv     tiered: cells 0..128000 in VRAM, 128000..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool 
+{"tag": "d64000-on", "depth": 64000, "kind": "edit", "item": "csv.py", "tps": 117.5, "n": 237, "draft_n": 282, "draft_acc": 197, "sha": "34626552c9d9", "wall": 7.8}
+08:34 arm text-d160000-off (GGML_CUDA_FA_CHUNK=0): health=1; kv     tiered: cells 0..128000 in VRAM, 128000..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool 
+{"tag": "d160000-off", "depth": 160000, "kind": "edit", "item": "csv.py", "tps": 73.2, "n": 237, "draft_n": 264, "draft_acc": 209, "sha": "34626552c9d9", "wall": 21.8}
+08:47 arm text-d160000-on (GGML_CUDA_FA_CHUNK=32768): health=1; kv     tiered: cells 0..128000 in VRAM, 128000..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool 
+{"tag": "d160000-on", "depth": 160000, "kind": "edit", "item": "csv.py", "tps": 73.9, "n": 237, "draft_n": 264, "draft_acc": 209, "sha": "34626552c9d9", "wall": 19.7}
+texts d160000: 7/11 identical off vs on; differ: quote:shlex.py, plain:code, plain:prose, plain:bash
+texts d64000: 9/11 identical off vs on; differ: plain:prose, plain:bash
+{"tag": "pr19-chunk", "depth": 20000, "prompt_n": 20127, "completion": 40, "finish": "stop", "head": "The records above are a list of site reports, each specifying a report", "seconds": 18.7}
+{"tag": "pr19-chunk", "depth": 30000, "prompt_n": 29763, "completion": 40, "finish": "stop", "head": "The records above are a list of report entries that each specify a rep", "seconds": 29.0}
+{"tag": "pr19-chunk", "depth": 33000, "prompt_n": 32742, "completion": 40, "finish": "stop", "head": "The records above are a list of report entries that each specify a rep", "seconds": 32.7}
+{"tag": "pr19-chunk", "depth": 40000, "prompt_n": 39745, "completion": 40, "finish": "stop", "head": "The records above are a list of report entries that each specify a rep", "seconds": 40.8}
+{"tag": "pr19-chunk", "depth": 60000, "prompt_n": 59722, "completion": 44, "finish": "stop", "head": "The records above are a list of report entries that each specify a rep", "seconds": 65.9}
+09:02 === done
+09:02 === done

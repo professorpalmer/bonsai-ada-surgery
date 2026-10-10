@@ -73,3 +73,10 @@
 {"tag": "8gb-vram262", "depth": 40000, "prompt_n": 39724, "completion": 44, "finish": "stop", "head": "The records above are a list of site-specific count reports, where eac", "seconds": 40.4}
 {"tag": "8gb-vram262", "depth": 60000, "prompt_n": 59717, "completion": 52, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 66.6}
 21:20 === done
+08:59 arm pr19-chunk (BONSAI_TIER=1,BONSAI_CTX=262144,GGML_CUDA_FA_CHUNK=32768): health=1; window 262144 / q8_0  (trained max 262144) kv     tiered: cells 0..128000 in VRAM, 128000..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool on (BON
+{"tag": "pr19-chunk", "depth": 20000, "prompt_n": 20127, "completion": 40, "finish": "stop", "head": "The records above are a list of site reports, each specifying a report", "seconds": 18.7}
+{"tag": "pr19-chunk", "depth": 30000, "prompt_n": 29763, "completion": 40, "finish": "stop", "head": "The records above are a list of report entries that each specify a rep", "seconds": 29.0}
+{"tag": "pr19-chunk", "depth": 33000, "prompt_n": 32742, "completion": 40, "finish": "stop", "head": "The records above are a list of report entries that each specify a rep", "seconds": 32.7}
+{"tag": "pr19-chunk", "depth": 40000, "prompt_n": 39745, "completion": 40, "finish": "stop", "head": "The records above are a list of report entries that each specify a rep", "seconds": 40.8}
+{"tag": "pr19-chunk", "depth": 60000, "prompt_n": 59722, "completion": 44, "finish": "stop", "head": "The records above are a list of report entries that each specify a rep", "seconds": 65.9}
+09:02 === done
