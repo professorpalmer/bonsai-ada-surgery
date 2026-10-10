@@ -13,3 +13,11 @@
 12:51 b10770 prompt ~31768: ok prompt 30176 completion 3000 content='' AMBERFALCON=False | server alive=1 | no CUDA error
 12:53 b10770 prompt ~47367: ok prompt 44954 completion 3000 content='' AMBERFALCON=False | server alive=1 | no CUDA error
 12:53 === done
+14:16 ballast: holding 4096 MiB | free VRAM 7778 MiB
+14:18 b10770-sm86 prompt ~31768: ok prompt 30176 completion 3000 content='' AMBERFALCON=False | server alive=1 | no CUDA error
+14:20 b10770-sm86 prompt ~47367: ok prompt 44954 completion 3000 content='' AMBERFALCON=False | server alive=1 | no CUDA error
+14:20 === done
+14:20 ballast: holding 4096 MiB | free VRAM 7778 MiB
+14:22 b10770-nsm40 prompt ~31768: ok prompt 30176 completion 3000 content='' AMBERFALCON=False | server alive=1 | no CUDA error
+14:24 b10770-nsm40 prompt ~47367: ok prompt 44954 completion 3000 content='' AMBERFALCON=False | server alive=1 | no CUDA error
+14:24 === done
