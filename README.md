@@ -74,7 +74,7 @@ How, and every receipt: [`docs/Q8_FULL_CONTEXT.md`](docs/Q8_FULL_CONTEXT.md). Sh
 | --- | --- | --- |
 | Windows, an NVIDIA card (RTX 20/30/40/50) | download the release zip, drop in the model, run `start-server.ps1` | [Quick start (Windows)](#quick-start-windows-nvidia) |
 | Hugging Face | the same bundle plus the ready-made MTP-grafted GGUF (`hf download`, no graft step) | [CaryPalmer/Ternary-Bonsai-2-27B-262k-GGUF](https://huggingface.co/CaryPalmer/Ternary-Bonsai-2-27B-262k-GGUF) |
-| Linux, NVIDIA driver + CUDA toolkit | `bash build/build_linux.sh` builds the pinned PrismML source with all 49 patches applied | [Quick start (Linux)](#quick-start-linux-nvidia) |
+| Linux, NVIDIA driver + CUDA toolkit | `bash build/build_linux.sh` builds the pinned PrismML source with all 52 patches applied | [Quick start (Linux)](#quick-start-linux-nvidia) |
 | your own llama.cpp workflow | build the fork branch `bonsai-q8-product`, or `git am` the series in `patches/` onto PrismML `adfffbe` | [The patch stack](#the-patch-stack) |
 | an older bundle of this repo | `git pull`, unzip the latest zip over it, run `layeretch_runtime.ps1` once | [Upgrading](#upgrading-from-an-older-bundle) |
 
@@ -117,6 +117,15 @@ the tiered-KV runtime are detected and get the previous 96k all-VRAM recipe.
 
 ### Upgrading from an older bundle
 
+`bundle-20261010` sizes **system RAM use from the machine** (issue #16, from howdya: "bad allocation" and a server exit
+on 16 GB of RAM) and makes **8 GB prefill at depth faster**. The prompt cache (default limit 8 GiB) and the context
+checkpoints now follow the RAM (`ram` line): 48 GB or more, the server defaults; 24-47 GB, a 4 GiB cache and 32
+checkpoints (12 GB recipe, 7 thinking requests with 26k-token prompts: 21.7 -> 17.5 GB peak); under 24 GB, sized from
+the free memory at start (RTX 2060 SUPER as a 16 GB machine: 7/7, peak 10.5 GB). Patches 0051-0052 run prefill
+attention past the f16 limit in 32k-cell chunks on the 8 GB preset (RTX 2060 SUPER at 250k: 25 -> 90 tok/s; decode
+unchanged); the 12 GB recipe keeps it off for now (`GGML_CUDA_FA_CHUNK=32768` turns it on: +12-14 % prefill at
+128k-249k on the RTX 4070). Patch 0050: a faster conv-state concat in draft verification steps, decode +1.4 %, same
+text, HumanEval 160/164 before and after. `BONSAI_RAM_BUDGET=0` keeps the server's memory defaults.
 `bundle-20261009-probe` fixes a **launcher stop on Windows PowerShell 5.1** (issue #14, from picmax): with Python on
 PATH but without the `wasmtime` package, the probe for the optional layer stopped the launcher before the server
 started. The probe now runs only when the layer's runtime is present and cannot stop the launcher. Engine and
@@ -537,7 +546,7 @@ python bench\mtp_identity.py                   # greedy draft-on vs draft-off
 
 | Path | What |
 | --- | --- |
-| `patches/` | the 33-commit stack on PrismML `adfffbe`, `git am`-able |
+| `patches/` | the 52-commit stack on PrismML `adfffbe`, `git am`-able |
 | `start-server.ps1`, `start-remote.ps1` | the recipe (LAN / Cloudflare tunnel) |
 | `build/build_linux.sh`, `start-linux.sh` | Linux build from the pinned base + patches, first-run launcher |
 | `tests/`, `.github/workflows/` | Linux setup tests, Linux CUDA compile and PDL code-generation CI |
