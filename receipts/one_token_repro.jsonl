@@ -38,3 +38,18 @@
 {"tag": "pr13-mask1", "depth": 33000, "prompt_n": 32712, "completion": 52, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 33.2}
 {"tag": "pr13-mask1", "depth": 40000, "prompt_n": 39725, "completion": 41, "finish": "stop", "head": "The records above are a list of report entries that each specify a sit", "seconds": 41.7}
 {"tag": "pr13-mask1", "depth": 60000, "prompt_n": 59686, "completion": 52, "finish": "stop", "head": "The records above are signal, harbor, violet, granite, lantern, meadow", "seconds": 69.6}
+{"tag": "8gb-vram", "depth": 20000, "prompt_n": 20125, "completion": 46, "finish": "stop", "head": "The records above are a list of site-specific count reports, each iden", "seconds": 18.5}
+{"tag": "8gb-vram", "depth": 30000, "prompt_n": 29735, "completion": 44, "finish": "stop", "head": "The records above are a list of report entries that each specify a sit", "seconds": 28.8}
+{"tag": "8gb-vram", "depth": 33000, "prompt_n": 32711, "completion": 52, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 32.4}
+{"tag": "8gb-vram", "depth": 40000, "prompt_n": 39729, "completion": 52, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 40.5}
+{"tag": "8gb-vram", "depth": 60000, "prompt_n": 59714, "completion": 45, "finish": "stop", "head": "The records above are a sequence of site reports that list specific co", "seconds": 66.5}
+{"tag": "12gb-vram", "depth": 20000, "prompt_n": 20122, "completion": 54, "finish": "stop", "head": "The records above are a sequence of numbered notes, each describing a ", "seconds": 18.8}
+{"tag": "12gb-vram", "depth": 30000, "prompt_n": 29735, "completion": 46, "finish": "stop", "head": "The records above are a list of site-specific count reports, each iden", "seconds": 29.5}
+{"tag": "12gb-vram", "depth": 33000, "prompt_n": 32712, "completion": 32, "finish": "stop", "head": "The records above are a sequence of report entries that each list a sp", "seconds": 32.9}
+{"tag": "12gb-vram", "depth": 40000, "prompt_n": 39723, "completion": 41, "finish": "stop", "head": "The records above are a sequence of numbered notes, each describing a ", "seconds": 41.8}
+{"tag": "12gb-vram", "depth": 60000, "prompt_n": 59686, "completion": 49, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 69.3}
+{"tag": "8gb-vram262", "depth": 20000, "prompt_n": 20119, "completion": 44, "finish": "stop", "head": "The records above are a list of report entries that each specify a rep", "seconds": 18.4}
+{"tag": "8gb-vram262", "depth": 30000, "prompt_n": 29735, "completion": 44, "finish": "stop", "head": "The records above are a list of report entries that each specify a sit", "seconds": 28.8}
+{"tag": "8gb-vram262", "depth": 33000, "prompt_n": 32709, "completion": 52, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 32.4}
+{"tag": "8gb-vram262", "depth": 40000, "prompt_n": 39724, "completion": 44, "finish": "stop", "head": "The records above are a list of site-specific count reports, where eac", "seconds": 40.4}
+{"tag": "8gb-vram262", "depth": 60000, "prompt_n": 59717, "completion": 52, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 66.6}

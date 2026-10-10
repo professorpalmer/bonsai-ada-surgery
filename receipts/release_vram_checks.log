@@ -1,0 +1,4 @@
+21:10 release smoke 0049 exit 0: GREEDY IDENTICAL
+21:13 8 GB preset check exit 0: 21:10 arm 8gb-vram (BONSAI_8GB=1,BONSAI_TIER=1): health=1; window 65536 / q4_0  (trained max 262144) 
+21:16 12 GB check exit 0: 21:13 arm 12gb-vram (BONSAI_TIER=1,BONSAI_CTX=262144): health=1; window 262144 / q8_0  (trained max 262144) kv     tiered: cells 0..128000 in VRAM, 128000..262144 in system RAM (VRAM margin 1000 MiB);
+21:16 vram checks finished
