@@ -128,6 +128,8 @@ saved 240 MiB move the VRAM line from 120,064 to 128,000 positions: decode 40.9 
 the preset now uses the full **262,144-token window** (with 24 GB of system RAM or more): partial staging (0047)
 stops the staging buffer from growing with the window, and decode is faster than the old 131k preset at every depth
 (RTX 2060 SUPER: 30.5 -> 37.8 tok/s at 64k). `LLAMA_ARG_KQ_MASK_PACKED=0` turns the packed mask off.
+
+![8 GB card: the full 262k window on an RTX 2060 SUPER, decode by depth against the old 131k preset: 50.8 / 45.8 / 37.5 / 20.0 / 14.1 tok/s at 4k-128k, 10.4 at 160k, 8.4 at 192k, 5.7 at 250k; past ~141k the cache is read over PCIe 3.0](docs/img/card8gb.png)
 `bundle-20261009-agent` turns on **checkpoints inside long messages** for the 12 GB recipe too (patch 0046; the 8 GB
 preset had it already). When an agent edits a tool result or sends a file again, the server restores the nearest
 checkpoint instead of reading the whole prompt again: RTX 4070, 64.5 -> 15.5 s per request at 64k and 230 -> 49 s at
@@ -248,7 +250,7 @@ to the integrated GPU in **Settings > System > Display > Graphics**.
 | --- | --- | --- |
 | 12 GB | defaults | this README |
 | 16 GB and up | defaults | the whole q8_0 window fits: the tier switches itself off |
-| 8 GB (2060 Super, 3060 Ti, 4060) | defaults (the launcher detects the card), plus `build\make_mtp_q4head.ps1` | q4_0, 131k window, Q4_0 head, 47k positions in VRAM; 2060 SUPER with the desktop on it: decode 51 / 48 / 43 / 29 tok/s at 4k / 16k / 32k / 60k. [docs/8GB.md](docs/8GB.md) |
+| 8 GB (2060 Super, 3060 Ti, 4060) | defaults (the launcher detects the card), plus `build\make_mtp_q4head.ps1` | q4_0, 262k window with 24 GB of RAM or more (131k below that), Q4_0 head, ~59k positions in VRAM; 2060 SUPER with the desktop on it: decode 51 / 46 / 38 / 20 / 14 tok/s at 4k / 32k / 64k / 96k / 128k, 5.7 at 250k. [docs/8GB.md](docs/8GB.md) |
 
 Past the VRAM line decode is bound by PCIe (4.0 x16 here, ~23 GB/s). PCIe 3.0 or x8 slots halve those rows.
 
