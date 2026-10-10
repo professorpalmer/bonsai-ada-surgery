@@ -1,0 +1,29 @@
+d64k texts chunk off vs 32768: 8/11 same, diff ['code/plain', 'prose/plain', 'bash/plain']; one-token 0; wall after first 59.4 vs 50.1 s
+base:   3005/3005 tests passed
+chunk256:   3005/3005 tests passed   FLASH_ATTN_EXT(hsk=64,hsv=64,nh=8,nr23=[4,1],kv=1024,nb=64,mask=1,sinks=0,max_bias=0.000000,logit_softcap=0.000000,prec=f32,type_K=f16,type_V=f16,permute=[0,1,2,3],kv_view=1,v_is_view_of_k=0): ggml_cuda_flash_attn_ext_chunks: GGML_CUDA_FA_CHUNK: chunks of 256 cells (first op: 1024 cells, 4 chunks, 64 queries) 
+chunk768:   3005/3005 tests passed
+chunk256 minq1 hs256:   44/44 tests passed
+== chunk_deep: 0 one-token
+23:25:03 loaded: used 7702 server 7400 MiB free 305
+code   depth   4000 (evaluated 4048): prefill   412.9 tok/s  decode   52.1 tok/s (400 tok)
+prose  depth   4000 (evaluated 512): prefill   363.6 tok/s  decode   50.8 tok/s (400 tok)
+bash   depth   4000 (evaluated 516): prefill   365.9 tok/s  decode   52.5 tok/s (400 tok)
+mean decode 51.8 tok/s
+code   depth  64000 (evaluated 60477): prefill   282.1 tok/s  decode   31.6 tok/s (400 tok)
+prose  depth  64000 (evaluated 512): prefill   203.5 tok/s  decode   32.6 tok/s (400 tok)
+bash   depth  64000 (evaluated 516): prefill   200.1 tok/s  decode   32.6 tok/s (400 tok)
+mean decode 32.3 tok/s
+code   depth 128000 (evaluated 63847): prefill   171.1 tok/s  decode   11.4 tok/s (400 tok)
+prose  depth 128000 (evaluated 512): prefill   135.8 tok/s  decode   12.2 tok/s (400 tok)
+bash   depth 128000 (evaluated 516): prefill   133.7 tok/s  decode   12.0 tok/s (400 tok)
+mean decode 11.8 tok/s
+code   depth 192000 (evaluated 64186): prefill   116.0 tok/s  decode    9.3 tok/s (400 tok)
+prose  depth 192000 (evaluated 512): prefill    97.1 tok/s  decode    7.0 tok/s (400 tok)
+bash   depth 192000 (evaluated 516): prefill    95.0 tok/s  decode    8.1 tok/s (400 tok)
+mean decode 8.1 tok/s
+code   depth 250000 (evaluated 58392): prefill    90.3 tok/s  decode    6.0 tok/s (400 tok)
+prose  depth 250000 (evaluated 512): prefill    79.9 tok/s  decode    5.0 tok/s (400 tok)
+bash   depth 250000 (evaluated 516): prefill    77.9 tok/s  decode    6.0 tok/s (400 tok)
+mean decode 5.7 tok/s
+acceptance mean 0.787 over 20
+trace min free 103 MiB over 239 samples

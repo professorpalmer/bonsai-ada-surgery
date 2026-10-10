@@ -1,0 +1,146 @@
+From d0c1d864425042f188a0222cbd27de4ebb881a39 Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Fri, 9 Oct 2026 22:40:32 -0500
+Subject: [PATCH 52/52] tests: flash attention cases for the chunked prefill
+ path, packed (I32) mask option
+
+q4_0 K/V at the Bonsai 2 27B shape (hs 256, 4 KV heads, GQA 6), kv 1024 and 2048, 64 and 512
+queries, cache layout, f16 and packed masks, no mask; one q8_0 hs 128 case. Run with
+GGML_CUDA_FA_CHUNK=256 (or 768 for an uneven last chunk) to take the chunked path on CUDA.
+---
+ tests/test-backend-ops.cpp | 81 +++++++++++++++++++++++++++++++++++---
+ 1 file changed, 76 insertions(+), 5 deletions(-)
+
+diff --git a/tests/test-backend-ops.cpp b/tests/test-backend-ops.cpp
+index 471b76f6e..8a7077e03 100644
+--- a/tests/test-backend-ops.cpp
++++ b/tests/test-backend-ops.cpp
+@@ -189,6 +189,47 @@ static void init_tensor_kq_mask(ggml_tensor * tensor, float min = -1.0f, float m
+     ggml_backend_tensor_set(tensor, data_f16.data(), 0, data_f16.size()*sizeof(ggml_fp16_t));
+ }
+ 
++// packed KQ mask (GGML_TYPE_I32, 32 KV cells per word, bit set = attend): random bits (3 of 4 cells attend) plus
++// fully masked blocks of the same size and share as in init_tensor_kq_mask
++static void init_tensor_kq_mask_packed(ggml_tensor * tensor) {
++    GGML_ASSERT(tensor->type == GGML_TYPE_I32);
++    GGML_ASSERT(ggml_is_contiguous(tensor));
++
++    GGML_TENSOR_LOCALS( int32_t, ne, tensor, ne);
++
++    std::vector<uint32_t> data(ne0*ne1*ne2*ne3);
++
++    std::random_device rd;
++    std::mt19937 gen(rd());
++
++    for (size_t i = 0; i < data.size(); i++) {
++        data[i] = gen() | gen();
++    }
++
++    // block size in words (128 cells) and rows
++    const int blck0 = 4;
++    const int blck1 = 64;
++
++    const int n_inf_blocks = 0.1*(ne0*ne1*ne2*ne3)/(blck0*blck1);
++
++    for (int b = 0; b < n_inf_blocks; b++) {
++        const int p3 = (rd() % ne3);
++        const int p2 = (rd() % ne2);
++        const int p1 = (rd() % ne1);
++        const int p0 = (rd() % ne0);
++
++        for (int i1 = 0; i1 < blck1 && p1 + i1 < ne1; i1++) {
++            const int idx = p3*ne2*ne1*ne0 + p2*ne1*ne0 + (p1 + i1)*ne0 + p0;
++
++            for (int i0 = 0; i0 < blck0 && p0 + i0 < ne0; i0++) {
++                data[idx + i0] = 0u;
++            }
++        }
++    }
++
++    ggml_backend_tensor_set(tensor, data.data(), 0, data.size()*sizeof(uint32_t));
++}
++
+ // generate a lower triangular matrix
+ static void init_tensor_tril(ggml_tensor * tensor, float min = -1.0f, float max = 1.0f) {
+     GGML_ASSERT(tensor->type == GGML_TYPE_F32);
+@@ -7188,9 +7229,14 @@ struct test_flash_attn_ext : public test_case {
+     std::array<int32_t, 4> permute;
+     const bool kv_view; // create K/V as views of a larger buffer (like a KV cache)
+     const bool v_is_view_of_k;
++    const bool mask_packed; // GGML_TYPE_I32 mask, 32 KV cells per word (bit set = attend)
+ 
+     std::string vars() override {
+-        return VARS_TO_STR16(hsk, hsv, nh, nr23, kv, nb, mask, sinks, max_bias, logit_softcap, prec, type_K, type_V, permute, kv_view, v_is_view_of_k);
++        std::string s = VARS_TO_STR16(hsk, hsv, nh, nr23, kv, nb, mask, sinks, max_bias, logit_softcap, prec, type_K, type_V, permute, kv_view, v_is_view_of_k);
++        if (mask_packed) {
++            s += "," + VAR_TO_STR(mask_packed);
++        }
++        return s;
+     }
+ 
+     double max_nmse_err() override {
+@@ -7207,9 +7253,11 @@ struct test_flash_attn_ext : public test_case {
+     test_flash_attn_ext(int64_t hsk = 128, int64_t hsv = 128, int64_t nh = 32, std::array<int64_t, 2> nr23 = {1, 1}, int64_t kv = 96, int64_t nb = 8,
+                         bool mask = true, bool sinks = false, float max_bias = 0.0f, float logit_softcap = 0.0f, ggml_prec prec = GGML_PREC_F32,
+                         ggml_type type_K = GGML_TYPE_F16, ggml_type type_V = GGML_TYPE_F16, std::array<int32_t, 4> permute = {0, 1, 2, 3},
+-                        bool kv_view = true, bool v_is_view_of_k = false)
++                        bool kv_view = true, bool v_is_view_of_k = false, bool mask_packed = false)
+         : hsk(hsk), hsv(hsv), nh(nh), nr23(nr23), kv(kv), nb(nb), mask(mask), sinks(sinks), max_bias(max_bias), logit_softcap(logit_softcap), prec(prec),
+-          type_K(type_K), type_V(type_V), permute(permute), kv_view(kv_view), v_is_view_of_k(v_is_view_of_k) {}
++          type_K(type_K), type_V(type_V), permute(permute), kv_view(kv_view), v_is_view_of_k(v_is_view_of_k), mask_packed(mask_packed) {
++        GGML_ASSERT(!mask_packed || (mask && kv % 32 == 0 && max_bias == 0.0f));
++    }
+ 
+     ggml_tensor * build_graph(ggml_context * ctx) override {
+         const int64_t hsk_padded = GGML_PAD(hsk, ggml_blck_size(type_K));
+@@ -7257,7 +7305,8 @@ struct test_flash_attn_ext : public test_case {
+ 
+         ggml_tensor * m = nullptr;
+         if (mask) {
+-            m = ggml_new_tensor_4d(ctx, GGML_TYPE_F16, kv, nb, 1, nr23[1]);
++            m = mask_packed ? ggml_new_tensor_4d(ctx, GGML_TYPE_I32, kv/32, nb, 1, nr23[1])
++                            : ggml_new_tensor_4d(ctx, GGML_TYPE_F16, kv,    nb, 1, nr23[1]);
+             ggml_set_name(m, "m");
+         }
+ 
+@@ -7281,7 +7330,11 @@ struct test_flash_attn_ext : public test_case {
+                 // make the sink values more noticeable in order to trigger a test failure when the implementation is wrong
+                 init_tensor_uniform(t, -10.0f, 10.0f);
+             } else if (strcmp(t->name, "m") == 0) {
+-                init_tensor_kq_mask(t);
++                if (mask_packed) {
++                    init_tensor_kq_mask_packed(t);
++                } else {
++                    init_tensor_kq_mask(t);
++                }
+             } else {
+                 init_tensor_uniform(t);
+             }
+@@ -10182,6 +10235,24 @@ static std::vector<std::unique_ptr<test_case>> make_test_cases_eval() {
+         test_cases.emplace_back(new test_flash_attn_ext(128, 128, 8, {4, 1}, 1024, 8, true, false, 0, 10.0f, GGML_PREC_F32, type_KV, type_KV, {0, 2, 1, 3}));
+     }
+ 
++    // chunked prefill attention (CUDA: GGML_CUDA_FA_CHUNK=C runs the KV dimension in chunks of C cells and folds the
++    // partial results): q4_0 K/V in the Bonsai 2 27B shape, prompt-sized batches, KV several times a small C, the
++    // cache layout, f16 and packed (I32) masks, and no mask (the kernel without the GQA tiling)
++    for (int64_t kv : { 1024, 2048 }) {
++        for (int64_t nb : { 64, 512 }) {
++            for (bool mask_packed : { false, true }) {
++                test_cases.emplace_back(new test_flash_attn_ext(256, 256, 4, {6, 1}, kv, nb, true, false, 0, 0, GGML_PREC_F32,
++                    GGML_TYPE_Q4_0, GGML_TYPE_Q4_0, {0, 2, 1, 3}, true, false, mask_packed));
++            }
++        }
++    }
++    test_cases.emplace_back(new test_flash_attn_ext(256, 256, 4, {6, 1}, 2048, 512, true,  false, 0, 0, GGML_PREC_F32,
++        GGML_TYPE_Q4_0, GGML_TYPE_Q4_0, {0, 1, 2, 3}, true, false, true));
++    test_cases.emplace_back(new test_flash_attn_ext(256, 256, 4, {6, 1}, 2048,  64, false, false, 0, 0, GGML_PREC_F32,
++        GGML_TYPE_Q4_0, GGML_TYPE_Q4_0, {0, 2, 1, 3}));
++    test_cases.emplace_back(new test_flash_attn_ext(128, 128, 8, {4, 1}, 2048, 512, true,  false, 0, 0, GGML_PREC_F32,
++        GGML_TYPE_Q8_0, GGML_TYPE_Q8_0, {0, 2, 1, 3}, true, false, true));
++
+     test_cases.emplace_back(new test_cross_entropy_loss     (GGML_TYPE_F32, {   10, 5, 4, 3}));
+     test_cases.emplace_back(new test_cross_entropy_loss     (GGML_TYPE_F32, {30000, 1, 1, 1}));
+     test_cases.emplace_back(new test_cross_entropy_loss_back(GGML_TYPE_F32, {   10, 5, 4, 3}));
+-- 
+2.52.0.windows.1
+

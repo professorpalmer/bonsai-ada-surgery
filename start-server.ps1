@@ -195,6 +195,12 @@ if ($Small) {
         if (-not $env:LLAMA_MTP_DRAFT_UBATCH) { $env:LLAMA_MTP_DRAFT_UBATCH = '256' }
     }
     if (-not $env:GGML_CUDA_FA_PREFILL_F16) { $env:GGML_CUDA_FA_PREFILL_F16 = if ($Spec -gt 0) { '32768' } else { '65536' } }
+    # Chunked prefill attention (patch 0051): past the f16 prefill limit, prefill-sized attention runs on chunks of
+    # 32,768 cells (copied to VRAM, converted to f16, merged with the softmax max and sum), so the fast f16 kernel
+    # works at any depth and rows past the staged depth cross PCIe once per op. RTX 2060 SUPER, 262k: code-prompt
+    # prefill 121 -> 171 tok/s at 128k, 58 -> 116 at 192k, 25 -> 90 at 250k; 512-token turns 35 -> 97 at 192k; decode
+    # unchanged; perplexity at a 64k window 7.2107 (f16) / 7.2074 (chunked). GGML_CUDA_FA_CHUNK=0 turns it off.
+    if (-not $env:GGML_CUDA_FA_CHUNK -and $CudaDll.Contains('GGML_CUDA_FA_CHUNK')) { $env:GGML_CUDA_FA_CHUNK = '32768' }
     # mid-message context checkpoints (patch 0046): a prompt that changes inside one long message (an edited tool result,
     # a file sent again) restores the nearest checkpoint instead of processing the whole prompt again. RTX 2060 SUPER, 64k:
     # 18-58 s instead of 272-294 s per request, same text. Each checkpoint holds the recurrent state (about 170 MiB of
@@ -376,7 +382,7 @@ if ($env:BONSAI_RAM_BUDGET -ne '0' -and $Help -match '--cache-ram' -and $Help -m
     } catch { $RamNote = ''; $RamArgs = @() }
 }
 
-if ($Small) { Write-Host "8gb    preset on ($TotalMiB MiB card; BONSAI_8GB=0 turns it off): ub $Ubatch, f16 prefill to $($env:GGML_CUDA_FA_PREFILL_F16) cells" }
+if ($Small) { Write-Host "8gb    preset on ($TotalMiB MiB card; BONSAI_8GB=0 turns it off): ub $Ubatch, f16 prefill to $($env:GGML_CUDA_FA_PREFILL_F16) cells$(if ($env:GGML_CUDA_FA_CHUNK -and $env:GGML_CUDA_FA_CHUNK -ne '0') { ", deeper in chunks of $($env:GGML_CUDA_FA_CHUNK)" })" }
 Write-Host "model  $(Split-Path $Model -Leaf)"
 Write-Host "window $Ctx / $Ctk  (trained max 262144)"
 if ($TierCells -gt 0) { Write-Host "kv     tiered: cells 0..$TierCells in VRAM, $TierCells..$Ctx in system RAM$(if ($Margin) { " (VRAM margin $Margin MiB)" })$(if ($PoolMiB) { "; shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off)" })$(if ($MaskSavedMiB) { "; packed KQ mask ($MaskSavedMiB MiB saved)" })" }
@@ -411,7 +417,7 @@ if ($Spec -gt 0) {
 # older launcher can still hold them, so they are not listed as the user's settings either.
 $LauncherVars = @('BONSAI_LAYER_KEY', 'LLAMA_ARG_CHAT_TEMPLATE_KWARGS', 'GGML_CUDA_BATCH_INVARIANT',
                   'GGML_CUDA_SHARED_POOL', 'LLAMA_MTP_DRAFT_UBATCH', 'GGML_CUDA_FA_PREFILL_F16',
-                  'LLAMA_ARG_CHECKPOINT_EVERY_NT', 'LLAMA_ARG_KQ_MASK_PACKED', 'GGML_CUDA_KV_TIER_STAGING_FRAC')
+                  'LLAMA_ARG_CHECKPOINT_EVERY_NT', 'LLAMA_ARG_KQ_MASK_PACKED', 'GGML_CUDA_KV_TIER_STAGING_FRAC', 'GGML_CUDA_FA_CHUNK')
 $Listed = @($UserEnv | Where-Object { $_.Name -notin $LauncherVars -and $_.Value })
 if ($Listed.Count -gt 0) {
     Write-Host ("env    set in this window, these change the defaults: " + (($Listed | ForEach-Object { "$($_.Name)=$($_.Value)" }) -join '  '))

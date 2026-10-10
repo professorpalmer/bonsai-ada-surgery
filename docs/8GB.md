@@ -40,7 +40,23 @@ prefill = a 512-token follow-up request at that depth):
 Fresh 60k prompts: 37.3 / 37.2 tok/s (before: 28.2 / 28.2). Lowest free VRAM in the run: 116 MiB. 0 one-token answers.
 With MTP drafting and lookup, the packed mask gave the same text as the f16 mask in 22 of 22 requests at 32k and 64k.
 Past the staged depth (the VRAM line + 81,920, about 140k here) the host rows are read in place, so a follow-up
-prefill there is slower (59 tok/s at 160k against 99 at 128k). `BONSAI_STAGE_CELLS` sets the staged depth;
+prefill there is slower (59 tok/s at 160k against 99 at 128k).
+
+Chunked prefill (patch 0051, on in the preset with an engine that has it) runs prefill attention past the f16 prefill
+limit in chunks of 32,768 cells: each chunk is copied to VRAM once, converted to f16 and run on the tensor-core kernel,
+and the chunks are merged with the softmax max and sum. Same card, 262k, `quick_tps.py` 4k -> 64k -> 128k -> 192k -> 250k:
+
+| depth | 64k | 128k | 192k | 250k |
+| --- | --- | --- | --- | --- |
+| code-prompt prefill, before / chunked (tok/s) | 234 / 282 | 121 / 171 | 58 / 116 | 25 / 90 |
+| 512-token follow-up, before / chunked (tok/s) | 153 / 204 | 100 / 136 | 35 / 97 | 19 / 80 |
+| decode (tok/s) | 34.7 / 32.3 | 11.6 / 11.8 | 8.4 / 8.1 | 5.7 / 5.7 |
+
+Decode does not change (the 64k pair differs by the VRAM line: 59,392 / 57,600 at those two starts). A 58k-token
+paste at 250k took ~38 min before and ~11 min chunked. Quality: perplexity at a 64k window (wikitext-2, 2 x 65,536)
+7.2106 in place, 7.2107 with a whole-cache f16 copy, 7.2074 chunked (+/- 0.071); with drafting at 64k, 8 of 11 texts
+match the unchunked run; the three that differ are the near-tie plain items, and a whole-cache f16 copy against
+chunked gives the same 8 of 11. `GGML_CUDA_FA_CHUNK=0` turns it off. `BONSAI_STAGE_CELLS` sets the staged depth;
 `BONSAI_CTX=131072` gives the earlier window (the launcher does that by itself with less than 24 GB of RAM).
 
 Past the VRAM line, decode reads the host part of the cache over PCIe on every token. This card has PCIe 3.0 x16

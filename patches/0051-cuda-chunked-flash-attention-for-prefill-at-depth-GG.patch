@@ -1,0 +1,608 @@
+From 9f68d00115a5e141ea4279d5e1db8113bdae524a Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Fri, 9 Oct 2026 22:40:32 -0500
+Subject: [PATCH 51/52] cuda: chunked flash attention for prefill at depth
+ (GGML_CUDA_FA_CHUNK=C, off by default)
+
+Prefill-sized attention ops (at least GGML_CUDA_FA_PREFILL_F16_MIN_Q queries) over a quantized
+K/V cache longer than C cells run the KV dimension in chunks of C cells (multiple of 256). Per
+chunk: copy the chunk's K/V bytes into VRAM when they reach the host part of a tiered buffer
+(copy engine, one copy per run), convert the chunk to f16 in pool memory sized by C, and run the
+f16 tensor-core kernel with the chunk's mask columns (f16 or packed I32). The kernel gives each
+output tile to one block and takes the needs_fixup path: unnormalized output and (max, rowsum)
+per row. flash_attn_chunk_fold folds each chunk into a running result in dst; the last chunk
+divides by the row sum. Memory per chunk does not depend on the KV length.
+
+Chunked ops skip the whole-op staging and stay out of the tier prefetch pipeline. Sinks, ALiBi,
+softcap, V as a view of K, several sequences, KV not a multiple of 256 and f16 K/V take the
+normal path. Unset or 0: nothing changes.
+---
+ ggml/src/ggml-cuda/common.cuh        |   5 +
+ ggml/src/ggml-cuda/fattn-common.cuh  | 114 +++++++++++++++--
+ ggml/src/ggml-cuda/fattn-mma-f16.cuh |  10 +-
+ ggml/src/ggml-cuda/fattn.cu          | 182 +++++++++++++++++++++++++++
+ ggml/src/ggml-cuda/fattn.cuh         |   3 +
+ ggml/src/ggml-cuda/ggml-cuda.cu      |  89 ++++++++++++-
+ 6 files changed, 389 insertions(+), 14 deletions(-)
+
+diff --git a/ggml/src/ggml-cuda/common.cuh b/ggml/src/ggml-cuda/common.cuh
+index f0b8c5547..2f10de170 100644
+--- a/ggml/src/ggml-cuda/common.cuh
++++ b/ggml/src/ggml-cuda/common.cuh
+@@ -1625,6 +1625,8 @@ struct ggml_cuda_fwht_q8_context {
+ bool ggml_cuda_shared_pool_enabled();
+ ggml_cuda_pool & ggml_cuda_shared_pool(int device, int stream_no);
+ 
++struct ggml_cuda_fattn_chunk; // fattn-common.cuh
++
+ struct ggml_backend_cuda_context {
+     int device;
+     std::string name;
+@@ -1698,6 +1700,9 @@ struct ggml_backend_cuda_context {
+     ggml_cuda_gdn_gather_context gdn_gather_context;
+     ggml_cuda_fwht_q8_context    fwht_q8_context;
+ 
++    // GGML_CUDA_FA_CHUNK (fattn.cu): set while one KV chunk of a chunked attention op runs; read by launch_fattn
++    const ggml_cuda_fattn_chunk * fattn_chunk = nullptr;
++
+     ~ggml_backend_cuda_context();
+ 
+     cudaStream_t stream(int device, int stream) {
+diff --git a/ggml/src/ggml-cuda/fattn-common.cuh b/ggml/src/ggml-cuda/fattn-common.cuh
+index 9014c8291..24d6ddc7f 100644
+--- a/ggml/src/ggml-cuda/fattn-common.cuh
++++ b/ggml/src/ggml-cuda/fattn-common.cuh
+@@ -56,21 +56,36 @@ struct ggml_cuda_flash_attn_ext_f16_extra_data {
+ // MMA kernel; decode keeps the in-place quantized read. Nothing is reserved at load (the reserved f16 copy would be n_ctx
+ // cells). The minimum keeps speculative verify batches (a lookup drafter makes them up to 33 queries) on the in-place
+ // read: converting the whole cache for each verify step cost 9-10% of decode on file rewrites (RTX 4070, 30k context).
++static inline int64_t ggml_cuda_fattn_prefill_min_q() {
++    static const int64_t min_q = [] {
++        const char * e = getenv("GGML_CUDA_FA_PREFILL_F16_MIN_Q");
++        return e ? std::max<int64_t>(1, atoll(e)) : (int64_t) 64;
++    }();
++    return min_q;
++}
++
+ static inline bool ggml_cuda_fattn_prefill_f16(const ggml_tensor * dst) {
+     static const int64_t max_kv = [] {
+         const char * e = getenv("GGML_CUDA_FA_PREFILL_F16");
+         return e ? (int64_t) atoll(e) : (int64_t) 0;
+     }();
+-    static const int64_t min_q = [] {
+-        const char * e = getenv("GGML_CUDA_FA_PREFILL_F16_MIN_Q");
+-        return e ? std::max<int64_t>(1, atoll(e)) : (int64_t) 64;
+-    }();
+     const ggml_tensor * Q = dst->src[0];
+     const ggml_tensor * K = dst->src[1];
+     const ggml_tensor * V = dst->src[2];
+-    return max_kv > 0 && Q->ne[1] >= min_q && K->ne[1] <= max_kv && K->type == V->type && ggml_is_quantized(K->type);
++    return max_kv > 0 && Q->ne[1] >= ggml_cuda_fattn_prefill_min_q() && K->ne[1] <= max_kv && K->type == V->type && ggml_is_quantized(K->type);
+ }
+ 
++// GGML_CUDA_FA_CHUNK (fattn.cu): one launch_fattn call is one KV chunk of a chunked attention op. The kernel then
++// gives every output tile to one block and writes the unnormalized output and the (max, rowsum) of each row to
++// the meta buffer, the same way a stream-k block that misses the start of its tile does. A fold kernel adds the
++// chunk to the running result in dst and meta; the last chunk divides by the row sum.
++struct ggml_cuda_fattn_chunk {
++    float  * dst;   // running output, in the layout of the attention op's dst
++    float2 * meta;  // running (max, rowsum), one per output row and Q head
++    bool     first;
++    bool     last;
++};
++
+ static inline ggml_cuda_flash_attn_ext_f16_extra_data ggml_cuda_flash_attn_ext_get_f16_extra_data(
+         const ggml_tensor * dst, const bool need_f16_K, const bool need_f16_V) {
+     GGML_ASSERT(dst->op == GGML_OP_FLASH_ATTN_EXT);
+@@ -999,6 +1014,72 @@ static __global__ void flash_attn_combine_results(
+     dst[tid] = VKQ_numerator / VKQ_denominator;
+ }
+ 
++// GGML_CUDA_FA_CHUNK: add one KV chunk to the running result. part is the chunk's unnormalized output (dst layout),
++// part_meta its (max, rowsum) per block and column (one block per output tile). One CUDA block per output row
++// and Q head of a tile, as in flash_attn_stream_k_fixup_uniform.
++template<int D, int ncols1, int ncols2> // D == head size
++__launch_bounds__(D, 1)
++static __global__ void flash_attn_chunk_fold(
++        const float  * __restrict__ part,
++        const float2 * __restrict__ part_meta,
++        float        * __restrict__ acc,
++        float2       * __restrict__ acc_meta,
++        const int ne01, const int ne02, const int ne12,
++        const int gqa_ratio, const int ntiles_x, const int ntiles_z_gqa,
++        const int first, const int last) {
++    constexpr int ncols = ncols1*ncols2;
++
++    const int tile = blockIdx.x;
++    const int j    = blockIdx.y;
++    const int c    = blockIdx.z;
++    const int jc   = j*ncols2 + c;
++    const int tid  = threadIdx.x;
++
++    // same tile order as the kernel: jt fastest, then zt_gqa, z_KV, sequence
++    const int jt       =  tile % ntiles_x;
++    const int zt_gqa   = (tile / ntiles_x) % ntiles_z_gqa;
++    const int z_KV     = (tile / (ntiles_x*ntiles_z_gqa)) % ne12;
++    const int sequence =  tile / (ntiles_x*ntiles_z_gqa*ne12);
++
++    const int row = jt*ncols1 + j;
++    if (row >= ne01 || zt_gqa*ncols2 + c >= gqa_ratio) {
++        return;
++    }
++    const int     head = z_KV*gqa_ratio + zt_gqa*ncols2 + c;
++    const int64_t r    = (int64_t(sequence)*ne01 + row)*ne02 + head;
++
++    const float  val_add = part[r*D + tid];
++    const float2 meta_add = part_meta[tile*ncols + jc];
++
++    float  val  = val_add;
++    float2 meta = meta_add;
++    if (!first) {
++        const float2 meta_acc = acc_meta[r];
++        const float  max_new  = fmaxf(meta_acc.x, meta_add.x);
++
++        const float diff_acc = meta_acc.x - max_new;
++        const float diff_add = meta_add.x - max_new;
++
++        const float scale_acc = diff_acc >= SOFTMAX_FTZ_THRESHOLD ? expf(diff_acc) : 0.0f;
++        const float scale_add = diff_add >= SOFTMAX_FTZ_THRESHOLD ? expf(diff_add) : 0.0f;
++
++        val  = scale_acc*acc[r*D + tid] + scale_add*val_add;
++        meta = make_float2(max_new, scale_acc*meta_acc.y + scale_add*meta_add.y);
++    }
++
++    if (last) {
++        acc[r*D + tid] = val / meta.y;
++        return;
++    }
++    acc[r*D + tid] = val;
++
++    // every thread of the block has read acc_meta[r] before it changes
++    __syncthreads();
++    if (tid == 0) {
++        acc_meta[r] = meta;
++    }
++}
++
+ template <int DV, int ncols1, int ncols2>
+ void launch_fattn(
+     ggml_backend_cuda_context & ctx, ggml_tensor * dst, fattn_kernel_t fattn_kernel, const int nwarps, const size_t nbytes_shared,
+@@ -1033,6 +1114,10 @@ void launch_fattn(
+     const int cc  = ggml_cuda_info().devices[id].cc;
+     const int nsm = ggml_cuda_info().devices[id].nsm;
+ 
++    // GGML_CUDA_FA_CHUNK: this launch is one KV chunk (only the tensor-core kernel runs chunks; it is a stream-k launch)
++    const ggml_cuda_fattn_chunk * chunk = ctx.fattn_chunk;
++    GGML_ASSERT(!chunk || stream_k);
++
+     // GGML_CUDA_FA_PREFILL_F16: the f16 copies come from the pool, not from the space reserved behind dst
+     const bool prefill_f16 = ggml_cuda_fattn_prefill_f16(dst);
+     const ggml_cuda_flash_attn_ext_f16_extra_data f16_extra =
+@@ -1171,7 +1256,8 @@ void launch_fattn(
+         const int tiles_nwaves = (ntiles_dst + max_blocks - 1) / max_blocks;
+         const int tiles_efficiency_percent = 100 * ntiles_dst / (max_blocks*tiles_nwaves);
+ 
+-        const bool use_stream_k = cc >= GGML_CUDA_CC_ADA_LOVELACE || amd_wmma_available(cc) || tiles_efficiency_percent < 75;
++        // a chunk launch keeps one block per output tile: every block writes its partial result and meta
++        const bool use_stream_k = !chunk && (cc >= GGML_CUDA_CC_ADA_LOVELACE || amd_wmma_available(cc) || tiles_efficiency_percent < 75);
+ 
+         blocks_num.x = ntiles_dst;
+         blocks_num.y = 1;
+@@ -1193,7 +1279,9 @@ void launch_fattn(
+             blocks_num.x = nblocks_stream_k;
+         }
+ 
+-        if (ntiles_dst % blocks_num.x != 0) { // Fixup is only needed if the SMs work on fractional tiles.
++        if (chunk) {
++            dst_tmp_meta.alloc(size_t(ntiles_dst) * ncols); // (max, rowsum) per block and column
++        } else if (ntiles_dst % blocks_num.x != 0) { // Fixup is only needed if the SMs work on fractional tiles.
+             dst_tmp_meta.alloc((size_t(blocks_num.x) * ncols * (2 + DV/2)));
+         }
+     } else {
+@@ -1273,11 +1361,19 @@ void launch_fattn(
+         nb21, nb22, nb23,
+         mask ? mask->ne[1] : 0, mask ? mask->ne[2] : 0, mask ? mask->ne[3] : 0,
+         mask ? mask->nb[1] : 0, mask ? mask->nb[2] : 0, mask ? mask->nb[3] : 0,
+-        mask_packed ? 1 : 0
++        (mask_packed ? 1 : 0) | (chunk ? 2 : 0)   // 2: chunk launch (fattn-mma-f16.cuh)
+     );
+     CUDA_CHECK(cudaGetLastError());
+ 
+-    if (stream_k) {
++    if (chunk) {
++        GGML_ASSERT((int) blocks_num.x == ntiles_dst);
++        const dim3 block_dim_fold(DV, 1, 1);
++        const dim3 blocks_num_fold = {(unsigned) ntiles_dst, ncols1, ncols2};
++        flash_attn_chunk_fold<DV, ncols1, ncols2><<<blocks_num_fold, block_dim_fold, 0, main_stream>>>(
++            (const float *) KQV->data, dst_tmp_meta.ptr, chunk->dst, chunk->meta,
++            Q->ne[1], Q->ne[2], K->ne[2], gqa_ratio, ntiles_x, ntiles_z_gqa,
++            chunk->first ? 1 : 0, chunk->last ? 1 : 0);
++    } else if (stream_k) {
+         if ((int)blocks_num.x % ntiles_dst == 0 && (int)blocks_num.x > ntiles_dst) {
+             // Optimized fixup: nblocks_stream_k is a multiple of ntiles_dst, launch one block per tile.
+             const int nblocks_sk  = (int)blocks_num.x;
+diff --git a/ggml/src/ggml-cuda/fattn-mma-f16.cuh b/ggml/src/ggml-cuda/fattn-mma-f16.cuh
+index f8568e499..6c60caee7 100644
+--- a/ggml/src/ggml-cuda/fattn-mma-f16.cuh
++++ b/ggml/src/ggml-cuda/fattn-mma-f16.cuh
+@@ -1942,7 +1942,11 @@ static __global__ void flash_attn_ext_f16(
+     const int stride_K    = type_KV == GGML_TYPE_F16 ? nb11 / sizeof(half2) : nb11;
+     // packed mask: the row stride travels through the tile functions as a NEGATIVE count of 32-bit words (the
+     // sign is the flag, so no inner signature changes); the mask loader expands bits into the f16 tile.
+-    const int stride_mask = mask_packed ? -(int) (nb31 / sizeof(uint32_t)) : (int) (nb31 / sizeof(half));
++    const int stride_mask = (mask_packed & 1) ? -(int) (nb31 / sizeof(uint32_t)) : (int) (nb31 / sizeof(half));
++
++    // mask_packed & 2: chunk launch (GGML_CUDA_FA_CHUNK, launch_fattn). Every block has one whole tile and takes the
++    // needs_fixup path: unnormalized output to dst, (max, rowsum) to dst_meta, for the chunk fold kernel.
++    const bool chunk_part = (mask_packed & 2) != 0;
+ 
+     const int stride_V = V_is_K_view ? stride_K : (type_KV == GGML_TYPE_F16 ? nb21 / sizeof(half2) : nb21);
+ 
+@@ -1986,13 +1990,13 @@ static __global__ void flash_attn_ext_f16(
+             kb0_stop = min(kb0_stop, KV_max[sequence*iter_j + jt] / nbatch_fa);
+         }
+         constexpr bool is_fixup = false; // All but (potentially) the last iterations write their data to dst rather than the fixup buffer.
+-        if (kb0_start == 0) {
++        if (kb0_start == 0 && !chunk_part) {
+             constexpr bool needs_fixup = false; // CUDA block is working on an entire tile.
+             flash_attn_ext_f16_process_tile<DKQ, DV, ncols1, ncols2, nwarps, use_logit_softcap, V_is_K_view, needs_fixup, is_fixup, type_KV>
+                 (Q_f2, K_h2, V_h2, mask_h, sinks_f, dstk, dst_meta, scale, slope, logit_softcap,
+                  ne01, ne02, gqa_ratio, ne11, stride_Q1, stride_Q2, stride_K, stride_V, stride_mask, jt, zt_gqa, kb0_start, kb0_stop);
+         } else {
+-            constexpr bool needs_fixup = true; // CUDA block is missing the beginning of a tile.
++            constexpr bool needs_fixup = true; // CUDA block is missing the beginning of a tile, or a chunk launch.
+             flash_attn_ext_f16_process_tile<DKQ, DV, ncols1, ncols2, nwarps, use_logit_softcap, V_is_K_view, needs_fixup, is_fixup, type_KV>
+                 (Q_f2, K_h2, V_h2, mask_h, sinks_f, dstk, dst_meta, scale, slope, logit_softcap,
+                  ne01, ne02, gqa_ratio, ne11, stride_Q1, stride_Q2, stride_K, stride_V, stride_mask, jt, zt_gqa, kb0_start, kb0_stop);
+diff --git a/ggml/src/ggml-cuda/fattn.cu b/ggml/src/ggml-cuda/fattn.cu
+index ab7dfbca3..b4e374a1f 100644
+--- a/ggml/src/ggml-cuda/fattn.cu
++++ b/ggml/src/ggml-cuda/fattn.cu
+@@ -645,8 +645,190 @@ static __global__ void expand_kq_mask_bits(const uint32_t * __restrict__ bits, h
+     }
+ }
+ 
++// ggml-cuda.cu: copy a range of a tiered buffer that reaches its host part into VRAM (dst == nullptr: only ask)
++bool ggml_cuda_tier_copy_out(void * dst, const void * ptr, size_t nbytes, cudaStream_t stream);
++
++// GGML_CUDA_FA_CHUNK=C: prefill-sized attention ops (at least GGML_CUDA_FA_PREFILL_F16_MIN_Q queries) over a quantized
++// K/V cache longer than C cells run the KV dimension in chunks of C cells (rounded down to a multiple of 256). Per
++// chunk: the chunk's K/V bytes are copied into VRAM when they reach the host part of a tiered buffer (copy engine,
++// each host row read once), converted to f16 in pool memory sized by C, and the f16 tensor-core kernel runs on them
++// with the matching mask columns. Its unnormalized output and (max, rowsum) per row are folded into a running result
++// (launch_fattn, flash_attn_chunk_fold). Memory is bounded by C, not by the KV length, so the f16 prefill path works
++// at any depth. Unset or 0: off, nothing changes. Anything this path does not handle takes the normal path.
++static int64_t ggml_cuda_fattn_chunk_cells() {
++    static const int64_t c = [] {
++        const char * e = getenv("GGML_CUDA_FA_CHUNK");
++        const int64_t v = e ? (int64_t) atoll(e) : 0;
++        return v > 0 ? std::max<int64_t>(FATTN_KQ_STRIDE, v - v % FATTN_KQ_STRIDE) : (int64_t) 0;
++    }();
++    return c;
++}
++
++bool ggml_cuda_flash_attn_ext_chunked(const ggml_tensor * dst) {
++    const int64_t C = ggml_cuda_fattn_chunk_cells();
++    if (C == 0) {
++        return false;
++    }
++    const ggml_tensor * Q     = dst->src[0];
++    const ggml_tensor * K     = dst->src[1];
++    const ggml_tensor * V     = dst->src[2];
++    const ggml_tensor * mask  = dst->src[3];
++    const ggml_tensor * sinks = dst->src[4];
++    if (!Q || !K || !V || K == V || sinks) {
++        return false;
++    }
++    if (V->view_src && (V->view_src == K || (V->view_src == K->view_src && V->view_offs == K->view_offs))) {
++        return false;
++    }
++    if (Q->ne[1] < ggml_cuda_fattn_prefill_min_q() || K->ne[1] <= C || K->ne[1] % FATTN_KQ_STRIDE != 0) {
++        return false;
++    }
++    if (Q->type != GGML_TYPE_F32 || dst->type != GGML_TYPE_F32 || K->type != V->type || !ggml_is_quantized(K->type) ||
++            ggml_get_to_fp16_nc_cuda(K->type) == nullptr) {
++        return false;
++    }
++    if (K->nb[0] != ggml_type_size(K->type) || V->nb[0] != ggml_type_size(V->type)) {
++        return false;
++    }
++    // head sizes of the plain f16 tensor-core kernel (ggml_cuda_flash_attn_ext_mma_f16_switch_ncols2)
++    switch (K->ne[0]) {
++        case 64: case 80: case 96: case 112: case 128: case 256:
++            break;
++        default:
++            return false;
++    }
++    if (V->ne[0] != K->ne[0]) {
++        return false;
++    }
++    float max_bias      = 0.0f;
++    float logit_softcap = 0.0f;
++    memcpy(&max_bias,      (const float *) dst->op_params + 1, sizeof(float));
++    memcpy(&logit_softcap, (const float *) dst->op_params + 2, sizeof(float));
++    if (max_bias != 0.0f || logit_softcap != 0.0f) {
++        return false;
++    }
++    // one sequence: a chunk of cells is then one contiguous byte range of K and of V
++    if (Q->ne[3] != 1 || K->ne[3] != 1 || V->ne[3] != 1 || (mask && (mask->ne[2] != 1 || mask->ne[3] != 1))) {
++        return false;
++    }
++    if (mask && mask->type != GGML_TYPE_F16 && mask->type != GGML_TYPE_I32) {
++        return false;
++    }
++    const int cc = ggml_cuda_info().devices[ggml_cuda_get_device()].cc;
++    if (!GGML_CUDA_CC_IS_NVIDIA(cc) || !turing_mma_available(cc)) {
++        return false;
++    }
++    return ggml_cuda_get_best_fattn_kernel(ggml_cuda_get_device(), dst) == BEST_FATTN_KERNEL_MMA_F16;
++}
++
++static void ggml_cuda_flash_attn_ext_chunks(ggml_backend_cuda_context & ctx, ggml_tensor * dst) {
++    const ggml_tensor * K    = dst->src[1];
++    const ggml_tensor * V    = dst->src[2];
++    const ggml_tensor * mask = dst->src[3];
++
++    ggml_cuda_pool & pool   = ctx.pool();
++    cudaStream_t     stream = ctx.stream();
++
++    const int64_t C        = ggml_cuda_fattn_chunk_cells();
++    const int64_t n_kv     = K->ne[1];
++    const int64_t n_chunks = (n_kv + C - 1) / C;
++
++    static bool logged = false;
++    if (!logged) {
++        GGML_LOG_INFO("%s: GGML_CUDA_FA_CHUNK: chunks of %lld cells (first op: %lld cells, %lld chunks, %lld queries)\n",
++            __func__, (long long) C, (long long) n_kv, (long long) n_chunks, (long long) dst->src[0]->ne[1]);
++        logged = true;
++    }
++
++    // running (max, rowsum) per output row and Q head; the running output is dst itself
++    ggml_cuda_pool_alloc<float2> meta(pool, ggml_nrows(dst));
++    // unnormalized output of one chunk
++    ggml_cuda_pool_alloc<float>  part(pool, ggml_nelements(dst));
++
++    const to_fp16_nc_cuda_t to_fp16 = ggml_get_to_fp16_nc_cuda(K->type);
++    const size_t ts = ggml_type_size(K->type);
++
++    for (int64_t ic = 0; ic < n_chunks; ++ic) {
++        const int64_t kv0 = ic*C;
++        const int64_t n   = std::min(C, n_kv - kv0);
++
++        // quantized chunk views of K and V (cells [kv0, kv0 + n))
++        ggml_tensor Kc = *K;
++        ggml_tensor Vc = *V;
++        Kc.ne[1] = n;
++        Vc.ne[1] = n;
++        Kc.data  = (char *) K->data + kv0*K->nb[1];
++        Vc.data  = (char *) V->data + kv0*V->nb[1];
++
++        // host-backed rows of a tiered cache: one DMA copy per chunk into VRAM; the kernels never read host pages
++        ggml_cuda_pool_alloc<char> K_q(pool);
++        ggml_cuda_pool_alloc<char> V_q(pool);
++        const char * K_src = (const char *) Kc.data;
++        const char * V_src = (const char *) Vc.data;
++        const size_t K_span = ggml_nbytes(&Kc);
++        const size_t V_span = ggml_nbytes(&Vc);
++        if (ggml_cuda_tier_copy_out(nullptr, K_src, K_span, stream)) {
++            ggml_cuda_tier_copy_out(K_q.alloc(K_span), K_src, K_span, stream);
++            K_src = K_q.get();
++        }
++        if (ggml_cuda_tier_copy_out(nullptr, V_src, V_span, stream)) {
++            ggml_cuda_tier_copy_out(V_q.alloc(V_span), V_src, V_span, stream);
++            V_src = V_q.get();
++        }
++
++        // f16 copies of the chunk, contiguous [D, n, n_head_kv]
++        ggml_cuda_pool_alloc<half> K_f16(pool, K->ne[0]*n*K->ne[2]);
++        ggml_cuda_pool_alloc<half> V_f16(pool, V->ne[0]*n*V->ne[2]);
++        to_fp16(K_src, K_f16.get(), K->ne[0], n, K->ne[2], 1, K->nb[1]/ts, K->nb[2]/ts, K->nb[3]/ts, stream);
++        to_fp16(V_src, V_f16.get(), V->ne[0], n, V->ne[2], 1, V->nb[1]/ts, V->nb[2]/ts, V->nb[3]/ts, stream);
++
++        ggml_tensor K_h = Kc;
++        ggml_tensor V_h = Vc;
++        for (ggml_tensor * t : {&K_h, &V_h}) {
++            t->type      = GGML_TYPE_F16;
++            t->nb[0]     = sizeof(half);
++            t->nb[1]     = t->ne[0]*t->nb[0];
++            t->nb[2]     = t->ne[1]*t->nb[1];
++            t->nb[3]     = t->ne[2]*t->nb[2];
++            t->view_src  = nullptr;
++            t->view_offs = 0;
++        }
++        K_h.data = K_f16.get();
++        V_h.data = V_f16.get();
++
++        // mask columns of the chunk (packed: 32 cells per word; kv0 is a multiple of 256)
++        ggml_tensor mask_c;
++        if (mask) {
++            const bool packed = mask->type == GGML_TYPE_I32;
++            mask_c = *mask;
++            mask_c.ne[0]    = packed ? n/32 : n;
++            mask_c.data     = (char *) mask->data + (packed ? (kv0/32)*sizeof(uint32_t) : kv0*sizeof(half));
++            mask_c.view_src = nullptr;
++        }
++
++        ggml_tensor dst_c = *dst;
++        dst_c.data   = part.get();
++        dst_c.src[1] = &K_h;
++        dst_c.src[2] = &V_h;
++        dst_c.src[3] = mask ? &mask_c : nullptr;
++
++        const ggml_cuda_fattn_chunk state = { (float *) dst->data, meta.get(), ic == 0, ic == n_chunks - 1 };
++        ctx.fattn_chunk = &state;
++        ggml_cuda_flash_attn_ext_mma_f16(ctx, &dst_c);
++        ctx.fattn_chunk = nullptr;
++    }
++}
++
+ void ggml_cuda_flash_attn_ext(ggml_backend_cuda_context & ctx, ggml_tensor * dst) {
+     ggml_cuda_set_device(ctx.device);
++
++    // GGML_CUDA_FA_CHUNK: this op copies its own K/V chunks from the original addresses (no whole-op staging; the
++    // tier prefetch leaves these ops out, see ggml_cuda_tier_graph_begin)
++    if (ggml_cuda_flash_attn_ext_chunked(dst)) {
++        ggml_cuda_flash_attn_ext_chunks(ctx, dst);
++        return;
++    }
++
+     ggml_tensor * mask_in = dst->src[3];
+     ggml_tensor mask_f16;
+     ggml_cuda_pool_alloc<half> mask_buf(ctx.pool());
+diff --git a/ggml/src/ggml-cuda/fattn.cuh b/ggml/src/ggml-cuda/fattn.cuh
+index f9a7e15fb..02405de38 100644
+--- a/ggml/src/ggml-cuda/fattn.cuh
++++ b/ggml/src/ggml-cuda/fattn.cuh
+@@ -5,3 +5,6 @@ void ggml_cuda_flash_attn_ext(ggml_backend_cuda_context & ctx, ggml_tensor * dst
+ bool ggml_cuda_flash_attn_ext_supported(int device, const ggml_tensor * dst);
+ 
+ size_t ggml_cuda_flash_attn_ext_get_alloc_size(int device, const ggml_tensor * dst);
++
++// GGML_CUDA_FA_CHUNK: true when this attention op runs as KV chunks (fattn.cu)
++bool ggml_cuda_flash_attn_ext_chunked(const ggml_tensor * dst);
+diff --git a/ggml/src/ggml-cuda/ggml-cuda.cu b/ggml/src/ggml-cuda/ggml-cuda.cu
+index 15ba9ee31..7fc49dc3a 100644
+--- a/ggml/src/ggml-cuda/ggml-cuda.cu
++++ b/ggml/src/ggml-cuda/ggml-cuda.cu
+@@ -1102,6 +1102,74 @@ static void ggml_cuda_tier_unregister(CUdeviceptr va) {
+     }
+ }
+ 
++// Every tiered buffer with all its runs (VRAM, staged host, unstaged host), with or without a staging alias. Used by
++// ggml_cuda_tier_copy_out (chunked attention, fattn.cu). Each run is one allocation, so copies never cross a run.
++struct ggml_cuda_tier_run {
++    size_t off, len;
++    bool   host;
++};
++struct ggml_cuda_tier_span {
++    CUdeviceptr va;
++    size_t      total;
++    std::vector<ggml_cuda_tier_run> runs;
++};
++static std::vector<ggml_cuda_tier_span> g_tier_spans; // guarded by g_tier_mutex
++
++static void ggml_cuda_tier_span_register(CUdeviceptr va, size_t total, const std::vector<ggml_cuda_tier_run> & runs) {
++    std::lock_guard<std::mutex> lock(g_tier_mutex);
++    g_tier_spans.push_back({ va, total, runs });
++}
++
++static void ggml_cuda_tier_span_unregister(CUdeviceptr va) {
++    std::lock_guard<std::mutex> lock(g_tier_mutex);
++    for (size_t i = 0; i < g_tier_spans.size(); ++i) {
++        if (g_tier_spans[i].va == va) {
++            g_tier_spans.erase(g_tier_spans.begin() + i);
++            return;
++        }
++    }
++}
++
++// [ptr, ptr + nbytes) lies in one tiered buffer and reaches a host-backed run: copy the whole range to dst (VRAM,
++// nbytes) with the copy engine, one copy per run, stream-ordered, and return true. Otherwise copy nothing, false.
++// dst == nullptr: only report whether it would copy.
++bool ggml_cuda_tier_copy_out(void * dst, const void * ptr, size_t nbytes, cudaStream_t stream) {
++    const CUdeviceptr p = (CUdeviceptr) ptr;
++    std::vector<ggml_cuda_tier_run> pieces;
++    {
++        std::lock_guard<std::mutex> lock(g_tier_mutex);
++        const ggml_cuda_tier_span * s = nullptr;
++        for (auto & it : g_tier_spans) {
++            if (p >= it.va && p < it.va + it.total) {
++                s = &it;
++                break;
++            }
++        }
++        if (!s || p - s->va + nbytes > s->total) {
++            return false;
++        }
++        const size_t lo = p - s->va, hi = lo + nbytes;
++        bool any_host = false;
++        for (auto & rr : s->runs) {
++            const size_t a = std::max(lo, rr.off), b = std::min(hi, rr.off + rr.len);
++            if (a < b) {
++                pieces.push_back({ a - lo, b - a, rr.host });
++                any_host = any_host || rr.host;
++            }
++        }
++        if (!any_host) {
++            return false;
++        }
++    }
++    if (!dst) {
++        return true;
++    }
++    for (auto & pc : pieces) {
++        CUDA_CHECK(cudaMemcpyAsync((char *) dst + pc.off, (const char *) ptr + pc.off, pc.len, cudaMemcpyDeviceToDevice, stream));
++    }
++    return true;
++}
++
+ // VRAM staging buffers shared by the tiered buffers of one KV cache: slot i backs the i-th host run (K tail, V
+ // tail). The layers of a cache run one after another on one stream, so they can share them; another cache (the MTP
+ // draft context's) runs on its own stream and can overlap with this one's work, so it gets its own. The cache is
+@@ -1222,7 +1290,7 @@ static ggml_backend_buffer_t ggml_backend_cuda_tier_alloc(ggml_backend_buffer_ty
+         return nullptr;
+     }
+ 
+-    struct run { CUdeviceptr ptr; size_t len; CUmemGenericAllocationHandle h; bool staged; };
++    struct run { CUdeviceptr ptr; size_t len; CUmemGenericAllocationHandle h; bool staged; bool host; };
+     std::vector<run> runs;
+     auto undo = [runs_p = &runs, va, total]() {
+         for (auto & rr : *runs_p) {
+@@ -1253,7 +1321,7 @@ static ggml_backend_buffer_t ggml_backend_cuda_tier_alloc(ggml_backend_buffer_ty
+             undo();
+             return nullptr;
+         }
+-        runs.push_back({ va + p*gran, len, h, (bool) staged[p] });
++        runs.push_back({ va + p*gran, len, h, (bool) staged[p], !in_vram[p] });
+         p = q;
+     }
+ 
+@@ -1271,6 +1339,14 @@ static ggml_backend_buffer_t ggml_backend_cuda_tier_alloc(ggml_backend_buffer_ty
+     GGML_LOG_INFO("%s: %s %.2f MiB: %.2f MiB VRAM + %.2f MiB host (%zu runs, %d parts)\n", __func__, bctx->name.c_str(),
+         size/1048576.0, n_vram*gran/1048576.0, (n_pages - n_vram)*gran/1048576.0, runs.size(), parts);
+ 
++    {
++        std::vector<ggml_cuda_tier_run> span_runs;
++        for (auto & rr : runs) {
++            span_runs.push_back({ (size_t) (rr.ptr - va), rr.len, rr.host });
++        }
++        ggml_cuda_tier_span_register(va, total, span_runs);
++    }
++
+     // staging alias (see the comment above ggml_cuda_tier_entry)
+     CUdeviceptr va2 = 0;
+     std::vector<std::pair<size_t, size_t>> host_runs;
+@@ -1317,6 +1393,7 @@ static ggml_backend_buffer_t ggml_backend_cuda_tier_alloc(ggml_backend_buffer_ty
+     ctx->release = [runs, va, va2, total, device]() {
+         ggml_cuda_set_device(device);
+         cudaDeviceSynchronize();
++        ggml_cuda_tier_span_unregister(va);
+         if (va2) {
+             ggml_cuda_tier_unregister(va);
+             for (auto & rr : runs) {
+@@ -1338,6 +1415,11 @@ void * ggml_cuda_tier_stage(const void * ptr, size_t nbytes, cudaStream_t stream
+     return nullptr;
+ }
+ 
++bool ggml_cuda_tier_copy_out(void * dst, const void * ptr, size_t nbytes, cudaStream_t stream) {
++    GGML_UNUSED(dst); GGML_UNUSED(ptr); GGML_UNUSED(nbytes); GGML_UNUSED(stream);
++    return false;
++}
++
+ static ggml_backend_buffer_t ggml_backend_cuda_tier_alloc(ggml_backend_buffer_type_t buft, size_t size) {
+     GGML_UNUSED(size);
+     GGML_LOG_ERROR("%s: tiered buffers need CUDA VMM (build without GGML_CUDA_NO_VMM)\n", __func__);
+@@ -1494,7 +1576,10 @@ static void ggml_cuda_tier_graph_begin(ggml_backend_cuda_context & ctx, ggml_cud
+                 }
+             }
+         }
++        // ops that take the chunked path (GGML_CUDA_FA_CHUNK) copy their own K/V chunks, never read staging and
++        // never call ggml_cuda_tier_fa_begin, so they stay out of the pipeline
+         if (prefetch_on && n->op == GGML_OP_FLASH_ATTN_EXT && n->src[1] && n->src[2] && n->src[1] != n->src[2] &&
++                !ggml_cuda_flash_attn_ext_chunked(n) &&
+                 (ggml_cuda_tier_reaches_host(n->src[1]) || ggml_cuda_tier_reaches_host(n->src[2]))) {
+             ts.fa.push_back(n);
+         }
+-- 
+2.52.0.windows.1
+
