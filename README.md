@@ -117,6 +117,10 @@ the tiered-KV runtime are detected and get the previous 96k all-VRAM recipe.
 
 ### Upgrading from an older bundle
 
+`bundle-20261009-probe` fixes a **launcher stop on Windows PowerShell 5.1** (issue #14, from picmax): with Python on
+PATH but without the `wasmtime` package, the probe for the optional layer stopped the launcher before the server
+started. The probe now runs only when the layer's runtime is present and cannot stop the launcher. Engine and
+measurements unchanged from `bundle-20261009-vram`.
 `bundle-20261009-vram` puts **more of a long context in VRAM** (patches 0047-0049, from the 8 GB work). The packed
 1-bit attention mask (0048-0049) is 1/16 of the f16 mask, 16 MiB instead of 256 MiB at 262k. On the 12 GB recipe the
 saved 240 MiB move the VRAM line from 120,064 to 128,000 positions: decode 40.9 -> 48.2 tok/s at 131k and
