@@ -3,3 +3,13 @@
 12:38 b10770-revert312 prompt ~30000: ok prompt 28484 completion 3000 content='' AMBERFALCON=False | server alive=1 | no CUDA error
 12:40 b10770-revert312 prompt ~45000: ok prompt 42704 completion 3000 content='' AMBERFALCON=False | server alive=1 | no CUDA error
 12:40 === done
+12:42 ballast: holding 4096 MiB | free VRAM 7755 MiB
+12:43 b10770 prompt ~30000: ok prompt 28484 completion 3000 content='' AMBERFALCON=False | server alive=1 | no CUDA error
+12:45 b10770 prompt ~45000: ok prompt 42704 completion 3000 content='' AMBERFALCON=False | server alive=1 | no CUDA error
+12:47 b10770-revert312 prompt ~30000: ok prompt 28484 completion 3000 content='' AMBERFALCON=False | server alive=1 | no CUDA error
+12:49 b10770-revert312 prompt ~45000: ok prompt 42704 completion 3000 content='' AMBERFALCON=False | server alive=1 | no CUDA error
+12:49 === done
+12:50 ballast: holding 4096 MiB | free VRAM 7755 MiB
+12:51 b10770 prompt ~31768: ok prompt 30176 completion 3000 content='' AMBERFALCON=False | server alive=1 | no CUDA error
+12:53 b10770 prompt ~47367: ok prompt 44954 completion 3000 content='' AMBERFALCON=False | server alive=1 | no CUDA error
+12:53 === done
