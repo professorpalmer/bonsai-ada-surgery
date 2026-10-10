@@ -1,0 +1,12 @@
+== budget: requests ok 7/7; errors []
+   private MiB: start 9557 peak 11829; min free commit 682 MiB
+-- budget
+committed 12 GiB
+free commit before ballast 26406 MiB, ballast 12 GiB, after 14086 MiB
+window 131072 / q4_0  (trained max 262144)
+kv     tiered: cells 0..58624 in VRAM, 58624..131072 in system RAM (VRAM margin 225 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off)
+ram    13433 MiB commit free at start (VRAM ~7477, K/V tail 1274, reserve 2048): prompt cache 1580 MiB, 6 checkpoints per slot (BONSAI_RAM_BUDGET=0: server defaults)
+{"status":"ok"}6.50.718.306 W srv         alloc:  - making room for prompt cache entry, removing oldest entry (size = 1299.502 MiB)
+8.28.843.526 W srv         alloc:  - making room for prompt cache entry, removing oldest entry (size = 1346.848 MiB)
+10.00.254.743 W srv         alloc:  - making room for prompt cache entry, removing oldest entry (size = 1288.808 MiB)
+11.26.923.007 W srv         alloc:  - making room for prompt cache entry, removing oldest entry (size = 1283.947 MiB)

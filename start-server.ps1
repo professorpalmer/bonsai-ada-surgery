@@ -328,6 +328,37 @@ if (-not $Small -and $Help -match '--checkpoint-every-nt' -and -not $env:LLAMA_A
     }
 }
 
+# ---- System RAM budget (issue #16) ------------------------------------------------------------------------
+# The server's system memory is the pinned K/V tail, its VRAM (under the Windows display driver model a process's commit
+# grows by about the size of its VRAM allocations: RTX 4070, 4k window, -ngl 0 2.3 GB private, -ngl 99 7.8 GB), the
+# context checkpoints (~170 MiB each, at most 32 per slot) and the prompt cache (default limit 8 GiB; one entry holds a
+# prompt's K/V plus copies of its checkpoints: ~2 GB for a 26.5k-token prompt). With the defaults, 7 sequential thinking
+# requests took the server from 14.1 to 21.7 GB of commit (RTX 4070, 262k); on 16 GB of RAM the server failed with
+# "bad allocation" and then exited (issue #16). So the launcher sizes the two from the free commit at start (RAM + page
+# file - what is in use): budget = free commit - the server's VRAM - the pinned tail - 2 GB; checkpoints 40 % of it /
+# 170 MiB (4 to 32); prompt cache half of what the checkpoints leave (at most 8192 MiB). The cache holds a new entry
+# before it drops the oldest, so it can briefly be one entry over its limit: with 60 % of a 2.6 GB budget the free
+# commit fell to 682 MiB (RTX 2060 SUPER, ~13 GB free commit as on a 16 GB machine). One entry of an 8k-token prompt
+# is ~1.3 GB, so a limit below 1536 MiB only adds churn: then the cache is off. LLAMA_ARG_CACHE_RAM and
+# LLAMA_ARG_CTX_CHECKPOINTS override; BONSAI_RAM_BUDGET=0 keeps the server defaults.
+$RamNote = ''
+if ($env:BONSAI_RAM_BUDGET -ne '0') {
+    try {
+        $OsMem = Get-CimInstance Win32_OperatingSystem
+        $CommitFreeMiB = [int]($OsMem.FreeVirtualMemory / 1024)
+        $VramFreeMiB = if ($FreeMiB) { $FreeMiB } else { [int]((& nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits | Select-Object -First 1).Trim()) }
+        $SrvVramMiB = [math]::Max(0, $VramFreeMiB - $(if ($Margin) { $Margin } else { 300 }))
+        $TailMiB = if ($TierCells -gt 0) { [int](($Ctx - $TierCells) * $CellBytes / 1MB) } else { 0 }
+        $RamBudgetMiB = $CommitFreeMiB - $SrvVramMiB - $TailMiB - 2048
+        $Ckpts = [int][math]::Min(32, [math]::Max(4, [math]::Floor(0.4 * [math]::Max(0, $RamBudgetMiB) / 170)))
+        $CacheMiB = [int][math]::Min(8192, 0.5 * ($RamBudgetMiB - $Ckpts * 170))
+        if ($CacheMiB -lt 1536) { $CacheMiB = 0 }
+        if (-not $env:LLAMA_ARG_CACHE_RAM) { $env:LLAMA_ARG_CACHE_RAM = "$CacheMiB" }
+        if (-not $env:LLAMA_ARG_CTX_CHECKPOINTS) { $env:LLAMA_ARG_CTX_CHECKPOINTS = "$Ckpts" }
+        $RamNote = "$CommitFreeMiB MiB commit free at start (VRAM ~$SrvVramMiB, K/V tail $TailMiB, reserve 2048): prompt cache $($env:LLAMA_ARG_CACHE_RAM) MiB, $($env:LLAMA_ARG_CTX_CHECKPOINTS) checkpoints per slot (BONSAI_RAM_BUDGET=0: server defaults)"
+    } catch { $RamNote = '' }
+}
+
 if ($Small) { Write-Host "8gb    preset on ($TotalMiB MiB card; BONSAI_8GB=0 turns it off): ub $Ubatch, f16 prefill to $($env:GGML_CUDA_FA_PREFILL_F16) cells" }
 Write-Host "model  $(Split-Path $Model -Leaf)"
 Write-Host "window $Ctx / $Ctk  (trained max 262144)"
@@ -335,6 +366,7 @@ if ($TierCells -gt 0) { Write-Host "kv     tiered: cells 0..$TierCells in VRAM, 
 if ($env:GGML_CUDA_KV_TIER_STAGING_FRAC) { Write-Host "kv     staging buffer for cells $TierCells..$($TierCells + $StageCells); past that the system RAM rows are read in place$(if ($Packed) { '; packed KQ mask' })" }
 if ($Small -and $Has262 -and -not $Small262 -and -not $env:BONSAI_CTX -and $RamGiB -gt 0 -and $RamGiB -lt 24) { Write-Host "note   window 131k: the 262k window needs 24 GB of system RAM or more ($RamGiB GB here); BONSAI_CTX=262144 tries it" }
 if ($CkptNote) { Write-Host "ckpt   $CkptNote" }
+if ($RamNote) { Write-Host "ram    $RamNote" }
 if ($TierCells -gt 0 -and $FreeMiB) {
     # Issue #7: other programs held 2.3 GB at one start, so the line was at 105k instead of 243k and a 147k session
     # read 41k cells over PCIe each step. Show the free VRAM, so a low line has a visible cause.
@@ -362,7 +394,8 @@ if ($Spec -gt 0) {
 # older launcher can still hold them, so they are not listed as the user's settings either.
 $LauncherVars = @('BONSAI_LAYER_KEY', 'LLAMA_ARG_CHAT_TEMPLATE_KWARGS', 'GGML_CUDA_BATCH_INVARIANT',
                   'GGML_CUDA_SHARED_POOL', 'LLAMA_MTP_DRAFT_UBATCH', 'GGML_CUDA_FA_PREFILL_F16',
-                  'LLAMA_ARG_CHECKPOINT_EVERY_NT', 'LLAMA_ARG_KQ_MASK_PACKED', 'GGML_CUDA_KV_TIER_STAGING_FRAC')
+                  'LLAMA_ARG_CHECKPOINT_EVERY_NT', 'LLAMA_ARG_KQ_MASK_PACKED', 'GGML_CUDA_KV_TIER_STAGING_FRAC',
+                  'LLAMA_ARG_CACHE_RAM', 'LLAMA_ARG_CTX_CHECKPOINTS')
 $Listed = @($UserEnv | Where-Object { $_.Name -notin $LauncherVars -and $_.Value })
 if ($Listed.Count -gt 0) {
     Write-Host ("env    set in this window, these change the defaults: " + (($Listed | ForEach-Object { "$($_.Name)=$($_.Value)" }) -join '  '))

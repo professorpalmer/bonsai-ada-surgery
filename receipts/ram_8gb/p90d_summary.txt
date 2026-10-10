@@ -1,0 +1,9 @@
+== budget: requests ok 7/7; errors []
+   private MiB: start 9558 peak 10485; min free commit 1980 MiB
+-- budget
+committed 12 GiB
+free commit before ballast 26385 MiB, ballast 12 GiB, after 14058 MiB
+window 131072 / q4_0  (trained max 262144)
+kv     tiered: cells 0..58624 in VRAM, 58624..131072 in system RAM (VRAM margin 225 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off)
+ram    13434 MiB commit free at start (VRAM ~7477, K/V tail 1274, reserve 2048): prompt cache 0 MiB, 6 checkpoints per slot (BONSAI_RAM_BUDGET=0: server defaults)
+{"status":"ok"}
