@@ -1,0 +1,51 @@
+== probe: 0 one-token
+11:26:11 loaded: used 7695 server 7401 MiB free 312
+code   depth  64000 (evaluated 64009): prefill   288.5 tok/s  decode   17.5 tok/s (400 tok)
+prose  depth  64000 (evaluated 512): prefill   195.5 tok/s  decode   17.1 tok/s (400 tok)
+bash   depth  64000 (evaluated 516): prefill   193.1 tok/s  decode   17.0 tok/s (400 tok)
+mean decode 17.2 tok/s
+code   depth 128000 (evaluated 63847): prefill   171.5 tok/s  decode    7.2 tok/s (400 tok)
+prose  depth 128000 (evaluated 512): prefill   128.9 tok/s  decode    7.4 tok/s (400 tok)
+bash   depth 128000 (evaluated 516): prefill   126.5 tok/s  decode   10.0 tok/s (400 tok)
+mean decode 8.2 tok/s
+code   depth 192000 (evaluated 64186): prefill   116.0 tok/s  decode    4.6 tok/s (400 tok)
+prose  depth 192000 (evaluated 512): prefill    91.3 tok/s  decode    4.3 tok/s (400 tok)
+bash   depth 192000 (evaluated 516): prefill    89.2 tok/s  decode    4.8 tok/s (400 tok)
+mean decode 4.6 tok/s
+code   depth 250000 (evaluated 58392): prefill    90.3 tok/s  decode    4.0 tok/s (400 tok)
+prose  depth 250000 (evaluated 512): prefill    74.8 tok/s  decode    3.0 tok/s (400 tok)
+bash   depth 250000 (evaluated 516): prefill    72.9 tok/s  decode    3.4 tok/s (400 tok)
+mean decode 3.5 tok/s
+-- kfirst-sum lines: 2464, op lines: 2475
+44.34.503.718 W kfirst-sum cache_k_l7 ops 16 n_kv 249344 host 191090 mass 0.9045 | 1e-2 u 0.7566/0.9519 h 0.2451 | 1e-3 u 0.9598/0.9994 h 0.5475 | 1e-4 u 0.9950/1.0000 h 0.7827 | 1e-5 u 0.9995/1.0000 h 0.9128
+44.34.503.735 W kfirst-sum cache_k_l11 ops 16 n_kv 249344 host 191090 mass 0.9224 | 1e-2 u 0.7950/0.9831 h 0.2525 | 1e-3 u 0.9725/0.9998 h 0.5547 | 1e-4 u 0.9974/1.0000 h 0.7973 | 1e-5 u 0.9998/1.0000 h 0.9248
+44.34.503.742 W kfirst-sum cache_k_l3 ops 16 n_kv 249344 host 191090 mass 0.8882 | 1e-2 u 0.8497/0.9958 h 0.4230 | 1e-3 u 0.9756/1.0000 h 0.7397 | 1e-4 u 0.9968/1.0000 h 0.9097 | 1e-5 u 0.9996/1.0000 h 0.9739
+44.34.503.749 W kfirst-sum cache_k_l47 ops 16 n_kv 249344 host 191090 mass 0.8648 | 1e-2 u 0.1963/0.6153 h 0.0315 | 1e-3 u 0.7062/0.9265 h 0.2188 | 1e-4 u 0.9395/0.9916 h 0.5077 | 1e-5 u 0.9911/0.9997 h 0.7487
+44.34.503.759 W kfirst-sum cache_k_l51 ops 16 n_kv 249344 host 191090 mass 0.9349 | 1e-2 u 0.2086/0.6848 h 0.0357 | 1e-3 u 0.5812/0.9416 h 0.1757 | 1e-4 u 0.8534/0.9951 h 0.4258 | 1e-5 u 0.9620/0.9999 h 0.6736
+44.34.503.767 W kfirst-sum cache_k_l55 ops 16 n_kv 249344 host 191090 mass 0.8836 | 1e-2 u 0.4232/0.7994 h 0.1113 | 1e-3 u 0.8015/0.9829 h 0.3805 | 1e-4 u 0.9571/0.9993 h 0.6673 | 1e-5 u 0.9938/1.0000 h 0.8563
+44.34.503.774 W kfirst-sum cache_k_l35 ops 16 n_kv 249344 host 191090 mass 0.9070 | 1e-2 u 0.1486/0.5487 h 0.0239 | 1e-3 u 0.5849/0.9292 h 0.1768 | 1e-4 u 0.8904/0.9952 h 0.4486 | 1e-5 u 0.9816/0.9997 h 0.7106
+44.34.503.780 W kfirst-sum cache_k_l39 ops 16 n_kv 249344 host 191090 mass 0.8964 | 1e-2 u 0.3067/0.6812 h 0.0453 | 1e-3 u 0.7588/0.9572 h 0.2262 | 1e-4 u 0.9520/0.9972 h 0.5150 | 1e-5 u 0.9932/0.9999 h 0.7595
+44.34.503.785 W kfirst-sum cache_k_l43 ops 16 n_kv 249344 host 191090 mass 0.9415 | 1e-2 u 0.3965/0.7895 h 0.0708 | 1e-3 u 0.7937/0.9755 h 0.2508 | 1e-4 u 0.9527/0.9987 h 0.4991 | 1e-5 u 0.9921/1.0000 h 0.7286
+44.34.503.791 W kfirst-sum cache_k_l15 ops 16 n_kv 249344 host 191090 mass 0.8350 | 1e-2 u 0.7071/0.9382 h 0.1968 | 1e-3 u 0.9584/0.9971 h 0.5009 | 1e-4 u 0.9968/1.0000 h 0.7614 | 1e-5 u 0.9999/1.0000 h 0.9088
+44.34.503.797 W kfirst-sum cache_k_l19 ops 16 n_kv 249344 host 191090 mass 0.9423 | 1e-2 u 0.4211/0.9302 h 0.1016 | 1e-3 u 0.7918/0.9977 h 0.3381 | 1e-4 u 0.9547/1.0000 h 0.6191 | 1e-5 u 0.9933/1.0000 h 0.8317
+44.34.503.803 W kfirst-sum cache_k_l59 ops 16 n_kv 249344 host 191090 mass 0.8684 | 1e-2 u 0.4948/0.7833 h 0.1171 | 1e-3 u 0.8477/0.9751 h 0.3545 | 1e-4 u 0.9686/0.9991 h 0.6250 | 1e-5 u 0.9947/1.0000 h 0.8240
+44.34.503.808 W kfirst-sum cache_k_l63 ops 16 n_kv 249344 host 191090 mass 0.9436 | 1e-2 u 0.7766/0.9537 h 0.2426 | 1e-3 u 0.9618/0.9976 h 0.5329 | 1e-4 u 0.9954/1.0000 h 0.7685 | 1e-5 u 0.9996/1.0000 h 0.9027
+44.34.503.818 W kfirst-sum cache_k_l23 ops 16 n_kv 249344 host 191090 mass 0.8945 | 1e-2 u 0.6159/0.8939 h 0.1474 | 1e-3 u 0.9379/0.9966 h 0.4523 | 1e-4 u 0.9951/1.0000 h 0.7356 | 1e-5 u 0.9998/1.0000 h 0.8999
+44.34.503.824 W kfirst-sum cache_k_l27 ops 16 n_kv 249344 host 191090 mass 0.9025 | 1e-2 u 0.4027/0.7922 h 0.0869 | 1e-3 u 0.8197/0.9846 h 0.3167 | 1e-4 u 0.9705/0.9995 h 0.5972 | 1e-5 u 0.9969/1.0000 h 0.8102
+44.34.503.830 W kfirst-sum cache_k_l31 ops 16 n_kv 249344 host 191090 mass 0.8977 | 1e-2 u 0.2344/0.6771 h 0.0382 | 1e-3 u 0.6923/0.9606 h 0.2222 | 1e-4 u 0.9330/0.9978 h 0.5096 | 1e-5 u 0.9910/0.9999 h 0.7526
+44.43.427.458 W kfirst-sum cache_k_l7 ops 16 n_kv 249344 host 191090 mass 0.9038 | 1e-2 u 0.7787/0.9759 h 0.2562 | 1e-3 u 0.9675/0.9999 h 0.5718 | 1e-4 u 0.9968/1.0000 h 0.8074 | 1e-5 u 0.9998/1.0000 h 0.9279
+44.43.427.471 W kfirst-sum cache_k_l11 ops 16 n_kv 249344 host 191090 mass 0.9175 | 1e-2 u 0.8450/0.9786 h 0.2806 | 1e-3 u 0.9836/0.9999 h 0.5880 | 1e-4 u 0.9988/1.0000 h 0.8199 | 1e-5 u 0.9999/1.0000 h 0.9343
+44.43.427.477 W kfirst-sum cache_k_l3 ops 16 n_kv 249344 host 191090 mass 0.8853 | 1e-2 u 0.8674/0.9979 h 0.4374 | 1e-3 u 0.9804/1.0000 h 0.7581 | 1e-4 u 0.9976/1.0000 h 0.9200 | 1e-5 u 0.9998/1.0000 h 0.9777
+44.43.427.484 W kfirst-sum cache_k_l47 ops 16 n_kv 249344 host 191090 mass 0.8930 | 1e-2 u 0.1115/0.4541 h 0.0146 | 1e-3 u 0.5928/0.9107 h 0.1537 | 1e-4 u 0.9022/0.9967 h 0.4333 | 1e-5 u 0.9845/1.0000 h 0.6983
+44.43.427.490 W kfirst-sum cache_k_l51 ops 16 n_kv 249344 host 191090 mass 0.9466 | 1e-2 u 0.1683/0.6437 h 0.0279 | 1e-3 u 0.5490/0.9463 h 0.1599 | 1e-4 u 0.8408/0.9961 h 0.4092 | 1e-5 u 0.9636/0.9998 h 0.6616
+44.43.427.496 W kfirst-sum cache_k_l55 ops 16 n_kv 249344 host 191090 mass 0.9016 | 1e-2 u 0.3891/0.7741 h 0.0998 | 1e-3 u 0.7827/0.9785 h 0.3595 | 1e-4 u 0.9492/0.9988 h 0.6469 | 1e-5 u 0.9914/1.0000 h 0.8438
+44.43.427.501 W kfirst-sum cache_k_l35 ops 16 n_kv 249344 host 191090 mass 0.9247 | 1e-2 u 0.1239/0.6181 h 0.0175 | 1e-3 u 0.5308/0.9447 h 0.1474 | 1e-4 u 0.8558/0.9961 h 0.4100 | 1e-5 u 0.9711/0.9999 h 0.6767
+44.43.427.507 W kfirst-sum cache_k_l39 ops 16 n_kv 249344 host 191090 mass 0.9077 | 1e-2 u 0.2262/0.7301 h 0.0305 | 1e-3 u 0.6873/0.9511 h 0.1779 | 1e-4 u 0.9280/0.9959 h 0.4604 | 1e-5 u 0.9877/0.9999 h 0.7291
+44.43.427.512 W kfirst-sum cache_k_l43 ops 16 n_kv 249344 host 191090 mass 0.9523 | 1e-2 u 0.3397/0.8252 h 0.0532 | 1e-3 u 0.7594/0.9721 h 0.2019 | 1e-4 u 0.9452/0.9986 h 0.4416 | 1e-5 u 0.9911/1.0000 h 0.6902
+44.43.427.518 W kfirst-sum cache_k_l15 ops 16 n_kv 249344 host 191090 mass 0.8467 | 1e-2 u 0.7444/0.9720 h 0.2108 | 1e-3 u 0.9644/0.9994 h 0.5134 | 1e-4 u 0.9977/1.0000 h 0.7669 | 1e-5 u 0.9999/1.0000 h 0.9118
+44.43.427.525 W kfirst-sum cache_k_l19 ops 16 n_kv 249344 host 191090 mass 0.9350 | 1e-2 u 0.4281/0.8994 h 0.0965 | 1e-3 u 0.8433/0.9975 h 0.3381 | 1e-4 u 0.9753/1.0000 h 0.6347 | 1e-5 u 0.9968/1.0000 h 0.8424
+44.43.427.531 W kfirst-sum cache_k_l59 ops 16 n_kv 249344 host 191090 mass 0.8831 | 1e-2 u 0.4663/0.7546 h 0.1024 | 1e-3 u 0.8407/0.9697 h 0.3319 | 1e-4 u 0.9698/0.9987 h 0.6094 | 1e-5 u 0.9960/1.0000 h 0.8191
+44.43.427.536 W kfirst-sum cache_k_l63 ops 16 n_kv 249344 host 191090 mass 0.9569 | 1e-2 u 0.7322/0.9481 h 0.1959 | 1e-3 u 0.9582/0.9984 h 0.4819 | 1e-4 u 0.9949/1.0000 h 0.7341 | 1e-5 u 0.9995/1.0000 h 0.8850
+44.43.427.542 W kfirst-sum cache_k_l23 ops 16 n_kv 249344 host 191090 mass 0.8831 | 1e-2 u 0.6283/0.8976 h 0.1424 | 1e-3 u 0.9456/0.9983 h 0.4540 | 1e-4 u 0.9963/1.0000 h 0.7419 | 1e-5 u 0.9998/1.0000 h 0.9037
+44.43.427.547 W kfirst-sum cache_k_l27 ops 16 n_kv 249344 host 191090 mass 0.9103 | 1e-2 u 0.3325/0.7980 h 0.0638 | 1e-3 u 0.7811/0.9831 h 0.2763 | 1e-4 u 0.9654/0.9996 h 0.5685 | 1e-5 u 0.9967/1.0000 h 0.7972
+44.43.427.552 W kfirst-sum cache_k_l31 ops 16 n_kv 249344 host 191090 mass 0.9245 | 1e-2 u 0.2530/0.7983 h 0.0430 | 1e-3 u 0.7057/0.9846 h 0.2401 | 1e-4 u 0.9369/0.9996 h 0.5343 | 1e-5 u 0.9917/1.0000 h 0.7741

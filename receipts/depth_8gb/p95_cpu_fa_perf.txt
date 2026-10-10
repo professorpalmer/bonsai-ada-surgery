@@ -1,0 +1,9 @@
+CPU    kv  32768 nb 1:    23.84 ms per layer
+CPU    kv  32768 nb 2:    47.08 ms per layer
+CPU    kv  65536 nb 1:    46.91 ms per layer
+CPU    kv  65536 nb 2:    93.25 ms per layer
+CPU    kv 131072 nb 1:    91.76 ms per layer
+CPU    kv 131072 nb 2:   185.19 ms per layer
+CPU    kv 196608 nb 1:   138.93 ms per layer
+CPU    kv 196608 nb 2:   278.04 ms per layer
+CUDA0  kv 196608 nb 2:     3.05 ms per layer
