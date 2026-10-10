@@ -1,0 +1,7 @@
+05:54 p0050 old (C:/Users/pwall/Projects/bonsai-2-27b-serve): health=1
+pass@1 97.56%  (160/164)  arm=medium effort=- temp=0.0 max_tokens=24576  3229.7s
+wrote artifacts/humaneval-p0050-old\summary.json
+06:48 p0050 new (C:\Users\pwall\AppData\Local\Temp\bonsai-root-concat): health=1
+pass@1 97.56%  (160/164)  arm=medium effort=- temp=0.0 max_tokens=24576  3175.3s
+wrote artifacts/humaneval-p0050-new\summary.json
+07:41 === p0050 done
