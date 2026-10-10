@@ -1,0 +1,107 @@
+From 157a278fd22a914ebad1374397c8d94e9b7a1a37 Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Fri, 9 Oct 2026 12:45:00 -0500
+Subject: [PATCH 47/49] cuda: tiered KV partial staging
+ (GGML_CUDA_KV_TIER_STAGING_FRAC) and in-place reads for small attention ops
+ (GGML_CUDA_KV_TIER_STAGE_MIN_Q); both off by default
+
+---
+ ggml/src/ggml-cuda/fattn.cu     | 12 +++++++++++-
+ ggml/src/ggml-cuda/ggml-cuda.cu | 16 ++++++++++++----
+ 2 files changed, 23 insertions(+), 5 deletions(-)
+
+diff --git a/ggml/src/ggml-cuda/fattn.cu b/ggml/src/ggml-cuda/fattn.cu
+index 4c64be74f..8dc5ee316 100644
+--- a/ggml/src/ggml-cuda/fattn.cu
++++ b/ggml/src/ggml-cuda/fattn.cu
+@@ -617,6 +617,16 @@ void * ggml_cuda_tier_stage(const void * ptr, size_t nbytes, cudaStream_t stream
+ bool   ggml_cuda_tier_fa_begin(ggml_backend_cuda_context & ctx, const ggml_tensor * dst, void ** K_alias, void ** V_alias);
+ void   ggml_cuda_tier_fa_end(ggml_backend_cuda_context & ctx);
+ 
++// GGML_CUDA_KV_TIER_STAGE_MIN_Q=q: attention ops with fewer than q queries (decode, small verify batches) that are not
++// in the prefill prefetch read the host tail in place and copy nothing. Unset: 0 (every op that reaches the tail stages).
++static int64_t ggml_cuda_tier_stage_min_q() {
++    static const int64_t q = [] {
++        const char * e = getenv("GGML_CUDA_KV_TIER_STAGE_MIN_Q");
++        return e ? (int64_t) atoll(e) : (int64_t) 0;
++    }();
++    return q;
++}
++
+ void ggml_cuda_flash_attn_ext(ggml_backend_cuda_context & ctx, ggml_tensor * dst) {
+     ggml_cuda_set_device(ctx.device);
+ 
+@@ -643,7 +653,7 @@ void ggml_cuda_flash_attn_ext(ggml_backend_cuda_context & ctx, ggml_tensor * dst
+             if (V_alias) {
+                 V->data = V_alias;
+             }
+-        } else {
++        } else if (dst->src[0]->ne[1] >= ggml_cuda_tier_stage_min_q()) {
+             if (void * a = ggml_cuda_tier_stage(K->data, ggml_nbytes(K), ctx.stream())) {
+                 K->data = a;
+             }
+diff --git a/ggml/src/ggml-cuda/ggml-cuda.cu b/ggml/src/ggml-cuda/ggml-cuda.cu
+index 1af75b56b..15ba9ee31 100644
+--- a/ggml/src/ggml-cuda/ggml-cuda.cu
++++ b/ggml/src/ggml-cuda/ggml-cuda.cu
+@@ -1197,13 +1197,21 @@ static ggml_backend_buffer_t ggml_backend_cuda_tier_alloc(ggml_backend_buffer_ty
+ 
+     // page p is VRAM when its start lies in the head of its part
+     const size_t n_pages = total / gran;
++    // GGML_CUDA_KV_TIER_STAGING_FRAC=f: only the first f x part bytes of each host tail get a staging buffer (see the
++    // staging alias below); the rest of the tail is its own allocation, mapped in place in the alias. Unset: whole tail.
++    static const double stage_frac = [] {
++        const char * e = getenv("GGML_CUDA_KV_TIER_STAGING_FRAC");
++        return e ? std::max(0.0, atof(e)) : 2.0;
++    }();
+     std::vector<bool> in_vram(n_pages);
++    std::vector<bool> staged(n_pages);
+     size_t n_vram = 0;
+     for (size_t p = 0; p < n_pages; ++p) {
+         const size_t off  = p * gran;
+         const size_t ip   = std::min<size_t>(off / std::max<size_t>(part, 1), parts - 1);
+         const size_t head = (size_t) (bctx->vram_frac * part);
+         in_vram[p] = off - ip*part < head;
++        staged[p]  = !in_vram[p] && (double) (off - ip*part - head) < stage_frac * (double) part;
+         n_vram += in_vram[p];
+     }
+ 
+@@ -1214,7 +1222,7 @@ static ggml_backend_buffer_t ggml_backend_cuda_tier_alloc(ggml_backend_buffer_ty
+         return nullptr;
+     }
+ 
+-    struct run { CUdeviceptr ptr; size_t len; CUmemGenericAllocationHandle h; };
++    struct run { CUdeviceptr ptr; size_t len; CUmemGenericAllocationHandle h; bool staged; };
+     std::vector<run> runs;
+     auto undo = [runs_p = &runs, va, total]() {
+         for (auto & rr : *runs_p) {
+@@ -1226,7 +1234,7 @@ static ggml_backend_buffer_t ggml_backend_cuda_tier_alloc(ggml_backend_buffer_ty
+ 
+     for (size_t p = 0; p < n_pages; ) {
+         size_t q = p;
+-        while (q < n_pages && in_vram[q] == in_vram[p]) {
++        while (q < n_pages && in_vram[q] == in_vram[p] && staged[q] == staged[p]) {
+             ++q;
+         }
+         const size_t len = (q - p) * gran;
+@@ -1245,7 +1253,7 @@ static ggml_backend_buffer_t ggml_backend_cuda_tier_alloc(ggml_backend_buffer_ty
+             undo();
+             return nullptr;
+         }
+-        runs.push_back({ va + p*gran, len, h });
++        runs.push_back({ va + p*gran, len, h, (bool) staged[p] });
+         p = q;
+     }
+ 
+@@ -1275,7 +1283,7 @@ static ggml_backend_buffer_t ggml_backend_cuda_tier_alloc(ggml_backend_buffer_ty
+             for (auto & rr : runs) {
+                 const size_t off = rr.ptr - va;
+                 CUmemGenericAllocationHandle h = rr.h;
+-                if (!in_vram[off / gran]) {
++                if (rr.staged) {
+                     CUmemGenericAllocationHandle bh;
+                     if (!ggml_cuda_tier_staging_handle(physical, ggml_cuda_tier_staging_key(bctx->name), ih++, rr.len, &bh)) {
+                         ok = false;
+-- 
+2.52.0.windows.1
+

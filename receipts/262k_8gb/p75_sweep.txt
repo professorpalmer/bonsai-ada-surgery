@@ -1,0 +1,28 @@
+no current.pid, no llama-server
+09:10:16 sweep idle 274 MiB, power 175.00 W, vars: BONSAI_BIN=C:/bonsai/bonsai-ada-surgery/bin-0046;BONSAI_LAYER=0;BONSAI_CTX=262144
+launcher pid 12400  out C:\bonsai\8gb\logs\20261009-091016-sweep.out.log
+09:10:32 loaded: used 7806 server 7532 MiB free 201
+code   depth   4000 (evaluated 4048): prefill   409.6 tok/s  ttft   9.88s  decode   52.1 tok/s (400 tok)
+prose  depth   4000 (evaluated 512): prefill   348.8 tok/s  ttft   1.47s  decode   51.1 tok/s (400 tok)
+bash   depth   4000 (evaluated 516): prefill   359.0 tok/s  ttft   1.44s  decode   52.6 tok/s (400 tok)
+mean decode 51.9 tok/s
+code   depth  64000 (evaluated 60477): prefill   240.3 tok/s  ttft 251.68s  decode   22.8 tok/s (400 tok)
+prose  depth  64000 (evaluated 512): prefill   156.8 tok/s  ttft   3.26s  decode   24.4 tok/s (400 tok)
+bash   depth  64000 (evaluated 516): prefill   153.5 tok/s  ttft   3.36s  decode   25.3 tok/s (400 tok)
+mean decode 24.1 tok/s
+code   depth 128000 (evaluated 63847): prefill   125.5 tok/s  ttft 508.88s  decode   10.0 tok/s (400 tok)
+prose  depth 128000 (evaluated 512): prefill   100.0 tok/s  ttft   5.12s  decode    9.3 tok/s (400 tok)
+bash   depth 128000 (evaluated 516): prefill    97.2 tok/s  ttft   5.31s  decode   10.5 tok/s (400 tok)
+mean decode 9.9 tok/s
+code   depth 192000 (evaluated 64186): prefill    85.9 tok/s  ttft 747.47s  decode    7.3 tok/s (400 tok)
+prose  depth 192000 (evaluated 512): prefill    73.3 tok/s  ttft   6.98s  decode    6.4 tok/s (400 tok)
+bash   depth 192000 (evaluated 516): prefill    70.5 tok/s  ttft   7.32s  decode    6.9 tok/s (400 tok)
+mean decode 6.9 tok/s
+code   depth 250000 (evaluated 58392): prefill    65.6 tok/s  ttft 890.62s  decode    5.2 tok/s (400 tok)
+prose  depth 250000 (evaluated 512): prefill    58.2 tok/s  ttft   8.80s  decode    4.5 tok/s (400 tok)
+bash   depth 250000 (evaluated 516): prefill    55.9 tok/s  ttft   9.22s  decode    5.0 tok/s (400 tok)
+mean decode 4.9 tok/s
+acceptance mean 0.788 over 20
+min free 4194283 MiB at end
+stopped 3996, 10732, 12400
+arm done

@@ -1,0 +1,51 @@
+== A_preset: 0 one-token
+17:12:47 loaded: used 7662 server 7388 MiB free 353
+prose  depth   4000 (evaluated 512): prefill   350.2 tok/s  decode   50.4 tok/s (400 tok)
+mean decode 51.0 tok/s
+prose  depth  32000 (evaluated 512): prefill   256.7 tok/s  decode   49.3 tok/s (400 tok)
+mean decode 46.0 tok/s
+prose  depth  64000 (evaluated 512): prefill   151.7 tok/s  decode   36.7 tok/s (400 tok)
+mean decode 30.5 tok/s
+prose  depth  96000 (evaluated 512): prefill   118.3 tok/s  decode   16.9 tok/s (400 tok)
+mean decode 17.8 tok/s
+prose  depth 128000 (evaluated 512): prefill    96.3 tok/s  decode   10.1 tok/s (400 tok)
+mean decode 13.0 tok/s
+trace min free 131 MiB over 113 samples
+== H131: 0 one-token
+17:31:44 loaded: used 7724 server 7450 MiB free 283
+prose  depth   4000 (evaluated 512): prefill   363.0 tok/s  decode   51.0 tok/s (400 tok)
+mean decode 51.7 tok/s
+prose  depth  32000 (evaluated 512): prefill   260.6 tok/s  decode   49.6 tok/s (400 tok)
+mean decode 46.4 tok/s
+prose  depth  64000 (evaluated 512): prefill   156.1 tok/s  decode   44.3 tok/s (400 tok)
+mean decode 38.0 tok/s
+prose  depth  96000 (evaluated 512): prefill   121.3 tok/s  decode   19.1 tok/s (400 tok)
+mean decode 20.1 tok/s
+prose  depth 128000 (evaluated 512): prefill    97.8 tok/s  decode   11.1 tok/s (400 tok)
+mean decode 14.2 tok/s
+trace min free 130 MiB over 108 samples
+== H262: 0 one-token
+17:49:58 loaded: used 7734 server 7460 MiB free 273
+prose  depth   4000 (evaluated 512): prefill   358.8 tok/s  decode   51.0 tok/s (400 tok)
+mean decode 51.7 tok/s
+prose  depth  32000 (evaluated 512): prefill   261.8 tok/s  decode   49.7 tok/s (400 tok)
+mean decode 46.5 tok/s
+prose  depth  64000 (evaluated 512): prefill   155.5 tok/s  decode   44.3 tok/s (400 tok)
+mean decode 37.8 tok/s
+prose  depth  96000 (evaluated 512): prefill   121.2 tok/s  decode   19.1 tok/s (400 tok)
+mean decode 20.1 tok/s
+prose  depth 128000 (evaluated 512): prefill    98.9 tok/s  decode   11.1 tok/s (400 tok)
+mean decode 14.2 tok/s
+prose  depth 160000 (evaluated 512): prefill    58.8 tok/s  decode    8.6 tok/s (400 tok)
+mean decode 10.4 tok/s
+trace min free 116 MiB over 162 samples
+== H262_fresh60k_r1: 0 one-token
+18:17:14 loaded: used 7731 server 7459 MiB free 276
+prose  depth  60000 (evaluated 512): prefill   161.4 tok/s  decode   35.6 tok/s (400 tok)
+mean decode 37.3 tok/s
+trace min free 124 MiB over 31 samples
+== H262_fresh60k_r2: 0 one-token
+18:22:23 loaded: used 7731 server 7459 MiB free 276
+prose  depth  60000 (evaluated 512): prefill   159.7 tok/s  decode   35.2 tok/s (400 tok)
+mean decode 37.2 tok/s
+trace min free 116 MiB over 31 samples

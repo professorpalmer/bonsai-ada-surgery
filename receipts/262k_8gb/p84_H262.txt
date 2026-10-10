@@ -1,0 +1,33 @@
+no current.pid, no llama-server
+17:49:42 H262 idle 274 MiB, power 175.00 W, vars: BONSAI_BIN=C:/bonsai/bonsai-ada-surgery/bin-pmask;BONSAI_LAYER=0;LLAMA_ARG_KQ_MASK_PACKED=1;GGML_CUDA_SHARED_POOL=1;LLAMA_MTP_DRAFT_UBATCH=256;BONSAI_KV_VRAM_CELLS=59904;BONSAI_CTX=262144;GGML_CUDA_KV_TIER_STAGING_FRAC=0.308594
+launcher pid 7040  out C:\bonsai\8gb\logs\20261009-174942-H262.out.log
+17:49:58 loaded: used 7734 server 7460 MiB free 273
+code   depth   4000 (evaluated 4048): prefill   411.1 tok/s  ttft   9.85s  decode   52.0 tok/s (400 tok)
+prose  depth   4000 (evaluated 512): prefill   358.8 tok/s  ttft   1.43s  decode   51.0 tok/s (400 tok)
+bash   depth   4000 (evaluated 516): prefill   362.8 tok/s  ttft   1.42s  decode   52.2 tok/s (400 tok)
+mean decode 51.7 tok/s
+code   depth  32000 (evaluated 28512): prefill   333.8 tok/s  ttft  85.42s  decode   44.1 tok/s (400 tok)
+prose  depth  32000 (evaluated 512): prefill   261.8 tok/s  ttft   1.96s  decode   49.7 tok/s (400 tok)
+bash   depth  32000 (evaluated 516): prefill   260.6 tok/s  ttft   1.98s  decode   45.8 tok/s (400 tok)
+mean decode 46.5 tok/s
+code   depth  64000 (evaluated 32481): prefill   190.4 tok/s  ttft 170.63s  decode   33.5 tok/s (400 tok)
+prose  depth  64000 (evaluated 512): prefill   155.5 tok/s  ttft   3.29s  decode   44.3 tok/s (400 tok)
+bash   depth  64000 (evaluated 516): prefill   151.9 tok/s  ttft   3.40s  decode   35.6 tok/s (400 tok)
+mean decode 37.8 tok/s
+code   depth  96000 (evaluated 32500): prefill   138.7 tok/s  ttft 234.29s  decode   17.8 tok/s (400 tok)
+prose  depth  96000 (evaluated 512): prefill   121.2 tok/s  ttft   4.23s  decode   19.1 tok/s (400 tok)
+bash   depth  96000 (evaluated 516): prefill   117.6 tok/s  ttft   4.39s  decode   23.4 tok/s (400 tok)
+mean decode 20.1 tok/s
+code   depth 128000 (evaluated 31863): prefill   110.0 tok/s  ttft 289.57s  decode   15.8 tok/s (400 tok)
+prose  depth 128000 (evaluated 512): prefill    98.9 tok/s  ttft   5.18s  decode   11.1 tok/s (400 tok)
+bash   depth 128000 (evaluated 516): prefill    95.9 tok/s  ttft   5.38s  decode   15.7 tok/s (400 tok)
+mean decode 14.2 tok/s
+code   depth 160000 (evaluated 32262): prefill    80.4 tok/s  ttft 401.38s  decode   12.5 tok/s (400 tok)
+prose  depth 160000 (evaluated 512): prefill    58.8 tok/s  ttft   8.71s  decode    8.6 tok/s (400 tok)
+bash   depth 160000 (evaluated 516): prefill    57.4 tok/s  ttft   8.99s  decode   10.0 tok/s (400 tok)
+mean decode 10.4 tok/s
+acceptance mean 0.780 over 24
+min free 124 MiB at end
+stopped 2900, 3112, 7040
+arm done
+trace min free 116 MiB over 162 samples

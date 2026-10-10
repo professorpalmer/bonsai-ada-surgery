@@ -1,0 +1,42 @@
+== A_131k_preset: 0 one-token
+11:16:20 loaded: used 7654 server 7380 MiB free 353
+code   depth   4000 (evaluated 4048): prefill   410.9 tok/s  decode   51.9 tok/s (400 tok)
+mean decode 51.8 tok/s
+code   depth  32000 (evaluated 28512): prefill   331.7 tok/s  decode   44.4 tok/s (400 tok)
+mean decode 46.8 tok/s
+code   depth  64000 (evaluated 32481): prefill   192.9 tok/s  decode   26.3 tok/s (400 tok)
+mean decode 30.6 tok/s
+code   depth  96000 (evaluated 32500): prefill   141.3 tok/s  decode   15.6 tok/s (400 tok)
+mean decode 17.8 tok/s
+code   depth 128000 (evaluated 31863): prefill   112.3 tok/s  decode   14.5 tok/s (400 tok)
+mean decode 13.1 tok/s
+min free 131 MiB at end
+trace min free 128 MiB over 109 samples
+== B_131k_nostage: 0 one-token
+11:34:39 loaded: used 7694 server 7420 MiB free 313
+code   depth   4000 (evaluated 4048): prefill   411.8 tok/s  decode   52.1 tok/s (400 tok)
+mean decode 51.9 tok/s
+code   depth  32000 (evaluated 28512): prefill   331.9 tok/s  decode   44.3 tok/s (400 tok)
+mean decode 46.8 tok/s
+code   depth  64000 (evaluated 32481): prefill   184.9 tok/s  decode   34.6 tok/s (400 tok)
+mean decode 38.5 tok/s
+code   depth  96000 (evaluated 32500): prefill    73.8 tok/s  decode   19.5 tok/s (400 tok)
+mean decode 20.5 tok/s
+code   depth 128000 (evaluated 31863): prefill    38.1 tok/s  decode   14.2 tok/s (400 tok)
+mean decode 13.1 tok/s
+min free 91 MiB at end
+trace min free 88 MiB over 187 samples
+== C_262k_nostage: 0 one-token
+12:06:09 loaded: used 7822 server 7548 MiB free 185
+code   depth   4000 (evaluated 4048): prefill   412.0 tok/s  decode   51.9 tok/s (400 tok)
+mean decode 51.8 tok/s
+code   depth  32000 (evaluated 28512): prefill   332.1 tok/s  decode   44.1 tok/s (400 tok)
+mean decode 46.5 tok/s
+code   depth  64000 (evaluated 32481): prefill   184.9 tok/s  decode   34.5 tok/s (400 tok)
+mean decode 38.4 tok/s
+code   depth  96000 (evaluated 32500): prefill    73.9 tok/s  decode   19.5 tok/s (400 tok)
+mean decode 20.6 tok/s
+code   depth 128000 (evaluated 31863): prefill    37.9 tok/s  decode   14.2 tok/s (400 tok)
+mean decode 13.1 tok/s
+min free 4194267 MiB at end
+trace min free -45 MiB over 188 samples

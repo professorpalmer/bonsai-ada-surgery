@@ -1,0 +1,463 @@
+From ecb5df93a41a840ea1fd22151e183e23bbed78af Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Wed, 7 Oct 2026 02:17:28 -0500
+Subject: [PATCH 48/49] Packed (1-bit) KQ mask, step 1: GGML_TYPE_I32 mask (32
+ cells per word), cache fill, CPU attention, graph selection
+ (--kq-mask-packed), CUDA expansion to f16 per op
+
+Cherry-picked from llama.cpp-ada-mirai 6deaedf66 without its mirai-s.cu timing hunk.
+---
+ common/arg.cpp              |   8 +++
+ common/common.cpp           |   1 +
+ common/common.h             |   1 +
+ ggml/src/ggml-cpu/ops.cpp   |  24 +++++--
+ ggml/src/ggml-cuda/fattn.cu |  39 ++++++++++
+ ggml/src/ggml.c             |   4 +-
+ include/llama.h             |   5 ++
+ src/llama-context.cpp       |   5 ++
+ src/llama-cparams.h         |   1 +
+ src/llama-graph.cpp         |  13 ++--
+ src/llama-kv-cache.cpp      | 137 +++++++++++++++++++++++++++++++++++-
+ 11 files changed, 223 insertions(+), 15 deletions(-)
+
+diff --git a/common/arg.cpp b/common/arg.cpp
+index 0ebbf42fa..95ee7ab3f 100644
+--- a/common/arg.cpp
++++ b/common/arg.cpp
+@@ -2482,6 +2482,14 @@ common_params_context common_params_parser_init(common_params & params, llama_ex
+             params.n_kv_vram_cells = value;
+         }
+     ).set_env("LLAMA_ARG_KV_VRAM_CELLS"));
++    add_opt(common_arg(
++        {"--kq-mask-packed"},
++        "flash attention: build the KQ mask as one bit per (cell, token) instead of f16 (16x less memory; the f16\n"
++        "mask is n_ctx x n_ubatch x 2 bytes reserved at the full context). Needs flash attention, not ALiBi.",
++        [](common_params & params) {
++            params.kq_mask_packed = true;
++        }
++    ).set_env("LLAMA_ARG_KQ_MASK_PACKED"));
+     add_opt(common_arg(
+         {"--hellaswag"},
+         "compute HellaSwag score over random tasks from datafile supplied with -f",
+diff --git a/common/common.cpp b/common/common.cpp
+index eb91804c9..d21b5a5c8 100644
+--- a/common/common.cpp
++++ b/common/common.cpp
+@@ -1765,6 +1765,7 @@ struct llama_context_params common_context_params_to_llama(const common_params &
+     // at least as long as it takes to call llama_init_from_model() with the returned cparams
+     cparams.path_kv_mean_center = params.kv_mean_center_path.empty() ? nullptr : params.kv_mean_center_path.c_str();
+     cparams.n_kv_vram_cells     = (uint32_t) std::max(0, params.n_kv_vram_cells);
++    cparams.kq_mask_packed      = params.kq_mask_packed;
+ 
+     return cparams;
+ }
+diff --git a/common/common.h b/common/common.h
+index c3c8ec874..5e48dab64 100644
+--- a/common/common.h
++++ b/common/common.h
+@@ -605,6 +605,7 @@ struct common_params {
+ 
+     // tiered KV cache: cells past this many live in pinned host memory (0 = all in device memory)
+     int32_t n_kv_vram_cells = 0;
++    bool    kq_mask_packed  = false; // packed (1-bit) flash-attention mask, see llama_context_params
+ 
+     common_conversation_mode conversation_mode = COMMON_CONVERSATION_MODE_AUTO;
+ 
+diff --git a/ggml/src/ggml-cpu/ops.cpp b/ggml/src/ggml-cpu/ops.cpp
+index c7992c78b..219d5eba2 100644
+--- a/ggml/src/ggml-cpu/ops.cpp
++++ b/ggml/src/ggml-cpu/ops.cpp
+@@ -8486,6 +8486,16 @@ void ggml_compute_forward_top_k(
+     }
+ }
+ 
++// One mask value for KV cell `ic` of a mask row: f16 values (scaled by the ALiBi slope) or, for the packed mask
++// (GGML_TYPE_I32, 32 cells per word, bit set = attend), 0 / -inf from the bit.
++static inline float ggml_fa_mask_value(const struct ggml_tensor * mask, const char * row, int64_t ic, float slope) {
++    if (mask->type == GGML_TYPE_I32) {
++        const uint32_t w = ((const uint32_t *) row)[ic >> 5];
++        return (w >> (ic & 31)) & 1u ? 0.0f : -INFINITY;
++    }
++    return slope*GGML_CPU_FP16_TO_FP32(((const ggml_fp16_t *) row)[ic]);
++}
++
+ static void ggml_compute_forward_flash_attn_ext_f16_one_chunk(
+         const ggml_compute_params * params,
+         ggml_tensor * dst,
+@@ -8593,7 +8603,7 @@ static void ggml_compute_forward_flash_attn_ext_f16_one_chunk(
+             memset(VKQ32, 0, DV*sizeof(float));
+         }
+ 
+-        const ggml_fp16_t * mp = mask ? (ggml_fp16_t *)((char *) mask->data + iq1*mask->nb[1] + (iq2%mask->ne[2])*mask->nb[2] + (iq3%mask->ne[3])*mask->nb[3]) : NULL;
++        const char * mp = mask ? ((const char *) mask->data + iq1*mask->nb[1] + (iq2%mask->ne[2])*mask->nb[2] + (iq3%mask->ne[3])*mask->nb[3]) : NULL;
+ 
+         // k indices
+         const int ik3 = iq3 / rk3;
+@@ -8611,7 +8621,7 @@ static void ggml_compute_forward_flash_attn_ext_f16_one_chunk(
+         // ref: https://arxiv.org/pdf/2112.05682.pdf
+ 
+         for (int64_t ic = ic_start; ic < ic_end; ++ic) {
+-            const float mv = mp ? slope*GGML_CPU_FP16_TO_FP32(mp[ic]) : 0.0f;
++            const float mv = mp ? ggml_fa_mask_value(mask, mp, ic, slope) : 0.0f;
+             if (mv == -INFINITY) {
+                 continue;
+             }
+@@ -8874,9 +8884,9 @@ static void ggml_compute_forward_flash_attn_ext_tiled(
+             if (mask) {
+                 bool can_skip = true;
+                 for (int tq = 0; tq < tile_rows; tq++) {
+-                    const ggml_fp16_t * mp_row = (const ggml_fp16_t *)((const char *) mask->data + (iq1 + tq)*mask->nb[1] + (iq2%mask->ne[2])*mask->nb[2] + (iq3%mask->ne[3])*mask->nb[3]);
++                    const char * mp_row = (const char *) mask->data + (iq1 + tq)*mask->nb[1] + (iq2%mask->ne[2])*mask->nb[2] + (iq3%mask->ne[3])*mask->nb[3];
+                     for (int tk = 0; tk < kv_tile; tk++) {
+-                        mask32[tq * KV_TILE_SZ + tk] = slope * GGML_CPU_FP16_TO_FP32(mp_row[ic + tk]);
++                        mask32[tq * KV_TILE_SZ + tk] = ggml_fa_mask_value(mask, mp_row, ic + tk, slope);
+                         if (mask32[tq * KV_TILE_SZ + tk] != -INFINITY) {
+                             can_skip = false;
+                         }
+@@ -9141,7 +9151,7 @@ static void ggml_compute_forward_flash_attn_ext_f16_decode_avx512(
+     float M[GGML_FA_DEC_MAX_G];
+     float S[GGML_FA_DEC_MAX_G];
+     float slope[GGML_FA_DEC_MAX_G];
+-    const ggml_fp16_t * mp[GGML_FA_DEC_MAX_G];
++    const char * mp[GGML_FA_DEC_MAX_G];
+ 
+     for (int64_t ik2 = 0; ik2 < nek2; ++ik2) {
+         for (int64_t j = 0; j < G; ++j) {
+@@ -9154,7 +9164,7 @@ static void ggml_compute_forward_flash_attn_ext_f16_decode_avx512(
+             M[j] = -INFINITY;
+             S[j] = 0.0f;
+             slope[j] = (max_bias > 0.0f) ? h < n_head_log2 ? powf(m0, h + 1) : powf(m1, 2*(h - n_head_log2) + 1) : 1.0f;
+-            mp[j] = mask ? (const ggml_fp16_t *) ((const char *) mask->data + (h % mask->ne[2])*mask->nb[2]) : NULL;
++            mp[j] = mask ? ((const char *) mask->data + (h % mask->ne[2])*mask->nb[2]) : NULL;
+         }
+ 
+         for (int64_t ic = ic_start; ic < ic_end; ic += T) {
+@@ -9180,7 +9190,7 @@ static void ggml_compute_forward_flash_attn_ext_f16_decode_avx512(
+                     sc[t] = -INFINITY;
+                 }
+                 for (int t = 0; t < nt; ++t) {
+-                    const float mv = mp[j] ? slope[j]*GGML_CPU_FP16_TO_FP32(mp[j][ic + t]) : 0.0f;
++                    const float mv = mp[j] ? ggml_fa_mask_value(mask, mp[j], ic + t, slope[j]) : 0.0f;
+                     if (mv == -INFINITY) {
+                         continue;
+                     }
+diff --git a/ggml/src/ggml-cuda/fattn.cu b/ggml/src/ggml-cuda/fattn.cu
+index 8dc5ee316..f913255b1 100644
+--- a/ggml/src/ggml-cuda/fattn.cu
++++ b/ggml/src/ggml-cuda/fattn.cu
+@@ -627,8 +627,47 @@ static int64_t ggml_cuda_tier_stage_min_q() {
+     return q;
+ }
+ 
++// Packed KQ mask (GGML_TYPE_I32, 32 cells per word, bit set = attend) expanded to the f16 form the kernels read,
++// into a pool buffer sized by this op's actual KV length. The reserved input tensor is 16x smaller than an f16
++// mask; the f16 copy exists only for the duration of the op. (A native packed read in the tensor-core kernel is
++// the next step; this keeps every kernel correct meanwhile.)
++static __global__ void expand_kq_mask_bits(const uint32_t * __restrict__ bits, half * __restrict__ out, const int64_t n_words_total) {
++    const int64_t w = (int64_t) blockIdx.x*blockDim.x + threadIdx.x;
++    if (w >= n_words_total) {
++        return;
++    }
++    const uint32_t v = bits[w];
++    half * o = out + w*32;
++    const half keep = __float2half(0.0f), drop = __float2half(-INFINITY);
++#pragma unroll
++    for (int b = 0; b < 32; ++b) {
++        o[b] = (v >> b) & 1u ? keep : drop;
++    }
++}
++
+ void ggml_cuda_flash_attn_ext(ggml_backend_cuda_context & ctx, ggml_tensor * dst) {
+     ggml_cuda_set_device(ctx.device);
++    ggml_tensor * mask_in = dst->src[3];
++    ggml_tensor mask_f16;
++    ggml_cuda_pool_alloc<half> mask_buf(ctx.pool());
++    if (mask_in && mask_in->type == GGML_TYPE_I32) {
++        const int64_t n_words = mask_in->ne[0];
++        const int64_t rows    = mask_in->ne[1]*mask_in->ne[2]*mask_in->ne[3];
++        mask_buf.alloc(n_words*32*rows);
++        const int64_t total = n_words*rows;
++        expand_kq_mask_bits<<<(unsigned) ((total + 255)/256), 256, 0, ctx.stream()>>>((const uint32_t *) mask_in->data, mask_buf.get(), total);
++        mask_f16 = *mask_in;
++        mask_f16.type  = GGML_TYPE_F16;
++        mask_f16.ne[0] = n_words*32;
++        mask_f16.nb[0] = sizeof(half);
++        mask_f16.nb[1] = mask_f16.ne[0]*sizeof(half);
++        mask_f16.nb[2] = mask_f16.nb[1]*mask_f16.ne[1];
++        mask_f16.nb[3] = mask_f16.nb[2]*mask_f16.ne[2];
++        mask_f16.data  = mask_buf.get();
++        mask_f16.view_src = nullptr;
++        dst->src[3] = &mask_f16;
++    }
++    struct restore_mask { ggml_tensor * dst; ggml_tensor * mask; ~restore_mask() { dst->src[3] = mask; } } restore{dst, mask_in};
+ 
+     // K/V in a tiered buffer whose host tail this op reaches: copy the used host rows into the VRAM staging
+     // buffer with the copy engine and point K/V at the all-VRAM alias of the same range for this op. Prefill
+diff --git a/ggml/src/ggml.c b/ggml/src/ggml.c
+index fa2a9c44f..a44ebcbfb 100644
+--- a/ggml/src/ggml.c
++++ b/ggml/src/ggml.c
+@@ -5465,7 +5465,9 @@ struct ggml_tensor * ggml_flash_attn_ext(
+     GGML_ASSERT(q->ne[3] == v->ne[3]);
+ 
+     if (mask) {
+-        GGML_ASSERT(mask->type == GGML_TYPE_F16);
++        // GGML_TYPE_I32: packed mask, 32 KV cells per word along ne[0] (bit set = attend, clear = -inf); the
++        // cell count is ne[0]*32. No ALiBi slopes in this form. Backends expand it or read it natively.
++        GGML_ASSERT(mask->type == GGML_TYPE_F16 || mask->type == GGML_TYPE_I32);
+         GGML_ASSERT(ggml_is_contiguous(mask));
+         //GGML_ASSERT(ggml_can_repeat_rows(mask, qk));
+ 
+diff --git a/include/llama.h b/include/llama.h
+index 555ff32dc..bed2dd9ad 100644
+--- a/include/llama.h
++++ b/include/llama.h
+@@ -402,6 +402,11 @@ extern "C" {
+         // once a sequence is that deep. Output is identical to an all-device cache. 0 = all in device memory.
+         uint32_t n_kv_vram_cells;
+ 
++        // packed KQ mask [EXPERIMENTAL]: with flash attention, build the attention mask as one bit per
++        // (cell, token) instead of an f16 value, 16x less memory (the f16 mask is n_ctx x n_ubatch x 2 bytes,
++        // reserved at the full context: 256 MiB per 512 tokens of micro-batch at 262k). Not with ALiBi.
++        bool kq_mask_packed;
++
+         // Abort callback
+         // if it returns true, execution of llama_decode() will be aborted
+         // currently works only with CPU execution
+diff --git a/src/llama-context.cpp b/src/llama-context.cpp
+index 6daf5c674..872dbc636 100644
+--- a/src/llama-context.cpp
++++ b/src/llama-context.cpp
+@@ -319,6 +319,10 @@ llama_context::llama_context(
+ 
+     cparams.flash_attn = params.flash_attn_type != LLAMA_FLASH_ATTN_TYPE_DISABLED;
+     cparams.auto_fa    = params.flash_attn_type == LLAMA_FLASH_ATTN_TYPE_AUTO;
++    cparams.kq_mask_packed = params.kq_mask_packed && cparams.flash_attn && !model.hparams.use_alibi;
++    if (params.kq_mask_packed && !cparams.kq_mask_packed) {
++        LLAMA_LOG_WARN("%s: kq_mask_packed requested but needs flash attention and no ALiBi; using the f16 mask\n", __func__);
++    }
+ 
+     cparams.fused_gdn_ar = true;
+     cparams.fused_gdn_ch = true;
+@@ -3824,6 +3828,7 @@ llama_context_params llama_context_default_params() {
+         /*.type_v                      =*/ GGML_TYPE_F16,
+         /*.path_kv_mean_center         =*/ nullptr,
+         /*.n_kv_vram_cells             =*/ 0,
++        /*.kq_mask_packed              =*/ false,
+         /*.abort_callback              =*/ nullptr,
+         /*.abort_callback_data         =*/ nullptr,
+         /*.embeddings                  =*/ false,
+diff --git a/src/llama-cparams.h b/src/llama-cparams.h
+index af3487e4e..555cdc572 100644
+--- a/src/llama-cparams.h
++++ b/src/llama-cparams.h
+@@ -51,6 +51,7 @@ struct llama_cparams {
+     bool causal_attn;
+     bool offload_kqv;
+     bool flash_attn;
++    bool kq_mask_packed;   // flash-attention KQ mask as packed bits (GGML_TYPE_I32, 32 cells per word): 16x less memory than f16
+     bool auto_fa;
+     bool fused_gdn_ar;       // use fused gated delta net (autoregressive)
+     bool fused_gdn_ch;       // use fused gated delta net (chunked)
+diff --git a/src/llama-graph.cpp b/src/llama-graph.cpp
+index 9ad7fa925..a18c206c7 100644
+--- a/src/llama-graph.cpp
++++ b/src/llama-graph.cpp
+@@ -35,10 +35,13 @@ static ggml_tensor * build_attn_inp_kq_mask(
+     const auto n_tokens = ubatch.n_tokens;
+     const auto n_stream = cparams.kv_unified ? 1 : ubatch.n_seqs_unq;
+ 
+-    // flash attention requires an f16 mask
+-    const auto type = cparams.flash_attn ? GGML_TYPE_F16 : GGML_TYPE_F32;
++    // flash attention requires an f16 mask, or the packed form (GGML_TYPE_I32, 32 cells per word) when enabled:
++    // 16x less memory, used for micro-batches of 32+ tokens per stream (the tensor-core kernels); smaller
++    // batches keep the f16 mask, which is tiny there.
++    const bool packed = cparams.flash_attn && cparams.kq_mask_packed && n_tokens/n_stream >= 32 && n_kv % 32 == 0;
++    const auto type = packed ? GGML_TYPE_I32 : cparams.flash_attn ? GGML_TYPE_F16 : GGML_TYPE_F32;
+ 
+-    ggml_tensor * res = ggml_new_tensor_4d(ctx, type, n_kv, n_tokens/n_stream, 1, n_stream);
++    ggml_tensor * res = ggml_new_tensor_4d(ctx, type, packed ? n_kv/32 : n_kv, n_tokens/n_stream, 1, n_stream);
+     ggml_set_input(res);
+     ggml_set_name(res, "attn_inp_kq_mask");
+ 
+@@ -56,7 +59,7 @@ static bool can_reuse_kq_mask(
+ 
+     bool res = true;
+ 
+-    res &= (kq_mask->ne[0] == n_kv);
++    res &= (kq_mask->type == GGML_TYPE_I32 ? kq_mask->ne[0]*32 == n_kv : kq_mask->ne[0] == n_kv);
+     res &= (kq_mask->ne[1] == n_tokens/n_stream);
+     res &= (kq_mask->ne[2] == 1);
+     res &= (kq_mask->ne[3] == n_stream);
+@@ -903,7 +906,7 @@ static bool dsv4_can_reuse_raw_kq_mask(
+ 
+     bool res = true;
+ 
+-    res &= (kq_mask->ne[0] == n_kv);
++    res &= (kq_mask->type == GGML_TYPE_I32 ? kq_mask->ne[0]*32 == n_kv : kq_mask->ne[0] == n_kv);
+     res &= (kq_mask->ne[1] == n_tokens/n_stream);
+     res &= (kq_mask->ne[2] == 1);
+     res &= (kq_mask->ne[3] == n_stream);
+diff --git a/src/llama-kv-cache.cpp b/src/llama-kv-cache.cpp
+index 723737acb..538b8f55b 100644
+--- a/src/llama-kv-cache.cpp
++++ b/src/llama-kv-cache.cpp
+@@ -1953,12 +1953,142 @@ static void set_input_kq_mask_impl(const args_set_input_kq_mask & args, T * data
+     }
+ }
+ 
++// Packed KQ mask (GGML_TYPE_I32): one bit per (token, cell), 32 cells per word along the cell axis, bit set =
++// attend. Same predicate as the f16 fill above (empty cell, other sequence, causal, M-RoPE, SWA), without the
++// ALiBi value form (the graph never asks for a packed mask with ALiBi). Same per-sequence row reuse.
++template<bool causal, bool swa, bool is_2d>
++static void set_input_kq_mask_packed_impl(const args_set_input_kq_mask & args, uint32_t * data) {
++    const auto & ubatch  = args.ubatch;
++
++    const auto & v_cells       = args.v_cells;
++    const auto & seq_to_stream = args.seq_to_stream;
++
++    const uint32_t       n_swa    = args.n_swa;
++    const llama_swa_type swa_type = args.swa_type;
++
++    const int64_t n_kv     = args.n_kv;
++    const int64_t n_words  = n_kv / 32;
++    const int64_t n_stream = args.n_stream;
++    const int64_t n_tps    = args.n_tps;
++
++    llama_pos seq_pos_min[LLAMA_MAX_SEQ];
++    std::fill(seq_pos_min, seq_pos_min + LLAMA_MAX_SEQ, INT32_MAX);
++
++    for (uint32_t i = 0; i < ubatch->n_tokens; ++i) {
++        const llama_seq_id seq_id = ubatch->seq_id[i][0];
++
++        seq_pos_min[seq_id] = std::min(seq_pos_min[seq_id], ubatch->pos[i]);
++    }
++
++    for (uint32_t s = 0; s < n_stream; ++s) {
++        std::unordered_map<llama_seq_id, uint32_t>              seq_srct;
++        std::unordered_map<llama_seq_id, std::vector<uint32_t>> seq_idxs;
++
++        for (uint32_t ii = 0; ii < n_tps; ++ii) {
++            const uint32_t i = s*n_tps + ii;
++
++            const llama_seq_id seq_id = ubatch->seq_id[i][0];
++
++            const auto & cells = v_cells.at(seq_to_stream[seq_id]);
++
++                  llama_pos p0 = -1;
++            const llama_pos p1 = ubatch->pos[i];
++
++            const llama_pos p1_x = is_2d ? ubatch->pos[i + ubatch->n_tokens*2] : 0;
++            const llama_pos p1_y = is_2d ? ubatch->pos[i + ubatch->n_tokens]   : 0;
++
++            uint32_t * row = data + n_words*i;
++
++            bool prev = false;
++
++            auto & idxs = seq_idxs[seq_id];
++
++            if (seq_srct.find(seq_id) != seq_srct.end()) {
++                const uint32_t * row_prev = data + n_words*seq_srct[seq_id];
++
++                std::copy(row_prev, row_prev + n_words, row);
++
++                prev = true;
++            } else {
++                std::fill(row, row + n_words, 0u);
++
++                idxs.clear();
++                idxs.reserve(ubatch->n_tokens + n_swa + 32);
++
++                seq_srct[seq_id] = i;
++            }
++
++            for (uint32_t jj = 0; jj < n_kv; ++jj) {
++                uint32_t j = jj;
++
++                if (prev) {
++                    if (jj >= idxs.size()) {
++                        break;
++                    }
++
++                    j = idxs[jj];
++                }
++
++                bool keep = !cells.is_empty(j) && cells.seq_has(j, seq_id);
++
++                if (keep) {
++                    p0 = cells.pos_get(j);
++
++                    if (!prev) {
++                        if (p0 + (int32_t) (n_swa + 32) >= seq_pos_min[seq_id]) {
++                            idxs.push_back(j);
++                        }
++                    }
++
++                    if (causal) {
++                        if (p0 > p1) {
++                            keep = false;
++                        } else if (is_2d && p0 == p1) {
++                            const auto & p0_ext = cells.ext_get(j);
++
++                            if (p0_ext.is_2d_gt(p1_x, p1_y)) {
++                                keep = false;
++                            }
++                        }
++                    }
++
++                    if (keep && swa) {
++                        if (llama_hparams::is_masked_swa(n_swa, swa_type, p0, p1)) {
++                            keep = false;
++                        }
++                    }
++                }
++
++                const uint32_t bit = 1u << (j & 31);
++                if (keep) {
++                    row[j >> 5] |= bit;
++                } else {
++                    row[j >> 5] &= ~bit;
++                }
++            }
++        }
++    }
++}
++
++static void set_input_kq_mask_packed(const args_set_input_kq_mask & args, uint32_t * data, bool causal_attn) {
++    const bool swa   = args.swa_type != LLAMA_SWA_TYPE_NONE;
++    const bool is_2d = args.ubatch->is_pos_2d();
++    if (causal_attn) {
++        if (swa) { is_2d ? set_input_kq_mask_packed_impl<true,  true,  true >(args, data) : set_input_kq_mask_packed_impl<true,  true,  false>(args, data); }
++        else     { is_2d ? set_input_kq_mask_packed_impl<true,  false, true >(args, data) : set_input_kq_mask_packed_impl<true,  false, false>(args, data); }
++    } else {
++        if (swa) { is_2d ? set_input_kq_mask_packed_impl<false, true,  true >(args, data) : set_input_kq_mask_packed_impl<false, true,  false>(args, data); }
++        else     { is_2d ? set_input_kq_mask_packed_impl<false, false, true >(args, data) : set_input_kq_mask_packed_impl<false, false, false>(args, data); }
++    }
++}
++
+ void llama_kv_cache::set_input_kq_mask(ggml_tensor * dst, const llama_ubatch * ubatch, bool causal_attn) const {
+     const uint32_t n_tokens = ubatch->n_tokens;
+ 
+     GGML_ASSERT(ggml_backend_buffer_is_host(dst->buffer));
+ 
+-    const int64_t n_kv     = dst->ne[0];
++    const bool    packed   = dst->type == GGML_TYPE_I32;
++    const int64_t n_kv     = packed ? dst->ne[0]*32 : dst->ne[0];
+     const int64_t n_stream = dst->ne[3]; // num streams in the current ubatch
+ 
+     GGML_ASSERT(n_tokens%n_stream == 0);
+@@ -1980,7 +2110,10 @@ void llama_kv_cache::set_input_kq_mask(ggml_tensor * dst, const llama_ubatch * u
+         /*.n_tps            =*/ n_tps,
+     };
+ 
+-    if (dst->type == GGML_TYPE_F16) {
++    if (packed) {
++        GGML_ASSERT(!hparams.use_alibi);
++        set_input_kq_mask_packed(args, (uint32_t *) dst->data, causal_attn);
++    } else if (dst->type == GGML_TYPE_F16) {
+         set_input_kq_mask_impl<ggml_fp16_t>(args, (ggml_fp16_t *) dst->data, causal_attn);
+     } else {
+         set_input_kq_mask_impl<float>(args, (float *) dst->data, causal_attn);
+-- 
+2.52.0.windows.1
+

@@ -88,7 +88,18 @@ $ApiKey = (Get-Content -Path $ApiKeyFile -Raw).Trim()
 # BONSAI_KV_VRAM_CELLS pins N. BONSAI_TIER=0 (or an older binary): the all-VRAM cache in a 96k window
 # (128k/q8_0 plus the draft context pages on 12 GB).
 $Tier = ($env:BONSAI_TIER -ne '0') -and $HasTier
-$Ctx = if ($env:BONSAI_CTX) { [int]$env:BONSAI_CTX } elseif ($Small) { 131072 } elseif ($Tier) { 262144 } else { 98304 }
+# 8 GB, full 262k window: with patches 0047-0049 (partial staging, packed KQ mask) and the shared pool, 262k decodes
+# faster than the earlier 131k preset at every depth (RTX 2060 SUPER, P84: 64k 37.8 vs 30.5 tok/s, 128k 14.2 vs 13.0, the
+# same at 4k/32k; prefill the same to 128k). It needs the MTP head (drafting mode) and 24 GB of system RAM or more: the
+# KV tail past the VRAM line is ~3.7 GB of pinned memory at 262k, and context checkpoints take up to ~5.4 GB more.
+# Otherwise (older engine, less RAM, no head) the 8 GB window stays 131k. BONSAI_CTX overrides.
+$CudaDll = ''
+try { $CudaDll = [Text.Encoding]::ASCII.GetString([IO.File]::ReadAllBytes((Join-Path $Bin 'ggml-cuda.dll'))) } catch { }
+$Has262 = ($Help -match '--kq-mask-packed') -and $CudaDll.Contains('GGML_CUDA_KV_TIER_STAGING_FRAC')
+$RamGiB = 0
+try { $RamGiB = [math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB) } catch { }
+$Small262 = $Small -and $Tier -and $Has262 -and $RamGiB -ge 24 -and $env:BONSAI_SPEC -ne '0' -and ((Split-Path $Model -Leaf) -match '-mtp')
+$Ctx = if ($env:BONSAI_CTX) { [int]$env:BONSAI_CTX } elseif ($Small) { if ($Small262) { 262144 } else { 131072 } } elseif ($Tier) { 262144 } else { 98304 }
 # 8 GB: q4_0 holds 2.3x the positions of q8_0 in the same VRAM (1 flipped top token in 48 at depth vs 1 in 171)
 $Ctk = if ($env:BONSAI_CTK) { $env:BONSAI_CTK } elseif ($Small) { 'q4_0' } else { 'q8_0' }
 $Port = if ($env:BONSAI_PORT) { [int]$env:BONSAI_PORT } else { 8080 }
@@ -157,15 +168,24 @@ $Ubatch = if ($env:BONSAI_UBATCH) { [int]$env:BONSAI_UBATCH } elseif ($Small -an
 # it off. BONSAI_POOL_MIB = the VRAM it saves, added to the VRAM line (42 = the 74 measured, minus a 32 MiB reserve).
 $PoolMiB = 0
 $PoolOn = if ($env:BONSAI_SHARED_POOL) { $env:BONSAI_SHARED_POOL -eq '1' } else { $Help -match '--checkpoint-every-nt' }
-if (-not $Small -and $PoolOn -and $Spec -gt 0) {
+# 8 GB: the same pool (RTX 2060 SUPER, P83: ~51 MiB saved; fresh 60k x3 and a 4k-96k sweep with 0 one-token answers;
+# decode +7 % at 64k from the higher line). BONSAI_POOL_MIB default 48 there.
+if ($PoolOn -and $Spec -gt 0) {
     if (-not $env:GGML_CUDA_SHARED_POOL) { $env:GGML_CUDA_SHARED_POOL = '1' }
     if (-not $env:LLAMA_MTP_DRAFT_UBATCH) { $env:LLAMA_MTP_DRAFT_UBATCH = '256' }
-    $PoolMiB = if ($env:BONSAI_POOL_MIB) { [int]$env:BONSAI_POOL_MIB } else { 42 }
+    $PoolMiB = if ($env:BONSAI_POOL_MIB) { [int]$env:BONSAI_POOL_MIB } elseif ($Small) { 48 } else { 42 }
 }
+# Packed (1-bit) KQ mask (patches 0048/0049): the f16 mask is Ctx x ubatch x 2 bytes (128 MiB at 131k, 256 MiB at 262k);
+# packed it is 1/16 of that. With MTP drafting at 32k and 64k: 22 of 22 texts identical to the f16 mask (RTX 2060
+# SUPER, P82). On for 8 GB cards with an engine that has it, in drafting mode (12 GB: not measured yet);
+# LLAMA_ARG_KQ_MASK_PACKED=0 turns it off.
+$Packed = $false
+if ($Small -and $Has262 -and $Spec -gt 0 -and -not $env:LLAMA_ARG_KQ_MASK_PACKED) { $env:LLAMA_ARG_KQ_MASK_PACKED = '1' }
+if ($Help -match '--kq-mask-packed') { $Packed = $env:LLAMA_ARG_KQ_MASK_PACKED -eq '1' }
 if ($Small) {
     # engine switches (ignored by older binaries): a smaller draft micro-batch, and f16 prefill from pool memory up to
-    # the depth the margin holds. Not the shared CUDA pool (GGML_CUDA_SHARED_POOL): with MTP drafting it gave 1-token
-    # answers to fresh long prompts on the RTX 2060 SUPER (60k: 3 of 3 with it, 0 of 3 without, PR #9).
+    # the depth the margin holds. The shared CUDA pool (above) is on only with an engine that has patch 0045: before it,
+    # with MTP drafting it gave 1-token answers to fresh long prompts on the RTX 2060 SUPER (PR #9, PR #10).
     if ($Spec -gt 0) {
         if (-not $env:LLAMA_MTP_DRAFT_UBATCH) { $env:LLAMA_MTP_DRAFT_UBATCH = '256' }
     }
@@ -252,10 +272,28 @@ if ($Tier) {
             # and the free VRAM that held (drafting: 225 MiB; no head: 400, room for the f16 prefill copy at 64k)
             $FixedMiB = if ($Spec -gt 0) { 6531 + $MmprojMiB } elseif ($Ubatch -ge 1024) { 6218 + $MmprojMiB } else { 5955 + $MmprojMiB }
             $Margin = if ($env:BONSAI_VRAM_MARGIN) { [int]$env:BONSAI_VRAM_MARGIN } elseif ($Spec -gt 0) { 225 } else { 400 }
+            # Those costs hold the f16 KQ mask of a 131072 window (Ctx x ubatch x 2 bytes) and no shared pool. A longer
+            # window without this term over-committed the card (P75: 262k went below 0 MiB free at depth).
+            $MaskMiB = if ($Packed) { $Ctx * $Ubatch / 8 / 1MB } else { $Ctx * $Ubatch * 2 / 1MB }
+            $FixedMiB += $MaskMiB - 131072 * $Ubatch * 2 / 1MB - $PoolMiB
         }
-        # KV head N*CellBytes plus the staging buffer (Ctx-N)*CellBytes/16 must fit in what is left
-        $Budget = ($FreeMiB - $Margin - $FixedMiB) * 1MB - $Ctx * $CellBytes / 16
-        $TierCells = [int]([math]::Floor($Budget / ($CellBytes * 15 / 16) / 256) * 256)
+        # Partial staging (patch 0047): only the first BONSAI_STAGE_CELLS host positions get a VRAM staging buffer, so it
+        # does not grow with the window; host rows past them are read in place (prefill there is slower: 262k on the RTX
+        # 2060 SUPER, 59 tok/s at 160k against 99 at 128k). 8 GB cards; default 81920 (prefill as fast as 131k to ~140k).
+        $StageCells = if ($env:BONSAI_STAGE_CELLS) { [int]$env:BONSAI_STAGE_CELLS } else { 81920 }
+        $Partial = $false
+        if ($Small -and $CudaDll.Contains('GGML_CUDA_KV_TIER_STAGING_FRAC') -and $StageCells -gt 0) {
+            $Budget = ($FreeMiB - $Margin - $FixedMiB) * 1MB - $StageCells * $CellBytes / 16
+            $TierCells = [int]([math]::Floor($Budget / $CellBytes / 256) * 256)
+            $Partial = $Ctx - $TierCells -gt $StageCells
+        }
+        if ($Partial) {
+            $env:GGML_CUDA_KV_TIER_STAGING_FRAC = '{0:F6}' -f ($StageCells / $Ctx)
+        } else {
+            # KV head N*CellBytes plus the staging buffer (Ctx-N)*CellBytes/16 must fit in what is left
+            $Budget = ($FreeMiB - $Margin - $FixedMiB) * 1MB - $Ctx * $CellBytes / 16
+            $TierCells = [int]([math]::Floor($Budget / ($CellBytes * 15 / 16) / 256) * 256)
+        }
     }
     if ($TierCells -ge $Ctx) {
         $TierCells = 0   # the whole window fits: plain cache
@@ -289,6 +327,8 @@ if ($Small) { Write-Host "8gb    preset on ($TotalMiB MiB card; BONSAI_8GB=0 tur
 Write-Host "model  $(Split-Path $Model -Leaf)"
 Write-Host "window $Ctx / $Ctk  (trained max 262144)"
 if ($TierCells -gt 0) { Write-Host "kv     tiered: cells 0..$TierCells in VRAM, $TierCells..$Ctx in system RAM$(if ($Margin) { " (VRAM margin $Margin MiB)" })$(if ($PoolMiB) { "; shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off)" })" }
+if ($env:GGML_CUDA_KV_TIER_STAGING_FRAC) { Write-Host "kv     staging buffer for cells $TierCells..$($TierCells + $StageCells); past that the system RAM rows are read in place$(if ($Packed) { '; packed KQ mask' })" }
+if ($Small -and $Has262 -and -not $Small262 -and -not $env:BONSAI_CTX -and $RamGiB -gt 0 -and $RamGiB -lt 24) { Write-Host "note   window 131k: the 262k window needs 24 GB of system RAM or more ($RamGiB GB here); BONSAI_CTX=262144 tries it" }
 if ($CkptNote) { Write-Host "ckpt   $CkptNote" }
 if ($TierCells -gt 0 -and $FreeMiB) {
     # Issue #7: other programs held 2.3 GB at one start, so the line was at 105k instead of 243k and a 147k session
@@ -317,7 +357,7 @@ if ($Spec -gt 0) {
 # older launcher can still hold them, so they are not listed as the user's settings either.
 $LauncherVars = @('BONSAI_LAYER_KEY', 'LLAMA_ARG_CHAT_TEMPLATE_KWARGS', 'GGML_CUDA_BATCH_INVARIANT',
                   'GGML_CUDA_SHARED_POOL', 'LLAMA_MTP_DRAFT_UBATCH', 'GGML_CUDA_FA_PREFILL_F16',
-                  'LLAMA_ARG_CHECKPOINT_EVERY_NT')
+                  'LLAMA_ARG_CHECKPOINT_EVERY_NT', 'LLAMA_ARG_KQ_MASK_PACKED', 'GGML_CUDA_KV_TIER_STAGING_FRAC')
 $Listed = @($UserEnv | Where-Object { $_.Name -notin $LauncherVars -and $_.Value })
 if ($Listed.Count -gt 0) {
     Write-Host ("env    set in this window, these change the defaults: " + (($Listed | ForEach-Object { "$($_.Name)=$($_.Value)" }) -join '  '))
