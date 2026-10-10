@@ -332,31 +332,48 @@ if (-not $Small -and $Help -match '--checkpoint-every-nt' -and -not $env:LLAMA_A
 # The server's system memory is the pinned K/V tail, its VRAM (under the Windows display driver model a process's commit
 # grows by about the size of its VRAM allocations: RTX 4070, 4k window, -ngl 0 2.3 GB private, -ngl 99 7.8 GB), the
 # context checkpoints (~170 MiB each, at most 32 per slot) and the prompt cache (default limit 8 GiB; one entry holds a
-# prompt's K/V plus copies of its checkpoints: ~2 GB for a 26.5k-token prompt). With the defaults, 7 sequential thinking
-# requests took the server from 14.1 to 21.7 GB of commit (RTX 4070, 262k); on 16 GB of RAM the server failed with
-# "bad allocation" and then exited (issue #16). So the launcher sizes the two from the free commit at start (RAM + page
-# file - what is in use): budget = free commit - the server's VRAM - the pinned tail - 2 GB; checkpoints 40 % of it /
-# 170 MiB (4 to 32); prompt cache half of what the checkpoints leave (at most 8192 MiB). The cache holds a new entry
-# before it drops the oldest, so it can briefly be one entry over its limit: with 60 % of a 2.6 GB budget the free
-# commit fell to 682 MiB (RTX 2060 SUPER, ~13 GB free commit as on a 16 GB machine). One entry of an 8k-token prompt
-# is ~1.3 GB, so a limit below 1536 MiB only adds churn: then the cache is off. LLAMA_ARG_CACHE_RAM and
-# LLAMA_ARG_CTX_CHECKPOINTS override; BONSAI_RAM_BUDGET=0 keeps the server defaults.
+# prompt's K/V plus copies of its checkpoints: ~1.3 GB for an 8k-token prompt, ~2 GB for 26.5k). With the defaults,
+# 7 sequential thinking requests took the server from 9.6 to 18.3 GB of commit (RTX 2060 SUPER, 131k) and from 14.1 to
+# 21.7 GB (RTX 4070, 262k); on 16 GB of RAM the server failed with "bad allocation" and then exited (issue #16).
+# By system RAM, as the Mirai S launcher (bundle-20261010):
+# - 48 GB or more: the server defaults (prompt cache 8192 MiB, 32 checkpoints).
+# - 24-47 GB: prompt cache 4096 MiB, 32 checkpoints (RTX 4070, 262k: 17.5 GB peak, 7/7).
+# - under 24 GB: sized from the free commit at start (RAM + page file - in use): budget = free commit - the server's
+#   VRAM - the pinned tail - 2 GB; checkpoints 40 % of it / 170 MiB (4 to 32); prompt cache half of what the
+#   checkpoints leave, off below 1536 MiB (one entry is ~1.3 GB, so a smaller limit only adds churn). Half, because
+#   the cache stores a new entry before it drops the oldest: with 60 % the free commit fell to 682 MiB. RTX 2060 SUPER
+#   with ~13.4 GB of free commit (as on 16 GB): 6 checkpoints, cache off; 7/7, peak 10.5 GB, 1.98 GB commit left.
+# The values go to the server as --cache-ram / --ctx-checkpoints. LLAMA_ARG_CACHE_RAM and LLAMA_ARG_CTX_CHECKPOINTS
+# override; BONSAI_RAM_BUDGET=0 keeps the server defaults; BONSAI_RAM_GB picks the tier as if the machine had that much RAM.
 $RamNote = ''
-if ($env:BONSAI_RAM_BUDGET -ne '0') {
+[string[]]$RamArgs = @()
+if ($env:BONSAI_RAM_BUDGET -ne '0' -and $Help -match '--cache-ram' -and $Help -match '--ctx-checkpoints') {
     try {
         $OsMem = Get-CimInstance Win32_OperatingSystem
-        $CommitFreeMiB = [int]($OsMem.FreeVirtualMemory / 1024)
-        $VramFreeMiB = if ($FreeMiB) { $FreeMiB } else { [int]((& nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits | Select-Object -First 1).Trim()) }
-        $SrvVramMiB = [math]::Max(0, $VramFreeMiB - $(if ($Margin) { $Margin } else { 300 }))
-        $TailMiB = if ($TierCells -gt 0) { [int](($Ctx - $TierCells) * $CellBytes / 1MB) } else { 0 }
-        $RamBudgetMiB = $CommitFreeMiB - $SrvVramMiB - $TailMiB - 2048
-        $Ckpts = [int][math]::Min(32, [math]::Max(4, [math]::Floor(0.4 * [math]::Max(0, $RamBudgetMiB) / 170)))
-        $CacheMiB = [int][math]::Min(8192, 0.5 * ($RamBudgetMiB - $Ckpts * 170))
-        if ($CacheMiB -lt 1536) { $CacheMiB = 0 }
-        if (-not $env:LLAMA_ARG_CACHE_RAM) { $env:LLAMA_ARG_CACHE_RAM = "$CacheMiB" }
-        if (-not $env:LLAMA_ARG_CTX_CHECKPOINTS) { $env:LLAMA_ARG_CTX_CHECKPOINTS = "$Ckpts" }
-        $RamNote = "$CommitFreeMiB MiB commit free at start (VRAM ~$SrvVramMiB, K/V tail $TailMiB, reserve 2048): prompt cache $($env:LLAMA_ARG_CACHE_RAM) MiB, $($env:LLAMA_ARG_CTX_CHECKPOINTS) checkpoints per slot (BONSAI_RAM_BUDGET=0: server defaults)"
-    } catch { $RamNote = '' }
+        $RamTotalGiB = if ($env:BONSAI_RAM_GB) { [int]$env:BONSAI_RAM_GB } else { [int][math]::Round($OsMem.TotalVisibleMemorySize / 1MB) }
+        $CacheMiB = $null; $Ckpts = $null
+        if ($RamTotalGiB -ge 48) {
+            $RamNote = "$RamTotalGiB GB RAM: server defaults (prompt cache 8192 MiB, 32 checkpoints per slot)"
+        } elseif ($RamTotalGiB -ge 24) {
+            $CacheMiB = 4096; $Ckpts = 32
+            $RamNote = "$RamTotalGiB GB RAM: prompt cache 4096 MiB, 32 checkpoints per slot"
+        } else {
+            $CommitFreeMiB = [int]($OsMem.FreeVirtualMemory / 1024)
+            $VramFreeMiB = if ($FreeMiB) { $FreeMiB } else { [int]((& nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits | Select-Object -First 1).Trim()) }
+            $SrvVramMiB = [math]::Max(0, $VramFreeMiB - $(if ($Margin) { $Margin } else { 300 }))
+            $TailMiB = if ($TierCells -gt 0) { [int](($Ctx - $TierCells) * $CellBytes / 1MB) } else { 0 }
+            $RamBudgetMiB = $CommitFreeMiB - $SrvVramMiB - $TailMiB - 2048
+            $Ckpts = [int][math]::Min(32, [math]::Max(4, [math]::Floor(0.4 * [math]::Max(0, $RamBudgetMiB) / 170)))
+            $CacheMiB = [int][math]::Min(8192, 0.5 * ($RamBudgetMiB - $Ckpts * 170))
+            if ($CacheMiB -lt 1536) { $CacheMiB = 0 }
+            $RamNote = "$RamTotalGiB GB RAM, $CommitFreeMiB MiB commit free at start (VRAM ~$SrvVramMiB, K/V tail $TailMiB, reserve 2048): prompt cache $CacheMiB MiB, $Ckpts checkpoints per slot"
+        }
+        if ($null -ne $CacheMiB) {
+            if ($env:LLAMA_ARG_CACHE_RAM) { $RamNote += "; LLAMA_ARG_CACHE_RAM=$($env:LLAMA_ARG_CACHE_RAM) kept" } else { $RamArgs += @('--cache-ram', "$CacheMiB") }
+            if ($env:LLAMA_ARG_CTX_CHECKPOINTS) { $RamNote += "; LLAMA_ARG_CTX_CHECKPOINTS=$($env:LLAMA_ARG_CTX_CHECKPOINTS) kept" } else { $RamArgs += @('--ctx-checkpoints', "$Ckpts") }
+        }
+        $RamNote += ' (BONSAI_RAM_BUDGET=0: server defaults)'
+    } catch { $RamNote = ''; $RamArgs = @() }
 }
 
 if ($Small) { Write-Host "8gb    preset on ($TotalMiB MiB card; BONSAI_8GB=0 turns it off): ub $Ubatch, f16 prefill to $($env:GGML_CUDA_FA_PREFILL_F16) cells" }
@@ -394,8 +411,7 @@ if ($Spec -gt 0) {
 # older launcher can still hold them, so they are not listed as the user's settings either.
 $LauncherVars = @('BONSAI_LAYER_KEY', 'LLAMA_ARG_CHAT_TEMPLATE_KWARGS', 'GGML_CUDA_BATCH_INVARIANT',
                   'GGML_CUDA_SHARED_POOL', 'LLAMA_MTP_DRAFT_UBATCH', 'GGML_CUDA_FA_PREFILL_F16',
-                  'LLAMA_ARG_CHECKPOINT_EVERY_NT', 'LLAMA_ARG_KQ_MASK_PACKED', 'GGML_CUDA_KV_TIER_STAGING_FRAC',
-                  'LLAMA_ARG_CACHE_RAM', 'LLAMA_ARG_CTX_CHECKPOINTS')
+                  'LLAMA_ARG_CHECKPOINT_EVERY_NT', 'LLAMA_ARG_KQ_MASK_PACKED', 'GGML_CUDA_KV_TIER_STAGING_FRAC')
 $Listed = @($UserEnv | Where-Object { $_.Name -notin $LauncherVars -and $_.Value })
 if ($Listed.Count -gt 0) {
     Write-Host ("env    set in this window, these change the defaults: " + (($Listed | ForEach-Object { "$($_.Name)=$($_.Value)" }) -join '  '))
@@ -460,7 +476,7 @@ try {
 [string[]]$FitArgs = if ($Help -match '--fit ') { @('--fit', 'off') } else { @() }
 Set-Location $Bin
 try {
-& .\llama-server.exe @TierArgs @SpecArgs @BsArgs @BudgetMsgArgs @HarnessArgs @MmprojArgs @FitArgs `
+& .\llama-server.exe @TierArgs @RamArgs @SpecArgs @BsArgs @BudgetMsgArgs @HarnessArgs @MmprojArgs @FitArgs `
     --reasoning-budget $ThinkBudget `
     -n $NPredict `
     -m $Model `
