@@ -5,7 +5,8 @@ Requests on one prefix of ~DEPTH tokens of Python files (artifacts/eval/pycode.r
   2 edit:  the same files with the file at EDIT_FRAC of the context replaced by another one (the server keeps the
            prefix up to it and writes the rest again, deep in the host tail) + the question
   3 again: request 2 repeated (prefix fully cached; decode only)
-Per request: the stale-bound lines the server logged during it (0 = the bounds follow the writes).
+Per request: the stale-bound lines the server logged during it (0 = the bounds follow the writes), and the ops whose
+page selection on the device differs from the host one (0 = same pages).
 
 python bench/sparse_edit.py --base http://127.0.0.1:8080 --key-file artifacts/api_key.txt --log logs/x.server.log
 """
@@ -24,12 +25,14 @@ def post(base, key, body):
     return json.loads(urllib.request.urlopen(req, timeout=7200).read()), time.time() - t0
 
 
-def stale_lines(log):
+def check_lines(log):
+    # (ops with stale cached bounds, ops whose device page selection differs from the host one)
     try:
         with open(log, encoding="utf-8", errors="replace") as f:
-            return sum(1 for l in f if "CHECK stale bounds" in l)
+            lines = f.readlines()
     except OSError:
-        return 0
+        return 0, 0
+    return sum("CHECK stale bounds" in l for l in lines), sum("CHECK selection differs" in l for l in lines)
 
 
 def main():
@@ -71,13 +74,14 @@ def main():
     q = "\n\nIn one sentence: what does the last file above do?"
 
     def ask(files_, label):
-        before = stale_lines(a.log)
+        before = check_lines(a.log)
         body = {"messages": [{"role": "user", "content": "".join(f"# ===== {n} =====\n{s}" for n, s in files_) + q}],
                 "max_tokens": 48, "temperature": 0, "chat_template_kwargs": {"enable_thinking": False}}
         r, dt = post(a.base, key, body)
         time.sleep(1)
         rec = {"tag": a.tag, "request": label, "prompt_n": r.get("timings", {}).get("prompt_n"),
-               "predicted_n": r.get("timings", {}).get("predicted_n"), "stale_ops": stale_lines(a.log) - before,
+               "predicted_n": r.get("timings", {}).get("predicted_n"), "stale_ops": check_lines(a.log)[0] - before[0],
+               "select_diff_ops": check_lines(a.log)[1] - before[1],
                "wall_s": round(dt, 1), "answer": (r["choices"][0]["message"]["content"] or "")[:120]}
         print(json.dumps(rec), flush=True)
 
