@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import urllib.request
 
 PROMPTS = [
@@ -60,7 +61,7 @@ def go(base, key, prompt, n, filler_tokens=0):
         "chat_template_kwargs": {"enable_thinking": False},
     }
     req = urllib.request.Request(base.rstrip("/") + "/v1/chat/completions", data=json.dumps(body).encode(), headers=_headers(key))
-    r = json.loads(urllib.request.urlopen(req, timeout=1800).read())
+    r = json.loads(urllib.request.urlopen(req, timeout=int(os.environ.get("QTPS_TIMEOUT", "1800"))).read())
     t = r.get("timings", {})
     return t
 

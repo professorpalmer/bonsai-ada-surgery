@@ -1,0 +1,19 @@
+== t32: requests ok 7/7; errors []
+   private MiB: start 9557 peak 14433; min free commit 37506 MiB
+== b16: requests ok 7/7; errors []
+   private MiB: start 9557 peak 10486; min free commit 1392 MiB
+-- t32
+window 131072 / q4_0  (trained max 262144)
+kv     tiered: cells 0..59136 in VRAM, 59136..131072 in system RAM (VRAM margin 225 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off)
+ram    32 GB RAM: prompt cache 4096 MiB, 32 checkpoints per slot (BONSAI_RAM_BUDGET=0: server defaults)
+{"status":"ok"}
+8.11.776.838 W srv         alloc:  - making room for prompt cache entry, removing oldest entry (size = 1300.961 MiB)
+9.41.722.238 W srv         alloc:  - making room for prompt cache entry, removing oldest entry (size = 1295.618 MiB)
+11.11.339.700 W srv         alloc:  - making room for prompt cache entry, removing oldest entry (size = 1347.787 MiB)
+-- b16
+committed 39 GiB
+free commit before ballast 53446 MiB, ballast 39 GiB, after 13435 MiB
+window 131072 / q4_0  (trained max 262144)
+kv     tiered: cells 0..59136 in VRAM, 59136..131072 in system RAM (VRAM margin 225 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off)
+ram    16 GB RAM, 12821 MiB commit free at start (VRAM ~7485, K/V tail 1264, reserve 2048): prompt cache 0 MiB, 4 checkpoints per slot (BONSAI_RAM_BUDGET=0: server defaults)
+{"status":"ok"}
