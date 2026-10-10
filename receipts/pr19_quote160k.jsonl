@@ -1,0 +1,16 @@
+{"tag": "r1-off", "depth": 160000, "kind": "quote", "item": "textwrap.py", "tps": 131.4, "n": 1348, "draft_n": 1336, "draft_acc": 1285, "sha": "45d97823b4bf", "wall": 287.0}
+{"tag": "r1-off", "depth": 160000, "kind": "quote", "item": "shlex.py", "tps": 136.6, "n": 846, "draft_n": 824, "draft_acc": 806, "sha": "a470f9e5143e", "wall": 23.3}
+{"tag": "r1-off", "depth": 160000, "kind": "quote", "item": "fnmatch.py", "tps": 143.0, "n": 1226, "draft_n": 1228, "draft_acc": 1176, "sha": "354164b1634f", "wall": 26.7}
+{"tag": "r1-off", "depth": 160000, "kind": "quote", "item": "csv.py", "tps": 128.2, "n": 1396, "draft_n": 1436, "draft_acc": 1327, "sha": "79e2648e5062", "wall": 29.4}
+{"tag": "r2-on", "depth": 160000, "kind": "quote", "item": "textwrap.py", "tps": 131.8, "n": 1348, "draft_n": 1336, "draft_acc": 1285, "sha": "45d97823b4bf", "wall": 258.5}
+{"tag": "r2-on", "depth": 160000, "kind": "quote", "item": "shlex.py", "tps": 138.2, "n": 846, "draft_n": 844, "draft_acc": 808, "sha": "137637372fa4", "wall": 21.2}
+{"tag": "r2-on", "depth": 160000, "kind": "quote", "item": "fnmatch.py", "tps": 141.2, "n": 1226, "draft_n": 1228, "draft_acc": 1176, "sha": "354164b1634f", "wall": 24.7}
+{"tag": "r2-on", "depth": 160000, "kind": "quote", "item": "csv.py", "tps": 127.5, "n": 1396, "draft_n": 1436, "draft_acc": 1327, "sha": "79e2648e5062", "wall": 27.3}
+{"tag": "r3-off", "depth": 160000, "kind": "quote", "item": "textwrap.py", "tps": 130.7, "n": 1348, "draft_n": 1336, "draft_acc": 1285, "sha": "45d97823b4bf", "wall": 287.7}
+{"tag": "r3-off", "depth": 160000, "kind": "quote", "item": "shlex.py", "tps": 133.1, "n": 846, "draft_n": 824, "draft_acc": 806, "sha": "a470f9e5143e", "wall": 23.4}
+{"tag": "r3-off", "depth": 160000, "kind": "quote", "item": "fnmatch.py", "tps": 140.5, "n": 1226, "draft_n": 1228, "draft_acc": 1176, "sha": "354164b1634f", "wall": 26.8}
+{"tag": "r3-off", "depth": 160000, "kind": "quote", "item": "csv.py", "tps": 123.9, "n": 1396, "draft_n": 1436, "draft_acc": 1327, "sha": "79e2648e5062", "wall": 29.8}
+{"tag": "r4-on", "depth": 160000, "kind": "quote", "item": "textwrap.py", "tps": 133.0, "n": 1348, "draft_n": 1336, "draft_acc": 1285, "sha": "45d97823b4bf", "wall": 258.2}
+{"tag": "r4-on", "depth": 160000, "kind": "quote", "item": "shlex.py", "tps": 139.3, "n": 846, "draft_n": 844, "draft_acc": 808, "sha": "137637372fa4", "wall": 21.2}
+{"tag": "r4-on", "depth": 160000, "kind": "quote", "item": "fnmatch.py", "tps": 143.5, "n": 1226, "draft_n": 1228, "draft_acc": 1176, "sha": "354164b1634f", "wall": 24.5}
+{"tag": "r4-on", "depth": 160000, "kind": "quote", "item": "csv.py", "tps": 128.4, "n": 1396, "draft_n": 1436, "draft_acc": 1327, "sha": "79e2648e5062", "wall": 27.2}

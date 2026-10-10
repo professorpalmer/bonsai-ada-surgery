@@ -85,6 +85,10 @@ def run(base, key, tag, out, depth=0):
                "n": t.get("predicted_n"), "draft_n": t.get("draft_n"), "draft_acc": t.get("draft_n_accepted"),
                "sha": hashlib.sha256(text.encode()).hexdigest()[:12], "wall": round(dt, 1)}
         print(json.dumps(rec), flush=True)
+        if os.environ.get("LOOKUP_SAVE_DIR"):   # keep the texts, to diff two arms that disagree
+            os.makedirs(os.environ["LOOKUP_SAVE_DIR"], exist_ok=True)
+            with open(os.path.join(os.environ["LOOKUP_SAVE_DIR"], f"{tag}-{kind}-{item}.txt"), "w", encoding="utf-8") as f:
+                f.write(text)
         with open(out, "a", encoding="utf-8") as f:
             f.write(json.dumps(rec) + "\n")
 
