@@ -1,0 +1,30 @@
+8gb    preset on (8192 MiB card; BONSAI_8GB=0 turns it off): ub 512, f16 prefill to 32768 cells
+kv     staging buffer for cells 58880..140800; past that the system RAM rows are read in place; packed KQ mask
+kv     tiered: cells 0..58880 in VRAM, 58880..262144 in system RAM (VRAM margin 225 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off)
+spec   draft 1 (1 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI_LOOKUP=0 turns it off)
+window 262144 / q4_0  (trained max 262144)
+== auto262: 0 one-token
+20:01:39 loaded: used 7739 server 7467 MiB free 268
+prose  depth   4000 (evaluated 512): prefill   354.7 tok/s  decode   50.0 tok/s (400 tok)
+mean decode 50.8 tok/s
+prose  depth  32000 (evaluated 512): prefill   257.3 tok/s  decode   48.8 tok/s (400 tok)
+mean decode 45.8 tok/s
+prose  depth  64000 (evaluated 512): prefill   153.0 tok/s  decode   43.8 tok/s (400 tok)
+mean decode 37.5 tok/s
+prose  depth  96000 (evaluated 512): prefill   120.2 tok/s  decode   19.0 tok/s (400 tok)
+mean decode 20.0 tok/s
+prose  depth 128000 (evaluated 512): prefill    97.6 tok/s  decode   11.1 tok/s (400 tok)
+mean decode 14.1 tok/s
+trace min free 116 MiB over 110 samples
+== fresh60k_r1: 0 one-token
+20:20:08 loaded: used 7739 server 7459 MiB free 276
+prose  depth  60000 (evaluated 512): prefill   159.3 tok/s  decode   35.2 tok/s (400 tok)
+mean decode 37.0 tok/s
+trace min free 116 MiB over 32 samples
+== fresh60k_r2: 0 one-token
+20:25:20 loaded: used 7739 server 7460 MiB free 276
+prose  depth  60000 (evaluated 512): prefill   159.6 tok/s  decode   35.2 tok/s (400 tok)
+mean decode 37.0 tok/s
+trace min free 116 MiB over 31 samples
+ab trace min free 110
+ab one-token: 0 of 22
