@@ -1,0 +1,21 @@
+20:26 arm f16 depth 131000: health=1; kv     tiered: cells 0..120064 in VRAM, 120064..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off)
+code   depth 131000 (evaluated 130306): prefill   641.3 tok/s  ttft 203.18s  decode   47.4 tok/s (400 tok)
+prose  depth 131000 (evaluated 512): prefill   371.9 tok/s  ttft   1.38s  decode   31.8 tok/s (400 tok)
+bash   depth 131000 (evaluated 516): prefill   376.0 tok/s  ttft   1.37s  decode   43.5 tok/s (400 tok)
+mean decode 40.9 tok/s
+20:30 arm packed depth 131000: health=1; kv     tiered: cells 0..128000 in VRAM, 128000..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off); packed KQ mask (240 MiB saved)
+code   depth 131000 (evaluated 130306): prefill   640.0 tok/s  ttft 203.61s  decode   55.8 tok/s (400 tok)
+prose  depth 131000 (evaluated 512): prefill   372.1 tok/s  ttft   1.38s  decode   37.4 tok/s (400 tok)
+bash   depth 131000 (evaluated 516): prefill   377.8 tok/s  ttft   1.37s  decode   51.4 tok/s (400 tok)
+mean decode 48.2 tok/s
+20:34 arm f16 depth 180000: health=1; kv     tiered: cells 0..120064 in VRAM, 120064..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off)
+code   depth 180000 (evaluated 179048): prefill   539.4 tok/s  ttft 331.96s  decode   24.4 tok/s (400 tok)
+prose  depth 180000 (evaluated 512): prefill   292.9 tok/s  ttft   1.75s  decode   18.4 tok/s (400 tok)
+bash   depth 180000 (evaluated 516): prefill   296.5 tok/s  ttft   1.74s  decode   20.9 tok/s (400 tok)
+mean decode 21.2 tok/s
+20:41 arm packed depth 180000: health=1; kv     tiered: cells 0..128000 in VRAM, 128000..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off); packed KQ mask (240 MiB saved)
+code   depth 180000 (evaluated 179048): prefill   538.8 tok/s  ttft 332.31s  decode   26.4 tok/s (400 tok)
+prose  depth 180000 (evaluated 512): prefill   296.9 tok/s  ttft   1.72s  decode   19.9 tok/s (400 tok)
+bash   depth 180000 (evaluated 516): prefill   300.0 tok/s  ttft   1.72s  decode   22.6 tok/s (400 tok)
+mean decode 23.0 tok/s
+20:48 === done

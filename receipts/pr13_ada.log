@@ -1,0 +1,31 @@
+19:27 === PR #13 Ada check, engine commit 142d5105d
+19:33 arm vram-mask0 (BONSAI_KV_VRAM_CELLS=110592 LLAMA_ARG_KQ_MASK_PACKED=0): health=0; 
+19:40 arm vram-mask1 (BONSAI_KV_VRAM_CELLS=110592 LLAMA_ARG_KQ_MASK_PACKED=1): health=0; 
+19:46 arm text-d32000-mask0 (LLAMA_ARG_KQ_MASK_PACKED=0): health=0; 
+19:52 arm text-d32000-mask1 (LLAMA_ARG_KQ_MASK_PACKED=1): health=0; 
+19:58 arm text-d64000-mask0 (LLAMA_ARG_KQ_MASK_PACKED=0): health=0; 
+20:01 VOID: the arms above had no model (the candidate root has no models folder; BONSAI_MODEL was not passed). Rerun below.
+20:01 === PR #13 Ada check, engine commit 142d5105d
+20:02 arm vram-mask0 (BONSAI_KV_VRAM_CELLS=110592 LLAMA_ARG_KQ_MASK_PACKED=0): health=1; kv     tiered: cells 0..110592 in VRAM, 110592..262144 in system RAM; shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it
+mean decode 85.4 tok/s
+20:03 mask0 used 11348 MiB
+20:03 arm vram-mask1 (BONSAI_KV_VRAM_CELLS=110592 LLAMA_ARG_KQ_MASK_PACKED=1): health=1; kv     tiered: cells 0..110592 in VRAM, 110592..262144 in system RAM; shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it
+mean decode 85.5 tok/s
+20:04 mask1 used 11108 MiB
+20:04 arm text-d32000-mask0 (LLAMA_ARG_KQ_MASK_PACKED=0): health=1; kv     tiered: cells 0..120064 in VRAM, 120064..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool on (BONSAI
+{"tag": "d32000-mask0", "depth": 32000, "kind": "edit", "item": "csv.py", "tps": 128.9, "n": 237, "draft_n": 282, "draft_acc": 197, "sha": "34626552c9d9", "wall": 5.3}
+20:07 arm text-d32000-mask1 (LLAMA_ARG_KQ_MASK_PACKED=1): health=1; kv     tiered: cells 0..120064 in VRAM, 120064..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool on (BONSAI
+{"tag": "d32000-mask1", "depth": 32000, "kind": "edit", "item": "csv.py", "tps": 130.2, "n": 237, "draft_n": 282, "draft_acc": 197, "sha": "34626552c9d9", "wall": 5.2}
+20:09 arm text-d64000-mask0 (LLAMA_ARG_KQ_MASK_PACKED=0): health=1; kv     tiered: cells 0..120064 in VRAM, 120064..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool on (BONSAI
+{"tag": "d64000-mask0", "depth": 64000, "kind": "edit", "item": "csv.py", "tps": 118.1, "n": 237, "draft_n": 282, "draft_acc": 197, "sha": "34626552c9d9", "wall": 8.4}
+20:13 arm text-d64000-mask1 (LLAMA_ARG_KQ_MASK_PACKED=1): health=1; kv     tiered: cells 0..120064 in VRAM, 120064..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool on (BONSAI
+{"tag": "d64000-mask1", "depth": 64000, "kind": "edit", "item": "csv.py", "tps": 117.1, "n": 237, "draft_n": 282, "draft_acc": 197, "sha": "34626552c9d9", "wall": 8.4}
+{"tag": "pr13-mask1", "depth": 20000, "prompt_n": 20126, "completion": 41, "finish": "stop", "head": "The records above are a sequence of numbered notes, each describing a ", "seconds": 18.9}
+{"tag": "pr13-mask1", "depth": 30000, "prompt_n": 29734, "completion": 52, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 29.5}
+{"tag": "pr13-mask1", "depth": 33000, "prompt_n": 32712, "completion": 52, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 33.2}
+{"tag": "pr13-mask1", "depth": 40000, "prompt_n": 39725, "completion": 41, "finish": "stop", "head": "The records above are a list of report entries that each specify a sit", "seconds": 41.7}
+{"tag": "pr13-mask1", "depth": 60000, "prompt_n": 59686, "completion": 52, "finish": "stop", "head": "The records above are signal, harbor, violet, granite, lantern, meadow", "seconds": 69.6}
+20:21 === done
+20:22 NOTE: the release smoke above overlapped a 12 GB A/B (a waiter matched the one-token step's done line); both stopped and rerun in sequence below
+20:26 release smoke (rerun) exit 0: GREEDY IDENTICAL
+20:48 mask12 A/B exit 0

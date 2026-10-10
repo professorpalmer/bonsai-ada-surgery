@@ -33,3 +33,8 @@
 {"tag": "pool-on", "depth": 33000, "prompt_n": 32741, "completion": 40, "finish": "stop", "head": "The records above are a list of report entries that each specify a rep", "seconds": 32.9}
 {"tag": "pool-on", "depth": 40000, "prompt_n": 39739, "completion": 49, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 41.5}
 {"tag": "pool-on", "depth": 60000, "prompt_n": 59685, "completion": 52, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 68.9}
+{"tag": "pr13-mask1", "depth": 20000, "prompt_n": 20126, "completion": 41, "finish": "stop", "head": "The records above are a sequence of numbered notes, each describing a ", "seconds": 18.9}
+{"tag": "pr13-mask1", "depth": 30000, "prompt_n": 29734, "completion": 52, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 29.5}
+{"tag": "pr13-mask1", "depth": 33000, "prompt_n": 32712, "completion": 52, "finish": "stop", "head": "The records above are a sequence of report entries that list specific ", "seconds": 33.2}
+{"tag": "pr13-mask1", "depth": 40000, "prompt_n": 39725, "completion": 41, "finish": "stop", "head": "The records above are a list of report entries that each specify a sit", "seconds": 41.7}
+{"tag": "pr13-mask1", "depth": 60000, "prompt_n": 59686, "completion": 52, "finish": "stop", "head": "The records above are signal, harbor, violet, granite, lantern, meadow", "seconds": 69.6}
