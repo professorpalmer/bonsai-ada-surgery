@@ -68,7 +68,7 @@ int main(int argc, char ** argv) {
     llama_model * model = llama_model_load_from_file(argv[1], mp);
     if (!model) { fprintf(stderr, "model load failed\n"); return 1; }
     auto cp = llama_context_default_params();
-    cp.n_ctx = n_ctx; cp.n_batch = 512; cp.n_ubatch = 512; cp.n_seq_max = 1;
+    cp.n_ctx = n_ctx; cp.n_batch = cp.n_ubatch = n_step > 512 ? n_step : 512; cp.n_seq_max = 1;  // n_step 1024 = one prefill micro-batch of the serve
     cp.flash_attn_type = LLAMA_FLASH_ATTN_TYPE_ENABLED;
     cp.type_k = GGML_TYPE_Q8_0; cp.type_v = GGML_TYPE_Q8_0;
     llama_context * ctx = llama_init_from_model(model, cp);
