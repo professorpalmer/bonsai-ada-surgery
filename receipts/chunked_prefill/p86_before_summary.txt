@@ -1,0 +1,24 @@
+== deep262: 0 one-token
+20:47:45 loaded: used 7731 server 7451 MiB free 268
+code   depth   4000 (evaluated 4048): prefill   402.0 tok/s  decode   50.8 tok/s (400 tok)
+prose  depth   4000 (evaluated 512): prefill   353.6 tok/s  decode   49.6 tok/s (400 tok)
+bash   depth   4000 (evaluated 516): prefill   355.2 tok/s  decode   51.0 tok/s (400 tok)
+mean decode 50.4 tok/s
+code   depth  64000 (evaluated 60477): prefill   234.0 tok/s  decode   33.8 tok/s (400 tok)
+prose  depth  64000 (evaluated 512): prefill   153.0 tok/s  decode   34.7 tok/s (400 tok)
+bash   depth  64000 (evaluated 516): prefill   149.0 tok/s  decode   35.7 tok/s (400 tok)
+mean decode 34.7 tok/s
+code   depth 128000 (evaluated 63847): prefill   121.2 tok/s  decode   11.7 tok/s (400 tok)
+prose  depth 128000 (evaluated 512): prefill    99.6 tok/s  decode   10.9 tok/s (400 tok)
+bash   depth 128000 (evaluated 516): prefill    96.1 tok/s  decode   12.3 tok/s (400 tok)
+mean decode 11.6 tok/s
+code   depth 192000 (evaluated 64186): prefill    57.7 tok/s  decode    8.8 tok/s (400 tok)
+prose  depth 192000 (evaluated 512): prefill    34.7 tok/s  decode    7.9 tok/s (400 tok)
+bash   depth 192000 (evaluated 516): prefill    35.4 tok/s  decode    8.4 tok/s (400 tok)
+mean decode 8.4 tok/s
+    t = go(a.base, key, p, n, a.depth)
+acceptance mean 0.787 over 17
+trace min free 116 MiB over 407 samples
+kv     staging buffer for cells 59392..141312; past that the system RAM rows are read in place; packed KQ mask
+kv     tiered: cells 0..59392 in VRAM, 59392..262144 in system RAM (VRAM margin 225 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off)
+window 262144 / q4_0  (trained max 262144)

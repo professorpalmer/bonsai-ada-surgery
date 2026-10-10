@@ -1,0 +1,6 @@
+inplace: Final estimate: PPL = 7.2106 +/- 0.07122 [1]7.9645 [2]7.2106 
+whole: Final estimate: PPL = 7.2107 +/- 0.07122 [1]7.9632 [2]7.2107 
+chunk: Final estimate: PPL = 7.2074 +/- 0.07120 [1]7.9586 [2]7.2074 
+0.02.442.732 W common_fit_params: failed to fit params to free device memory: n_gpu_layers already set by user to 99, abort
+0.00.970.315 W common_fit_params: failed to fit params to free device memory: n_gpu_layers already set by user to 99, abort
+0.01.544.079 W common_fit_params: failed to fit params to free device memory: n_gpu_layers already set by user to 99, abort

@@ -1,0 +1,16 @@
+== end262: 0 one-token
+01:32:29 loaded: used 7702 server 7400 MiB free 305
+code   depth 128000 (evaluated 127340): prefill   165.7 tok/s  decode   11.4 tok/s (400 tok)
+prose  depth 128000 (evaluated 512): prefill   100.2 tok/s  decode   10.8 tok/s (400 tok)
+bash   depth 128000 (evaluated 516): prefill    96.8 tok/s  decode   11.5 tok/s (400 tok)
+mean decode 11.2 tok/s
+code   depth 192000 (evaluated 64186): prefill    57.9 tok/s  decode    9.1 tok/s (400 tok)
+prose  depth 192000 (evaluated 512): prefill    35.3 tok/s  decode    7.1 tok/s (400 tok)
+bash   depth 192000 (evaluated 516): prefill    35.1 tok/s  decode    8.2 tok/s (400 tok)
+mean decode 8.1 tok/s
+code   depth 250000 (evaluated 58392): prefill    25.4 tok/s  decode    5.7 tok/s (400 tok)
+prose  depth 250000 (evaluated 512): prefill    19.3 tok/s  decode    5.3 tok/s (400 tok)
+bash   depth 250000 (evaluated 516): prefill    19.5 tok/s  decode    6.2 tok/s (400 tok)
+mean decode 5.7 tok/s
+acceptance mean 0.793 over 12
+trace min free 153 MiB over 473 samples

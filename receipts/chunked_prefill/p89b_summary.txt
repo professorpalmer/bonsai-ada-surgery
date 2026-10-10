@@ -1,0 +1,5 @@
+64k texts, whole-cache f16 vs chunked f16: 8/11 same; diff ['code/plain', 'prose/plain', 'bash/plain']; one-token 0
+whole: first request 248.6 s, mean after first 51.5 s
+chunk: first request 249.4 s, mean after first 51.6 s
+whole trace min free 73
+chunk trace min free 151
