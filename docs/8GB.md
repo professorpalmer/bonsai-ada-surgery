@@ -16,6 +16,38 @@ Measured 2026-10-06/07 on an RTX 2060 SUPER 8 GB (Turing sm_75, PCIe 3.0 x16, st
 one slot, 131,072-token window, greedy, thinking off, `bench/quick_tps.py` (4k -> 16k -> 32k -> 60k, each depth
 extending the previous prompt). Plans and gates were written before each run; raw log and receipts on the rig.
 
+## The 262k window (patches 0047-0049)
+
+With an engine that has patches 0047-0049 and 24 GB of system RAM or more, the drafting mode uses the full 262,144-token
+window. Three changes make it fit, and together they put more positions in VRAM than the earlier 131k preset had:
+
+| change | VRAM it returns (this card) |
+| --- | --- |
+| Packed (1-bit) KQ mask (0048/0049) | the f16 mask is window x micro-batch x 2 bytes: 128 MiB at 131k, 256 MiB at 262k; packed is 1/16 |
+| Shared CUDA pool (now safe with drafting, patch 0045) | ~51 MiB |
+| Partial staging (0047) | the staging buffer stops growing with the window: 81,920 staged positions at any window |
+
+Same card and method, drafting preset with lookup, `quick_tps.py` 4k -> 128k (decode = mean of code / prose / bash;
+prefill = a 512-token follow-up request at that depth):
+
+| | 4k | 32k | 64k | 96k | 128k | 160k |
+| --- | --- | --- | --- | --- | --- | --- |
+| 131k preset before (50,176 positions in VRAM): decode | 51.0 | 46.0 | 30.5 | 17.8 | 13.0 | - |
+| 262k now (59,904 in VRAM): decode | 51.7 | 46.5 | 37.8 | 20.1 | 14.2 | 10.4 |
+| 131k preset before: prefill | 350 | 257 | 152 | 118 | 96 | - |
+| 262k now: prefill | 359 | 262 | 156 | 121 | 99 | 59 |
+
+Fresh 60k prompts: 37.3 / 37.2 tok/s (before: 28.2 / 28.2). Lowest free VRAM in the run: 116 MiB. 0 one-token answers.
+With MTP drafting and lookup, the packed mask gave the same text as the f16 mask in 22 of 22 requests at 32k and 64k.
+Past the staged depth (the VRAM line + 81,920, about 140k here) the host rows are read in place, so a follow-up
+prefill there is slower (59 tok/s at 160k against 99 at 128k). `BONSAI_STAGE_CELLS` sets the staged depth;
+`BONSAI_CTX=131072` gives the earlier window (the launcher does that by itself with less than 24 GB of RAM).
+
+Past the VRAM line, decode reads the host part of the cache over PCIe on every token. This card has PCIe 3.0 x16
+(about 13 GB/s). A PCIe 4.0 x16 card (RTX 3060 Ti / 3070 class) has about 1.8x that link (the RTX 4070 measured 23.7 GB/s
+in this read), so its deep end should be faster than the table; not measured on an 8 GB card. RTX 4060 / 4060 Ti /
+5060-class cards use 8 lanes, which on a PCIe 4.0 board is about the same link as this card.
+
 ## Two modes
 
 | | drafting (default) | long context |
@@ -87,9 +119,9 @@ off). RTX 2060 SUPER, `lookup_ab.py` at 64k, requests after the first: 18-58 s i
    planar PT mat-vec from #218 at one column, as Ampere does. +13.7% decode (38.07 -> 43.3 tok/s).
 4. **Cheap draft head.** Q4_0 head -214 MiB (acceptance 0.875 -> 0.848, decode -1%). Tail draft 1 instead of 2 drops one
    recurrent-state snapshot plane (149.6 MiB) because the rollback ring is sized max(draft, tail). A smaller draft
-   micro-batch (`LLAMA_MTP_DRAFT_UBATCH=256`). The shared CUDA pool (`GGML_CUDA_SHARED_POOL=1`) saved 62 MiB more, but
-   with MTP drafting it gave 1-token answers to fresh long prompts on this card (60k: 3 of 3 with it, 0 of 3 without),
-   so the preset does not set it.
+   micro-batch (`LLAMA_MTP_DRAFT_UBATCH=256`). The shared CUDA pool (`GGML_CUDA_SHARED_POOL=1`) first gave 1-token
+   answers to fresh long prompts with MTP drafting (60k: 18 of 18); patch 0045 orders the two streams (0 of 38), and the
+   preset now turns it on with engines that have it (~51 MiB, P83: 0 of 3 fresh 60k, decode +7 % at 64k).
 5. **f16 prefill from pool memory.** Prefill-sized attention batches convert the q4_0 cache to f16 in transient pool
    memory sized by the actual context (128 MiB at 32k) and run the f16 tensor-core kernel; decode keeps the in-place
    quantized read, and nothing is reserved at load (a reserved copy would be 512 MiB at a 131k window). Prefill +9% at
@@ -109,13 +141,13 @@ prefill the lowest free VRAM during a 60k prefill was 118 MiB, with no cliff.
 - Core +150 / 215 W: +2-4%; 86 C without extra airflow, 74 C with desk fans; outputs matched stock 25/25 in one
   10-minute soak and 25/26 in the second (cause of the one divergence unresolved).
 - PrismML #314's L2 prefetch at its 4070 defaults (16 MiB): -2.4% on this 4 MB-L2 card (receipt on the PR).
-- Packed 1-bit KQ mask: exact without the draft head (-128 MiB), but combined with MTP drafting the output past 16k was
-  corrupted; not used in either mode. That run also had the shared CUDA pool on (see the next line); not tested again.
+- Packed 1-bit KQ mask, first test: corrupted output past 16k with MTP drafting. That build had the shared pool race and
+  staging buffers shared by the main and draft contexts. On the current engine: 22 of 22 texts identical; now used.
 - Draft 1 / tail 2: rare one-token answers after a long prompt-cache restore (2 of 6 runs) - those runs had the shared
   CUDA pool on. With it off: 0 of 81 answers (tail 1 and tail 2). Tail 2 is still not used: more drafts past the VRAM
   line gained at most +9 % at 126k and cost up to 41 % at 32k (fewer positions in VRAM).
-- The shared CUDA pool (`GGML_CUDA_SHARED_POOL=1`): 1-token answers to fresh long prompts with MTP drafting (60k: 18 of
-  18 without patch 0045, 0 of 38 with it). The preset does not turn it on.
+- Partial staging at 131k (40,960 staged positions): +6-9 % decode at 64k-128k, but prefill -50 % at 128k. Not used.
+- Reading the host tail in place for decode (`GGML_CUDA_KV_TIER_STAGE_MIN_Q=2`): the same decode as staging on this card.
 
 ## Optional: memory clock
 

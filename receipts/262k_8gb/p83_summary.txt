@@ -1,0 +1,28 @@
+== A_preset: 0 one-token
+15:55:29 loaded: used 7666 server 7379 MiB free 341
+mean decode 51.8 tok/s
+mean decode 46.6 tok/s
+mean decode 30.6 tok/s
+mean decode 17.8 tok/s
+min free 119 MiB at end
+trace min free 116 MiB over 71 samples
+== P_pool_N52224: 0 one-token
+16:07:19 loaded: used 7724 server 7437 MiB free 283
+mean decode 51.7 tok/s
+mean decode 46.6 tok/s
+mean decode 32.7 tok/s
+mean decode 18.5 tok/s
+min free 128 MiB at end
+trace min free 131 MiB over 70 samples
+== fresh60k_pool_r1: 0 one-token
+16:19:03 loaded: used 7724 server 7437 MiB free 283
+mean decode 31.7 tok/s
+min free 131 MiB at end
+== fresh60k_pool_r2: 0 one-token
+16:24:13 loaded: used 7724 server 7437 MiB free 283
+mean decode 31.7 tok/s
+min free 131 MiB at end
+== fresh60k_pool_r3: 0 one-token
+16:29:24 loaded: used 7724 server 7437 MiB free 283
+mean decode 31.8 tok/s
+min free 131 MiB at end

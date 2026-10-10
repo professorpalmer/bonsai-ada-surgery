@@ -1,0 +1,29 @@
+no current.pid, no llama-server
+17:12:31 A_preset idle 274 MiB, power 175.00 W, vars: BONSAI_BIN=C:/bonsai/bonsai-ada-surgery/bin-pmask;BONSAI_LAYER=0
+launcher pid 15372  out C:\bonsai\8gb\logs\20261009-171232-A_preset.out.log
+17:12:47 loaded: used 7662 server 7388 MiB free 353
+code   depth   4000 (evaluated 4048): prefill   403.7 tok/s  ttft  10.03s  decode   50.9 tok/s (400 tok)
+prose  depth   4000 (evaluated 512): prefill   350.2 tok/s  ttft   1.46s  decode   50.4 tok/s (400 tok)
+bash   depth   4000 (evaluated 516): prefill   356.0 tok/s  ttft   1.45s  decode   51.7 tok/s (400 tok)
+mean decode 51.0 tok/s
+code   depth  32000 (evaluated 28512): prefill   329.9 tok/s  ttft  86.43s  decode   43.4 tok/s (400 tok)
+prose  depth  32000 (evaluated 512): prefill   256.7 tok/s  ttft   1.99s  decode   49.3 tok/s (400 tok)
+bash   depth  32000 (evaluated 516): prefill   256.3 tok/s  ttft   2.01s  decode   45.3 tok/s (400 tok)
+mean decode 46.0 tok/s
+code   depth  64000 (evaluated 32481): prefill   185.9 tok/s  ttft 174.75s  decode   26.2 tok/s (400 tok)
+prose  depth  64000 (evaluated 512): prefill   151.7 tok/s  ttft   3.37s  decode   36.7 tok/s (400 tok)
+bash   depth  64000 (evaluated 516): prefill   148.0 tok/s  ttft   3.49s  decode   28.5 tok/s (400 tok)
+mean decode 30.5 tok/s
+code   depth  96000 (evaluated 32500): prefill   135.2 tok/s  ttft 240.38s  decode   15.6 tok/s (400 tok)
+prose  depth  96000 (evaluated 512): prefill   118.3 tok/s  ttft   4.33s  decode   16.9 tok/s (400 tok)
+bash   depth  96000 (evaluated 516): prefill   114.6 tok/s  ttft   4.50s  decode   20.8 tok/s (400 tok)
+mean decode 17.8 tok/s
+code   depth 128000 (evaluated 31863): prefill   107.1 tok/s  ttft 297.41s  decode   14.4 tok/s (400 tok)
+prose  depth 128000 (evaluated 512): prefill    96.3 tok/s  ttft   5.32s  decode   10.1 tok/s (400 tok)
+bash   depth 128000 (evaluated 516): prefill    93.0 tok/s  ttft   5.55s  decode   14.4 tok/s (400 tok)
+mean decode 13.0 tok/s
+acceptance mean 0.783 over 20
+min free 131 MiB at end
+stopped 9956, 18064, 15372
+arm done
+trace min free 131 MiB over 113 samples

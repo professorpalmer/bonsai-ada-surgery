@@ -1,0 +1,7 @@
+d32000: same text 11/11 diff [] one-token 0 mean tps f16 64.3 packed 64.9
+d64000: same text 11/11 diff [] one-token 0 mean tps f16 50.2 packed 51.1
+  2994/2994 tests passed
+packed=0 loaded free 341 MiB
+packed=0 trace min free 115
+packed=1 loaded free 449 MiB
+packed=1 trace min free 233

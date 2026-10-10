@@ -1,0 +1,66 @@
+  2994/2994 tests passed
+== A_131k_preset: 0 one-token
+13:50:36 loaded: used 7666 server 7392 MiB free 341
+prose  depth   4000 (evaluated 512): prefill   361.0 tok/s  decode   51.0 tok/s (400 tok)
+mean decode 51.8 tok/s
+prose  depth  32000 (evaluated 512): prefill   258.2 tok/s  decode   49.8 tok/s (400 tok)
+mean decode 46.3 tok/s
+prose  depth  64000 (evaluated 512): prefill   157.6 tok/s  decode   37.0 tok/s (400 tok)
+mean decode 30.6 tok/s
+prose  depth  96000 (evaluated 512): prefill   123.0 tok/s  decode   16.8 tok/s (400 tok)
+mean decode 17.7 tok/s
+prose  depth 128000 (evaluated 512): prefill   100.3 tok/s  decode   10.1 tok/s (400 tok)
+mean decode 13.0 tok/s
+min free 119 MiB at end
+trace min free 116 MiB over 110 samples
+kv     tiered: cells 0..50176 in VRAM, 50176..131072 in system RAM (VRAM margin 225 MiB)
+kv     tiered: cells 0..50176 in VRAM, 50176..131072 in system RAM (VRAM margin 225 MiB)
+== F_131k_decdirect: 0 one-token
+14:09:00 loaded: used 7666 server 7379 MiB free 341
+prose  depth   4000 (evaluated 512): prefill   361.2 tok/s  decode   51.1 tok/s (400 tok)
+mean decode 51.9 tok/s
+prose  depth  32000 (evaluated 512): prefill   254.7 tok/s  decode   49.0 tok/s (400 tok)
+mean decode 45.9 tok/s
+prose  depth  64000 (evaluated 512): prefill   158.4 tok/s  decode   36.9 tok/s (400 tok)
+mean decode 30.6 tok/s
+prose  depth  96000 (evaluated 512): prefill   123.0 tok/s  decode   16.9 tok/s (400 tok)
+mean decode 17.8 tok/s
+prose  depth 128000 (evaluated 512): prefill   100.4 tok/s  decode   10.1 tok/s (400 tok)
+mean decode 13.0 tok/s
+min free 131 MiB at end
+trace min free 123 MiB over 110 samples
+kv     tiered: cells 0..50176 in VRAM, 50176..131072 in system RAM
+== G_131k_stage40k: 0 one-token
+14:27:24 loaded: used 7674 server 7400 MiB free 333
+prose  depth   4000 (evaluated 512): prefill   360.7 tok/s  decode   51.0 tok/s (400 tok)
+mean decode 51.6 tok/s
+prose  depth  32000 (evaluated 512): prefill   257.4 tok/s  decode   49.5 tok/s (400 tok)
+mean decode 46.3 tok/s
+prose  depth  64000 (evaluated 512): prefill   157.9 tok/s  decode   39.0 tok/s (400 tok)
+mean decode 32.6 tok/s
+prose  depth  96000 (evaluated 512): prefill   112.7 tok/s  decode   17.8 tok/s (400 tok)
+mean decode 18.7 tok/s
+prose  depth 128000 (evaluated 512): prefill    50.7 tok/s  decode   11.6 tok/s (400 tok)
+mean decode 14.2 tok/s
+min free 111 MiB at end
+trace min free 111 MiB over 124 samples
+kv     tiered: cells 0..52736 in VRAM, 52736..131072 in system RAM (VRAM margin 225 MiB)
+kv     staging buffer for host cells 52736..93696, read in place past that (frac 0.312500)
+== D_262k_stage81k: 0 one-token
+14:48:11 loaded: used 7658 server 7384 MiB free 349
+prose  depth   4000 (evaluated 512): prefill   361.3 tok/s  decode   50.9 tok/s (400 tok)
+mean decode 51.7 tok/s
+prose  depth  32000 (evaluated 512): prefill   256.8 tok/s  decode   49.5 tok/s (400 tok)
+mean decode 46.3 tok/s
+prose  depth  64000 (evaluated 512): prefill   158.5 tok/s  decode   33.2 tok/s (400 tok)
+mean decode 26.9 tok/s
+prose  depth  96000 (evaluated 512): prefill   122.8 tok/s  decode   15.6 tok/s (400 tok)
+mean decode 16.5 tok/s
+prose  depth 128000 (evaluated 512): prefill   100.0 tok/s  decode    9.6 tok/s (400 tok)
+mean decode 12.3 tok/s
+prose  depth 160000 (evaluated 512): prefill    48.0 tok/s  decode    7.8 tok/s (400 tok)
+mean decode 9.4 tok/s
+min free 127 MiB at end
+trace min free 127 MiB over 174 samples
+kv     tiered: cells 0..43008 in VRAM, 43008..262144 in system RAM (VRAM margin 225 MiB)
+kv     staging buffer for host cells 43008..123904, read in place past that (frac 0.308594)

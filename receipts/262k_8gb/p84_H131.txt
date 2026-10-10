@@ -1,0 +1,29 @@
+no current.pid, no llama-server
+17:31:30 H131 idle 274 MiB, power 175.00 W, vars: BONSAI_BIN=C:/bonsai/bonsai-ada-surgery/bin-pmask;BONSAI_LAYER=0;LLAMA_ARG_KQ_MASK_PACKED=1;GGML_CUDA_SHARED_POOL=1;LLAMA_MTP_DRAFT_UBATCH=256;BONSAI_KV_VRAM_CELLS=59904
+launcher pid 1880  out C:\bonsai\8gb\logs\20261009-173130-H131.out.log
+17:31:44 loaded: used 7724 server 7450 MiB free 283
+code   depth   4000 (evaluated 4048): prefill   411.1 tok/s  ttft   9.85s  decode   52.0 tok/s (400 tok)
+prose  depth   4000 (evaluated 512): prefill   363.0 tok/s  ttft   1.41s  decode   51.0 tok/s (400 tok)
+bash   depth   4000 (evaluated 516): prefill   363.5 tok/s  ttft   1.42s  decode   52.2 tok/s (400 tok)
+mean decode 51.7 tok/s
+code   depth  32000 (evaluated 28512): prefill   333.9 tok/s  ttft  85.38s  decode   44.0 tok/s (400 tok)
+prose  depth  32000 (evaluated 512): prefill   260.6 tok/s  ttft   1.96s  decode   49.6 tok/s (400 tok)
+bash   depth  32000 (evaluated 516): prefill   261.1 tok/s  ttft   1.98s  decode   45.7 tok/s (400 tok)
+mean decode 46.4 tok/s
+code   depth  64000 (evaluated 32481): prefill   190.6 tok/s  ttft 170.41s  decode   33.9 tok/s (400 tok)
+prose  depth  64000 (evaluated 512): prefill   156.1 tok/s  ttft   3.28s  decode   44.3 tok/s (400 tok)
+bash   depth  64000 (evaluated 516): prefill   151.6 tok/s  ttft   3.40s  decode   35.9 tok/s (400 tok)
+mean decode 38.0 tok/s
+code   depth  96000 (evaluated 32500): prefill   138.9 tok/s  ttft 234.05s  decode   17.8 tok/s (400 tok)
+prose  depth  96000 (evaluated 512): prefill   121.3 tok/s  ttft   4.22s  decode   19.1 tok/s (400 tok)
+bash   depth  96000 (evaluated 516): prefill   117.6 tok/s  ttft   4.39s  decode   23.4 tok/s (400 tok)
+mean decode 20.1 tok/s
+code   depth 128000 (evaluated 31863): prefill   109.5 tok/s  ttft 290.89s  decode   15.8 tok/s (400 tok)
+prose  depth 128000 (evaluated 512): prefill    97.8 tok/s  ttft   5.24s  decode   11.1 tok/s (400 tok)
+bash   depth 128000 (evaluated 516): prefill    95.9 tok/s  ttft   5.38s  decode   15.7 tok/s (400 tok)
+mean decode 14.2 tok/s
+acceptance mean 0.783 over 20
+min free 141 MiB at end
+stopped 17436, 18068, 1880
+arm done
+trace min free 130 MiB over 108 samples
