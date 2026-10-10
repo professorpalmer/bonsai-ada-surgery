@@ -385,7 +385,11 @@ if ($Layer) {
     $py = Get-Command python -ErrorAction SilentlyContinue
     $rt = Test-Path (Join-Path $LayerDir 'runtime\bin\python-3.12.0.wasm')
     $wt = $false
-    if ($py) { & python -c "import wasmtime" 2>$null; $wt = ($LASTEXITCODE -eq 0) }
+    # Probe only when the layer can run. Under $ErrorActionPreference = 'Stop', Windows PowerShell 5.1 makes the
+    # traceback on python's stderr a terminating NativeCommandError, so a missing wasmtime stopped the launcher (#14).
+    if ($py -and $rt) {
+        try { & python -c "import wasmtime" 2>$null; $wt = ($LASTEXITCODE -eq 0) } catch { $wt = $false }
+    }
     if (-not ($py -and $rt -and $wt)) {
         Write-Host "layer  off: run layer\fetch_runtime.ps1 once to enable it (python=$([bool]$py) runtime=$rt wasmtime=$wt)"
         $Layer = $false
