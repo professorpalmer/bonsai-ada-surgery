@@ -177,11 +177,16 @@ if ($PoolOn -and $Spec -gt 0) {
 }
 # Packed (1-bit) KQ mask (patches 0048/0049): the f16 mask is Ctx x ubatch x 2 bytes (128 MiB at 131k, 256 MiB at 262k);
 # packed it is 1/16 of that. With MTP drafting at 32k and 64k: 22 of 22 texts identical to the f16 mask (RTX 2060
-# SUPER, P82). On for 8 GB cards with an engine that has it, in drafting mode (12 GB: not measured yet);
+# SUPER, P82; RTX 4070, receipts/pr13_ada.log). On with an engine that has it: 8 GB cards in drafting mode, and the
+# 12 GB recipe, where the 240 MiB it saves at 262k move the VRAM line up (RTX 4070: 120,064 -> 128,000 positions,
+# decode 40.9 -> 48.2 tok/s at 131k and 21.2 -> 23.0 at 180k, prefill the same; receipts/mask12_ab.log).
 # LLAMA_ARG_KQ_MASK_PACKED=0 turns it off.
 $Packed = $false
+$MaskSavedMiB = 0
 if ($Small -and $Has262 -and $Spec -gt 0 -and -not $env:LLAMA_ARG_KQ_MASK_PACKED) { $env:LLAMA_ARG_KQ_MASK_PACKED = '1' }
+if (-not $Small -and $Help -match '--kq-mask-packed' -and -not $env:LLAMA_ARG_KQ_MASK_PACKED) { $env:LLAMA_ARG_KQ_MASK_PACKED = '1' }
 if ($Help -match '--kq-mask-packed') { $Packed = $env:LLAMA_ARG_KQ_MASK_PACKED -eq '1' }
+if (-not $Small -and $Packed) { $MaskSavedMiB = [int]($Ctx * $Ubatch * 2 * 15 / 16 / 1MB) }
 if ($Small) {
     # engine switches (ignored by older binaries): a smaller draft micro-batch, and f16 prefill from pool memory up to
     # the depth the margin holds. The shared CUDA pool (above) is on only with an engine that has patch 0045: before it,
@@ -266,7 +271,7 @@ if ($Tier) {
         if ($Adapters.Count -eq 1 -and $Adapters[0].CurrentHorizontalResolution -and $OtherDisplays.Count -eq 0) { $Headless = $false }
         $Margin = if ($env:BONSAI_VRAM_MARGIN) { [int]$env:BONSAI_VRAM_MARGIN } elseif ($Headless) { 1000 } else { 1300 }
         # weights (the token embedding stays in system RAM), recurrent state, compute buffers, CUDA context
-        $FixedMiB = (Get-Item $Model).Length / 1MB - 265 + 150 + 400 + 300 + $DraftCells * $CellBytes / 16 / 1MB + $MmprojMiB - $PoolMiB
+        $FixedMiB = (Get-Item $Model).Length / 1MB - 265 + 150 + 400 + 300 + $DraftCells * $CellBytes / 16 / 1MB + $MmprojMiB - $PoolMiB - $MaskSavedMiB
         if ($Small) {
             # measured on an RTX 2060 SUPER with the desktop on it (docs/8GB.md): the server's fixed cost per mode
             # and the free VRAM that held (drafting: 225 MiB; no head: 400, room for the f16 prefill copy at 64k)
@@ -326,7 +331,7 @@ if (-not $Small -and $Help -match '--checkpoint-every-nt' -and -not $env:LLAMA_A
 if ($Small) { Write-Host "8gb    preset on ($TotalMiB MiB card; BONSAI_8GB=0 turns it off): ub $Ubatch, f16 prefill to $($env:GGML_CUDA_FA_PREFILL_F16) cells" }
 Write-Host "model  $(Split-Path $Model -Leaf)"
 Write-Host "window $Ctx / $Ctk  (trained max 262144)"
-if ($TierCells -gt 0) { Write-Host "kv     tiered: cells 0..$TierCells in VRAM, $TierCells..$Ctx in system RAM$(if ($Margin) { " (VRAM margin $Margin MiB)" })$(if ($PoolMiB) { "; shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off)" })" }
+if ($TierCells -gt 0) { Write-Host "kv     tiered: cells 0..$TierCells in VRAM, $TierCells..$Ctx in system RAM$(if ($Margin) { " (VRAM margin $Margin MiB)" })$(if ($PoolMiB) { "; shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off)" })$(if ($MaskSavedMiB) { "; packed KQ mask ($MaskSavedMiB MiB saved)" })" }
 if ($env:GGML_CUDA_KV_TIER_STAGING_FRAC) { Write-Host "kv     staging buffer for cells $TierCells..$($TierCells + $StageCells); past that the system RAM rows are read in place$(if ($Packed) { '; packed KQ mask' })" }
 if ($Small -and $Has262 -and -not $Small262 -and -not $env:BONSAI_CTX -and $RamGiB -gt 0 -and $RamGiB -lt 24) { Write-Host "note   window 131k: the 262k window needs 24 GB of system RAM or more ($RamGiB GB here); BONSAI_CTX=262144 tries it" }
 if ($CkptNote) { Write-Host "ckpt   $CkptNote" }
