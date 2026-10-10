@@ -1,0 +1,6 @@
+23:19 default (): health=1; 13590 MiB private, 6463 MiB working set; kv     tiered: cells 0..128000 in VRAM, 128000..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool 
+23:19 nospec (BONSAI_SPEC=0): health=1; 11715 MiB private, 5969 MiB working set; kv     tiered: cells 0..128000 in VRAM, 128000..262144 in system RAM (VRAM margin 1000 MiB); packed KQ mask (2
+23:19 allvram64k (BONSAI_TIER=0,BONSAI_CTX=65536): health=1; 10870 MiB private, 6440 MiB working set; 
+23:20 tier131k (BONSAI_CTX=131072): health=1; 13061 MiB private, 6447 MiB working set; 
+23:28 nommap-check (LLAMA_ARG_MMAP=1): health=0; ; 
+=== ram_load finished
