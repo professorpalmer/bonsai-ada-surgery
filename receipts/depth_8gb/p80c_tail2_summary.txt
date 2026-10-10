@@ -1,0 +1,26 @@
+== tail1: 0 one-token
+06:00:04 loaded: used 7694 server 7400 MiB free 313
+code   depth  64000 (evaluated 64009): prefill   290.5 tok/s  decode   32.0 tok/s (400 tok)
+prose  depth  64000 (evaluated 512): prefill   204.4 tok/s  decode   31.3 tok/s (400 tok)
+bash   depth  64000 (evaluated 516): prefill   201.5 tok/s  decode   31.3 tok/s (400 tok)
+mean decode 31.5 tok/s
+code   depth 200000 (evaluated 135503): prefill   135.6 tok/s  decode    7.3 tok/s (400 tok)
+prose  depth 200000 (evaluated 512): prefill    94.9 tok/s  decode    7.7 tok/s (400 tok)
+bash   depth 200000 (evaluated 516): prefill    92.6 tok/s  decode    7.6 tok/s (400 tok)
+mean decode 7.5 tok/s
+acceptance mean 0.799 over 8
+trace min free 111 MiB over 146 samples
+kv     tiered: cells 0..58112 in VRAM, 58112..262144 in system RAM (VRAM margin 225 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off)
+== tail2: 0 one-token
+06:24:34 loaded: used 7718 server 7424 MiB free 289
+code   depth  64000 (evaluated 64009): prefill   290.2 tok/s  decode   30.1 tok/s (400 tok)
+prose  depth  64000 (evaluated 512): prefill   203.8 tok/s  decode   26.1 tok/s (400 tok)
+bash   depth  64000 (evaluated 516): prefill   200.0 tok/s  decode   28.5 tok/s (400 tok)
+mean decode 28.2 tok/s
+code   depth 200000 (evaluated 135503): prefill   134.9 tok/s  decode    8.9 tok/s (400 tok)
+prose  depth 200000 (evaluated 512): prefill    94.4 tok/s  decode    8.5 tok/s (400 tok)
+bash   depth 200000 (evaluated 516): prefill    92.3 tok/s  decode    8.9 tok/s (400 tok)
+mean decode 8.8 tok/s
+acceptance mean 0.702 over 8
+trace min free 87 MiB over 144 samples
+kv     tiered: cells 0..49664 in VRAM, 49664..262144 in system RAM (VRAM margin 375 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off)

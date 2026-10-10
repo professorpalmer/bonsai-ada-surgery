@@ -64,6 +64,26 @@ Past the VRAM line, decode reads the host part of the cache over PCIe on every t
 in this read), so its deep end should be faster than the table; not measured on an 8 GB card. RTX 4060 / 4060 Ti /
 5060-class cards use 8 lanes, which on a PCIe 4.0 board is about the same link as this card.
 
+### Sessions that stay deep (150k and more)
+
+At 250k this card moves about 11 of its ~13 GB/s over PCIe for each decode step, so decode there (5.7 tok/s) is set by
+the link. What helps:
+
+- **Lookup drafting** (on by default) verifies up to 32 drafted tokens per read of the host part. For copy-heavy work
+  (file rewrites, edits, quoted logs) that is x2-x3 at depth.
+- **Tail draft 2** (`BONSAI_SPEC_DEEP=2`, with `BONSAI_VRAM_MARGIN=375` for the extra rollback plane) verifies one more
+  MTP token per read. RTX 2060 SUPER, 262k: decode at 200k 7.5 -> 8.8 tok/s (+17 %), but at 64k 31.5 -> 28.2 (-10 %),
+  because the plane takes ~8,400 positions from VRAM. It is set at start, so use it for sessions that stay past ~150k.
+
+What does not help, measured on this card:
+
+- **Attention for the host rows on the CPU.** A dedicated AVX2 kernel (int8 K dots, each row loaded once for the 6 heads
+  of a group) needs ~110 ms per layer for 192k rows and 2 tokens; PCIe needs ~19 ms. The arithmetic (~24k multiply-adds
+  per row) is more than a 6-core CPU does in that time.
+- **Reading only the high-weight host rows.** At depth this model spreads its attention widely: on 180k tokens of
+  Python source, keeping 99 % of the attention mass needs 19-81 % of the host rows (per group of 6 heads), and 99.9 %
+  needs 50-97 %. So a sparse read cannot cut the PCIe bytes much without changing the output.
+
 ## Two modes
 
 | | drafting (default) | long context |
@@ -159,9 +179,10 @@ prefill the lowest free VRAM during a 60k prefill was 118 MiB, with no cliff.
 - PrismML #314's L2 prefetch at its 4070 defaults (16 MiB): -2.4% on this 4 MB-L2 card (receipt on the PR).
 - Packed 1-bit KQ mask, first test: corrupted output past 16k with MTP drafting. That build had the shared pool race and
   staging buffers shared by the main and draft contexts. On the current engine: 22 of 22 texts identical; now used.
-- Draft 1 / tail 2: rare one-token answers after a long prompt-cache restore (2 of 6 runs) - those runs had the shared
-  CUDA pool on. With it off: 0 of 81 answers (tail 1 and tail 2). Tail 2 is still not used: more drafts past the VRAM
-  line gained at most +9 % at 126k and cost up to 41 % at 32k (fewer positions in VRAM).
+- Draft 1 / tail 2 as the default: rare one-token answers after a long prompt-cache restore (2 of 6 runs) - those runs
+  had the shared CUDA pool on. With it off: 0 of 81 answers (tail 1 and tail 2). At the 131k window tail 2 gained at
+  most +9 % at 126k and cost up to 41 % at 32k; at 262k it is +17 % at 200k and -10 % at 64k (see "Sessions that stay
+  deep"). Tail 1 stays the default.
 - Partial staging at 131k (40,960 staged positions): +6-9 % decode at 64k-128k, but prefill -50 % at 128k. Not used.
 - Reading the host tail in place for decode (`GGML_CUDA_KV_TIER_STAGE_MIN_Q=2`): the same decode as staging on this card.
 
