@@ -31,6 +31,17 @@ transpose kernel for this exact layout, enabled only on GB10. Patch 0050 enables
 `bench/concat_ab.sh`, `receipts/concat_ab.log`: decode +1.4 % (91.8 vs 90.0 / 91.0 tok/s at depth 0, 97.4 vs
 96.1 / 95.8 at 16k), the same text in 6/6 greedy answers.
 
+## Prefill, for comparison
+
+One 512-token micro-batch (the 12 GB recipe's `-ub 512`) at depth 1-3k: 389 ms of GPU time (~1,316 tok/s).
+
+- PTQ1_0 matmul (`mul_mat_q`, int8 tensor cores on Q8_1 activations): 251 ms, **64.5 %**. 27.5 TOPs of work per
+  micro-batch in 251 ms is ~110 TOPS, about half of the card's dense int8 tensor peak. The per-128 group scales of
+  PTQ1_0 keep this in the MMQ kernel (one large int8 GEMM would need one scale per row).
+- Gated delta net: 52 ms, **13.4 %** (1.09 ms per layer). It walks the tokens of the micro-batch one after another, so
+  it is latency-bound; a chunked (parallel-in-time) form of the delta rule is the known way to make it faster.
+- Attention 4.1 %, SwiGLU 3.8 %, Hadamard 3.1 %, activation quantize 2.4 %, norms 3.3 %.
+
 ## Conclusion
 
 At short context the 1-token step is within ~15 % of the time to read the weights once at the card's peak. The
