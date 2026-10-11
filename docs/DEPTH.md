@@ -87,7 +87,9 @@ Python functions). RTX 4070 with the VRAM line pinned at 32,768 cells unless not
 | 160k, host tail, decode only | 8192, 64 | 12/12 | 10/10 |
 | 160k, host tail, prefill sparse too (`MAXQ=4096`) | 8192, 256 | 11/12 | 8/10 |
 | 160k, whole context, 12 GB line (`sparse_whole.log`) | 8192, 256, sinks 1024 | 7/12 | 8/10 |
-| 245k, RTX 2060 SUPER (#21, P101) | 8192 and 16384, 64 | 12/12 | 10/10 |
+| 245k, RTX 2060 SUPER (#21, P101, emulation build) | 8192 and 16384, 64 | 12/12 | 10/10 |
+| 160k, RTX 2060 SUPER, decode only (#21, P105, `d6c6e9f01`) | 8192, 64 | 12/12 | 10/10 |
+| 245k, RTX 2060 SUPER, decode only (#21, P105, `d6c6e9f01`) | 8192, 64 | 12/12 | 9/10 (misses `_calc_julian_from_U_or_W`) |
 
 Reading: 64-cell pages hold quality at B = 8192 on the host tail; 256-cell pages lose one short function; sparse
 prefill and selection over the VRAM part lose retrieval at these settings.
@@ -112,14 +114,27 @@ reads of host memory. With the tile map, only the kept pages cross the link.
 RTX 4070, 12 GB recipe's own line (121,344 cells), 192k (`receipts/sparse_whole.log`): dense 22.8 tok/s, host tail
 sparse 25.2, whole context sparse 36.3 (but 7/12 needles, see above).
 
-RTX 2060 SUPER, 245k, 8 GB recipe (#21): P101 (emulation build) and P102-P102e (fast builds) were all slower than or
-equal to dense. With `d6c6e9f01`: dense 5.7 tok/s, sparse 4.3. Two causes found: (1) with MTP tail 1 the decode ops
-have 2 queries and run on the vec kernel, whose skip worked on 128-cell tiles, so a kept 64-cell page pulled in its
-neighbour (fixed in `028f606fc`, a 32-cell warp skip; 2060 run pending); (2) the 512-token follow-up prefill drops
-from 79 to 39 tok/s with the sparse settings on the 8 GB recipe only (not on the 4070), cause not yet found.
+RTX 2060 SUPER, 8 GB recipe (#21; VRAM line ~46k with the f16 mask; MTP tail 1, so decode ops have 2 queries and run
+on the vec kernel; lookup off; `quick_tps.py` mean decode; B = 8192, page 64):
 
-**Status:** an experiment. It needs CUDA graphs off and the f16 mask (the page bounds live on the host), and it is
-not yet faster on a real 8 GB card.
+| depth | dense | sparse | build |
+| --- | ---: | ---: | --- |
+| 64k | 34.5 tok/s | 29.0 (-16 %) | `028f606fc` (P106) |
+| 160k | 9.7 | **18.3 (x1.9)** | `d6c6e9f01` (P105) |
+| 160k | 9.7 | **18.5 (x1.9)** | `028f606fc` (P106) |
+| 245k | 5.7 | 4.3 | `d6c6e9f01` (P102e) |
+| 245k | 5.7 | 4.9 | `028f606fc` (P106) |
+
+With lookup verifies (code items), 160k: 12.8 -> 21.5 tok/s (P105). Open on 8 GB: (1) at 245k sparse is still below
+dense: something in the sparse decode path grows with the host tail (~3,077 pages at 245k against ~1,753 at 160k);
+(2) the 512-token follow-up prefill drops with the sparse settings (160k 107 -> 85, 245k 79 -> 39-44 tok/s; not the
+write tracking: `NOTRACK` gives the same, P106; not seen on the 4070); (3) sparse costs ~16 % at 64k (small host
+tail), so a default needs a depth threshold. MTP tail 4 is not a way out on 8 GB: three more rollback planes drop the
+line from 46,592 to 20,992 cells and MTP acceptance from 0.79 to 0.55 (160k: dense 9.1, sparse 11.5; P105).
+
+**Status:** an experiment. It needs CUDA graphs off and the f16 mask (the page bounds live on the host). On a real
+8 GB card it is ~1.9x at 160k, not yet faster at 245k, and it costs ~16 % at 64k and 20-45 % on follow-up prefill
+at depth.
 
 ## Chunked gated-delta-net prefill
 
