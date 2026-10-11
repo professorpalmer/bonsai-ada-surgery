@@ -1,0 +1,7 @@
+# release bin at depth: which shipped setting costs decode (lookup off, then on)
+shipped-lkoff|-|BONSAI_LOOKUP=0
+nographs-lkoff|-|BONSAI_LOOKUP=0 GGML_CUDA_DISABLE_GRAPHS=1
+f16mask-lkoff|-|BONSAI_LOOKUP=0 LLAMA_ARG_KQ_MASK_PACKED=0
+shipped-lkon|-|
+nographs-lkon|-|GGML_CUDA_DISABLE_GRAPHS=1
+f16mask-lkon|-|LLAMA_ARG_KQ_MASK_PACKED=0
