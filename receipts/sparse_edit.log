@@ -1,0 +1,16 @@
+18:54 NOTE: root-sparse3 bin/ggml-cuda.dll is fa-sparse-proto 71371d4cb (fork session, copied ~18:55; superset of 9f2df0a8f: tracking + CHECK + tier_unalias + zeroed staging + verify-batch gather); other DLLs c084831aa
+18:55 === sparse edit: depth 160000, sparse 8192,256,1024, root C:\Users\pwall\AppData\Local\Temp\root-sparse3
+18:56 arm track: health=1
+{"tag": "track", "files": 19, "edit_file": 14, "edit_char_frac": 0.911}
+{"tag": "track", "request": "base", "prompt_n": 158462, "predicted_n": 38, "stale_ops": 0, "select_diff_ops": 0, "wall_s": 273.7, "answer": "The last file, `aifc.py`, provides a Python implementation for reading and writing AIFF and AIFF-C audio files, includin"}
+{"tag": "track", "request": "edit", "prompt_n": 24966, "predicted_n": 38, "stale_ops": 0, "select_diff_ops": 0, "wall_s": 65.2, "answer": "The last file, `aifc.py`, provides a Python implementation for reading and writing AIFF and AIFF-C audio files, includin"}
+{"tag": "track", "request": "again", "prompt_n": 4, "predicted_n": 38, "stale_ops": 0, "select_diff_ops": 0, "wall_s": 2.9, "answer": "The last file, `aifc.py`, provides a Python implementation for reading and writing AIFF and AIFF-C audio files, includin"}
+19:02 arm notrack: health=1
+{"tag": "notrack", "files": 19, "edit_file": 14, "edit_char_frac": 0.911}
+{"tag": "notrack", "request": "base", "prompt_n": 158583, "predicted_n": 38, "stale_ops": 0, "select_diff_ops": 0, "wall_s": 274.3, "answer": "The last file, `aifc.py`, provides a Python implementation for reading and writing AIFF and AIFF-C audio files, includin"}
+{"tag": "notrack", "request": "edit", "prompt_n": 24966, "predicted_n": 38, "stale_ops": 208, "select_diff_ops": 0, "wall_s": 64.7, "answer": "The last file, `aifc.py`, provides a pure-Python implementation of the `aifc` module for reading and writing AIFF and AI"}
+{"tag": "notrack", "request": "again", "prompt_n": 4, "predicted_n": 38, "stale_ops": 208, "select_diff_ops": 0, "wall_s": 2.4, "answer": "The last file, `aifc.py`, provides a pure-Python implementation of the `aifc` module for reading and writing AIFF and AI"}
+5.44.668.000 W ggml_cuda_fa_sparse_mask: CHECK stale bounds: K 0000000E94C00000, 312 page-heads of 576 differ, first page 60 (n_host 36774, pages 144, from 138)
+5.44.676.886 W ggml_cuda_fa_sparse_mask: CHECK stale bounds: K 000000037B000000, 312 page-heads of 576 differ, first page 60 (n_host 36774, pages 144, from 138)
+5.44.685.719 W ggml_cuda_fa_sparse_mask: CHECK stale bounds: K 0000000C74C00000, 312 page-heads of 576 differ, first page 60 (n_host 36774, pages 144, from 138)
+19:07 === done
