@@ -1,0 +1,3 @@
+# bundle-20261011 (0053, the product bin/) vs the 0054 release bins (chunked GDN prefill), launcher defaults
+b1011|-|
+b0054|/tmp/root-0054|
