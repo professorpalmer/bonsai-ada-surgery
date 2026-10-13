@@ -1,6 +1,6 @@
-From e63ce36d96b2c5050e394959f7f8d4670b0fdb3f Mon Sep 17 00:00:00 2001
+From de873117e1f8b45e546c8087c36beaa4c2570460 Mon Sep 17 00:00:00 2001
 From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
-Date: Tue, 13 Oct 2026 16:34:06 -0500
+Date: Tue, 13 Oct 2026 17:33:59 -0500
 Subject: [PATCH] cuda: chunked gated-delta-net MMA prefill (port of
  ggml-org/llama.cpp#29353)
 
@@ -12,19 +12,21 @@ slots. The fused state gather is supported: the live state rows are copied to
 a contiguous s0 first. One WARN line when the chunked path first engages, and
 one when a prefill-sized op skips it.
 
-BF16 MMA on Ampere GA10x / Ada and newer; other cards keep the recurrent
-kernel. GGML_CUDA_GDN_MMA_DISABLE=1 turns it off. Tests in the 27B shape.
+BF16 MMA on Ampere GA10x / Ada and newer. Other cards are checked before any
+temporaries are allocated and keep the recurrent kernel (one WARN line with the
+device cc). GGML_CUDA_GDN_MMA_DISABLE=1 turns it off. Tests in the 27B shape.
 
 RTX 4070: prefill +3 to +6 % (drafting on); perplexity 8.0714 -> 8.0733
 (+0.024 %, -c 2048, 32 chunks); exact copies and needles unchanged.
+RTX 2060 SUPER (sm_75): not taken; 32k prefill and decode unchanged.
 ---
  ggml/src/ggml-cuda/common.cuh              |   2 +
- ggml/src/ggml-cuda/gated-delta-net-mma.cu  | 436 +++++++++++++++++++++
- ggml/src/ggml-cuda/gated-delta-net-mma.cuh |  35 ++
- ggml/src/ggml-cuda/gated_delta_net.cu      | 144 +++++++
+ ggml/src/ggml-cuda/gated-delta-net-mma.cu  | 450 +++++++++++++++++++++
+ ggml/src/ggml-cuda/gated-delta-net-mma.cuh |  37 ++
+ ggml/src/ggml-cuda/gated_delta_net.cu      | 153 +++++++
  ggml/src/ggml-cuda/mma.cuh                 |  90 ++++-
  tests/test-backend-ops.cpp                 |  24 ++
- 6 files changed, 726 insertions(+), 5 deletions(-)
+ 6 files changed, 751 insertions(+), 5 deletions(-)
  create mode 100644 ggml/src/ggml-cuda/gated-delta-net-mma.cu
  create mode 100644 ggml/src/ggml-cuda/gated-delta-net-mma.cuh
 
@@ -43,10 +45,10 @@ index 2f10de170d..43b8e83f8f 100644
  // While BW spans CC 1000, 1100 & 1200, we are integrating Tensor Core instructions available to 1200 family, see
 diff --git a/ggml/src/ggml-cuda/gated-delta-net-mma.cu b/ggml/src/ggml-cuda/gated-delta-net-mma.cu
 new file mode 100644
-index 0000000000..955647dc05
+index 0000000000..a0c47b3fea
 --- /dev/null
 +++ b/ggml/src/ggml-cuda/gated-delta-net-mma.cu
-@@ -0,0 +1,436 @@
+@@ -0,0 +1,450 @@
 +#include "gated-delta-net-mma.cuh"
 +#include "mma.cuh"
 +
@@ -461,6 +463,20 @@ index 0000000000..955647dc05
 +}
 +}  // namespace
 +
++bool ggml_cuda_gdn_mma_device_supported(int device) {
++    const int cc = ggml_cuda_info().devices[device].cc;
++#ifdef GGML_USE_HIP
++    return GGML_CUDA_CC_IS_RDNA3_5(cc);
++#elif defined(GGML_USE_MUSA)
++    GGML_UNUSED(cc);
++    return false;
++#else
++    // the architectures select_gdn_mma_path accepts
++    return ampere_mma_available(cc) && (cc == GGML_CUDA_CC_AMPERE_GA10X || cc == GGML_CUDA_CC_ADA_LOVELACE ||
++                                        cc == GGML_CUDA_CC_BLACKWELL || cc == GGML_CUDA_CC_DGX_SPARK);
++#endif // GGML_USE_HIP
++}
++
 +bool ggml_cuda_gdn_mma_launch(int device, const ggml_cuda_gdn_mma_args & a, cudaStream_t stream) {
 +    if (!a.state_out) {
 +        return false;
@@ -485,10 +501,10 @@ index 0000000000..955647dc05
 +}
 diff --git a/ggml/src/ggml-cuda/gated-delta-net-mma.cuh b/ggml/src/ggml-cuda/gated-delta-net-mma.cuh
 new file mode 100644
-index 0000000000..8eb7c4f336
+index 0000000000..b1fd6e9509
 --- /dev/null
 +++ b/ggml/src/ggml-cuda/gated-delta-net-mma.cuh
-@@ -0,0 +1,35 @@
+@@ -0,0 +1,37 @@
 +#pragma once
 +
 +#include "common.cuh"
@@ -523,9 +539,11 @@ index 0000000000..8eb7c4f336
 +    bool    eligible;
 +};
 +
++// false: the device never takes the chunked kernel (checked before any temporaries are allocated)
++bool ggml_cuda_gdn_mma_device_supported(int device);
 +bool ggml_cuda_gdn_mma_launch(int device, const ggml_cuda_gdn_mma_args & args, cudaStream_t stream);
 diff --git a/ggml/src/ggml-cuda/gated_delta_net.cu b/ggml/src/ggml-cuda/gated_delta_net.cu
-index 40a639dd46..2f74ee87ba 100644
+index 40a639dd46..1dd27cc388 100644
 --- a/ggml/src/ggml-cuda/gated_delta_net.cu
 +++ b/ggml/src/ggml-cuda/gated_delta_net.cu
 @@ -1,6 +1,9 @@
@@ -621,7 +639,7 @@ index 40a639dd46..2f74ee87ba 100644
      const int64_t rq3 = nev3 / neq3;
  
      const float * q_d = (const float *) src_q->data;
-@@ -365,6 +430,85 @@ static void ggml_cuda_op_gated_delta_net_impl(
+@@ -365,6 +430,94 @@ static void ggml_cuda_op_gated_delta_net_impl(
      const float * ra_d = raw ? (const float *) dst->src[8]->data : nullptr;
      GGML_ASSERT(!(raw && kda)); // raw gates are defined for the scalar gate only
  
@@ -640,7 +658,16 @@ index 40a639dd46..2f74ee87ba 100644
 +            logged_skip = true;
 +        }
 +    }
-+    if (!mma_off && !kda && n_mma >= 64) {
++    const bool mma_dev = !mma_off && !kda && n_mma >= 64 && ggml_cuda_gdn_mma_device_supported(ctx.device);
++    if (!mma_off && !kda && n_mma >= 64 && !mma_dev) {
++        static bool logged_dev = false;
++        if (!logged_dev) {
++            GGML_LOG_WARN("%s: chunked GDN prefill (MMA) skipped: device cc %d has no supported BF16 MMA schedule; recurrent kernel\n",
++                __func__, ggml_cuda_info().devices[ctx.device].cc);
++            logged_dev = true;
++        }
++    }
++    if (mma_dev) {
 +        ggml_cuda_gdn_mma_args args = ggml_cuda_gdn_mma_args_from_tensor(dst);
 +        args.eligible = src_g->ne[0] == 1 && S_v == 128 && neq0 == 128;   // K is handled here
 +        args.n_tokens = n_mma;
