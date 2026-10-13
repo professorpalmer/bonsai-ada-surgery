@@ -1,0 +1,1 @@
+2026-10-13 17:48 NOTE: /tmp/root-0054/bin replaced with the de873117e1 build (0054 with the device check, merged in #40; LLAMA_COMMIT de873117e1). The gate header line below says e63ce36d9 because the queue script was written before #40; every gate result in this log is from de873117e1.

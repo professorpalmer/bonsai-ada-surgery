@@ -1,0 +1,92 @@
+ggml_cuda_init: found 1 CUDA devices (Total VRAM: 12281 MiB):
+  Device 0: NVIDIA GeForce RTX 4070, compute capability 8.9, VMM: yes, VRAM: 12281 MiB
+ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+Testing 2 devices
+
+Backend 1/2: CUDA0
+  Device description: NVIDIA GeForce RTX 4070
+  Device memory: 12281 MB (11106 MB free)
+
+  GATED_DELTA_NET(type=f32,head_count=32,head_size=128,n_seq_tokens=1,n_seqs=1,v_repeat=1,permuted=0,kda=0,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=32,head_size=16,n_seq_tokens=1,n_seqs=1,v_repeat=1,permuted=0,kda=0,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=32,head_size=16,n_seq_tokens=1,n_seqs=1,v_repeat=1,permuted=1,kda=1,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=128,n_seq_tokens=1,n_seqs=1,v_repeat=1,permuted=0,kda=0,K=1,rows_mode=0,cache_rows=-1,raw_gates=1): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=128,n_seq_tokens=1,n_seqs=2,v_repeat=2,permuted=0,kda=0,K=1,rows_mode=0,cache_rows=-1,raw_gates=1): ggml_cuda_op_gated_delta_net_impl: chunked GDN prefill (MMA) not taken (shape or device): 64 tokens (64 by MMA), K 1, H 4, H_k 4, raw 1, gather 0, seqs 1
+[1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=128,n_seq_tokens=64,n_seqs=1,v_repeat=1,permuted=0,kda=0,K=1,rows_mode=0,cache_rows=-1,raw_gates=1): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=128,n_seq_tokens=1,n_seqs=2,v_repeat=1,permuted=0,kda=0,K=2,rows_mode=1,cache_rows=-1,raw_gates=1): not supported [CUDA0] 
+  GATED_DELTA_NET(type=f32,head_count=32,head_size=16,n_seq_tokens=1,n_seqs=1,v_repeat=1,permuted=0,kda=1,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=16,head_size=64,n_seq_tokens=1,n_seqs=2,v_repeat=1,permuted=0,kda=0,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=64,n_seq_tokens=4,n_seqs=1,v_repeat=1,permuted=0,kda=0,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=64,n_seq_tokens=4,n_seqs=2,v_repeat=1,permuted=0,kda=0,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=8,head_size=32,n_seq_tokens=4,n_seqs=2,v_repeat=2,permuted=0,kda=0,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=64,n_seq_tokens=4,n_seqs=2,v_repeat=1,permuted=1,kda=0,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=64,n_seq_tokens=4,n_seqs=1,v_repeat=1,permuted=1,kda=0,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=64,n_seq_tokens=1,n_seqs=1,v_repeat=1,permuted=0,kda=1,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=64,n_seq_tokens=1,n_seqs=2,v_repeat=1,permuted=0,kda=1,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=16,n_seq_tokens=1,n_seqs=2,v_repeat=1,permuted=0,kda=1,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=32,n_seq_tokens=4,n_seqs=1,v_repeat=1,permuted=0,kda=1,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=64,n_seq_tokens=4,n_seqs=2,v_repeat=1,permuted=0,kda=1,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): ggml_backend_cuda_graph_compute: CUDA graph warmup complete
+ggml_backend_cuda_graph_compute: CUDA graph warmup complete
+ggml_backend_cuda_graph_compute: CUDA graph warmup complete
+[1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=8,head_size=32,n_seq_tokens=4,n_seqs=2,v_repeat=2,permuted=0,kda=1,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+[1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=64,n_seq_tokens=4,n_seqs=2,v_repeat=1,permuted=1,kda=1,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=16,n_seq_tokens=4,n_seqs=2,v_repeat=1,permuted=1,kda=1,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): ggml_backend_cuda_graph_compute: CUDA graph warmup complete
+ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+[1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=64,n_seq_tokens=64,n_seqs=1,v_repeat=1,permuted=0,kda=0,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+[1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=64,n_seq_tokens=127,n_seqs=1,v_repeat=1,permuted=0,kda=0,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=64,n_seq_tokens=256,n_seqs=1,v_repeat=1,permuted=0,kda=0,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=64,n_seq_tokens=65,n_seqs=1,v_repeat=1,permuted=0,kda=0,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=64,n_seq_tokens=100,n_seqs=1,v_repeat=1,permuted=0,kda=0,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=64,n_seq_tokens=200,n_seqs=1,v_repeat=1,permuted=0,kda=0,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=64,n_seq_tokens=127,n_seqs=2,v_repeat=1,permuted=0,kda=0,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): ggml_cuda_op_gated_delta_net_impl: chunked GDN prefill (MMA) skipped: 64 tokens, K 1, kda 1, seqs 1
+[1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=64,n_seq_tokens=64,n_seqs=1,v_repeat=1,permuted=0,kda=1,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=64,n_seq_tokens=33,n_seqs=1,v_repeat=1,permuted=0,kda=1,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=64,n_seq_tokens=100,n_seqs=1,v_repeat=1,permuted=0,kda=1,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=16,head_size=128,n_seq_tokens=65,n_seqs=1,v_repeat=1,permuted=0,kda=0,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=16,head_size=128,n_seq_tokens=65,n_seqs=3,v_repeat=4,permuted=0,kda=0,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=16,head_size=128,n_seq_tokens=64,n_seqs=1,v_repeat=4,permuted=0,kda=0,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=16,head_size=128,n_seq_tokens=257,n_seqs=1,v_repeat=3,permuted=0,kda=0,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=16,head_size=128,n_seq_tokens=512,n_seqs=1,v_repeat=2,permuted=0,kda=0,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=16,head_size=128,n_seq_tokens=513,n_seqs=1,v_repeat=3,permuted=0,kda=0,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=16,head_size=128,n_seq_tokens=513,n_seqs=2,v_repeat=2,permuted=1,kda=0,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=16,head_size=128,n_seq_tokens=2048,n_seqs=1,v_repeat=2,permuted=0,kda=0,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=16,head_size=128,n_seq_tokens=2047,n_seqs=2,v_repeat=3,permuted=0,kda=0,K=1,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=16,head_size=128,n_seq_tokens=512,n_seqs=1,v_repeat=3,permuted=0,kda=0,K=1,rows_mode=0,cache_rows=-1,raw_gates=1): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=16,head_size=128,n_seq_tokens=512,n_seqs=1,v_repeat=3,permuted=0,kda=0,K=3,rows_mode=0,cache_rows=-1,raw_gates=1): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=16,head_size=128,n_seq_tokens=512,n_seqs=1,v_repeat=3,permuted=0,kda=0,K=5,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=16,head_size=128,n_seq_tokens=100,n_seqs=1,v_repeat=3,permuted=0,kda=0,K=4,rows_mode=0,cache_rows=-1,raw_gates=1): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=16,head_size=128,n_seq_tokens=67,n_seqs=1,v_repeat=3,permuted=0,kda=0,K=4,rows_mode=0,cache_rows=-1,raw_gates=1): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=16,head_size=128,n_seq_tokens=200,n_seqs=2,v_repeat=3,permuted=0,kda=0,K=3,rows_mode=0,cache_rows=-1,raw_gates=1): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=16,head_size=128,n_seq_tokens=2048,n_seqs=1,v_repeat=3,permuted=0,kda=0,K=3,rows_mode=0,cache_rows=-1,raw_gates=1): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=16,head_size=128,n_seq_tokens=512,n_seqs=1,v_repeat=3,permuted=0,kda=0,K=3,rows_mode=1,cache_rows=-1,raw_gates=1): not supported [CUDA0] 
+  GATED_DELTA_NET(type=f32,head_count=16,head_size=128,n_seq_tokens=512,n_seqs=1,v_repeat=3,permuted=0,kda=0,K=1,rows_mode=1,cache_rows=-1,raw_gates=1): not supported [CUDA0] 
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=16,n_seq_tokens=2,n_seqs=1,v_repeat=1,permuted=0,kda=0,K=2,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=32,n_seq_tokens=4,n_seqs=1,v_repeat=1,permuted=0,kda=0,K=4,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=64,n_seq_tokens=4,n_seqs=2,v_repeat=1,permuted=0,kda=0,K=4,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=8,head_size=128,n_seq_tokens=4,n_seqs=1,v_repeat=1,permuted=0,kda=0,K=4,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=64,n_seq_tokens=4,n_seqs=2,v_repeat=1,permuted=0,kda=1,K=4,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=8,head_size=32,n_seq_tokens=4,n_seqs=2,v_repeat=2,permuted=0,kda=1,K=4,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=32,n_seq_tokens=8,n_seqs=1,v_repeat=1,permuted=0,kda=0,K=3,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=64,n_seq_tokens=16,n_seqs=2,v_repeat=1,permuted=0,kda=0,K=4,rows_mode=0,cache_rows=-1,raw_gates=0): [1;32mOK[0m
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=64,n_seq_tokens=1,n_seqs=1,v_repeat=1,permuted=0,kda=0,K=1,rows_mode=1,cache_rows=-1,raw_gates=0): not supported [CUDA0] 
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=64,n_seq_tokens=1,n_seqs=1,v_repeat=1,permuted=0,kda=0,K=2,rows_mode=1,cache_rows=1,raw_gates=0): not supported [CUDA0] 
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=64,n_seq_tokens=1,n_seqs=2,v_repeat=1,permuted=0,kda=0,K=1,rows_mode=1,cache_rows=-1,raw_gates=0): not supported [CUDA0] 
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=32,n_seq_tokens=1,n_seqs=1,v_repeat=1,permuted=0,kda=0,K=2,rows_mode=1,cache_rows=-1,raw_gates=0): not supported [CUDA0] 
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=64,n_seq_tokens=4,n_seqs=2,v_repeat=1,permuted=0,kda=0,K=4,rows_mode=1,cache_rows=-1,raw_gates=0): not supported [CUDA0] 
+  GATED_DELTA_NET(type=f32,head_count=8,head_size=128,n_seq_tokens=4,n_seqs=1,v_repeat=1,permuted=0,kda=0,K=4,rows_mode=1,cache_rows=-1,raw_gates=0): not supported [CUDA0] 
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=32,n_seq_tokens=8,n_seqs=1,v_repeat=1,permuted=0,kda=0,K=3,rows_mode=1,cache_rows=-1,raw_gates=0): not supported [CUDA0] 
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=64,n_seq_tokens=16,n_seqs=2,v_repeat=1,permuted=0,kda=0,K=4,rows_mode=1,cache_rows=-1,raw_gates=0): not supported [CUDA0] 
+  GATED_DELTA_NET(type=f32,head_count=4,head_size=64,n_seq_tokens=4,n_seqs=2,v_repeat=1,permuted=0,kda=1,K=4,rows_mode=1,cache_rows=-1,raw_gates=0): not supported [CUDA0] 
+  55/55 tests passed
+  Backend CUDA0: [1;32mOK[0m
+Backend 2/2: CPU
+  Skipping
+2/2 backends passed
+[1;32mOK[0m

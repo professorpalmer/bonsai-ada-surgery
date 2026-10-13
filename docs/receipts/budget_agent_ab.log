@@ -47,3 +47,26 @@ B_json_in_content  n=18 parsed=3 payload_ok=1 cut_by_max_tokens=7 median_payload
 
 completion tokens: b2048 126,183
 16:01 NOTE: the three arms above (default / 4096 / 2048) all ran at a per-request reasoning_budget_tokens=20480: suite/run_suite.py sent it with every request, and it overrides the server's BONSAI_THINK_BUDGET. So the arms are identical and do not test the budget. Rerun with SUITE_REASONING_BUDGET (arm b2048_req).
+
+== summary ==
+A_native_grammar   n=18 parsed=15 payload_ok=10 cut_by_max_tokens=3 median_payload_chars=15470 mean_tps=89.9
+B_json_in_content  n=18 parsed=5 payload_ok=2 cut_by_max_tokens=7 median_payload_chars=1913 mean_tps=143.4
+17:02 === thinking budget on agent work: budgets 2048, plan bench/plans/tools_workspace.json
+17:03 arm b2048_req: health=1; listen 0.0.0.0:8080  think=True effort=medium budget=2048  harness-proofing=True  backend-sampling=True
+{"family": "workspace", "name": "copy", "seed": 3, "arm": "b2048_req", "ok": false, "tokens": 933, "wall_s": 13.3, "detail": "submitted; full_pass=False"}
+
+| family | task | b2048_req |
+| --- | --- | ---: |
+| workspace | chain | 3/3 |
+| workspace | copy | 1/3 |
+| workspace | dedupeH | 0/3 |
+| workspace | invoiceH | 2/3 |
+| workspace | ledgerH | 0/3 |
+| **total** | | **6/15** |
+
+completion tokens: b2048_req 64,975
+
+== summary ==
+A_native_grammar   n=18 parsed=17 payload_ok=10 cut_by_max_tokens=1 median_payload_chars=18206 mean_tps=86.0
+B_json_in_content  n=18 parsed=3 payload_ok=2 cut_by_max_tokens=7 median_payload_chars=2403 mean_tps=104.7
+17:44 === done
