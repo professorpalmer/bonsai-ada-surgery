@@ -13,8 +13,9 @@ Experiment entries: `EXPERIMENTS.md`; machine-readable: `runs.jsonl` (with `gpu_
    release: `docs/research/release-20261011/`.
 2. **Sparse reads of the host tail keep retrieval at 4-6 % of the tail, and give 2x decode on an 8 GB-like layout**
    (D10: 13.6 -> 27.6 tok/s at 160k, copies 10/10, needles 12/12, page 64 with a 64-cell MMA tile map). The page size
-   matters for exact copies (256 misses one function twice). It is not faster yet on the real 8 GB card (D16); two
-   causes found, one fixed (D17, run pending). Not in a release: it needs CUDA graphs off and the f16 mask.
+   matters for exact copies (256 misses one function twice). On the real 8 GB card: 1.9x at 160k, not yet faster at
+   245k (D16). Causes found: the vec kernel skip granularity (fixed, D17) and ~780 MiB of sparse-only VRAM at 245k
+   outside the launcher budget, which pushes the card over its total (P107; cut to ~230 MiB in D18, gate pending). Not in a release: it needs CUDA graphs off and the f16 mask.
 3. **The kernel must skip what the mask hides, or sparse is slower than dense.** The first sparse builds read every
    masked host tile in place (D07, D09, D10: 9.1 vs 13.6 tok/s), because draft-verify steps run the MMA kernel, which
    had no skip. Each kernel path needs its own skip at the page's own granularity (D06, D10, D17).
@@ -31,7 +32,7 @@ Experiment entries: `EXPERIMENTS.md`; machine-readable: `runs.jsonl` (with `gpu_
 | --- | --- |
 | CUDA graphs off past the line (patch 0053) | **release candidate**: all gates passed on both cards, bundle pending |
 | `LLAMA_SLOT_KEEP_TOKENS` (D01) | prototype; blocked on the two-slot cost (D02) |
-| sparse host-tail decode, page 64, 64-cell tile map (D10) | candidate for 8 GB; waiting for the 2060 (D16, D17) |
+| sparse host-tail decode, page 64, 64-cell tile map (D10) | candidate for 8 GB; 1.9x at 160k on the 2060; 245k waits on D18 |
 | sparse prefill (D10), whole-context selection at page 256 (D11) | rejected at tested settings (retry of D11 at page 64 / B 16384 queued) |
 | chunked gated-delta-net prefill (D14) | candidate; perplexity gate pending |
 | V skip (D12), ubatch > 512 (D13), third-party template (D15) | rejected |
@@ -51,9 +52,13 @@ Experiment entries: `EXPERIMENTS.md`; machine-readable: `runs.jsonl` (with `gpu_
    - whole-context selection rejected (D11);
    - chunked gated-delta-net port (D14).
 5. **Round 5 (2026-10-11 morning):** V skip, ubatch (D12, D13); 8 GB card results and the warp-level skip (D16, D17).
+6. **Round 6 (2026-10-13):** the 245k loss traced to VRAM over-commit (P107); sparse memory cut (D18).
 
 ## Lessons for the next model
 
+- **Count every device allocation of a new path in the VRAM budget.** The 245k sparse loss (P107) was not in the
+  kernel: ops that sparse does not touch got 2.5-24x slower once the card went over its total. Op timing finds this
+  shape (slow ops that did not change); a VRAM trace across the first decode step confirms it.
 - **Measure before building.** The op timing (D09) and a plain graphs-off arm (D07) explained more than the kernel
   prototypes did. Next time, run a graphs on/off and per-op timing pair at depth first.
 - **Every new path needs a "did it engage" log line.** The chunked gated-delta-net kernel ran zero times in the first
@@ -69,6 +74,8 @@ Experiment entries: `EXPERIMENTS.md`; machine-readable: `runs.jsonl` (with `gpu_
 
 - D02: the -16 % of a second slot.
 - D14: perplexity gate (`bench/gdn_ppl_ab.sh`).
-- D16 / D17: the 2060 run of `028f606fc`; the prefill halving with the sparse settings on the 8 GB recipe.
+- D18: the 4070 gates and the 2060 run (P110: P107 on `8d5b862fc`, margin 475); then the launcher counts the sparse
+  fixed cost (host cells x 1 KiB x 64 / page + 36 MiB) and the 160k follow-up prefill is checked again.
+- D16: a depth threshold for sparse (it costs 16 % at 64k on the 2060).
 - D11 retry: whole-context selection at page 64, B = 16384 (`root-sparse10`).
 - D12: V skip on top of patch 0053, if attention ever dominates.

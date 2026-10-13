@@ -1,0 +1,17 @@
+{
+ "id": "D18",
+ "declared": "2026-10-13, before the run",
+ "engine": "8d5b862fc (fa-sparse-proto)",
+ "roots": {
+  "new": "root-sparse12",
+  "old": "root-sparse11"
+ },
+ "gates": [
+  "test-backend-ops -o FLASH_ATTN_EXT: 0 failures",
+  "bench/sparse_edit.sh SPARSE=8192,64,1024, track arm: 0 stale ops with GGML_CUDA_FA_SPARSE_CHECK=1",
+  "bench/sparse_prefill.sh ARMS=sparse-decode SPARSE=8192,64,1024 at 160k: copies 10/10, needles 12/12",
+  "decode within 3 % of root-sparse11 in the same arm",
+  "peak memory.used lower than root-sparse11 in the same arm (nvidia-smi every 5 s)"
+ ],
+ "follow_up": "2060 P110: P107 on 8d5b862fc with BONSAI_VRAM_MARGIN=475; pass if free > 0 at the end and the ternary mat-vecs return to the dense times"
+}

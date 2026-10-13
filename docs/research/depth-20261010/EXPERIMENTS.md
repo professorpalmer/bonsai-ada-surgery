@@ -1,4 +1,4 @@
-# Experiments D01-D17
+# Experiments D01-D18
 
 Format per entry: **question**, **gate** (and where it was declared), **setup** (hardware, engine commit, root, env,
 script), **result**, **verdict**, **receipts**. RTX 4070 12 GB, 12 GB recipe (262k window, q8_0 KV, tiered cache,
@@ -247,14 +247,40 @@ VRAM line 43,520 (f16 mask), host tail ~197k cells, graphs off.
 | P102e | `d6c6e9f01` | sync gone (0 warnings); decode sparse 4.3 (lookup off and on), with `SINKS=4096` 5.2; prefill 39, with sinks 6.2 |
 | P105 | `d6c6e9f01` | 160k: dense 9.7, sparse **18.3 (x1.9)**; code items with lookup 12.8 -> 21.5; needles 12/12, copies 10/10. 245k: copies 9/10, needles 12/12. MTP tail 4 (line 20,992, acceptance 0.55): dense 9.1, sparse 11.5 |
 | P106 | `028f606fc` | 160k: dense 9.7, sparse **18.5 (x1.9)**; 245k: 5.7 vs 4.9; 64k: 34.5 vs 29.0 (-16 %); follow-up prefill 160k 107 -> 85, 245k 79 -> 39-44, the same with `NOTRACK` (not the write tracking) |
+| P107 | `028f606fc`, `GGML_CUDA_OP_TIMING=1`, 245k | per graph: FLASH_ATTN_EXT 91.8 -> **61.5 ms** (sparse works), but the ternary mat-vecs 2.5-24x slower (17408x5120: 2.6 -> 63.0 ms); total 155.5 -> 183.9 ms. `nvidia-smi` free VRAM wraps at the first sparse decode step: VRAM over-commit (cause in D18) |
 
 - **Verdict so far.** On the real 8 GB card: x1.9 at 160k (P105, P106), quality equal to dense; not yet faster at
   245k (4.9 vs 5.7 with the `028f606fc` warp skip); costs 16 % at 64k, so a default needs a depth threshold; the
-  follow-up prefill drop is not the write tracking (P106). P107 (op timing, dense vs sparse at 245k) is queued.
+  follow-up prefill drop is not the write tracking (P106). P107: the loss at 245k is in ops that sparse does not
+  touch, after the card goes over its total VRAM at the first sparse decode step (D18).
   Full records: `../depth-8gb-20261006/experiments/P101.md` to `P107.md`.
 
 ## D17 Tile skip at warp granularity (2026-10-11, `028f606fc`)
 
 - **Question.** Can the vec kernel skip 32-cell groups, so 64-cell pages skip on 2-query steps?
 - **Gate.** Exactness (op tests).
-- **Result.** Built; op test queued (`root-sparse11`), 2060 run pending.
+- **Result.** `FLASH_ATTN_EXT` 3005/3005 on sm_75 (2060, P106). 245k sparse decode 4.3 -> 4.9 tok/s (P102e -> P106);
+  160k unchanged (18.3 -> 18.5).
+- **Verdict.** Exact; kept. The remaining 245k gap is not in the attention kernel (P107, D18).
+
+## D18 Sparse VRAM: f16 page bounds and a chunked first fill (2026-10-13, `8d5b862fc`)
+
+- **Question.** P107 shows the card going over its VRAM total at the first sparse decode step. What does the sparse
+  path allocate there, and can it be made small enough to fit the launcher's budget?
+- **Analysis (from the code; 16 attention layers, H_kv 4, D 256, page 64).** Two allocations, both at the first
+  sparse op (prefill ops above `MAXQ` leave before the sparse work), neither in the launcher's budget:
+
+  | | 160k (1,753 host pages) | 245k (3,077 host pages) |
+  | --- | ---: | ---: |
+  | page-bound tables (`cudaMalloc`, kept; f32 max + min, +64 pages headroom) | 227 MiB | 393 MiB |
+  | first fill: whole host tail of K as f16 (pool temporary; the pool keeps its high-water mark) | 219 MiB | 385 MiB |
+
+- **Change.** Bounds stored in f16: the K values are f16 at that point (`to_fp16` first), so the max and min are exact
+  and the page selection is unchanged (1 KiB per host cell at page 64: 114 / 196 MiB). The first fill in chunks of
+  `GGML_CUDA_FA_SPARSE_FILL_CELLS` cells (default 16384): 32 MiB at any depth.
+- **Gate (declared before the run, `D18-plan.json`).** `FLASH_ATTN_EXT` op tests all pass; `sparse_edit` track arm
+  0 stale ops with `CHECK` (cached bounds vs a full recompute); 160k on the 8 GB-like layout copies 10/10 and needles
+  12/12, decode within 3 % of `root-sparse11`; peak VRAM lower than `root-sparse11` in the same arm.
+- **Result.** Pending (4070 queue job `d18_sparse_vram.sh`; 2060 run P110 requested on #21 with
+  `BONSAI_VRAM_MARGIN=475`).
+

@@ -9,7 +9,7 @@ result, verdict, receipts) and one line in `runs.jsonl` (machine-readable, for c
 | Path | What |
 | --- | --- |
 | `REPORT.md` | Bottom line, what was promoted and what was rejected, the order of the work |
-| `EXPERIMENTS.md` | One entry per experiment, D01-D17 |
+| `EXPERIMENTS.md` | One entry per experiment, D01-D18 |
 | `runs.jsonl` | One JSON line per experiment: id, date, engine commit, script, env, metrics, verdict, receipts |
 | `OUTSIDE.md` | Techniques from papers and other projects that were considered, and why each was tried or not |
 | `../../receipts/` | The raw run logs named in each entry (one line per request or per arm) |
