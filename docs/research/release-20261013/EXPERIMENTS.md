@@ -67,7 +67,7 @@ Format per entry: **question**, **gate** (and where it was declared), **setup**,
 ## G05 Gate: op tests on the release bins
 
 - **Gate.** See `README.md` (written before the run).
-- **Status.** Queued (`queue-0054`, after the Mirai control run and D18).
+- **Status.** Queued (`queue-0054`, after two other GPU jobs).
 
 ## G06 Gate: HumanEval 164 on the release bins
 
