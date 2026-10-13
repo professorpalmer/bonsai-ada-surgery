@@ -1,4 +1,4 @@
-# Experiments G01-G08
+# Experiments G01-G08 (and G02b)
 
 Format per entry: **question**, **gate** (and where it was declared), **setup**, **result**, **verdict**,
 **receipts**. RTX 4070 12 GB, 12 GB recipe, unless stated. Times are local (CDT).
@@ -31,6 +31,22 @@ Format per entry: **question**, **gate** (and where it was declared), **setup**,
   "skipped". The cost was not measurable.
 - **Verdict.** Pass. The note was applied as G03.
 - **Receipts.** PR #40 comments.
+
+## G02b RTX 2060 SUPER (sm_75) on the merged commit (2026-10-13, P116b, by the 8 GB tester)
+
+- **Question.** Does the merged 0054 (`de873117e`, device check first) still pass on Turing, and is the skip clean?
+- **Gate.** The G02 gate (no loss at 32k), plus the "skipped: device cc" line and no "not taken" line.
+- **Setup.** `75-real` build of `de873117e`, 8 GB 262k launcher (test copy, layer off), VRAM line 62,464, one server
+  per arm, 32k.
+- **Result.**
+  - `GATED_DELTA_NET` 55/55.
+  - Server log, once: `chunked GDN prefill (MMA) skipped: device cc 750 has no supported BF16 MMA schedule;
+    recurrent kernel`; 0 "not taken", 0 "engaged".
+  - 0053 vs `de873117e`: code prefill 347.3 vs 344.9 tok/s (32,044 tokens), follow-ups 264.7 / 263.2 vs 263.1 /
+    263.2, mean decode 45.1 vs 44.8 (within 0.7 %; G02 on `e63ce36d9` gave 343.9 / 344.0 and 44.9 / 44.7). 0 one-token
+    answers.
+- **Verdict.** Pass. The skip is clean on Turing.
+- **Receipts.** PR #40 comments (P116b).
 
 ## G03 Device check before the temporaries, 4070 op test (2026-10-13 17:44)
 
