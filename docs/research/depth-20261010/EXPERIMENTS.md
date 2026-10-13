@@ -218,7 +218,12 @@ of 10 short Python functions from `artifacts/eval/pycode.raw`).
 - **Verdict.** Below the parity gate as written. The two flips are long-thinking items, where greedy trajectories
   diverge on tiny numeric differences, so a token-level measure decides: wikitext-2 perplexity, MMA vs recurrent on the
   same binary (`bench/gdn_ppl_ab.sh`), queued.
-- **Receipts.** `docs/receipts/gdn_prefill_ab.log`, `.jsonl`, `artifacts/humaneval-gdnmma` (local).
+- **Perplexity gate (2026-10-13, `root-gdn2`, `-c 2048`, 32 chunks, gate +0.1 %).** Recurrent 8.0714 +/- 0.117, MMA
+  8.0733 +/- 0.117 (**+0.024 %**); per chunk within ~0.013 (chunk 1: 6.7038 / 6.6994; chunk 16: 7.9998 / 8.0031);
+  engaged line in the MMA arm only. So the two HumanEval flips are trajectory drift, not damage.
+- **Final verdict.** Promoted: patch 0054 (PR #40), pending the sm_75 "not taken, no regression" check on the 2060.
+- **Receipts.** `docs/receipts/gdn_prefill_ab.log`, `.jsonl`, `docs/receipts/gdn_ppl_ab.log`,
+  `artifacts/humaneval-gdnmma` (local).
 
 ## D15 A third-party "sharp" chat template on tool work (2026-10-10 13:50-18:27)
 

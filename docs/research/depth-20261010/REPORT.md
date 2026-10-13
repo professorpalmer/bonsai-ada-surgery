@@ -22,7 +22,7 @@ Experiment entries: `EXPERIMENTS.md`; machine-readable: `runs.jsonl` (with `gpu_
 4. **Quality fails first where selection is aggressive:** sparse prefill (D10: 8/10 copies) and selection over the VRAM
    part (D11: 7/12 needles) are rejected at the tested settings.
 5. **Chunked gated-delta-net prefill: +3-6 % prefill, quality held on retrieval, HumanEval 158 vs 160** (D14). The
-   two flips are long-thinking items; a perplexity gate decides (queued).
+   two flips are long-thinking items; the perplexity gate passed (+0.024 %, 2026-10-13): promoted as patch 0054.
 6. **No gain:** V skip (D12), a larger prefill micro-batch (D13: 512 is best), a third-party template for tool work
    (D15). **KL at depth (D05):** one chunk measured (B = 8192: mean KLD 0.0030, same top-1 97.7 %); the longer runs froze the PC and produced the RAM guard rule.
 
@@ -34,7 +34,7 @@ Experiment entries: `EXPERIMENTS.md`; machine-readable: `runs.jsonl` (with `gpu_
 | `LLAMA_SLOT_KEEP_TOKENS` (D01) | prototype; blocked on the two-slot cost (D02) |
 | sparse host-tail decode, page 64, 64-cell tile map (D10) | candidate for 8 GB; 1.9x at 160k on the 2060; 245k waits on D18 |
 | sparse prefill (D10), whole-context selection at page 256 (D11) | rejected at tested settings (retry of D11 at page 64 / B 16384 queued) |
-| chunked gated-delta-net prefill (D14) | candidate; perplexity gate pending |
+| chunked gated-delta-net prefill (D14) | **promoted**: patch 0054 (PR #40); perplexity +0.024 %; 2060 sm_75 check pending |
 | V skip (D12), ubatch > 512 (D13), third-party template (D15) | rejected |
 
 ## Order of the work
@@ -73,7 +73,6 @@ Experiment entries: `EXPERIMENTS.md`; machine-readable: `runs.jsonl` (with `gpu_
 ## Open
 
 - D02: the -16 % of a second slot.
-- D14: perplexity gate (`bench/gdn_ppl_ab.sh`).
 - D18: the 4070 gates and the 2060 run (P110: P107 on `8d5b862fc`, margin 475); then the launcher counts the sparse
   fixed cost (host cells x 1 KiB x 64 / page + 36 MiB) and the 160k follow-up prefill is checked again.
 - D16: a depth threshold for sparse (it costs 16 % at 64k on the 2060).
