@@ -16,7 +16,7 @@
 
 ## Promoted
 
-- Patch 0053 into the next bundle (staged as bundle-20261011; publishing waits on the owner's word).
+- Patch 0053 into the next bundle: done, bundle-20261011 published 2026-10-13 (GitHub release and HF; SHA-256 f8899cbf...da8bf8 checked on both).
 
 ## Not promoted
 

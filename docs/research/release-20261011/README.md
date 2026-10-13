@@ -1,6 +1,6 @@
 # Release research, 2026-10-10 to 2026-10-11: CUDA graphs past the VRAM line (patch 0053)
 
-How a +25 % decode gain at depth was found, isolated, fixed and gated for the next bundle, and the issue work in the
+How a +25 % decode gain at depth was found, isolated, fixed and gated for the next bundle (bundle-20261011, published 2026-10-13), and the issue work in the
 same window (PrismML #346). RTX 4070 12 GB (PCIe 4.0) for the 12 GB recipe; RTX 2060 SUPER 8 GB (PCIe 3.0) for the
 8 GB recipe on issue #22. Read `REPORT.md` first; one entry per experiment in `EXPERIMENTS.md`, one JSON line per
 experiment in `runs.jsonl`.

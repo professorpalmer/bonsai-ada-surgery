@@ -8,7 +8,7 @@ Experiment entries: `EXPERIMENTS.md`; machine-readable: `runs.jsonl` (with `gpu_
 
 1. **The largest gain was a configuration fault, not a kernel.** The tier prefetch (copy engine moves the next
    attention op's host rows while the current op computes) only ran without a CUDA graph, and the launcher keeps CUDA
-   graphs on. Found from D07 (graphs off beat the shipped setup by 15 % at 192k), isolated and gated as patch 0053 (release candidate):
+   graphs on. Found from D07 (graphs off beat the shipped setup by 15 % at 192k), isolated and gated as patch 0053 (shipped in bundle-20261011, 2026-10-13):
    +25 % decode at 192k on 12 GB, +8 to +16 % past the line on 8 GB, nothing lost below the line. Isolation, gates and
    release: `docs/research/release-20261011/`.
 2. **Sparse reads of the host tail keep retrieval at 4-6 % of the tail, and give 2x decode on an 8 GB-like layout**
@@ -30,7 +30,7 @@ Experiment entries: `EXPERIMENTS.md`; machine-readable: `runs.jsonl` (with `gpu_
 
 | item | status |
 | --- | --- |
-| CUDA graphs off past the line (patch 0053) | **release candidate**: all gates passed on both cards, bundle pending |
+| CUDA graphs off past the line (patch 0053) | **shipped**: bundle-20261011 (2026-10-13), all gates passed on both cards |
 | `LLAMA_SLOT_KEEP_TOKENS` (D01) | prototype; blocked on the two-slot cost (D02) |
 | sparse host-tail decode, page 64, 64-cell tile map (D10) | candidate for 8 GB; 1.9x at 160k on the 2060; 245k waits on D18 |
 | sparse prefill (D10), whole-context selection at page 256 (D11) | rejected at tested settings (retry of D11 at page 64 / B 16384 queued) |
