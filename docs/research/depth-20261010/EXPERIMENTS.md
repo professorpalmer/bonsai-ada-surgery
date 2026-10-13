@@ -206,7 +206,8 @@ of 10 short Python functions from `artifacts/eval/pycode.raw`).
   runs n - K tokens and the recurrent kernel the last K; the fused state gather copies the live rows first.
   `bench/gdn_prefill_ab.sh`, same binary, `GGML_CUDA_GDN_MMA_DISABLE=1` for the recurrent arm.
 - **Result.**
-  - Op tests: `GATED_DELTA_NET` 57 / 0 (7 new cases in this model's shape).
+  - Op tests: `GATED_DELTA_NET` 55 / 0 (7 new cases in this model's shape). The receipt says "ok 57": that was a count
+    of OK lines (55 cases + 2 backend summary lines), corrected 2026-10-13.
   - First A/B (`ce27b9d14`): no change, because the kernel never engaged (the served graph uses the fused gather,
     which the first port excluded).
   - Second A/B (`31c337bbb`), engaged (log: 121 tokens, 116 by MMA, K 5, raw 1, gather 1). Prefill recurrent -> MMA:
@@ -221,7 +222,9 @@ of 10 short Python functions from `artifacts/eval/pycode.raw`).
 - **Perplexity gate (2026-10-13, `root-gdn2`, `-c 2048`, 32 chunks, gate +0.1 %).** Recurrent 8.0714 +/- 0.117, MMA
   8.0733 +/- 0.117 (**+0.024 %**); per chunk within ~0.013 (chunk 1: 6.7038 / 6.6994; chunk 16: 7.9998 / 8.0031);
   engaged line in the MMA arm only. So the two HumanEval flips are trajectory drift, not damage.
-- **Final verdict.** Promoted: patch 0054 (PR #40), pending the sm_75 "not taken, no regression" check on the 2060.
+- **Final verdict.** Promoted: patch 0054 (PR #40, merged 2026-10-13, `de873117e`). 2060 check P116: not taken on sm_75,
+  32k prefill and decode equal to 0053 within 0.2 %, op tests 55/55. From its note, 0054 checks the device before any
+  temporaries (clean skip line on RTX 20).
 - **Receipts.** `docs/receipts/gdn_prefill_ab.log`, `.jsonl`, `docs/receipts/gdn_ppl_ab.log`,
   `artifacts/humaneval-gdnmma` (local).
 

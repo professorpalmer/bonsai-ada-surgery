@@ -34,7 +34,7 @@ Experiment entries: `EXPERIMENTS.md`; machine-readable: `runs.jsonl` (with `gpu_
 | `LLAMA_SLOT_KEEP_TOKENS` (D01) | prototype; blocked on the two-slot cost (D02) |
 | sparse host-tail decode, page 64, 64-cell tile map (D10) | candidate for 8 GB; 1.9x at 160k on the 2060; 245k waits on D18 |
 | sparse prefill (D10), whole-context selection at page 256 (D11) | rejected at tested settings (retry of D11 at page 64 / B 16384 queued) |
-| chunked gated-delta-net prefill (D14) | **promoted**: patch 0054 (PR #40); perplexity +0.024 %; 2060 sm_75 check pending |
+| chunked gated-delta-net prefill (D14) | **promoted**: patch 0054 (PR #40, merged); perplexity +0.024 %; 2060 sm_75 check passed (P116); bundle pending |
 | V skip (D12), ubatch > 512 (D13), third-party template (D15) | rejected |
 
 ## Order of the work
