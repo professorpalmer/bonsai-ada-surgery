@@ -162,7 +162,7 @@ OpenAI clients that leave `max_tokens` at 4k will reproduce Killy's blanks even 
 new server default. Chat needs `max_tokens` ≥ 20k when thinking is on. Agents should keep
 thinking off and can stay at a small cap.
 
-### Thinking length and the system turn (measured 2026-10-10/11)
+### Thinking length and the system turn (measured 2026-10-10 to 10-13)
 
 Since 09-21 the GGUF template adds a system turn with short work rules ("Save long command
 output to a file ...") to every request. HumanEval 164, medium, greedy, raw server, the same
@@ -186,9 +186,11 @@ engine for every arm (`bench/he_template_one.sh`, `docs/receipts/he_template_ab.
   tokens. The budget-message force-close lets the answer through.
 - The launcher maps every `reasoning_effort` except `medium` to `medium`
   (`BONSAI_EFFORT_ALLOWED`), so a request's `low` does not reach the template.
-- **Not changed yet.** Whether the budget or the user-turn placement keeps agent work (tool
-  calls with the client's own system prompt) is measured next; until then the served template
-  and the 20480 budget stay.
+- **No change shipped (measured 2026-10-11/13).** Both fixes lose agent work. With a coding
+  client's system prompt, a template that moves the system text into the first user turn cuts
+  HumanEval tokens (2209 -> 1476 mean, 158/164 both), but the workspace tool tasks drop from
+  13/15 to 11/15. A 2048 thinking budget drops them from 13/15 to 6/15. The served template
+  and the 20480 budget stay. Every run: `docs/research/thinking-20261010/`.
 
 ## 3. Tool-call syntax (measured: format and grammar, not the model)
 
