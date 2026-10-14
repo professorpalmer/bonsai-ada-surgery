@@ -167,7 +167,12 @@ $Ubatch = if ($env:BONSAI_UBATCH) { [int]$env:BONSAI_UBATCH } elseif ($Small -an
 # ordered), so it is on only with an engine that has 0046 (every bundle with 0046 has 0045); BONSAI_SHARED_POOL=0 turns
 # it off. BONSAI_POOL_MIB = the VRAM it saves, added to the VRAM line (42 = the 74 measured, minus a 32 MiB reserve).
 $PoolMiB = 0
-$PoolOn = if ($env:BONSAI_SHARED_POOL) { $env:BONSAI_SHARED_POOL -eq '1' } else { $Help -match '--checkpoint-every-nt' }
+# A separate draft model (-md / --model-draft in BONSAI_SPEC_ARGS, or a draft-simple spec type) is a second context with its
+# own allocation pattern: in the shared pool their frees come out of order and the VMM pool aborts at start
+# (ggml-cuda.cu "GGML_ASSERT(ptr == ... pool_used)"). The shared pool stays off then, unless BONSAI_SHARED_POOL=1 forces it.
+$SepDraft = ($env:BONSAI_SPEC_ARGS -match '(^|\s)(-md|--model-draft)(\s|=|$)') -or ($env:BONSAI_SPEC_TYPE -match 'draft-simple')
+$PoolOn = if ($env:BONSAI_SHARED_POOL) { $env:BONSAI_SHARED_POOL -eq '1' } elseif ($SepDraft) { $false } else { $Help -match '--checkpoint-every-nt' }
+if ($SepDraft -and -not $env:BONSAI_SHARED_POOL) { Write-Host "pool   separate draft model: shared CUDA pool off (it supports the MTP draft head only)" }
 # 8 GB: the same pool (RTX 2060 SUPER, P83: ~51 MiB saved; fresh 60k x3 and a 4k-96k sweep with 0 one-token answers;
 # decode +7 % at 64k from the higher line). BONSAI_POOL_MIB default 48 there.
 if ($PoolOn -and $Spec -gt 0) {
