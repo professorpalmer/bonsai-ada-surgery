@@ -270,8 +270,13 @@ if ($env:GGML_CUDA_FA_SPARSE) {
     $SparseParts = $env:GGML_CUDA_FA_SPARSE -split ','
     if ([int]$SparseParts[0] -gt 0) { $SparsePage = if ($SparseParts.Count -gt 1 -and [int]$SparseParts[1] -gt 0) { [int]$SparseParts[1] } else { 64 } }
 }
-# bytes of page bounds per host cell: 16 attention layers x max+min x 4 KV heads x 256 dims x f16, per page of P cells
-$SparseCellBytes = if ($SparsePage) { 16 * 2 * 4 * 256 * 2 / $SparsePage } else { 0 }
+# bytes of page bounds per host cell, per page of P cells, 16 attention layers x 4 KV heads: f16 max+min per dim
+# (2 x 256 x 2 B), or with an engine that stores them as int8 with one f16 scale per page and head (2 x 256 + 2 B)
+$SparseCellBytes = 0
+if ($SparsePage) {
+    $SparseCellBytes = if ($CudaDll.Contains('bounds int8')) { 16 * 4 * (2 * 256 + 2) / $SparsePage } else { 16 * 4 * 2 * 256 * 2 / $SparsePage }
+}
+$TierCellsDense = 0   # the line this card would get without sparse (for the summary line)
 
 # ---- Tiered KV sizing -----------------------------------------------------------------------------------
 # Bytes per KV cell for Bonsai 2 27B: 16 attention layers x K+V x 4 heads x 256 dims; the draft (MTP) layer
@@ -322,6 +327,7 @@ if ($Tier) {
             # sparse: the page bounds of the host tail, (Ctx - N) x SparseCellBytes
             $Budget = ($FreeMiB - $Margin - $FixedMiB) * 1MB - $StageCells * $CellBytes / 16 - $Ctx * $SparseCellBytes
             $TierCells = [int]([math]::Floor($Budget / ($CellBytes - $SparseCellBytes) / 256) * 256)
+            if ($SparsePage) { $TierCellsDense = [int]([math]::Floor((($FreeMiB - $Margin - $FixedMiB + 36) * 1MB - $StageCells * $CellBytes / 16) / $CellBytes / 256) * 256) }
             $Partial = $Ctx - $TierCells -gt $StageCells
         }
         if ($Partial) {
@@ -330,6 +336,7 @@ if ($Tier) {
             # KV head N*CellBytes plus the staging buffer (Ctx-N)*CellBytes/16 must fit in what is left
             $Budget = ($FreeMiB - $Margin - $FixedMiB) * 1MB - $Ctx * $CellBytes / 16 - $Ctx * $SparseCellBytes
             $TierCells = [int]([math]::Floor($Budget / ($CellBytes * 15 / 16 - $SparseCellBytes) / 256) * 256)
+            if ($SparsePage) { $TierCellsDense = [int]([math]::Floor((($FreeMiB - $Margin - $FixedMiB + 36) * 1MB - $Ctx * $CellBytes / 16) / ($CellBytes * 15 / 16) / 256) * 256) }
         }
     }
     if ($TierCells -ge $Ctx) {
@@ -412,7 +419,10 @@ if ($Small) { Write-Host "8gb    preset on ($TotalMiB MiB card; BONSAI_8GB=0 tur
 Write-Host "model  $(Split-Path $Model -Leaf)"
 Write-Host "window $Ctx / $Ctk  (trained max 262144)"
 if ($TierCells -gt 0) { Write-Host "kv     tiered: cells 0..$TierCells in VRAM, $TierCells..$Ctx in system RAM$(if ($Margin) { " (VRAM margin $Margin MiB)" })$(if ($PoolMiB) { "; shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off)" })$(if ($MaskSavedMiB) { "; packed KQ mask ($MaskSavedMiB MiB saved)" })" }
-if ($SparsePage -and $TierCells -gt 0) { Write-Host "kv     sparse host-tail reads: $($env:GGML_CUDA_FA_SPARSE) (B,P,R), from $(if ($env:GGML_CUDA_FA_SPARSE_MIN_HOST) { $env:GGML_CUDA_FA_SPARSE_MIN_HOST } else { 0 }) host cells on; $([int](($Ctx - $TierCells) * $SparseCellBytes / 1MB) + 36) MiB of page bounds counted$(if ($Small) { ' (BONSAI_SPARSE=0 turns it off)' })" }
+if ($SparsePage -and $TierCells -gt 0) {
+    Write-Host "kv     sparse host-tail reads: $($env:GGML_CUDA_FA_SPARSE) (B,P,R), from $(if ($env:GGML_CUDA_FA_SPARSE_MIN_HOST) { $env:GGML_CUDA_FA_SPARSE_MIN_HOST } else { 0 }) host cells on; $([int](($Ctx - $TierCells) * $SparseCellBytes / 1MB) + 36) MiB of page bounds counted$(if ($TierCellsDense -gt $TierCells) { ": VRAM line $TierCellsDense -> $TierCells cells" })"
+    if ($Small) { Write-Host "       faster from ~128k (8 GB, 262k: ~1.2x at 128k, ~2x at 160k, ~2.7x at 245k); below ~100k the shorter line costs some speed. BONSAI_SPARSE=0 turns it off." }
+}
 if ($env:GGML_CUDA_KV_TIER_STAGING_FRAC) { Write-Host "kv     staging buffer for cells $TierCells..$($TierCells + $StageCells); past that the system RAM rows are read in place$(if ($Packed) { '; packed KQ mask' })" }
 if ($Small -and $Has262 -and -not $Small262 -and -not $env:BONSAI_CTX -and $RamGiB -gt 0 -and $RamGiB -lt 24) { Write-Host "note   window 131k: the 262k window needs 24 GB of system RAM or more ($RamGiB GB here); BONSAI_CTX=262144 tries it" }
 if ($CkptNote) { Write-Host "ckpt   $CkptNote" }
