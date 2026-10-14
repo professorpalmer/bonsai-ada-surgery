@@ -513,10 +513,13 @@ VRAM line 43,520 (f16 mask), host tail ~197k cells, graphs off.
   | 4 pages | 8 | **98.9 %** | 95.7 % | exact |
   | 16 pages | 8 | 91.4 % | 81.5 % | exact |
 
-- **Verdict.** No arm meets the 99 % gate; superpage 4 / M 8 misses it by 0.1 point and copies the item. Two-level
-  stays a candidate: 4-page superpages cost about 129 B per host cell in VRAM (about 26 MiB at 213k host cells, against
-  104 MiB for full int8 bounds). Next: superpage 4 with a larger M, or 2-page superpages, then the full quality set and
-  64k at the dense line.
+- **Verdict: two-level closed.** It works (superpage 4 / M 8: overlap 98.9 %, the item exact), but it does not pay.
+  The coarse bounds are f16 in this build, so superpage 4 costs 256 B per host cell in VRAM (about 52 MiB at 213k host
+  cells): half of the int8 one-level reserve, not a tenth. And M 8 reads the fine bounds of keep x 8 = 1,536 of 2,552
+  pages per op at 200k (about 60 %), about 66 MB per token: about 5.5 ms per token on the 2060's PCIe 3.0, about +8 %
+  at 245k, with a larger M needed for 99 %. So it gives back at depth (where users opt in) what it saves on the line at
+  shallow depth. Sparse stays opt-in with the full int8 reserve; the 2060's P137 measures how much of its 7-8 % at 64k
+  is the line on PCIe 3.0. No D26f.
 - **Clock note.** These scripts logged `clocks.max.memory`, which always reads 10501 MHz. The memory overclock was off
   at 04:11 (10251 MHz under load) and on by about 12:24 (11751 MHz under load at 13:09). Overlap and copies do not
   depend on the clock.
