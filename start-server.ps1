@@ -100,8 +100,12 @@ $RamGiB = 0
 try { $RamGiB = [math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB) } catch { }
 $Small262 = $Small -and $Tier -and $Has262 -and $RamGiB -ge 24 -and $env:BONSAI_SPEC -ne '0' -and ((Split-Path $Model -Leaf) -match '-mtp')
 $Ctx = if ($env:BONSAI_CTX) { [int]$env:BONSAI_CTX } elseif ($Small) { if ($Small262) { 262144 } else { 131072 } } elseif ($Tier) { 262144 } else { 98304 }
-# 8 GB: q4_0 holds 2.3x the positions of q8_0 in the same VRAM (1 flipped top token in 48 at depth vs 1 in 171)
-$Ctk = if ($env:BONSAI_CTK) { $env:BONSAI_CTK } elseif ($Small) { 'q4_0' } else { 'q8_0' }
+# 8 GB: q4_0 holds 2.3x the positions of q8_0 in the same VRAM (1 flipped top token in 48 at depth vs 1 in 171).
+# With an engine that has q3_0 (patch 0056; the server lists it in --help), q3_0: 1.3x the positions of q4_0, perplexity
+# +0.56 % at 16k, HumanEval 160/164, copies and needles equal (#21 P108-P132; rule in docs/research/q3port-20261013).
+# BONSAI_CTK=q4_0 keeps the previous default.
+$HasQ3 = $Help -match 'q3_0'
+$Ctk = if ($env:BONSAI_CTK) { $env:BONSAI_CTK } elseif ($Small) { if ($HasQ3) { 'q3_0' } else { 'q4_0' } } else { 'q8_0' }
 $Port = if ($env:BONSAI_PORT) { [int]$env:BONSAI_PORT } else { 8080 }
 
 # ---- Reasoning ------------------------------------------------------------------------------------------
