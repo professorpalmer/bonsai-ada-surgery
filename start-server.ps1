@@ -319,7 +319,9 @@ if ($Tier) {
             $MaskMiB = if ($Packed) { $Ctx * $Ubatch / 8 / 1MB } else { $Ctx * $Ubatch * 2 / 1MB }
             $FixedMiB += $MaskMiB - 131072 * $Ubatch * 2 / 1MB - $PoolMiB
         }
-        if ($SparsePage) { $FixedMiB += 36 }   # first-fill buffer and table headroom of the sparse path
+        # first-fill buffer (32 MiB), table headroom, and 28 MiB more: a 245k trace on the release engine measured sparse - dense
+        # = 150 MiB against 138 counted (docs/receipts/vram245_*.csv), plus 16 MiB of margin
+        if ($SparsePage) { $FixedMiB += 64 }
         # Partial staging (patch 0047): only the first BONSAI_STAGE_CELLS host positions get a VRAM staging buffer, so it
         # does not grow with the window; host rows past them are read in place (prefill there is slower: 262k on the RTX
         # 2060 SUPER, 59 tok/s at 160k against 99 at 128k). 8 GB cards; default 81920 (prefill as fast as 131k to ~140k).
@@ -329,7 +331,7 @@ if ($Tier) {
             # sparse: the page bounds of the host tail, (Ctx - N) x SparseCellBytes
             $Budget = ($FreeMiB - $Margin - $FixedMiB) * 1MB - $StageCells * $CellBytes / 16 - $Ctx * $SparseCellBytes
             $TierCells = [int]([math]::Floor($Budget / ($CellBytes - $SparseCellBytes) / 256) * 256)
-            if ($SparsePage) { $TierCellsDense = [int]([math]::Floor((($FreeMiB - $Margin - $FixedMiB + 36) * 1MB - $StageCells * $CellBytes / 16) / $CellBytes / 256) * 256) }
+            if ($SparsePage) { $TierCellsDense = [int]([math]::Floor((($FreeMiB - $Margin - $FixedMiB + 64) * 1MB - $StageCells * $CellBytes / 16) / $CellBytes / 256) * 256) }
             $Partial = $Ctx - $TierCells -gt $StageCells
         }
         if ($Partial) {
@@ -338,7 +340,7 @@ if ($Tier) {
             # KV head N*CellBytes plus the staging buffer (Ctx-N)*CellBytes/16 must fit in what is left
             $Budget = ($FreeMiB - $Margin - $FixedMiB) * 1MB - $Ctx * $CellBytes / 16 - $Ctx * $SparseCellBytes
             $TierCells = [int]([math]::Floor($Budget / ($CellBytes * 15 / 16 - $SparseCellBytes) / 256) * 256)
-            if ($SparsePage) { $TierCellsDense = [int]([math]::Floor((($FreeMiB - $Margin - $FixedMiB + 36) * 1MB - $Ctx * $CellBytes / 16) / ($CellBytes * 15 / 16) / 256) * 256) }
+            if ($SparsePage) { $TierCellsDense = [int]([math]::Floor((($FreeMiB - $Margin - $FixedMiB + 64) * 1MB - $Ctx * $CellBytes / 16) / ($CellBytes * 15 / 16) / 256) * 256) }
         }
     }
     if ($TierCells -ge $Ctx) {
@@ -422,7 +424,7 @@ Write-Host "model  $(Split-Path $Model -Leaf)"
 Write-Host "window $Ctx / $Ctk  (trained max 262144)"
 if ($TierCells -gt 0) { Write-Host "kv     tiered: cells 0..$TierCells in VRAM, $TierCells..$Ctx in system RAM$(if ($Margin) { " (VRAM margin $Margin MiB)" })$(if ($PoolMiB) { "; shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off)" })$(if ($MaskSavedMiB) { "; packed KQ mask ($MaskSavedMiB MiB saved)" })" }
 if ($SparsePage -and $TierCells -gt 0) {
-    Write-Host "kv     sparse host-tail reads: $($env:GGML_CUDA_FA_SPARSE) (B,P,R), from $(if ($env:GGML_CUDA_FA_SPARSE_MIN_HOST) { $env:GGML_CUDA_FA_SPARSE_MIN_HOST } else { 0 }) host cells on; $([int](($Ctx - $TierCells) * $SparseCellBytes / 1MB) + 36) MiB of page bounds counted$(if ($TierCellsDense -gt $TierCells) { ": VRAM line $TierCellsDense -> $TierCells cells" })"
+    Write-Host "kv     sparse host-tail reads: $($env:GGML_CUDA_FA_SPARSE) (B,P,R), from $(if ($env:GGML_CUDA_FA_SPARSE_MIN_HOST) { $env:GGML_CUDA_FA_SPARSE_MIN_HOST } else { 0 }) host cells on; $([int](($Ctx - $TierCells) * $SparseCellBytes / 1MB) + 64) MiB of page bounds counted$(if ($TierCellsDense -gt $TierCells) { ": VRAM line $TierCellsDense -> $TierCells cells" })"
     if ($Small) { Write-Host "       8 GB, 262k: ~1.9x decode at 160k, ~2.3-2.7x at 245k; ~8 % slower below ~100k (shorter VRAM line). BONSAI_SPARSE=0 or unset: off." }
 } elseif ($Small -and $SparseAvail -and $TierCells -gt 0) {
     Write-Host "kv     deep sessions (160k+): BONSAI_SPARSE=1 reads only the relevant pages of the system-RAM tail: ~1.9x decode at 160k, ~2.3x at 245k, ~8 % slower below ~100k"
