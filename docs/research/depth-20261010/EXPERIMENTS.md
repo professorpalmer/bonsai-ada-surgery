@@ -308,5 +308,5 @@ VRAM line 43,520 (f16 mask), host tail ~197k cells, graphs off.
   `fa-sparse-proto`. The 8 GB effect at 245k is the 2060 run P110 (`3299a0b4b` = this + `GGML_CUDA_FA_SPARSE_MIN_HOST`,
   margin 475).
 - **Receipts.** `docs/receipts/sparse_vram_d18.log`, `docs/receipts/sparse_edit.log` (18:13 block),
-  `docs/receipts/sparse_prefill.log` and `.jsonl` (18:26 and 18:43 blocks), `logs/d18_vram_root-sparse1{1,2}.csv`.
+  `docs/receipts/sparse_prefill.log` and `.jsonl` (18:26 and 18:43 blocks), `docs/receipts/d18_vram_root-sparse1{1,2}.csv`.
 
