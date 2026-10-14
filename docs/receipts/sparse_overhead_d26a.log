@@ -1,0 +1,40 @@
+12:11 === D26a start: product-0055 4de6185494 (FRAC 1/16 default) + launcher #49 3035572 (sparse opt-in, B 12288, headroom 64 MiB), sm 75/86/89 release build, depth 64000, short 52224, long 61696, mem clock 10501 MHz, driver 610.88
+12:11 r1 off-short: health=1; kv     tiered: cells 0..52224 in VRAM, 52224..262144 in system RAM; shared CUDA 
+12:13 NOTE: a CPU build of another branch (sparse-d26) ran 12:12:31-12:12:49 at idle priority, before D26a's arms (start 12:20): no overlap.
+r1 off-short code   depth  64000 (evaluated 64009): prefill   921.5 tok/s  ttft  69.46s  decode   61.7 tok/s (400 tok)
+r1 off-short prose  depth  64000 (evaluated 512): prefill   563.0 tok/s  ttft   0.91s  decode   45.4 tok/s (400 tok)
+r1 off-short bash   depth  64000 (evaluated 516): prefill   566.2 tok/s  ttft   0.91s  decode   55.7 tok/s (400 tok)
+r1 off-short mean decode 54.3 tok/s
+12:13 r1 off-short: sparse_mask lines 0
+12:13 r1 on-short: health=1; kv     tiered: cells 0..52224 in VRAM, 52224..262144 in system RAM; shared CUDA 
+r1 on-short code   depth  64000 (evaluated 64009): prefill   920.2 tok/s  ttft  69.56s  decode   62.0 tok/s (400 tok)
+r1 on-short prose  depth  64000 (evaluated 512): prefill   566.0 tok/s  ttft   0.90s  decode   45.7 tok/s (400 tok)
+r1 on-short bash   depth  64000 (evaluated 516): prefill   560.5 tok/s  ttft   0.92s  decode   55.8 tok/s (400 tok)
+r1 on-short mean decode 54.5 tok/s
+12:15 r1 on-short: sparse_mask lines 0
+12:15 r1 off-long: health=1; kv     tiered: cells 0..61696 in VRAM, 61696..262144 in system RAM; shared CUDA 
+r1 off-long code   depth  64000 (evaluated 64009): prefill   919.7 tok/s  ttft  69.60s  decode   63.3 tok/s (400 tok)
+r1 off-long prose  depth  64000 (evaluated 512): prefill   564.5 tok/s  ttft   0.91s  decode   46.8 tok/s (400 tok)
+r1 off-long bash   depth  64000 (evaluated 516): prefill   572.5 tok/s  ttft   0.90s  decode   57.6 tok/s (400 tok)
+r1 off-long mean decode 55.9 tok/s
+12:17 r1 off-long: sparse_mask lines 0
+12:17 r2 off-short: health=1; kv     tiered: cells 0..52224 in VRAM, 52224..262144 in system RAM; shared CUDA 
+r2 off-short code   depth  64000 (evaluated 64009): prefill   920.3 tok/s  ttft  69.55s  decode   61.9 tok/s (400 tok)
+r2 off-short prose  depth  64000 (evaluated 512): prefill   561.5 tok/s  ttft   0.91s  decode   45.8 tok/s (400 tok)
+r2 off-short bash   depth  64000 (evaluated 516): prefill   568.8 tok/s  ttft   0.91s  decode   56.6 tok/s (400 tok)
+r2 off-short mean decode 54.8 tok/s
+12:19 r2 off-short: sparse_mask lines 0
+12:19 r2 on-short: health=1; kv     tiered: cells 0..52224 in VRAM, 52224..262144 in system RAM; shared CUDA 
+r2 on-short code   depth  64000 (evaluated 64009): prefill   919.5 tok/s  ttft  69.61s  decode   61.9 tok/s (400 tok)
+r2 on-short prose  depth  64000 (evaluated 512): prefill   562.1 tok/s  ttft   0.91s  decode   45.9 tok/s (400 tok)
+r2 on-short bash   depth  64000 (evaluated 516): prefill   568.7 tok/s  ttft   0.91s  decode   56.7 tok/s (400 tok)
+r2 on-short mean decode 54.8 tok/s
+12:21 r2 on-short: sparse_mask lines 0
+12:21 r2 off-long: health=1; kv     tiered: cells 0..61696 in VRAM, 61696..262144 in system RAM; shared CUDA 
+r2 off-long code   depth  64000 (evaluated 64009): prefill   920.0 tok/s  ttft  69.58s  decode   63.0 tok/s (400 tok)
+r2 off-long prose  depth  64000 (evaluated 512): prefill   565.0 tok/s  ttft   0.91s  decode   46.9 tok/s (400 tok)
+r2 off-long bash   depth  64000 (evaluated 516): prefill   573.0 tok/s  ttft   0.90s  decode   58.0 tok/s (400 tok)
+r2 off-long mean decode 56.0 tok/s
+12:23 r2 off-long: sparse_mask lines 0
+12:23 === D26a done
+12:24 CORRECTION to the 12:13 note: D26a's first arm started 12:11, so the 12:12:31-12:12:49 build (idle priority, 18 s) overlapped r1 off-short (54.3; r2 off-short 54.8). Reading unchanged: on-short = off-short within 0.2 %.

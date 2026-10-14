@@ -473,3 +473,22 @@ VRAM line 43,520 (f16 mask), host tail ~197k cells, graphs off.
   x1 (a higher total), or a budget that grows with depth only in the outer layers.
 - **Receipts.** `docs/receipts/sparse_layers_d25.log`, `sparse_prefill.log` + `.jsonl` (11:02, 11:17, 11:40 blocks).
 
+## D26a Is sparse's 64k cost the line or engine overhead? (2026-10-14 12:11-12:23)
+
+- **Question.** On the 2060, sparse with its reserve cost 7 % at 64k with 13.8k fewer VRAM cells (P123) and 8 % with
+  7.9k fewer (P127): no scaling with the line. Is it the shorter line, or overhead of the sparse-enabled engine when no
+  op is sparse (write tracking, prefetch eligibility, `STAGE_MIN_Q=9` for every op)?
+- **Setup.** The kernel session's `d26a_line_vs_overhead.sh`: root-0055 (release bins), 64k, graphs on, packed mask
+  on, `bench/quick_tps.py`, three arms alternated two times: off-short (line 52,224), on-short (line 52,224 +
+  `12288,64,1024`, FAST, `STAGE_MIN_Q=9`, `MIN_HOST=32768`: 0 sparse ops), off-long (line 61,696). Stock memory clock,
+  driver 610.88.
+- **Result.** Mean decode: off-short 54.3 / 54.8, on-short 54.5 / 54.8, off-long 55.9 / 56.0. on-short vs off-short
+  +0.2 %; off-long vs off-short +2.6 %. 0 sparse ops in every arm. (An 18 s idle-priority build overlapped r1
+  off-short.)
+- **Verdict.** No engine overhead on the 4070, also with `STAGE_MIN_Q=9` for all ops; the planned D26b (that setting for
+  sparse ops only) was not run. The 64k cost is the line. On this PCIe 4.0 card 9.5k more host cells cost 2.6 %; on the
+  2060 (PCIe 3.0) the cost is 7-8 % and does not scale with the number of cells, which fits a fixed per-step cost once
+  any host tail exists. So D26 targets the line: no line VRAM for the bounds while the context is below the line, or a
+  smaller fixed cost per step for a small host tail.
+- **Receipts.** `docs/receipts/sparse_overhead_d26a.log`.
+
