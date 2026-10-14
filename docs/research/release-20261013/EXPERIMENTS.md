@@ -137,3 +137,25 @@ Format per entry: **question**, **gate** (and where it was declared), **setup**,
 - **Installed.** The 10 engine files in the product `bin/` (byte compare OK, `LLAMA_COMMIT de873117e1`); the
   bundle-20261011 files are kept in `bin-20261011/`.
 - **Verdict.** Done.
+
+## G09 RTX 2060 SUPER release check of the published bundle (2026-10-13 / 14, P126 + P126b, by the 8 GB tester)
+
+- **Question.** Does the published bundle-20261013 zip work on an 8 GB Turing card, with no loss against
+  bundle-20261011?
+- **Result.**
+  - P126: zip 610,554,885 B, SHA-256 matches. `ADD` 99/99, `RMS_NORM` 51/51, `FLASH_ATTN_EXT` 3005/3005. The log has
+    `chunked GDN prefill (MMA) skipped: device cc 750 ...` once. 0 one-token answers (sweep, fresh 60k x 2, lookup
+    A/B 0 of 22). Minimum free 112 MiB. Its decode read 4-7 % below a bundle-20261011 run from another day; that run
+    came after a power cut, with Windows servicing active (which later bugchecked that PC).
+  - P126b, the same session, the arms alternated two times, mean decode:
+
+    | | 64k | 96k | 128k |
+    | --- | ---: | ---: | ---: |
+    | bundle-20261011 (r1 / r2) | 36.2 / 35.8 | 26.0 / 26.0 | 16.6 / 17.1 |
+    | bundle-20261013 (r1 / r2) | 36.2 / 35.1 | 26.0 / 25.9 | 17.1 / 17.1 |
+
+    Means within -1.0 / -0.2 / +1.5 %. 0 one-token answers.
+- **Verdict.** Pass. 0054 changes nothing on Turing. Lesson from the tester: absolute numbers on that PC move about
+  5 % between sessions (idle VRAM, line 61.2k-62.5k), so releases are compared inside one session.
+- **Receipts.** PR #40 comments (P126, P126b).
+
