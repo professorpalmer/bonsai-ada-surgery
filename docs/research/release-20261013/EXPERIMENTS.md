@@ -130,7 +130,10 @@ Format per entry: **question**, **gate** (and where it was declared), **setup**,
   from `git archive` of the release commit `0cb9bb98` (PR #51). 22 entries changed against bundle-20261011: 7 engine
   files, the README note, and the docs / receipts path move and doc edits since then (launcher: comments only).
   610,554,885 bytes, SHA-256 `dda336ab1473707724078e42f81e720cbf7c286954004db85827c602b03e5a51`.
-- **Plan.** When G05-G07 pass: a zip from `git archive` at the release commit (the bundle-20261011 layout), release
-  notes, the Hugging Face card (53 -> 54 patches), the README upgrade note; GitHub release and Hugging Face upload;
-  SHA-256 checked on both; the bins installed in the product `bin/` (the old ones kept in `bin-20261011/`).
-- **Status.** Waits for G05-G07.
+- **Published (21:05-21:15).** GitHub release `bundle-20261013` on `0cb9bb98`, asset `bonsai-bundle-win-x64.zip`;
+  Hugging Face `CaryPalmer/Ternary-Bonsai-2-27B-262k-GGUF`: the zip (commit `097f02e`) and the card (commit `34c9319`,
+  from PR #52). SHA-256 checked on both: GitHub asset digest and Hugging Face LFS oid are `dda336ab...e5a51`, size
+  610,554,885 on both.
+- **Installed.** The 10 engine files in the product `bin/` (byte compare OK, `LLAMA_COMMIT de873117e1`); the
+  bundle-20261011 files are kept in `bin-20261011/`.
+- **Verdict.** Done.

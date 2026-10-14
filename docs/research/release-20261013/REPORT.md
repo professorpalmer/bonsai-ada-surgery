@@ -5,7 +5,7 @@
 - Patch 0054 (chunked gated-delta-net MMA prefill) passed perplexity (G01, +0.024 %), the RTX 2060 check (G02) and
   the op tests after the device-check change (G03, 55/55).
 - The release bins are built from `de873117e1` (G04). Release gates: op tests pass (G05), HumanEval 158/164 after a
-  re-score of a void scoring (G06), prefill +3 to +7 % with decode within 1.6 % (G07). Publish: G08.
+  re-score of a void scoring (G06), prefill +3 to +7 % with decode within 1.6 % (G07). Published 2026-10-13 21:15 as bundle-20261013 (G08), SHA checked on GitHub and Hugging Face, bins installed.
 
 ## Decisions
 
@@ -28,4 +28,5 @@
 
 ## Open items
 
-- G08 (publish).
+- None for 0054. Next bundle: sparse host-tail reads (patch 0055) on top of this one, then q3_0 K/V
+  (`../q3port-20261013/`).
