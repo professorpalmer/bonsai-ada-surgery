@@ -1,4 +1,4 @@
-# Experiments D01-D18
+# Experiments D01-D20
 
 Format per entry: **question**, **gate** (and where it was declared), **setup** (hardware, engine commit, root, env,
 script), **result**, **verdict**, **receipts**. RTX 4070 12 GB, 12 GB recipe (262k window, q8_0 KV, tiered cache,
@@ -173,7 +173,7 @@ of 10 short Python functions from `artifacts/eval/pycode.raw`).
   dense, host tail (`8192,256,1024`, tile skip), whole context (`SINKS=1024`).
 - **Result.** Mean decode: dense 22.8, host tail 25.2, whole context **36.3**. Quality: dense 10/10 12/12, host tail
   10/10 12/12, whole context **8/10, 7/12**.
-- **Verdict.** Rejected at this budget and page size. A page-64, B = 16384 retry is queued (`root-sparse10`).
+- **Verdict.** Rejected at this budget and page size. The page-64, B = 16384 retry is D19 (also rejected).
 - **Receipts.** `docs/receipts/sparse_whole.log`, `.jsonl`.
 
 ## D12 V skip in the vec decode kernel (2026-10-11 08:48-09:23)
@@ -310,3 +310,28 @@ VRAM line 43,520 (f16 mask), host tail ~197k cells, graphs off.
 - **Receipts.** `docs/receipts/sparse_vram_d18.log`, `docs/receipts/sparse_edit.log` (18:13 block),
   `docs/receipts/sparse_prefill.log` and `.jsonl` (18:26 and 18:43 blocks), `docs/receipts/d18_vram_root-sparse1{1,2}.csv`.
 
+## D19 Whole-context selection, retry at page 64 and B = 16384 (2026-10-13 19:00-19:19)
+
+- **Question.** Does the D11 whole-context selection keep retrieval with smaller pages and twice the budget?
+- **Gate.** Same as D11 (declared in chat 2026-10-11): copies 10/10 and needles 12/12 at 160k; then decode at 192k.
+- **Setup.** `bench/sparse_whole.sh`, `root-sparse10` (engine `d6c6e9f01`: 64-cell MMA tile map, vec kernel with the
+  128-cell tile skip only), `GGML_CUDA_FA_SPARSE=16384,64,1024`, `SINKS=1024`, `FA_TILE_SKIP=1`, graphs off, f16 mask.
+  The launcher put the line at 109,056 (D11: 121,344).
+- **Result.** Copies 10/10, **needles 11/12**. Mean decode at 192k 18.8 tok/s (21.3 / 15.5 / 19.5), cold prefill 501.
+- **Verdict.** Rejected on quality: one needle lost even at 16384 cells (~8.5 % of the context) with 64-cell pages.
+  The speed is not a fair measure: this engine has no 32-cell warp skip (D17), and the log shows 1-query decode ops
+  (vec kernel), which then cannot skip 64-cell pages. The quality result does not depend on that. Whole-context
+  selection is closed; the host-tail form stays (D10, D20).
+- **Receipts.** `docs/receipts/sparse_whole.log` (19:00 block), `docs/receipts/sparse_whole.jsonl`.
+
+## D20 Host-tail selection at page 64 on the 12 GB line (2026-10-13 19:19-19:37)
+
+- **Question.** Does the page-64 form (the 8 GB candidate, D10) hold on the 12 GB line at 192k, with the D18 engine?
+- **Gate.** Copies 10/10 and needles 12/12 at 160k; decode not below the D11 host-tail arm (25.2).
+- **Setup.** `bench/sparse_whole.sh` host-tail arm, `root-sparse12` (`8d5b862fc`), `8192,64,1024`, `FA_TILE_SKIP=1`,
+  graphs off, f16 mask; line 112,128 (D11: 121,344).
+- **Result.** Copies 10/10, needles 12/12. Mean decode at 192k 24.9 tok/s (28.9 / 20.3 / 25.7), cold prefill 515.
+- **Verdict.** Pass on quality; decode equal to the page-256 arm of D11 (25.2) with a 9k-cell lower line. Against
+  dense from D11 (22.8, graphs off, another day and line) that is about +9 %, a cross-run figure only. On 12 GB the
+  host tail at 192k is small (~80k cells), so the sparse gain is small here; the 8 GB card is where it matters (D16).
+- **Receipts.** `docs/receipts/sparse_whole.log` (19:19 block), `docs/receipts/sparse_whole.jsonl`.

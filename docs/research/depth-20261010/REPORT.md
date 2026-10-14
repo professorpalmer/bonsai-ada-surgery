@@ -34,7 +34,7 @@ Experiment entries: `EXPERIMENTS.md`; machine-readable: `runs.jsonl` (with `gpu_
 | CUDA graphs off past the line (patch 0053) | **shipped**: bundle-20261011 (2026-10-13), all gates passed on both cards |
 | `LLAMA_SLOT_KEEP_TOKENS` (D01) | prototype; blocked on the two-slot cost (D02) |
 | sparse host-tail decode, page 64, 64-cell tile map (D10) | candidate for 8 GB; 1.9x at 160k on the 2060; 245k waits on D18 |
-| sparse prefill (D10), whole-context selection at page 256 (D11) | rejected at tested settings (retry of D11 at page 64 / B 16384 queued) |
+| sparse prefill (D10), whole-context selection (D11 page 256, D19 page 64 / B 16384) | rejected (D19: needles 11/12) |
 | chunked gated-delta-net prefill (D14) | **promoted**: patch 0054 (PR #40, merged); perplexity +0.024 %; 2060 sm_75 check passed (P116); bundle pending |
 | V skip (D12), ubatch > 512 (D13), third-party template (D15) | rejected |
 
@@ -53,7 +53,8 @@ Experiment entries: `EXPERIMENTS.md`; machine-readable: `runs.jsonl` (with `gpu_
    - whole-context selection rejected (D11);
    - chunked gated-delta-net port (D14).
 5. **Round 5 (2026-10-11 morning):** V skip, ubatch (D12, D13); 8 GB card results and the warp-level skip (D16, D17).
-6. **Round 6 (2026-10-13):** the 245k loss traced to VRAM over-commit (P107); sparse memory cut (D18).
+6. **Round 6 (2026-10-13):** the 245k loss traced to VRAM over-commit (P107); sparse memory cut (D18);
+   whole-context selection closed (D19); page 64 holds on 12 GB (D20).
 
 ## Lessons for the next model
 
@@ -77,5 +78,4 @@ Experiment entries: `EXPERIMENTS.md`; machine-readable: `runs.jsonl` (with `gpu_
 - D18: 4070 gates passed; the 2060 run (P110: P107 on `3299a0b4b`, margin 475); then the launcher counts the sparse
   fixed cost (host cells x 1 KiB x 64 / page + 36 MiB) and the 160k follow-up prefill is checked again.
 - D16: a depth threshold for sparse (it costs 16 % at 64k on the 2060).
-- D11 retry: whole-context selection at page 64, B = 16384 (`root-sparse10`).
 - D12: V skip on top of patch 0053, if attention ever dominates.
