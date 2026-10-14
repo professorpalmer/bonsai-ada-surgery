@@ -12,3 +12,8 @@
 01:10 decode: sparse-decode mean decode 33.1 tok/s
 01:10 launcher kv lines: kv     tiered: cells 0..32768 in VRAM, 32768..262144 in system RAM; shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off); packed KQ mask (240 MiB saved) kv     sparse host-tail reads: 8192,64,1024 (B,P,R), from 0 host
 01:10 === q3_0 checks done
+01:42 === Q05b: sparse + q3_0 at 245k (stock memory clock), root-q3
+02:09 Q05b: 
+02:09 Q05b misses: _pydecimal.py _convert_other;
+02:09 Q05b decode: sparse-decode mean decode 27.4 tok/s
+02:09 Q05b result (from sparse_prefill.jsonl): copies 9/10 (miss: _pydecimal.py _convert_other, the same item the q8_0 sparse arms of D22 miss), needles 12/12, mean decode 27.4 tok/s at the stock clock. q3_0 adds no loss of its own; the miss is the sparse selection at 245k (D22c / D23).

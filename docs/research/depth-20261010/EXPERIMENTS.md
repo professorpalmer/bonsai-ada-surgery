@@ -395,3 +395,57 @@ VRAM line 43,520 (f16 mask), host tail ~197k cells, graphs off.
 - **Receipts.** `docs/receipts/sparse_int8_d22.log`, `d22_vram_*.csv`, `sparse_edit.log` (22:50 block),
   `sparse_prefill.log` + `.jsonl` (23:01, 23:17, 23:45 blocks).
 
+## D22b Dense control at 245k (2026-10-14 01:10-01:42)
+
+- **Question.** Is D22's 245k copy miss (`_pydecimal.py` `_convert_other`, both bound formats) a model limit or a
+  sparse loss?
+- **Setup.** `root-psparse8` (`c8bbb1898`), dense arm (no sparse switches), graphs on, packed mask on, line 32,768.
+  Stock memory clock (the OC profile was not applied after the 00:31 Windows-update reboot).
+- **Result.** Copies 10/10 (including `_convert_other`), needles 12/12, mean decode 8.8 tok/s (10.0 / 6.7 / 9.7).
+- **Verdict.** The miss is a sparse loss. On the 2060, P105 (older build) shows the same pattern with another
+  mid-context item.
+- **Receipts.** `docs/receipts/sparse_int8_d22.log` (01:10 block), `docs/receipts/sparse_prefill.log` + `.jsonl`.
+
+## D22c Budget at 245k (2026-10-14 02:09-03:07)
+
+- **Question.** Does a larger budget fix the 245k miss?
+- **Setup.** `root-psparse8`, int8 bounds, P 64, R 1024, B 16384 and B 12288; graphs on, packed mask on, line
+  32,768; stock memory clock.
+- **Result.** B 16384: copies 10/10, needles 12/12, 18.6 tok/s. B 12288: 10/10, 12/12, 20.8 tok/s. (B 8192 at the
+  same clock, q3_0 run Q05b: 9/10, 27.4 tok/s.)
+- **Correction.** The first summary lines in the receipt said B 16384 missed `_convert_other`: they read the last 40
+  lines of the shared jsonl, which still held the B 8192 run. The per-run item lines show 10/10; a correction line
+  is in the receipt. Lesson: split a shared jsonl by run before a summary.
+- **Verdict.** A budget of 12288 (about 5.8 % of the 212k-cell host tail) is enough at 245k.
+
+## D23 Per-head normalized page ranking (2026-10-14 03:08-03:53)
+
+- **Question.** Is the miss a ranking problem? `GGML_CUDA_FA_SPARSE_NORM=1` ranks each page by each Q head's bound
+  relative to that head's best page (`product-sparse` `8d6e0d3f4`).
+- **Gate.** `plans/D23-plan.json` (committed before the run; the decode gate was marked not applicable because of
+  the stock clock).
+- **Result.** 245k at B 8192: copies 9/10 (the same `_convert_other` miss), needles 12/12, 24.5 tok/s, 14 norm lines.
+  160k: 10/10, 12/12, 27.3.
+- **Verdict.** Fail at 245k. By the rule agreed before the run, the default becomes the budget fraction:
+  `GGML_CUDA_FA_SPARSE_FRAC` = 1/16 (B = max(8192, host tail / 16)), in the engine of `product-0055` `4de618549`
+  (PR #56); NORM is removed.
+- **Note.** D23's decode at the stock clock (24.5 / 27.3) equals D22's at the OC clock: decode at this depth is
+  bound by PCIe, not by the memory clock.
+
+## D24 Page-rank trace of the missed function (2026-10-14 03:53-04:11)
+
+- **Question.** Where do the pages of `_convert_other` rank, per layer, with plain and with normalized ranking?
+- **Setup.** `product-sparse` `44e18f79c` (int8 bounds, NORM switch, `GGML_CUDA_FA_SPARSE_TRACE`), the function's
+  KV cells 107,391-107,531 (from `bench/code_needle.py --span`), one item at 245k, B 8192 (about 128 pages kept, plus
+  the last 1024 cells).
+- **Result.**
+  - Plain: 720 trace lines, 223 with the function's best page dropped. Mean rank per layer 42-130 in layers 2-12
+    (near or inside the cut of about 128), but 324 / 408 in layers 0 / 1 and 187-232 in layers 13-15.
+  - NORM: 2,320 lines, 1,670 dropped, mean rank 153-682 in every layer. Normalized ranking moves the function's
+    pages down, not up.
+  - The item stays wrong in both runs.
+- **Verdict.** The miss is budget plus looseness in the first and last layers, not a score blind spot: a cut of about
+  192 pages (B 12288) holds the target in most ops, which matches D22c. Normalized ranking is worse, which matches
+  D23. A per-layer budget (more pages in layers 0-1 and 13-15) is a possible later gain.
+- **Receipts.** `docs/receipts/sparse_trace_d24.log`.
+

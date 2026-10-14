@@ -1,0 +1,44 @@
+03:53 === D24 start: product-sparse 44e18f79c (int8 + NORM switch + TRACE, sm_89), fn _convert_other, depth 245000, clock 10501 MHz
+03:53 server span: health=1 ()
+03:53 span: {"fn": "_convert_other", "file": "_pydecimal.py", "position_frac": 0.444, "cells": [107391, 107531], "lead": 132}
+03:53 server plain: health=1 (GGML_CUDA_FA_SPARSE_TRACE=107391,107531,200000)
+{"tag": "d24_plain", "depth": 245000, "file": "_pydecimal.py", "fn": "_convert_other", "position_frac": 0.444, "lines": 18, "ok": false, "evaluated": 230646, "wall_s": 490.1}
+{"tag": "d24_plain", "depth": 245000, "correct": 0, "of": 1}
+04:02 plain: 720 trace lines, 223 dropped, 497 kept
+  layer  0: ops 45 dropped 36 rank mean 324 min 22 max 1160
+  layer  1: ops 45 dropped 42 rank mean 408 min 120 max 1398
+  layer  2: ops 45 dropped 8 rank mean 69 min 3 max 238
+  layer  3: ops 45 dropped 10 rank mean 100 min 0 max 691
+  layer  4: ops 45 dropped 3 rank mean 42 min 0 max 215
+  layer  5: ops 45 dropped 14 rank mean 110 min 5 max 368
+  layer  6: ops 45 dropped 5 rank mean 67 min 0 max 438
+  layer  7: ops 45 dropped 3 rank mean 52 min 0 max 742
+  layer  8: ops 45 dropped 4 rank mean 58 min 0 max 837
+  layer  9: ops 45 dropped 6 rank mean 76 min 1 max 712
+  layer 10: ops 45 dropped 4 rank mean 70 min 3 max 1087
+  layer 11: ops 45 dropped 11 rank mean 102 min 4 max 468
+  layer 12: ops 45 dropped 10 rank mean 130 min 4 max 647
+  layer 13: ops 45 dropped 25 rank mean 187 min 22 max 1058
+  layer 14: ops 45 dropped 19 rank mean 148 min 2 max 686
+  layer 15: ops 45 dropped 23 rank mean 232 min 7 max 1497
+04:02 server norm: health=1 (GGML_CUDA_FA_SPARSE_TRACE=107391,107531,200000 GGML_CUDA_FA_SPARSE_NORM=1)
+{"tag": "d24_norm", "depth": 245000, "file": "_pydecimal.py", "fn": "_convert_other", "position_frac": 0.444, "lines": 18, "ok": false, "evaluated": 230646, "wall_s": 506.9}
+{"tag": "d24_norm", "depth": 245000, "correct": 0, "of": 1}
+04:10 norm: 2320 trace lines, 1670 dropped, 650 kept
+  layer  0: ops 145 dropped 140 rank mean 682 min 100 max 1308
+  layer  1: ops 145 dropped 135 rank mean 490 min 35 max 1441
+  layer  2: ops 145 dropped 102 rank mean 266 min 11 max 1177
+  layer  3: ops 145 dropped 89 rank mean 263 min 2 max 1095
+  layer  4: ops 145 dropped 82 rank mean 168 min 3 max 544
+  layer  5: ops 145 dropped 62 rank mean 153 min 3 max 635
+  layer  6: ops 145 dropped 102 rank mean 456 min 2 max 1591
+  layer  7: ops 145 dropped 99 rank mean 373 min 0 max 1898
+  layer  8: ops 145 dropped 78 rank mean 263 min 1 max 1310
+  layer  9: ops 145 dropped 86 rank mean 224 min 2 max 815
+  layer 10: ops 145 dropped 96 rank mean 307 min 6 max 1212
+  layer 11: ops 145 dropped 112 rank mean 544 min 5 max 1549
+  layer 12: ops 145 dropped 120 rank mean 474 min 12 max 1844
+  layer 13: ops 145 dropped 123 rank mean 519 min 48 max 1707
+  layer 14: ops 145 dropped 112 rank mean 463 min 9 max 1559
+  layer 15: ops 145 dropped 132 rank mean 539 min 31 max 1697
+04:10 === D24 done

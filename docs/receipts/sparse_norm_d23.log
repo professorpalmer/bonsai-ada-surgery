@@ -1,0 +1,4 @@
+03:08 === D23 start: product-sparse 8d6e0d3f4 (int8 bounds + NORM switch, sm_89), GGML_CUDA_FA_SPARSE_NORM=1, clock 10501 MHz
+03:37 depth 245000: norm engaged lines 14
+03:53 depth 160000: norm engaged lines 12
+03:53 === D23 done

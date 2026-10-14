@@ -5,3 +5,12 @@
 23:45 root-psparse8 depth 245000: peak used 9164 MiB, min free 2847 MiB
 00:14 root-psparse depth 245000: peak used 9309 MiB, min free 2702 MiB
 00:14 === D22 done
+2026-10-14 00:55 NOTE: Windows-update reboot at 00:31. The memory OC profile is not applied (10251 MHz under load): the dense control below runs at the stock clock (quality check; its decode is not comparable with the D22 arms at 11751).
+2026-10-14 01:10 D22 follow-up: dense control at 245k on root-psparse8 (graphs on, packed 1), block below
+dense mean decode 8.8 tok/s
+2026-10-14 01:43 D22 follow-up result: dense at 245k: copies 10/10, needles 12/12, mean decode 8.8 tok/s (10.0 / 6.7 / 9.7, stock clock). So the sparse 245k copy miss (_pydecimal _convert_other, 9/10 in both sparse arms) comes from sparse selection, not from the model.
+2026-10-14 02:09 D22c: sparse budget at 245k, int8 bounds, stock memory clock; dense control (01:10): copies 10/10, needles 12/12, 8.8 tok/s
+2026-10-14 02:38 D22c B 16384:  misses: _pydecimal.py _convert_other; sparse-decode mean decode 18.6 tok/s
+2026-10-14 03:07 D22c B 12288:  misses:  sparse-decode mean decode 20.8 tok/s
+2026-10-14 03:08 NOTE: D23 runs at the stock memory clock (OC profile not applied since the 00:31 reboot)
+2026-10-14 03:08 CORRECTION to the two D22c lines above: their 'misses' field was read from the last 40 lines of sparse_prefill.jsonl, which still held the B 8192 run's miss. From the per-arm item lines: B 16384 copies 10/10 (incl. _convert_other), needles 12/12, 18.6 tok/s; B 12288 copies 10/10, needles 12/12, 20.8 tok/s (stock clock). So a larger budget fixes the 245k miss; B 8192 is the only arm that misses it.
