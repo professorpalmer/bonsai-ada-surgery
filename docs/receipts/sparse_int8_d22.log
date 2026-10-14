@@ -1,0 +1,7 @@
+22:49 === D22 start: int8 product-sparse c8bbb1898 (int8 bounds, sm_89, build-psparse) vs f16 product-sparse 3ab0af3c2 (sm_89, build-psparse)
+22:50 op test FLASH_ATTN_EXT:  3005/3005 tests passed 0 FAIL lines
+23:01 sparse_edit (int8) done: see docs/receipts/sparse_edit.log
+23:17 root-psparse8 depth 160000: peak used 9102 MiB, min free 2909 MiB
+23:45 root-psparse8 depth 245000: peak used 9164 MiB, min free 2847 MiB
+00:14 root-psparse depth 245000: peak used 9309 MiB, min free 2702 MiB
+00:14 === D22 done

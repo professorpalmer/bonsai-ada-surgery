@@ -363,3 +363,35 @@ VRAM line 43,520 (f16 mask), host tail ~197k cells, graphs off.
 - **Receipts.** `docs/receipts/sparse_product_d21.log`, `docs/receipts/d21_vram.csv`, `docs/receipts/sparse_edit.log`
   (22:02 block), `docs/receipts/sparse_prefill.log` + `.jsonl` (22:15 block; the 21:03-21:40 block is the void run).
 
+## D22 int8 page bounds, rounded outward (2026-10-13 22:49 - 10-14 00:14)
+
+- **Question.** Can the page bounds be int8 (one f16 scale per page and head, max rounded up and min rounded down, so
+  each page's score stays an upper bound) to halve the VRAM reserve (514 B per host cell at page 64 instead of 1 KiB)
+  without losing quality or speed? Background: P122 / P123 on the 2060 showed the f16 reserve costs about 14k VRAM
+  cells, -7 % at 64k.
+- **Gate.** `D22-plan.json` (declared before the run): `sparse_edit` track arm 0 stale ops; 160k copies 10/10 and
+  needles 12/12; 245k copies and needles not below the f16 arm; decode within 3 % of the f16 arm at 160k; peak VRAM
+  lower than the f16 arm.
+- **Setup.** int8: `product-sparse` `c8bbb1898` (`root-psparse8`); f16: `3ab0af3c2` (`root-psparse`, D21). Graphs on,
+  packed mask on, line 32,768, `8192,64,1024`, the other session's `d22_int8_bounds.sh`, run by the 4070 release
+  session at the product memory clock.
+- **Result.**
+
+  | | int8 bounds | f16 bounds |
+  | --- | ---: | ---: |
+  | `sparse_edit` stale ops, track arm | 0 / 0 / 0 | 0 (D21) |
+  | "needs an f16 mask" lines | 0 | 1 (warmup, D21) |
+  | 160k mean decode | 27.3 tok/s | 27.5 (D21) |
+  | 160k copies / needles | 10/10, 12/12 | 10/10, 12/12 (D21) |
+  | 245k mean decode | 24.5 | 23.0 |
+  | 245k copies / needles | 9/10, 12/12 | 9/10, 12/12 |
+  | 245k peak used / min free | 9,164 / 2,847 MiB | 9,309 / 2,702 MiB |
+
+  `FLASH_ATTN_EXT` 3005/3005. The 245k copy miss is the same item in both arms (`_pydecimal.py` `_convert_other`,
+  at 44 % of the context). D22 has no dense arm at 245k, so whether dense also misses it is open: a dense control is
+  queued.
+- **Verdict.** Pass on every gate. int8 bounds: -0.7 % at 160k (inside the 3 % gate), +6.5 % at 245k, 145 MiB less
+  peak at 245k, the same quality. Half the reserve gives the 2060 back about 7k VRAM cells (P127 measures it).
+- **Receipts.** `docs/receipts/sparse_int8_d22.log`, `d22_vram_*.csv`, `sparse_edit.log` (22:50 block),
+  `sparse_prefill.log` + `.jsonl` (23:01, 23:17, 23:45 blocks).
+
