@@ -1,16 +1,19 @@
-From 57826261025d0664babd69daaf02d65ca32f8ae2 Mon Sep 17 00:00:00 2001
+From 4de6185494edf4df25e2df34b1ab4c93def4daf6 Mon Sep 17 00:00:00 2001
 From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
-Date: Wed, 14 Oct 2026 00:56:43 -0500
+Date: Wed, 14 Oct 2026 03:54:40 -0500
 Subject: [PATCH] cuda: sparse host-tail reads for tiered KV decode
  (GGML_CUDA_FA_SPARSE=B,P,R, off by default)
 
 Decode-sized attention ops (up to GGML_CUDA_FA_SPARSE_MAXQ queries, default
 64) whose K reaches the host tail of a tiered KV cache keep the VRAM cells,
-the last R cells, and the B host cells in pages of P whose page bound scores
+the last R cells, and the host cells in pages of P whose page bound scores
 highest for the op's queries. The other host pages are masked out, the staged
 copy moves only the kept pages, and the attention kernels skip what the mask
 hides: the MMA kernel through a 64-cell tile visibility map, the vec kernel per
 128-cell tile and per 32-cell warp group (both exact).
+
+Budget: max(B, GGML_CUDA_FA_SPARSE_FRAC x host tail) cells, FRAC 1/16 by
+default (0: B only), so the budget grows with depth.
 
 Page bounds: per page and KV head, int8 max and min per dimension with one f16
 scale, rounded outward (max up, min down), so the page score stays an upper
@@ -22,20 +25,20 @@ GGML_CUDA_FA_SPARSE_FILL_CELLS (16384) cells. Below GGML_CUDA_FA_SPARSE_MIN_HOST
 host cells an op is the dense op, tier prefetch included.
 
 Other switches: GGML_CUDA_FA_SPARSE_SINKS (selection over the whole context,
-not recommended), GGML_CUDA_FA_TILE_SKIP, GGML_CUDA_FA_V_SKIP (exact, off),
-GGML_CUDA_FA_SPARSE_CHECK and _NOTRACK (debug).
+not recommended), GGML_CUDA_FA_TILE_SKIP, GGML_CUDA_FA_V_SKIP (exact, off);
+debug: GGML_CUDA_FA_SPARSE_CHECK, _NOTRACK, _TRACE=a,b (rank of given cells).
 
-RTX 4070, 8 GB-like line (32,768 cells), CUDA graphs on (per graph off past
-the line), packed mask on: 160k decode 13.8 -> 27.3 tok/s, 245k 24.5; exact
-copies and needles equal to dense; 0 stale bounds after deep edits.
-RTX 2060 SUPER, 262k launcher: 160k 9.1 -> 19.6 tok/s, 245k 5.3 -> 14.2.
+RTX 4070, 8 GB-like line (32,768 cells), CUDA graphs on, packed mask on:
+160k decode 13.8 -> 27.3 tok/s; exact copies and needles equal to dense at
+160k (B 8192) and 245k (12,288 or more; 8,192 lost one copy); 0 stale bounds
+after deep edits. RTX 2060 SUPER, 262k: 160k 9.1 -> 19.6 tok/s, 245k 5.3 -> 14.2.
 ---
  ggml/src/ggml-cuda/fattn-common.cuh  |  46 +-
  ggml/src/ggml-cuda/fattn-mma-f16.cuh |  51 +-
  ggml/src/ggml-cuda/fattn-vec.cuh     |  41 +-
- ggml/src/ggml-cuda/fattn.cu          | 698 ++++++++++++++++++++++++++-
- ggml/src/ggml-cuda/ggml-cuda.cu      | 111 ++++-
- 5 files changed, 922 insertions(+), 25 deletions(-)
+ ggml/src/ggml-cuda/fattn.cu          | 747 ++++++++++++++++++++++++++-
+ ggml/src/ggml-cuda/ggml-cuda.cu      | 111 +++-
+ 5 files changed, 971 insertions(+), 25 deletions(-)
 
 diff --git a/ggml/src/ggml-cuda/fattn-common.cuh b/ggml/src/ggml-cuda/fattn-common.cuh
 index 24d6ddc7f0..20a214f890 100644
@@ -322,7 +325,7 @@ index 07b66213ad..a26efadadb 100644
  
  #ifdef V_DOT2_F32_F16_AVAILABLE
 diff --git a/ggml/src/ggml-cuda/fattn.cu b/ggml/src/ggml-cuda/fattn.cu
-index b4e374a1f9..8ccd87e3ad 100644
+index b4e374a1f9..b2440e383c 100644
 --- a/ggml/src/ggml-cuda/fattn.cu
 +++ b/ggml/src/ggml-cuda/fattn.cu
 @@ -5,6 +5,12 @@
@@ -338,7 +341,7 @@ index b4e374a1f9..8ccd87e3ad 100644
  template <int DKQ, int DV, int ncols2, ggml_type type_KV = GGML_TYPE_F16>
  static void ggml_cuda_flash_attn_ext_mma_f16_switch_ncols1(ggml_backend_cuda_context & ctx, ggml_tensor * dst) {
      const int cc = ggml_cuda_info().devices[ggml_cuda_get_device()].cc;
-@@ -617,6 +623,670 @@ void * ggml_cuda_tier_stage(const void * ptr, size_t nbytes, cudaStream_t stream
+@@ -617,6 +623,719 @@ void * ggml_cuda_tier_stage(const void * ptr, size_t nbytes, cudaStream_t stream
  bool   ggml_cuda_tier_fa_begin(ggml_backend_cuda_context & ctx, const ggml_tensor * dst, void ** K_alias, void ** V_alias);
  void   ggml_cuda_tier_fa_end(ggml_backend_cuda_context & ctx);
  
@@ -363,6 +366,9 @@ index b4e374a1f9..8ccd87e3ad 100644
 +    bool    fast = false;   // GGML_CUDA_FA_SPARSE_FAST=1: decode-sized ops only (<= 8 queries), page bounds cached
 +    bool    check   = false;   // GGML_CUDA_FA_SPARSE_CHECK=1 (debug): fast mode also recomputes every page, logs stale ones
 +    bool    notrack = false;   // GGML_CUDA_FA_SPARSE_NOTRACK=1 (debug): writes do not invalidate cached bounds
++    float   frac    = 0.0625f; // GGML_CUDA_FA_SPARSE_FRAC=f (default 1/16, 0: B only): keep at least f of the host tail (B is
++                               // the floor), so the budget grows with depth (245k at B 8192 = 3.9 % of the tail lost an exact
++                               // copy; 12288 = 5.8 % kept it)
 +};
 +
 +static const fa_sparse_cfg & fa_sparse() {
@@ -383,6 +389,8 @@ index b4e374a1f9..8ccd87e3ad 100644
 +        r.notrack = n && atoi(n) != 0;
 +        const char * mq = getenv("GGML_CUDA_FA_SPARSE_MAXQ");
 +        r.maxq = mq ? std::max(1, atoi(mq)) : 64;
++        const char * fr = getenv("GGML_CUDA_FA_SPARSE_FRAC");
++        r.frac = fr ? std::max(0.0f, std::min(1.0f, (float) atof(fr))) : 0.0625f;
 +        const char * sk = getenv("GGML_CUDA_FA_SPARSE_SINKS");
 +        r.sinks = sk ? std::max(0, atoi(sk)) : -1;
 +        const char * mh = getenv("GGML_CUDA_FA_SPARSE_MIN_HOST");
@@ -390,6 +398,12 @@ index b4e374a1f9..8ccd87e3ad 100644
 +        return r;
 +    }();
 +    return c;
++}
++
++// pages a sparse op keeps from a host tail of n_sel cells: B, or f of the tail when that is more
++static int64_t fa_sparse_keep_pages(const fa_sparse_cfg & cfg, int64_t n_sel) {
++    const int64_t cells = std::max<int64_t>(cfg.budget, (int64_t) ceilf(cfg.frac*(float) n_sel));
++    return std::max<int64_t>(1, cells/cfg.page);
 +}
 +
 +// Fast mode: page-bound tables kept across ops, one per K cache tensor (key: the K data address the attention views start
@@ -456,7 +470,7 @@ index b4e374a1f9..8ccd87e3ad 100644
 +        return false;
 +    }
 +    const int64_t n_pages = (K->ne[1] - first + cfg.page - 1)/cfg.page;
-+    return n_pages > std::max<int64_t>(1, cfg.budget/cfg.page) && n_pages <= 12288;
++    return n_pages > fa_sparse_keep_pages(cfg, K->ne[1] - first) && n_pages <= 12288;
 +}
 +
 +// buffer-level writes (ggml-cuda.cu: set_tensor, memset, copies, clear, free): everything from p on
@@ -810,7 +824,7 @@ index b4e374a1f9..8ccd87e3ad 100644
 +    const int64_t n_host  = n_kv - first;
 +    const int     page    = (int) cfg.page;
 +    const int     n_pages = (int) ((n_host + page - 1)/page);
-+    const int64_t keep_pages = std::max<int64_t>(1, cfg.budget/page);
++    const int64_t keep_pages = fa_sparse_keep_pages(cfg, n_host);
 +    if (n_pages <= keep_pages || n_pages > 12288) {
 +        return false;   // nothing to drop, or more page scores than fa_sparse_select holds in shared memory (48 KB)
 +    }
@@ -935,6 +949,44 @@ index b4e374a1f9..8ccd87e3ad 100644
 +    ggml_cuda_pool_alloc<uint8_t> d_keep(ctx.pool(), (size_t) n_q*n_pages);
 +    fa_sparse_select<<<n_q, 256, n_pages*sizeof(float), stream>>>(ub.get(), d_last.get(), d_keep.get(), n_pages, page,
 +        (int) cfg.recent, (int) keep_pages);
++    // debug: GGML_CUDA_FA_SPARSE_TRACE=a,b[,n] logs, for the first n ops (default 4096), the rank of the best page that
++    // holds cells [a, b] (absolute positions) in query row 0's page scores, and whether the selection kept it. Rank 0 is
++    // the top page; kept when rank < keep. "layer" is the order in which the K tensors were first seen. Syncs every op.
++    {
++        static int64_t tr[3] = { -1, -1, 4096 };
++        static const bool tr_on = [] {
++            const char * e = getenv("GGML_CUDA_FA_SPARSE_TRACE");
++            if (!e) { return false; }
++            long long a = -1, b = -1, n = 4096;
++            sscanf(e, "%lld,%lld,%lld", &a, &b, &n);
++            tr[0] = a; tr[1] = b; tr[2] = n;
++            return a >= 0 && b >= a;
++        }();
++        static int64_t tr_ops = 0;
++        static std::map<const void *, int> tr_layer;
++        if (tr_on && tr_ops < tr[2] && tr[1] >= first && tr[0] < n_kv) {
++            ++tr_ops;
++            const int layer = tr_layer.emplace(K->data, (int) tr_layer.size()).first->second;
++            std::vector<float> h_ub(n_pages);
++            CUDA_CHECK(cudaMemcpyAsync(h_ub.data(), ub.get(), n_pages*sizeof(float), cudaMemcpyDeviceToHost, stream));
++            CUDA_CHECK(cudaStreamSynchronize(stream));
++            const int pa = (int) (std::max<int64_t>(tr[0], first) - first)/page;
++            const int pb = (int) std::min<int64_t>((std::min<int64_t>(tr[1], n_kv - 1) - first)/page, n_pages - 1);
++            int best_rank = INT_MAX, best_p = -1;
++            for (int pt = pa; pt <= pb; ++pt) {
++                int rank = 0;
++                for (int q = 0; q < n_pages; ++q) {
++                    rank += h_ub[q] > h_ub[pt] || (h_ub[q] == h_ub[pt] && q < pt);
++                }
++                if (rank < best_rank) { best_rank = rank; best_p = pt; }
++            }
++            float top = -INFINITY;
++            for (int q = 0; q < n_pages; ++q) { top = fmaxf(top, h_ub[q]); }
++            GGML_LOG_WARN("%s: TRACE layer %d op %lld: cells %lld..%lld = pages %d..%d of %d; best rank %d (page %d, score %.3f, top %.3f), keep %lld: %s\n",
++                __func__, layer, (long long) tr_ops, (long long) tr[0], (long long) tr[1], pa, pb, n_pages, best_rank, best_p,
++                best_p >= 0 ? h_ub[best_p] : 0.0f, top, (long long) keep_pages, best_rank < keep_pages ? "kept" : "DROPPED");
++        }
++    }
 +    if (cfg.check) {
 +        // the earlier host selection, same tie rule: count the pages where the two differ
 +        std::vector<float>   h_ub((size_t) n_q*n_pages);
@@ -1009,7 +1061,7 @@ index b4e374a1f9..8ccd87e3ad 100644
  // GGML_CUDA_KV_TIER_STAGE_MIN_Q=q: attention ops with fewer than q queries (decode, small verify batches) that are not
  // in the prefill prefetch read the host tail in place and copy nothing. Unset: 0 (every op that reaches the tail stages).
  static int64_t ggml_cuda_tier_stage_min_q() {
-@@ -853,6 +1523,17 @@ void ggml_cuda_flash_attn_ext(ggml_backend_cuda_context & ctx, ggml_tensor * dst
+@@ -853,6 +1572,17 @@ void ggml_cuda_flash_attn_ext(ggml_backend_cuda_context & ctx, ggml_tensor * dst
      }
      struct restore_mask { ggml_tensor * dst; ggml_tensor * mask; ~restore_mask() { dst->src[3] = mask; } } restore{dst, mask_in};
  
@@ -1027,7 +1079,7 @@ index b4e374a1f9..8ccd87e3ad 100644
      // K/V in a tiered buffer whose host tail this op reaches: copy the used host rows into the VRAM staging
      // buffer with the copy engine and point K/V at the all-VRAM alias of the same range for this op. Prefill
      // kernels read each K/V row once per query tile, which for host rows would be PCIe traffic every time;
-@@ -877,11 +1558,18 @@ void ggml_cuda_flash_attn_ext(ggml_backend_cuda_context & ctx, ggml_tensor * dst
+@@ -877,11 +1607,18 @@ void ggml_cuda_flash_attn_ext(ggml_backend_cuda_context & ctx, ggml_tensor * dst
                  V->data = V_alias;
              }
          } else if (dst->src[0]->ne[1] >= ggml_cuda_tier_stage_min_q()) {
