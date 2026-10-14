@@ -101,8 +101,8 @@ Format per entry: **question**, **gate** (and where it was declared), **setup**,
   6 fails as D14 (HumanEval/10, 47, 83, 116, 132, 145).
 - **Verdict.** Pass (158 >= 157).
 - **Lesson.** After a session restart, a queue that is still running can lose its console. Check the result
-  fields of any run that spans the restart, and start later jobs from the new session. (The private drafter job
-  that this queue would have started next was stopped and is restarted from the new session.)
+  fields of any run that spans the restart, and start later jobs from the new session. (The job that this queue
+  would have started next was stopped and is restarted from the new session.)
 - **Receipts.** `docs/receipts/he_template_ab.log` (b0054), `artifacts/humaneval-b0054/rescore.json` (local).
 
 ## G07 Gate: prefill and decode at 4k / 32k / 128k (2026-10-13 20:40-20:49)
@@ -123,8 +123,13 @@ Format per entry: **question**, **gate** (and where it was declared), **setup**,
 - **Verdict.** Pass.
 - **Receipts.** `docs/receipts/release_0054.log`.
 
-## G08 Bundle and publish
+## G08 Bundle and publish (2026-10-13 21:00-)
 
+- **Zip.** `bonsai-bundle-win-x64-20261013.zip`: the 66-entry layout of bundle-20261011; engine binaries from the
+  release build (`LLAMA_COMMIT de873117e1`), byte-identical to the gated `/tmp/root-0054/bin`; every other file
+  from `git archive` of the release commit `0cb9bb98` (PR #51). 22 entries changed against bundle-20261011: 7 engine
+  files, the README note, and the docs / receipts path move and doc edits since then (launcher: comments only).
+  610,554,885 bytes, SHA-256 `dda336ab1473707724078e42f81e720cbf7c286954004db85827c602b03e5a51`.
 - **Plan.** When G05-G07 pass: a zip from `git archive` at the release commit (the bundle-20261011 layout), release
   notes, the Hugging Face card (53 -> 54 patches), the README upgrade note; GitHub release and Hugging Face upload;
   SHA-256 checked on both; the bins installed in the product `bin/` (the old ones kept in `bin-20261011/`).
