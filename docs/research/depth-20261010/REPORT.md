@@ -15,7 +15,8 @@ Experiment entries: `EXPERIMENTS.md`; machine-readable: `runs.jsonl` (with `gpu_
    (D10: 13.6 -> 27.6 tok/s at 160k, copies 10/10, needles 12/12, page 64 with a 64-cell MMA tile map). The page size
    matters for exact copies (256 misses one function twice). On the real 8 GB card: 1.9x at 160k, not yet faster at
    245k (D16). Causes found: the vec kernel skip granularity (fixed, D17) and ~780 MiB of sparse-only VRAM at 245k
-   outside the launcher budget, which pushes the card over its total (P107; cut to ~230 MiB in D18, gate pending). Not in a release: it needs CUDA graphs off and the f16 mask.
+   outside the launcher budget, which pushes the card over its total (P107; cut to ~230 MiB in D18: 4070 gates pass,
+   -391 MiB peak at 160k; 2060 run P110 pending). Not in a release: it needs CUDA graphs off and the f16 mask.
 3. **The kernel must skip what the mask hides, or sparse is slower than dense.** The first sparse builds read every
    masked host tile in place (D07, D09, D10: 9.1 vs 13.6 tok/s), because draft-verify steps run the MMA kernel, which
    had no skip. Each kernel path needs its own skip at the page's own granularity (D06, D10, D17).
@@ -73,7 +74,7 @@ Experiment entries: `EXPERIMENTS.md`; machine-readable: `runs.jsonl` (with `gpu_
 ## Open
 
 - D02: the -16 % of a second slot.
-- D18: the 4070 gates and the 2060 run (P110: P107 on `8d5b862fc`, margin 475); then the launcher counts the sparse
+- D18: 4070 gates passed; the 2060 run (P110: P107 on `3299a0b4b`, margin 475); then the launcher counts the sparse
   fixed cost (host cells x 1 KiB x 64 / page + 36 MiB) and the 160k follow-up prefill is checked again.
 - D16: a depth threshold for sparse (it costs 16 % at 64k on the 2060).
 - D11 retry: whole-context selection at page 64, B = 16384 (`root-sparse10`).

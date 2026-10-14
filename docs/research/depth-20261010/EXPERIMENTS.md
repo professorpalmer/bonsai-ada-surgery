@@ -289,6 +289,24 @@ VRAM line 43,520 (f16 mask), host tail ~197k cells, graphs off.
 - **Gate (declared before the run, `D18-plan.json`).** `FLASH_ATTN_EXT` op tests all pass; `sparse_edit` track arm
   0 stale ops with `CHECK` (cached bounds vs a full recompute); 160k on the 8 GB-like layout copies 10/10 and needles
   12/12, decode within 3 % of `root-sparse11`; peak VRAM lower than `root-sparse11` in the same arm.
-- **Result.** Pending (4070 queue job `d18_sparse_vram.sh`; 2060 run P110 requested on #21 with
-  `BONSAI_VRAM_MARGIN=475`).
+- **Result (2026-10-13 18:12-18:59, RTX 4070, Afterburner profile on).**
+
+  | gate | `root-sparse11` (before) | `root-sparse12` (`8d5b862fc`) |
+  | --- | --- | --- |
+  | `FLASH_ATTN_EXT` op tests | | 3005/3005 |
+  | `sparse_edit` 160k, stale ops (base / edit / again) | | track 0 / 0 / 0; notrack control 0 / 192 / 192 |
+  | 160k exact copies / needles | 10/10, 12/12 | 10/10, 12/12 |
+  | peak `memory.used` (8 GB-like layout, line 32,768) | 9,747 MiB | **9,356 MiB (-391 MiB)** |
+  | mean decode (code / prose / bash) | 25.5 (29.3 / 20.4 / 26.9) | 27.6 (31.6 / 22.0 / 29.0) |
+  | cold prefill 159k | 545.6 | 581.4 |
+
+  The memory drop matches the analysis at this depth (host tail 126,720 cells: tables 256 -> 128 MiB, first fill
+  248 -> 32 MiB; ~344 MiB expected). Speed: the new arm is faster in decode (+8 %) but also in cold prefill (+6.6 %),
+  which never runs the sparse path, so the arms differ by run-to-run spread of that size and no speed change is
+  claimed. The new arm's 27.6 equals D10's 27.6.
+- **Verdict.** Pass: exact selection, no stale bounds, quality equal, 391 MiB less VRAM, no slowdown. Kept on
+  `fa-sparse-proto`. The 8 GB effect at 245k is the 2060 run P110 (`3299a0b4b` = this + `GGML_CUDA_FA_SPARSE_MIN_HOST`,
+  margin 475).
+- **Receipts.** `docs/receipts/sparse_vram_d18.log`, `docs/receipts/sparse_edit.log` (18:13 block),
+  `docs/receipts/sparse_prefill.log` and `.jsonl` (18:26 and 18:43 blocks), `logs/d18_vram_root-sparse1{1,2}.csv`.
 
