@@ -5,6 +5,10 @@ for every request (the server reuses the cached prompt). Measures what sparse re
 (GGML_CUDA_FA_SPARSE) costs on code, against the dense cache. Light on RAM (no logits kept).
 
 python bench/code_needle.py --base http://127.0.0.1:8080 --key-file artifacts/api_key.txt --depth 160000 --n 10 --tag dense
+
+--only FN runs only the target named FN (same target choice). --span prints each target's KV cell span (token
+positions of its source in the prompt, from /tokenize plus the chat template's prefix) and exits without generating:
+the input for GGML_CUDA_FA_SPARSE_TRACE=a,b.
 """
 import argparse, ast, json, os, re, sys, time, urllib.request
 
@@ -33,6 +37,8 @@ def main():
     ap.add_argument("--n", type=int, default=10)
     ap.add_argument("--tag", default="")
     ap.add_argument("--out", default="")
+    ap.add_argument("--only", default="")
+    ap.add_argument("--span", action="store_true")
     a = ap.parse_args()
     key = open(a.key_file).read().strip()
     text = open(CORPUS, encoding="utf-8").read()
@@ -73,6 +79,20 @@ def main():
         offset += len(block)
     cands = [c for c in cands if seen[c["fn"]] == 1]
     targets = [min(cands, key=lambda c: abs(c["pos"] - len(ctx) * (k + 0.5) / a.n)) for k in range(a.n)]
+    if a.only:
+        targets = [t for t in targets if t["fn"] == a.only]
+    if a.span:
+        head = "Python source files:\n\n"
+        # tokens the chat template puts before the user text: prompt_n of the bare head minus its own tokens
+        r, _ = post(a.base, key, {"messages": [{"role": "user", "content": head}], "max_tokens": 1,
+                                  "chat_template_kwargs": {"enable_thinking": False}})
+        lead = r.get("timings", {}).get("prompt_n", 0) - n_tokens(a.base, key, head)
+        for t in targets:
+            c0 = lead + n_tokens(a.base, key, head + ctx[:t["pos"]])
+            c1 = lead + n_tokens(a.base, key, head + ctx[:t["pos"] + len(t["code"])])
+            print(json.dumps({"fn": t["fn"], "file": t["file"], "position_frac": round(t["pos"] / len(ctx), 3),
+                              "cells": [c0, c1], "lead": lead}), flush=True)
+        return
     ok = 0
     for t in targets:
         q = (f"From the file `{t['file']}` above, output the exact source code of the function `{t['fn']}`, "
