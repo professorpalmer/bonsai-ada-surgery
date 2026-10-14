@@ -449,3 +449,27 @@ VRAM line 43,520 (f16 mask), host tail ~197k cells, graphs off.
   D23. A per-layer budget (more pages in layers 0-1 and 13-15) is a possible later gain.
 - **Receipts.** `docs/receipts/sparse_trace_d24.log`.
 
+## D25 Per-layer sparse budget (2026-10-14 11:02-12:09)
+
+- **Question.** Can a per-layer budget (outer attention layers x2, middle x0.75, after the D24 trace) keep exact copies
+  at a lower total than the uniform floor 12288, and win back the floor's 160k decode cost?
+- **Gate.** `plans/D25-plan.json` (committed before the run, PR #70).
+- **Setup.** `sparse-d25` `eaa72d38a` (`product-0055` + `GGML_CUDA_FA_SPARSE_LAYERS`), root `root-psparse-d25`, floor 8192
+  + FRAC 1/16, `LAYERS=0-7:2,52-63:2,8-51:0.75` (mean 1.14x: about 9.3k / 11.9k / 15.2k cells at 160k / 200k / 245k),
+  graphs on, packed mask on, line 32,768, stock memory clock, driver 610.88. `bench/sparse_prefill_n.sh`.
+- **Result.**
+
+  | depth | items | copies | needles | mean decode | reference |
+  | ---: | --- | ---: | ---: | ---: | --- |
+  | 160k | 10 | 10/10 | 12/12 | **26.0** | floor 12288: 24.1 (R05b) |
+  | 200k | the R04c 20-item set | **19/20** | **11/12** | 22.0 | dense 20/20, 12/12; floor 12288 20/20, 12/12 |
+  | 245k | the R04 10-item set | 10/10 | 12/12 | 19.8 | dense 10/10, 12/12 |
+
+  The 200k misses: `_pydecimal.py` `_convert_other` (position 0.52) and needle 7 (position 0.54), both in the middle
+  of the context. Layer 3 kept 256 / 319-325 / 387-413 pages at 160k / 200k / 245k (the x2 outer budget engaged).
+- **Verdict.** Fail at 200k (below dense on copies and needles). Cutting the middle layers to 0.75x loses mid-context
+  items, so the D24 reading (the outer layers rank the target low) is not the whole story: the middle layers also
+  carry mid-context retrieval. 0055 keeps the uniform floor 12288. Possible next forms: outer x2 with the middle at
+  x1 (a higher total), or a budget that grows with depth only in the outer layers.
+- **Receipts.** `docs/receipts/sparse_layers_d25.log`, `sparse_prefill.log` + `.jsonl` (11:02, 11:17, 11:40 blocks).
+

@@ -1,0 +1,5 @@
+11:02 === D25 start: sparse-d25 eaa72d38a (0055 + per-layer budget, sm_89), LAYERS=0-7:2,52-63:2,8-51:0.75, mem clock 10501 MHz, driver 610.88
+11:17 depth 160000: per-layer engaged lines: 12; keeps by layer (first seen): L3,256 
+11:40 depth 200000: per-layer engaged lines: 17; keeps by layer (first seen): L3,319 L3,325 
+12:09 depth 245000: per-layer engaged lines: 13; keeps by layer (first seen): L3,387 L3,413 
+12:09 === D25 done
