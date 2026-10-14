@@ -277,6 +277,29 @@ to the integrated GPU in **Settings > System > Display > Graphics**.
 
 Past the VRAM line decode is bound by PCIe (4.0 x16 here, ~23 GB/s). PCIe 3.0 or x8 slots halve those rows.
 
+### Vision (images)
+
+The model reads images when the launcher loads PrismML's vision projector. It is **off by default**: without the
+projector the server has no image input, and it rejects a request that contains an image.
+
+1. Download `Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf` (600 MiB) from
+   [prism-ml/Ternary-Bonsai-2-27B-gguf](https://huggingface.co/prism-ml/Ternary-Bonsai-2-27B-gguf) into `models\`.
+2. Start the launcher with it:
+
+   ```powershell
+   $env:BONSAI_MMPROJ = 'Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf'
+   .\start-server.ps1
+   ```
+
+   The launcher prints a `vision` line. Send images as OpenAI `image_url` content parts with a base64 data URL (the tested form).
+
+- **Default: the image encoder runs on the CPU.** It uses no VRAM and does not change text speed; a small test image
+  took 1.3 s (`docs/receipts/vision_probe.log`). This is the right setting for 8 GB cards.
+- **`BONSAI_MMPROJ_GPU=1`** puts the encoder on the card (1.0 s for the same image). The launcher then gives up the
+  projector's size from the VRAM line, so fewer positions fit in VRAM.
+- The Q8_0 projector is the tested one. `LLAMA_ARG_MMPROJ` works too.
+LAYERLINE
+
 ## Quality: the recipe matters as much as the kernels
 
 ![HumanEval 164 by client setup: Killy's plates vs this server](docs/img/killy.png)
