@@ -17,3 +17,9 @@
 02:09 Q05b misses: _pydecimal.py _convert_other;
 02:09 Q05b decode: sparse-decode mean decode 27.4 tok/s
 02:09 Q05b result (from sparse_prefill.jsonl): copies 9/10 (miss: _pydecimal.py _convert_other, the same item the q8_0 sparse arms of D22 miss), needles 12/12, mean decode 27.4 tok/s at the stock clock. q3_0 adds no loss of its own; the miss is the sparse selection at 245k (D22c / D23).
+2026-10-14 13:41 === Q07: q3_0 vs q4_0, sparse 12288 floor, root-q3-55 (q3-on-0055 7c7b47e156 (product-0055 + q3_0), sm_89 build-q3; launcher #49 3035572); memory clock under load 11751 MHz; driver 610.88
+2026-10-14 14:01 Q07 200000 q4_0: sparse-decode mean decode 30.7 tok/s {"tag": "sparse-decode", "depth": 200000, "correct": 20, "of": 20} {"tag": "sparse-decode", "depth": 200000, "correct": 12, "of": 12}  misses: none
+2026-10-14 14:22 Q07 200000 q3_0: sparse-decode mean decode 31.8 tok/s {"tag": "sparse-decode", "depth": 200000, "correct": 20, "of": 20} {"tag": "sparse-decode", "depth": 200000, "correct": 12, "of": 12}  misses: none
+2026-10-14 14:48 Q07 245000 q4_0: sparse-decode mean decode 26.7 tok/s {"tag": "sparse-decode", "depth": 245000, "correct": 10, "of": 10} {"tag": "sparse-decode", "depth": 245000, "correct": 12, "of": 12}  misses: none
+2026-10-14 15:14 Q07 245000 q3_0: sparse-decode mean decode 28.1 tok/s {"tag": "sparse-decode", "depth": 245000, "correct": 10, "of": 10} {"tag": "sparse-decode", "depth": 245000, "correct": 12, "of": 12}  misses: none
+2026-10-14 15:14 === Q07 done

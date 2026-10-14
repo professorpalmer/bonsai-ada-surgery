@@ -6,6 +6,8 @@
 - On the 4070, every q3_0 gate passes on the sparse base with int8 bounds (`4dbfe57d4`): op tests with q3_0 cases
   (Q03), perplexity +0.58 % vs q4_0 (Q04), sparse + q3_0 copies 10/10 and needles 12/12 at 160k (Q05). The 2060
   set (Q06) is asked for.
+- On the 0055 candidate (`q3-on-0055` `7c7b47e156`), q3_0 with sparse on equals q4_0 on 20 items at 200k and 10 at 245k,
+  +3.6 / +5.2 % decode at the same line (Q07).
 
 ## Decisions
 

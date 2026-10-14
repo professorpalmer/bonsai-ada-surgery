@@ -55,6 +55,25 @@ Format per entry: **question**, **gate**, **setup**, **result**, **verdict**, **
   type and clock), but it shows the smaller host tail.
 - **Verdict.** Pass.
 
+## Q07 q3_0 on the 0055 candidate vs q4_0, sparse on (2026-10-14 13:41-15:14)
+
+- **Gate.** In `README.md`, written 13:45 before the run.
+- **Setup.** `q3-on-0055` `7c7b47e156` (= `product-0055` + q3_0, a clean pick), root-q3-55 (root-0055 + these sm_89 bins),
+  line pinned at 32,768, sparse `12288,64,1024` (the 0055 opt-in rule), graphs on, packed mask on,
+  `bench/q3_q07.sh` (`bench/sparse_prefill_n.sh`), memory clock 11751 MHz under load, driver 610.88.
+- **Result.**
+
+  | depth | items | K/V | copies | needles | mean decode |
+  | ---: | --- | --- | ---: | ---: | ---: |
+  | 200k | 20 | q4_0 | 20/20 | 12/12 | 30.7 |
+  | 200k | 20 | q3_0 | 20/20 | 12/12 | **31.8** (+3.6 %) |
+  | 245k | 10 | q4_0 | 10/10 | 12/12 | 26.7 |
+  | 245k | 10 | q3_0 | 10/10 | 12/12 | **28.1** (+5.2 %) |
+
+- **Verdict.** Pass. q3_0 equals q4_0 on every item with sparse on, and decodes faster at the same pinned line (fewer
+  bytes per host row). On an 8 GB card the larger win is the line itself (1.31x more positions in VRAM, P114); the 2060's
+  P129-P132 measure that on this build.
+
 ## Q06 2060 set
 
 - **Status.** Asked on #21 (2026-10-14 01:15): P108 / P114 / P117 on `4dbfe57d4` for `75-real`.
