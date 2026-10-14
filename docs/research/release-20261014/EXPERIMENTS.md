@@ -92,8 +92,31 @@ the 00:31 Windows-update reboot). Every A/B is inside one session.
 - Same session: dense 14.4 tok/s, 10/10, 12/12; sparse floor 12288: **24.1** tok/s, 10/10, 12/12 = **1.67x**. **Pass**
   under the amended 1.5x gate (written before R05b). The floor's cost at 160k: 27.0 (B 8192, R05) -> 24.1 (-11 %).
 
+## R06 RTX 2060 SUPER release check (2026-10-14, P135 + P136, by the 8 GB tester)
+
+- RC `4de618549` + #49 `3035572`, driver 610.88, `75-real` build. Op tests pass.
+- P135 (speed, memory): 160k 10.6 -> 17.5 tok/s (1.65x), 245k 6.3 -> 13.7 (2.17x); prefill equal; minimum free 153 MiB
+  at 245k with the 64 MiB headroom (gate >= 60); VRAM line 61,696 -> 52,224 ("167 MiB of page bounds counted");
+  0 one-token answers.
+- P136 (quality, the rig's own item set): sparse equal to dense at 160k, 200k and 245k (10/10 copies, 12/12 needles in
+  every arm).
+- **Verdict.** Pass. Post-zip checks (SHA, op tests, bin hashes, default-off A/B vs bundle-20261013, fresh 60k,
+  HumanEval on the bundle bins) follow on #21.
+
+## R07 Publish (2026-10-14 14:40-15:05)
+
+- PRs: #56 (0055, `c471b32cd`) and #49 (launcher, rebased onto #75, `35b89560d`) merged by the kernel session; #77 README
+  upgrade note + the 55-commit layout row -> release commit `bfae9143`; #78 Hugging Face card.
+- Zip: the bundle-20261013 layout; engine bins from the release build (`LLAMA_COMMIT 4de6185494`, sm 75 / 86 / 89),
+  byte-identical to the gated `/tmp/root-0055/bin`; every other file from `git archive bfae9143`. 9 entries changed
+  against bundle-20261013 (README, the launcher, 7 engine files). 611,390,390 bytes, SHA-256
+  `c91dfc98f82c74db93370568e47210d2e6c98c2907ed7aef872ba3bf5ab24cd0`.
+- GitHub release `bundle-20261014` and Hugging Face (`c0a84f8` zip, `58d253b` card): the digest / LFS oid match on
+  both. The bins are installed in the product `bin/` (bundle-20261013 kept in `bin-20261013/`).
+- **Verdict.** Published.
+
 ## Status
 
-- 4070 gates R01-R05: all pass (with the two declared amendments). R06 on the 2060: P135 pass (160k 1.65x, 245k 2.17x,
-  min free 153 MiB); P136 (copies and needles vs dense) pending. Then #56 + #49 merge and R07 (publish).
+- Published as bundle-20261014. Open: the tester's post-zip checks; D26 (sparse without the line cost) stays open after
+  D26a / D26c / D26e; sparse stays opt-in.
 
