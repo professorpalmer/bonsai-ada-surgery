@@ -6,7 +6,14 @@ Read `REPORT.md` first (when it exists); one entry per step in `EXPERIMENTS.md`.
 
 ## Gates (written here before the runs, 2026-10-14 03:15)
 
-The default switches are decided by D23 (per-head normalized page ranking at B 8192) and D24 (page-rank trace):
+**Decision 2026-10-14 07:20 (after P127, #21): sparse is opt-in for 0055 (`BONSAI_SPARSE=1`, launcher #49 `d927d6b`).**
+With the page-bound reserve the VRAM line moves down and 64k decode is about 8 % slower on 8 GB (P127, int8 bounds),
+so default-on missed the 5 % rule. Default off = no reserve and no change below the line; the deep sessions opt in
+(1.9x at 160k, 2.3x at 245k, R05). A reserve without a line cost is D26 (next bundle). R04 / R05 below forced sparse
+on by environment, which is the opt-in path, so they stand; R06 on the 2060 runs the default-off check plus the
+`BONSAI_SPARSE=1` deep arms.
+
+The budget rule inside sparse was decided by D23 (per-head normalized page ranking at B 8192) and D24 (page-rank trace):
 NORM on if D23 passes at 245k, else the budget fraction (`GGML_CUDA_FA_SPARSE_FRAC=0.0625`, B = max(8192, host tail /
 16)). Every gate runs on the bundle's own binaries with the default switches of the bundle's launcher.
 
