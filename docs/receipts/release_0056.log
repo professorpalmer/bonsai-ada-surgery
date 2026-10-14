@@ -1,0 +1,39 @@
+2026-10-14 16:24 === release gates 0056/0057 (product-0056 b86298dba9 (0055 + 0056 q3_0 + 0057 packed-half dequant), sm 75/86/89 release build; launcher main 07538d1 (#83 q3_0 cell size)); memory clock under load 11751 MHz; driver 610.88
+2026-10-14 16:27 S01 op test FLASH_ATTN_EXT:  3115/3115 tests passed 0 FAIL lines
+2026-10-14 16:27 S01 op test GATED_DELTA_NET:  55/55 tests passed 0 FAIL lines
+2026-10-14 16:27 S01 op test SET_ROWS:  177/177 tests passed 0 FAIL lines
+2026-10-14 16:27 S01 op test CPY:  259/259 tests passed 0 FAIL lines
+2026-10-14 16:27 S01 op test GET_ROWS:  123/123 tests passed 0 FAIL lines
+S02 HumanEval b0056: 158/164; answers identical to bundle-20261014 (b0055): 164/164; 0xC0000142 test failures: 0
+17:24 === depth arms rel0056: depths 4000 32000 128000 (bench/arms/release_0056.txt)
+17:24 arm b1014 (C:/Users/pwall/Projects/bonsai-2-27b-serve; ): health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margi
+b1014 code   depth   4000 (evaluated 4048): prefill  1278.8 tok/s  ttft   3.17s  decode  104.6 tok/s (400 tok)
+b1014 prose  depth   4000 (evaluated 512): prefill   961.9 tok/s  ttft   0.53s  decode   86.4 tok/s (400 tok)
+b1014 bash   depth   4000 (evaluated 516): prefill   986.2 tok/s  ttft   0.52s  decode   95.3 tok/s (400 tok)
+b1014 mean decode 95.4 tok/s
+b1014 code   depth  32000 (evaluated 28512): prefill  1084.9 tok/s  ttft  26.28s  decode  120.6 tok/s (400 tok)
+b1014 prose  depth  32000 (evaluated 512): prefill   719.8 tok/s  ttft   0.71s  decode   78.3 tok/s (400 tok)
+b1014 bash   depth  32000 (evaluated 516): prefill   720.6 tok/s  ttft   0.72s  decode  106.3 tok/s (400 tok)
+b1014 mean decode 101.7 tok/s
+b1014 code   depth 128000 (evaluated 95812): prefill   607.7 tok/s  ttft 157.66s  decode   80.8 tok/s (400 tok)
+b1014 prose  depth 128000 (evaluated 512): prefill   396.2 tok/s  ttft   1.29s  decode   60.7 tok/s (400 tok)
+b1014 bash   depth 128000 (evaluated 516): prefill   396.0 tok/s  ttft   1.30s  decode   81.5 tok/s (400 tok)
+b1014 mean decode 74.3 tok/s
+17:28 b1014: 'one sync per K write' warnings: 0
+17:28 arm b0056 (C:\Users\pwall\AppData\Local\Temp\root-0056; ): health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margi
+b0056 code   depth   4000 (evaluated 4048): prefill  1285.0 tok/s  ttft   3.15s  decode  106.2 tok/s (400 tok)
+b0056 prose  depth   4000 (evaluated 512): prefill   996.2 tok/s  ttft   0.51s  decode   87.5 tok/s (400 tok)
+b0056 bash   depth   4000 (evaluated 516): prefill  1000.7 tok/s  ttft   0.52s  decode   95.8 tok/s (400 tok)
+b0056 mean decode 96.5 tok/s
+b0056 code   depth  32000 (evaluated 28512): prefill  1084.9 tok/s  ttft  26.28s  decode  121.3 tok/s (400 tok)
+b0056 prose  depth  32000 (evaluated 512): prefill   718.6 tok/s  ttft   0.71s  decode   78.8 tok/s (400 tok)
+b0056 bash   depth  32000 (evaluated 516): prefill   724.5 tok/s  ttft   0.71s  decode  106.8 tok/s (400 tok)
+b0056 mean decode 102.3 tok/s
+b0056 code   depth 128000 (evaluated 95812): prefill   611.3 tok/s  ttft 156.73s  decode   80.7 tok/s (400 tok)
+b0056 prose  depth 128000 (evaluated 512): prefill   394.9 tok/s  ttft   1.30s  decode   61.1 tok/s (400 tok)
+b0056 bash   depth 128000 (evaluated 516): prefill   399.7 tok/s  ttft   1.29s  decode   82.1 tok/s (400 tok)
+b0056 mean decode 74.7 tok/s
+17:32 b0056: 'one sync per K write' warnings: 0
+17:32 === rel0056 done
+2026-10-14 17:32 S03 done (depth_arms rel0056 lines above)
+2026-10-14 17:32 === gates done
