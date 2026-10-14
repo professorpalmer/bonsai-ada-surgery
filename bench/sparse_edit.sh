@@ -11,8 +11,11 @@ rm -f logs/ramguard.stop
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/ramguard.ps1 -Names llama-server -StopFile logs/ramguard.stop &
 GUARD=$!
 trap 'touch logs/ramguard.stop; wait $GUARD 2>/dev/null; powershell -NoProfile -ExecutionPolicy Bypass -File bench/stop_serve.ps1 >/dev/null 2>&1' EXIT
-BASE="GGML_CUDA_DISABLE_GRAPHS=1 LLAMA_ARG_KQ_MASK_PACKED=0 GGML_CUDA_FA_SPARSE=$SP GGML_CUDA_FA_SPARSE_FAST=1 GGML_CUDA_KV_TIER_STAGE_MIN_Q=9 GGML_CUDA_FA_SPARSE_CHECK=1"
-say "=== sparse edit: depth $DEPTH, sparse $SP, root $ROOT"
+# GRAPHS=on keeps CUDA graphs (an engine with patch 0053 turns them off per graph past the line); PACKED=1 keeps the
+# packed KQ mask (decode ops up to 31 queries get an f16 mask either way). Defaults: graphs off, f16 mask.
+GR=$([ "${GRAPHS:-off}" = on ] || echo GGML_CUDA_DISABLE_GRAPHS=1); PK=$([ "${PACKED:-0}" = 1 ] || echo LLAMA_ARG_KQ_MASK_PACKED=0)
+BASE="$GR $PK GGML_CUDA_FA_SPARSE=$SP GGML_CUDA_FA_SPARSE_FAST=1 GGML_CUDA_KV_TIER_STAGE_MIN_Q=9 GGML_CUDA_FA_SPARSE_CHECK=1"
+say "=== sparse edit: depth $DEPTH, sparse $SP, graphs ${GRAPHS:-off}, packed ${PACKED:-0}, root $ROOT"
 for A in "track|" "notrack|GGML_CUDA_FA_SPARSE_NOTRACK=1"; do
   NAME=${A%%|*}; ENVS=${A#*|}
   powershell -NoProfile -ExecutionPolicy Bypass -File bench/stop_serve.ps1 >/dev/null 2>&1; sleep 4

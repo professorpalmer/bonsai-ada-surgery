@@ -12,9 +12,12 @@ rm -f logs/ramguard.stop
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/ramguard.ps1 -Names llama-server -StopFile logs/ramguard.stop &
 GUARD=$!
 trap 'touch logs/ramguard.stop; wait $GUARD 2>/dev/null; powershell -NoProfile -ExecutionPolicy Bypass -File bench/stop_serve.ps1 >/dev/null 2>&1' EXIT
-BASE="BONSAI_KV_VRAM_CELLS=32768 LLAMA_ARG_KQ_MASK_PACKED=0 GGML_CUDA_DISABLE_GRAPHS=1"
+# GRAPHS=on keeps CUDA graphs (an engine with patch 0053 turns them off per graph past the line); PACKED=1 keeps the
+# packed KQ mask (decode ops up to 31 queries get an f16 mask either way). Defaults: graphs off, f16 mask.
+GR=$([ "${GRAPHS:-off}" = on ] || echo GGML_CUDA_DISABLE_GRAPHS=1); PK=$([ "${PACKED:-0}" = 1 ] || echo LLAMA_ARG_KQ_MASK_PACKED=0)
+BASE="BONSAI_KV_VRAM_CELLS=32768 $PK $GR"
 SPARSE_ENV="GGML_CUDA_FA_SPARSE=$SP GGML_CUDA_FA_SPARSE_FAST=1 GGML_CUDA_KV_TIER_STAGE_MIN_Q=9"
-say "=== sparse prefill: depth $DEPTH, sparse $SP, root $ROOT"
+say "=== sparse prefill: depth $DEPTH, sparse $SP, graphs ${GRAPHS:-off}, packed ${PACKED:-0}, root $ROOT"
 for A in "dense|" "sparse-decode|$SPARSE_ENV" "sparse-prefill|$SPARSE_ENV GGML_CUDA_FA_SPARSE_MAXQ=4096 GGML_CUDA_FA_TILE_SKIP=1"; do
   NAME=${A%%|*}; ENVS=${A#*|}
   [[ " ${ARMS:-dense sparse-decode sparse-prefill} " == *" $NAME "* ]] || continue
