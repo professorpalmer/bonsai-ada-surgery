@@ -1,0 +1,6 @@
+18:12 === D18 start
+18:13 op test:   3005/3005 tests passed 0 FAIL lines
+18:26 sparse_edit done (see docs/receipts/sparse_edit.log)
+18:43 root-sparse11: peak used 9747 MiB, min free 2264 MiB
+18:59 root-sparse12: peak used 9356 MiB, min free 2655 MiB
+18:59 === D18 done
