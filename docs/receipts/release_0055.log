@@ -1,0 +1,43 @@
+2026-10-14 04:11 === release gates 0055 (product-0055 4de6185494, FRAC 1/16 default; launcher #49 8a47ffe), root /tmp/root-0055
+2026-10-14 04:11 memory clock under load: 10251 MHz, P2
+2026-10-14 04:12 R01 op test FLASH_ATTN_EXT:  3005/3005 tests passed 0 FAIL lines
+2026-10-14 04:12 R01 op test GATED_DELTA_NET:  55/55 tests passed 0 FAIL lines
+R02 HumanEval b0055: 158/164; answers identical to bundle-20261013 (b0054): 164/164; 0xC0000142 test failures: 0
+05:11 === depth arms rel0055: depths 4000 32000 128000 (bench/arms/release_0055.txt)
+05:12 arm b1013 (C:/Users/pwall/Projects/bonsai-2-27b-serve; ): health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margi
+b1013 code   depth   4000 (evaluated 4048): prefill  1264.0 tok/s  ttft   3.20s  decode   99.5 tok/s (400 tok)
+b1013 prose  depth   4000 (evaluated 512): prefill   977.7 tok/s  ttft   0.52s  decode   81.2 tok/s (400 tok)
+b1013 bash   depth   4000 (evaluated 516): prefill   977.5 tok/s  ttft   0.53s  decode   88.5 tok/s (400 tok)
+b1013 mean decode 89.8 tok/s
+b1013 code   depth  32000 (evaluated 28512): prefill  1065.2 tok/s  ttft  26.77s  decode  114.9 tok/s (400 tok)
+b1013 prose  depth  32000 (evaluated 512): prefill   711.2 tok/s  ttft   0.72s  decode   74.8 tok/s (400 tok)
+b1013 bash   depth  32000 (evaluated 516): prefill   714.2 tok/s  ttft   0.72s  decode  101.4 tok/s (400 tok)
+b1013 mean decode 97.0 tok/s
+b1013 code   depth 128000 (evaluated 95812): prefill   593.3 tok/s  ttft 161.49s  decode   75.9 tok/s (400 tok)
+b1013 prose  depth 128000 (evaluated 512): prefill   385.3 tok/s  ttft   1.33s  decode   57.0 tok/s (400 tok)
+b1013 bash   depth 128000 (evaluated 516): prefill   390.1 tok/s  ttft   1.32s  decode   77.3 tok/s (400 tok)
+b1013 mean decode 70.1 tok/s
+05:16 b1013: 'one sync per K write' warnings: 0
+05:16 arm b0055 (C:\Users\pwall\AppData\Local\Temp\root-0055; ): health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margi
+b0055 code   depth   4000 (evaluated 4048): prefill  1260.9 tok/s  ttft   3.21s  decode   98.5 tok/s (400 tok)
+b0055 prose  depth   4000 (evaluated 512): prefill   959.9 tok/s  ttft   0.53s  decode   81.2 tok/s (400 tok)
+b0055 bash   depth   4000 (evaluated 516): prefill   977.1 tok/s  ttft   0.53s  decode   89.0 tok/s (400 tok)
+b0055 mean decode 89.6 tok/s
+b0055 code   depth  32000 (evaluated 28512): prefill  1070.2 tok/s  ttft  26.64s  decode  114.1 tok/s (400 tok)
+b0055 prose  depth  32000 (evaluated 512): prefill   709.1 tok/s  ttft   0.72s  decode   73.9 tok/s (400 tok)
+b0055 bash   depth  32000 (evaluated 516): prefill   714.8 tok/s  ttft   0.72s  decode  100.5 tok/s (400 tok)
+b0055 mean decode 96.2 tok/s
+b0055 code   depth 128000 (evaluated 95812): prefill   599.2 tok/s  ttft 159.91s  decode   76.0 tok/s (400 tok)
+b0055 prose  depth 128000 (evaluated 512): prefill   389.2 tok/s  ttft   1.32s  decode   56.6 tok/s (400 tok)
+b0055 bash   depth 128000 (evaluated 516): prefill   393.2 tok/s  ttft   1.31s  decode   76.6 tok/s (400 tok)
+b0055 mean decode 69.7 tok/s
+05:20 b0055: 'one sync per K write' warnings: 0
+05:20 === rel0055 done
+2026-10-14 05:20 R03 done (depth_arms rel0055 lines above)
+2026-10-14 05:53 R04/R05 depth 160000: dense mean decode 14.4 tok/s {"tag": "dense", "depth": 160000, "correct": 10, "of": 10} {"tag": "dense", "depth": 160000, "correct": 12, "of": 12} sparse-decode mean decode 27.0 tok/s {"tag": "sparse-decode", "depth": 160000, "correct": 10, "of": 10} {"tag": "sparse-decode", "depth": 160000, "correct": 12, "of": 12} 
+2026-10-14 06:47 NOTE: the NVIDIA driver on this PC is 610.88 (Windows Update overnight; 591.86 before). All R01-R05 arms ran on 610.88, A/B inside the same session. Comparisons with runs before the 00:31 reboot (D21, D22) cross a driver change.
+2026-10-14 06:53 R04/R05 depth 245000: dense mean decode 8.8 tok/s {"tag": "dense", "depth": 245000, "correct": 10, "of": 10} {"tag": "dense", "depth": 245000, "correct": 12, "of": 12} sparse-decode mean decode 20.4 tok/s {"tag": "sparse-decode", "depth": 245000, "correct": 10, "of": 10} {"tag": "sparse-decode", "depth": 245000, "correct": 12, "of": 12} 
+2026-10-14 07:13 NOTE: sparse is opt-in for 0055 (BONSAI_SPARSE=1; decision on #21 after P127: -8 % at 64k with the line reserve). /tmp/root-0055/start-server.ps1 replaced with #49 d927d6b for the remaining steps. R04/R05 forced sparse on by env (the opt-in path), so they stand.
+2026-10-14 07:15 R04 depth 200000: sparse-decode mean decode 22.9 tok/s {"tag": "sparse-decode", "depth": 200000, "correct": 9, "of": 10} {"tag": "sparse-decode", "depth": 200000, "correct": 12, "of": 12} 
+2026-10-14 07:15 === gates done
+2026-10-14 07:15 === VRAM trace at 245k for #49 headroom (root-0055, line 32768, 1 s samples)
