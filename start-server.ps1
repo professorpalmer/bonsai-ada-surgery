@@ -254,6 +254,25 @@ if ($Spec -gt 0) {
     }
 }
 
+# Sparse host-tail reads (patch 0055): a decode attention op past the VRAM line reads only the host pages whose bounds
+# score highest (B cells in pages of P, plus the last R cells) instead of the whole host tail. RTX 2060 SUPER, 262k
+# (#21): 160k 9.1 -> 19.6 tok/s, 245k 5.3 -> 14.2; exact copies and needles equal to dense. On by default on 8 GB with
+# an engine that has it; BONSAI_SPARSE=0 turns it off. Below GGML_CUDA_FA_SPARSE_MIN_HOST host cells an op is the dense
+# op. The page-bound tables take VRAM (1 KiB per host cell at page 64, plus 36 MiB): counted in the line below.
+$SparsePage = 0
+if ($Small -and $env:BONSAI_SPARSE -ne '0' -and -not $env:GGML_CUDA_FA_SPARSE -and $CudaDll.Contains('GGML_CUDA_FA_SPARSE_MIN_HOST')) {
+    $env:GGML_CUDA_FA_SPARSE = '8192,64,1024'
+    if (-not $env:GGML_CUDA_FA_SPARSE_FAST) { $env:GGML_CUDA_FA_SPARSE_FAST = '1' }
+    if (-not $env:GGML_CUDA_KV_TIER_STAGE_MIN_Q) { $env:GGML_CUDA_KV_TIER_STAGE_MIN_Q = '9' }
+    if (-not $env:GGML_CUDA_FA_SPARSE_MIN_HOST) { $env:GGML_CUDA_FA_SPARSE_MIN_HOST = '32768' }
+}
+if ($env:GGML_CUDA_FA_SPARSE) {
+    $SparseParts = $env:GGML_CUDA_FA_SPARSE -split ','
+    if ([int]$SparseParts[0] -gt 0) { $SparsePage = if ($SparseParts.Count -gt 1 -and [int]$SparseParts[1] -gt 0) { [int]$SparseParts[1] } else { 64 } }
+}
+# bytes of page bounds per host cell: 16 attention layers x max+min x 4 KV heads x 256 dims x f16, per page of P cells
+$SparseCellBytes = if ($SparsePage) { 16 * 2 * 4 * 256 * 2 / $SparsePage } else { 0 }
+
 # ---- Tiered KV sizing -----------------------------------------------------------------------------------
 # Bytes per KV cell for Bonsai 2 27B: 16 attention layers x K+V x 4 heads x 256 dims; the draft (MTP) layer
 # and the per-layer VRAM staging buffer are 1/16 of that.
@@ -293,22 +312,24 @@ if ($Tier) {
             $MaskMiB = if ($Packed) { $Ctx * $Ubatch / 8 / 1MB } else { $Ctx * $Ubatch * 2 / 1MB }
             $FixedMiB += $MaskMiB - 131072 * $Ubatch * 2 / 1MB - $PoolMiB
         }
+        if ($SparsePage) { $FixedMiB += 36 }   # first-fill buffer and table headroom of the sparse path
         # Partial staging (patch 0047): only the first BONSAI_STAGE_CELLS host positions get a VRAM staging buffer, so it
         # does not grow with the window; host rows past them are read in place (prefill there is slower: 262k on the RTX
         # 2060 SUPER, 59 tok/s at 160k against 99 at 128k). 8 GB cards; default 81920 (prefill as fast as 131k to ~140k).
         $StageCells = if ($env:BONSAI_STAGE_CELLS) { [int]$env:BONSAI_STAGE_CELLS } else { 81920 }
         $Partial = $false
         if ($Small -and $CudaDll.Contains('GGML_CUDA_KV_TIER_STAGING_FRAC') -and $StageCells -gt 0) {
-            $Budget = ($FreeMiB - $Margin - $FixedMiB) * 1MB - $StageCells * $CellBytes / 16
-            $TierCells = [int]([math]::Floor($Budget / $CellBytes / 256) * 256)
+            # sparse: the page bounds of the host tail, (Ctx - N) x SparseCellBytes
+            $Budget = ($FreeMiB - $Margin - $FixedMiB) * 1MB - $StageCells * $CellBytes / 16 - $Ctx * $SparseCellBytes
+            $TierCells = [int]([math]::Floor($Budget / ($CellBytes - $SparseCellBytes) / 256) * 256)
             $Partial = $Ctx - $TierCells -gt $StageCells
         }
         if ($Partial) {
             $env:GGML_CUDA_KV_TIER_STAGING_FRAC = '{0:F6}' -f ($StageCells / $Ctx)
         } else {
             # KV head N*CellBytes plus the staging buffer (Ctx-N)*CellBytes/16 must fit in what is left
-            $Budget = ($FreeMiB - $Margin - $FixedMiB) * 1MB - $Ctx * $CellBytes / 16
-            $TierCells = [int]([math]::Floor($Budget / ($CellBytes * 15 / 16) / 256) * 256)
+            $Budget = ($FreeMiB - $Margin - $FixedMiB) * 1MB - $Ctx * $CellBytes / 16 - $Ctx * $SparseCellBytes
+            $TierCells = [int]([math]::Floor($Budget / ($CellBytes * 15 / 16 - $SparseCellBytes) / 256) * 256)
         }
     }
     if ($TierCells -ge $Ctx) {
@@ -391,6 +412,7 @@ if ($Small) { Write-Host "8gb    preset on ($TotalMiB MiB card; BONSAI_8GB=0 tur
 Write-Host "model  $(Split-Path $Model -Leaf)"
 Write-Host "window $Ctx / $Ctk  (trained max 262144)"
 if ($TierCells -gt 0) { Write-Host "kv     tiered: cells 0..$TierCells in VRAM, $TierCells..$Ctx in system RAM$(if ($Margin) { " (VRAM margin $Margin MiB)" })$(if ($PoolMiB) { "; shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off)" })$(if ($MaskSavedMiB) { "; packed KQ mask ($MaskSavedMiB MiB saved)" })" }
+if ($SparsePage -and $TierCells -gt 0) { Write-Host "kv     sparse host-tail reads: $($env:GGML_CUDA_FA_SPARSE) (B,P,R), from $(if ($env:GGML_CUDA_FA_SPARSE_MIN_HOST) { $env:GGML_CUDA_FA_SPARSE_MIN_HOST } else { 0 }) host cells on; $([int](($Ctx - $TierCells) * $SparseCellBytes / 1MB) + 36) MiB of page bounds counted$(if ($Small) { ' (BONSAI_SPARSE=0 turns it off)' })" }
 if ($env:GGML_CUDA_KV_TIER_STAGING_FRAC) { Write-Host "kv     staging buffer for cells $TierCells..$($TierCells + $StageCells); past that the system RAM rows are read in place$(if ($Packed) { '; packed KQ mask' })" }
 if ($Small -and $Has262 -and -not $Small262 -and -not $env:BONSAI_CTX -and $RamGiB -gt 0 -and $RamGiB -lt 24) { Write-Host "note   window 131k: the 262k window needs 24 GB of system RAM or more ($RamGiB GB here); BONSAI_CTX=262144 tries it" }
 if ($CkptNote) { Write-Host "ckpt   $CkptNote" }
