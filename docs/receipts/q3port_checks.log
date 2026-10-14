@@ -1,0 +1,14 @@
+00:20 === q3_0 port checks, root /c/Users/pwall/AppData/Local/Temp/root-q3 (LLAMA_COMMIT = "4dbfe57d4f")
+00:23 op test FLASH_ATTN_EXT:  3115/3115 tests passed 0 FAIL lines, 110 q3_0 lines
+00:23 op test SET_ROWS:  177/177 tests passed 0 FAIL lines, 14 q3_0 lines
+00:23 op test CPY:  259/259 tests passed 0 FAIL lines, 7 q3_0 lines
+00:23 op test GET_ROWS:  123/123 tests passed 0 FAIL lines, 4 q3_0 lines
+00:24 PPL K/V q8_0: Final estimate: PPL = 8.0733 +/- 0.11707
+00:25 PPL K/V q4_0: Final estimate: PPL = 8.0900 +/- 0.11733
+00:26 PPL K/V q3_0: Final estimate: PPL = 8.1366 +/- 0.11809
+00:26 sparse at 160k with q3_0 K/V follows (receipt lines in docs/receipts/sparse_prefill.log, the block after this time)
+00:55 NOTE: Windows-update reboot at 00:31 killed the first Q05 run; rerun now at the stock memory clock (10251 MHz under load)
+01:10 sparse q3_0: 
+01:10 decode: sparse-decode mean decode 33.1 tok/s
+01:10 launcher kv lines: kv     tiered: cells 0..32768 in VRAM, 32768..262144 in system RAM; shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off); packed KQ mask (240 MiB saved) kv     sparse host-tail reads: 8192,64,1024 (B,P,R), from 0 host
+01:10 === q3_0 checks done

@@ -143,3 +143,19 @@ sparse-decode mean decode 23.0 tok/s
 {"tag": "sparse-decode", "depth": 245000, "correct": 12, "of": 12}
 00:14 sparse-decode: 13 engaged lines; last: 28.04.738.994 W ggml_cuda_fa_sparse_mask: GGML_CUDA_FA_SPARSE B=8192 P=64 R=1024 fast: 12289 ops; this op 5 queries, host tail 211456 cells, keeps 128 of 3304 p
 00:14 === done
+00:26 === sparse prefill: depth 160000, sparse 8192,64,1024, graphs on, packed 1, root C:\Users\pwall\AppData\Local\Temp\root-q3
+00:26 arm sparse-decode (GGML_CUDA_FA_SPARSE=8192,64,1024 GGML_CUDA_FA_SPARSE_FAST=1 GGML_CUDA_KV_TIER_STAGE_MIN_Q=9): health=1; kv     tiered: cells 0..32768 in VRAM, 32768..262144 in system RAM; shared CUDA pool on (B
+kv     sparse host-tail reads: 8192,64,1024 (B,P,R), from 0 host cells on; 260 MiB of page
+00:55 === sparse prefill: depth 160000, sparse 8192,64,1024, graphs on, packed 1, root C:\Users\pwall\AppData\Local\Temp\root-q3
+00:56 arm sparse-decode (GGML_CUDA_FA_SPARSE=8192,64,1024 GGML_CUDA_FA_SPARSE_FAST=1 GGML_CUDA_KV_TIER_STAGE_MIN_Q=9): health=1; kv     tiered: cells 0..32768 in VRAM, 32768..262144 in system RAM; shared CUDA pool on (B
+kv     sparse host-tail reads: 8192,64,1024 (B,P,R), from 0 host cells on; 260 MiB of page
+sparse-decode code   depth 160000 (evaluated 159086): prefill   631.6 tok/s  ttft 251.88s  decode   32.5 tok/s (400 tok)
+sparse-decode prose  depth 160000 (evaluated 512): prefill   356.0 tok/s  ttft   1.44s  decode   30.5 tok/s (400 tok)
+sparse-decode bash   depth 160000 (evaluated 516): prefill   362.7 tok/s  ttft   1.42s  decode   36.4 tok/s (400 tok)
+sparse-decode mean decode 33.1 tok/s
+{"tag": "sparse-decode", "depth": 160000, "correct": 10, "of": 10}
+{"tag": "sparse-decode", "depth": 160000, "correct": 12, "of": 12}
+01:10 sparse-decode: 12 engaged lines; last: 9.57.966.022 W ggml_cuda_fa_sparse_mask: GGML_CUDA_FA_SPARSE B=8192 P=64 R=1024 fast, bounds int8: 11265 ops; this op 5 queries, host tail 125952 cells, keeps 1
+01:10 === done
+01:10 === sparse prefill: depth 245000, sparse 8192,64,1024, graphs on, packed 1, root C:\Users\pwall\AppData\Local\Temp\root-psparse8
+01:11 arm dense (): health=1; kv     tiered: cells 0..32768 in VRAM, 32768..262144 in system RAM; shared CUDA pool on (B
