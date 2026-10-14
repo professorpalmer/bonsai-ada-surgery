@@ -1,1 +1,38 @@
 2026-10-13 17:48 NOTE: /tmp/root-0054/bin replaced with the de873117e1 build (0054 with the device check, merged in #40; LLAMA_COMMIT de873117e1). The gate header line below says e63ce36d9 because the queue script was written before #40; every gate result in this log is from de873117e1.
+19:39 === release gates 0054 (e63ce36d9), root /tmp/root-0054
+19:40 op test FLASH_ATTN_EXT: ok 3007 fail 0
+19:40 op test GATED_DELTA_NET: ok 57 fail 0
+2026-10-13 19:54 NOTE: a full nvcc build of another branch (build-psparse, -j 4) runs on the CPU from 19:54, at Idle priority from 19:56. End time to follow. If it overlaps the G07 speed arms below, G07 is rerun before the publish.
+2026-10-13 20:05 NOTE: build-psparse (another branch) ran 19:54-20:04, before the G07 arms: no overlap, no G07 rerun needed.
+20:40 HumanEval: pass@1 21.34%  (35/164)  arm=medium effort=- temp=0.0 max_tokens=24576  3559.3s b0054: mean tokens 2313 median 576, over 4k: 19 
+20:40 === depth arms rel0054: depths 4000 32000 128000 (bench/arms/release_0054.txt)
+20:40 arm b1011 (C:/Users/pwall/Projects/bonsai-2-27b-serve; ): health=1; kv     tiered: cells 0..118272 in VRAM, 118272..262144 in system RAM (VRAM margi
+b1011 code   depth   4000 (evaluated 4048): prefill  1197.4 tok/s  ttft   3.38s  decode  106.0 tok/s (400 tok)
+b1011 prose  depth   4000 (evaluated 512): prefill   940.7 tok/s  ttft   0.54s  decode   86.7 tok/s (400 tok)
+b1011 bash   depth   4000 (evaluated 516): prefill   940.6 tok/s  ttft   0.55s  decode   98.3 tok/s (400 tok)
+b1011 mean decode 97.0 tok/s
+b1011 code   depth  32000 (evaluated 28512): prefill  1019.6 tok/s  ttft  27.96s  decode  120.3 tok/s (400 tok)
+b1011 prose  depth  32000 (evaluated 512): prefill   688.6 tok/s  ttft   0.74s  decode   82.0 tok/s (400 tok)
+b1011 bash   depth  32000 (evaluated 516): prefill   703.7 tok/s  ttft   0.73s  decode  105.5 tok/s (400 tok)
+b1011 mean decode 102.6 tok/s
+b1011 code   depth 128000 (evaluated 95812): prefill   582.5 tok/s  ttft 164.50s  decode   65.8 tok/s (400 tok)
+b1011 prose  depth 128000 (evaluated 512): prefill   381.3 tok/s  ttft   1.34s  decode   39.0 tok/s (400 tok)
+b1011 bash   depth 128000 (evaluated 516): prefill   386.4 tok/s  ttft   1.34s  decode   60.7 tok/s (400 tok)
+b1011 mean decode 55.1 tok/s
+20:45 b1011: 'one sync per K write' warnings: 0
+20:45 arm b0054 (C:\Users\pwall\AppData\Local\Temp\root-0054; ): health=1; kv     tiered: cells 0..118272 in VRAM, 118272..262144 in system RAM (VRAM margi
+b0054 code   depth   4000 (evaluated 4048): prefill  1279.6 tok/s  ttft   3.16s  decode  105.1 tok/s (400 tok)
+b0054 prose  depth   4000 (evaluated 512): prefill   979.1 tok/s  ttft   0.52s  decode   86.5 tok/s (400 tok)
+b0054 bash   depth   4000 (evaluated 516): prefill   987.1 tok/s  ttft   0.52s  decode   94.4 tok/s (400 tok)
+b0054 mean decode 95.4 tok/s
+b0054 code   depth  32000 (evaluated 28512): prefill  1081.8 tok/s  ttft  26.36s  decode  122.3 tok/s (400 tok)
+b0054 prose  depth  32000 (evaluated 512): prefill   721.7 tok/s  ttft   0.71s  decode   79.2 tok/s (400 tok)
+b0054 bash   depth  32000 (evaluated 516): prefill   722.4 tok/s  ttft   0.71s  decode  107.0 tok/s (400 tok)
+b0054 mean decode 102.8 tok/s
+b0054 code   depth 128000 (evaluated 95812): prefill   601.6 tok/s  ttft 159.25s  decode   68.2 tok/s (400 tok)
+b0054 prose  depth 128000 (evaluated 512): prefill   391.0 tok/s  ttft   1.31s  decode   39.7 tok/s (400 tok)
+b0054 bash   depth 128000 (evaluated 516): prefill   392.1 tok/s  ttft   1.32s  decode   56.4 tok/s (400 tok)
+b0054 mean decode 54.8 tok/s
+20:49 b0054: 'one sync per K write' warnings: 0
+20:49 === rel0054 done
+20:49 === gates done

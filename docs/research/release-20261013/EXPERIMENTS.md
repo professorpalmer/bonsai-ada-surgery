@@ -80,20 +80,48 @@ Format per entry: **question**, **gate** (and where it was declared), **setup**,
   the embedded commit (`grep -a` on `llama-common.dll`).
 - **Receipts.** `logs/build_0054b.log`, `logs/build_0054b2.log` (local); note in `docs/receipts/release_0054.log`.
 
-## G05 Gate: op tests on the release bins
+## G05 Gate: op tests on the release bins (2026-10-13 19:39-19:40)
 
 - **Gate.** See `README.md` (written before the run).
-- **Status.** Queued (`queue-0054`, after two other GPU jobs).
+- **Result.** `FLASH_ATTN_EXT` 3007 OK, 0 FAIL; `GATED_DELTA_NET` "ok 57" in the queue's count, which is 55 cases + 2
+  backend lines (G03), 0 FAIL.
+- **Verdict.** Pass.
+- **Receipts.** `docs/receipts/release_0054.log`.
 
-## G06 Gate: HumanEval 164 on the release bins
+## G06 Gate: HumanEval 164 on the release bins (2026-10-13 19:41-20:40, re-scored 20:55)
 
-- **Gate.** See `README.md`.
-- **Status.** Queued.
+- **Gate.** See `README.md`: at least 157/164.
+- **Result, first scoring: 35/164, VOID.** 128 of the 164 test runs ended with exit code 3221225794 (0xC0000142,
+  STATUS_DLL_INIT_FAILED): the test process did not start. The failures begin at task index 36, at about 19:51, the
+  minute the Claude session that owned the queue ended and a new one started. The queue kept running, but child
+  processes that need a console failed after that. The model output was not affected: all 164 answers are identical
+  to the D14 run on the same kernel (`artifacts/humaneval-gdnmma`), and the token counts match (mean 2313, median
+  576, 19 over 4k).
+- **Re-score.** `bench/humaneval_run.py --rescore` on the saved answers, from the new session: **158/164**, the same
+  6 fails as D14 (HumanEval/10, 47, 83, 116, 132, 145).
+- **Verdict.** Pass (158 >= 157).
+- **Lesson.** After a session restart, a queue that is still running can lose its console. Check the result
+  fields of any run that spans the restart, and start later jobs from the new session. (The private drafter job
+  that this queue would have started next was stopped and is restarted from the new session.)
+- **Receipts.** `docs/receipts/he_template_ab.log` (b0054), `artifacts/humaneval-b0054/rescore.json` (local).
 
-## G07 Gate: prefill and decode at 4k / 32k / 128k
+## G07 Gate: prefill and decode at 4k / 32k / 128k (2026-10-13 20:40-20:49)
 
-- **Gate.** See `README.md`.
-- **Status.** Queued.
+- **Gate.** See `README.md`: prefill not slower at any depth, mean decode within 2 % of 0053.
+- **Setup.** `bench/depth_arms.sh bench/arms/release_0054.txt` (tag rel0054): the product `bin/` (0053) vs
+  `/tmp/root-0054` (0054), launcher defaults, one server per arm. A CPU build of another branch ran 19:54-20:04,
+  before these arms: no overlap.
+- **Result.**
+
+  | depth | prefill 0053 | prefill 0054 | change | mean decode 0053 | mean decode 0054 | change |
+  | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+  | 4k | 1197.4 | 1279.6 | +6.9 % | 97.0 | 95.4 | -1.6 % |
+  | 32k | 1019.6 | 1081.8 | +6.1 % | 102.6 | 102.8 | +0.2 % |
+  | 128k | 582.5 | 601.6 | +3.3 % | 55.1 | 54.8 | -0.5 % |
+
+  ("prefill" is the code prompt at each depth; "one sync per K write" warnings 0.)
+- **Verdict.** Pass.
+- **Receipts.** `docs/receipts/release_0054.log`.
 
 ## G08 Bundle and publish
 

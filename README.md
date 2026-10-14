@@ -117,6 +117,13 @@ the tiered-KV runtime are detected and get the previous 96k all-VRAM recipe.
 
 ### Upgrading from an older bundle
 
+`bundle-20261013` makes **prefill faster on RTX 30 and 40 cards** (patch 0054, a port of ggml-org/llama.cpp#29353).
+The 48 gated-delta-net layers now process a prompt in chunks with tensor-core (BF16 MMA) math instead of one token
+after another. RTX 4070, 12 GB recipe, prefill: 4k 1197 -> 1280, 32k 1020 -> 1082, 128k 583 -> 602 tok/s (+3 to
++7 %); decode unchanged (within 1.6 %). Perplexity +0.02 %; HumanEval 164 158/164 (160 before: two long-thinking
+answers changed with the float order). RTX 20 cards have no BF16 MMA: they keep the old kernel and log one
+"skipped" line (RTX 2060 SUPER: the same speed, within 0.7 %).
+
 `bundle-20261011` makes **decode past the VRAM line faster** (patch 0053). The tier prefetch (the copy engine moves
 the next attention op's cache rows from system RAM while the current op computes) only ran without a CUDA graph,
 and the launcher keeps CUDA graphs on. Now graphs whose attention reads system RAM run without one; graphs below
@@ -556,7 +563,7 @@ python bench\mtp_identity.py                   # greedy draft-on vs draft-off
 
 | Path | What |
 | --- | --- |
-| `patches/` | the 53-commit stack on PrismML `adfffbe`, `git am`-able |
+| `patches/` | the 54-commit stack on PrismML `adfffbe`, `git am`-able |
 | `start-server.ps1`, `start-remote.ps1` | the recipe (LAN / Cloudflare tunnel) |
 | `build/build_linux.sh`, `start-linux.sh` | Linux build from the pinned base + patches, first-run launcher |
 | `tests/`, `.github/workflows/` | Linux setup tests, Linux CUDA compile and PDL code-generation CI |
