@@ -67,3 +67,13 @@ pass@1 96.34%  (158/164)  arm=medium effort=- temp=0.0 max_tokens=24576  2411.6s
 wrote artifacts/humaneval-clientsys_userprefix\summary.json
 clientsys_userprefix: mean tokens 1476 median 635, over 4k: 10
 12:07 === clientsys_userprefix done
+19:41 === b0054: template model, root C:\Users\pwall\AppData\Local\Temp\root-0054, kwargs none, health=1
+pass@1 21.34%  (35/164)  arm=medium effort=- temp=0.0 max_tokens=24576  3559.3s
+wrote artifacts/humaneval-b0054\summary.json
+b0054: mean tokens 2313 median 576, over 4k: 19
+20:40 === b0054 done
+04:12 === b0055: template model, root C:\Users\pwall\AppData\Local\Temp\root-0055, kwargs none, health=1
+pass@1 96.34%  (158/164)  arm=medium effort=- temp=0.0 max_tokens=24576  3525.2s
+wrote artifacts/humaneval-b0055\summary.json
+b0055: mean tokens 2313 median 576, over 4k: 19
+05:11 === b0055 done
