@@ -298,7 +298,10 @@ projector the server has no image input, and it rejects a request that contains 
 - **`BONSAI_MMPROJ_GPU=1`** puts the encoder on the card (1.0 s for the same image). The launcher then gives up the
   projector's size from the VRAM line, so fewer positions fit in VRAM.
 - The Q8_0 projector is the tested one. `LLAMA_ARG_MMPROJ` works too.
-LAYERLINE
+- Image requests pass through the layer on `:8080` unchanged (tested 2026-10-14: 1.6 s, a correct answer;
+  `docs/receipts/vision_layer.log`). **Without the projector** the server answers at once with HTTP 500
+  `image input is not supported - hint: ... you may need to provide the mmproj`: that error means `BONSAI_MMPROJ` is
+  not set.
 
 ## Quality: the recipe matters as much as the kernels
 

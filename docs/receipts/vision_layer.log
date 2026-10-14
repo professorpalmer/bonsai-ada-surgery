@@ -1,0 +1,8 @@
+2026-10-14 10:58 === vision through the layer, version: 0.2.0-dev (build 10795, commit de873117e1)
+2026-10-14 10:59 arm L0 (): health=1; layer  on: clients use :8080 (API cards, API check, sandboxed Python); llama-server on 127.0.0.1:18080 
+   image request: HTTP 500 after 0.0 s: b'{"error":{"code":500,"message":"image input is not supported - hint: if this is unexpected, you may need to provide the mmproj","type":"server_error"}}'
+   text request: 1.1 s, answer: 'OK.'
+2026-10-14 10:59 arm L1 (BONSAI_MMPROJ=Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf): health=1; vision Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf on the CPU (no VRAM; BONSAI_MMPROJ_GPU=1 to offload) layer  on: clients use :8080 (API cards, API check, sandboxed Python); llama-server on 127.0.0.1:18080
+   image request: 1.6 s, answer: 'The image shows a blue circle on a red background.'
+   text request: 0.3 s, answer: 'OK.'
+2026-10-14 10:59 === done
