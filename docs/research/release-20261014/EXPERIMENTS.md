@@ -115,8 +115,19 @@ the 00:31 Windows-update reboot). Every A/B is inside one session.
   both. The bins are installed in the product `bin/` (bundle-20261013 kept in `bin-20261013/`).
 - **Verdict.** Published.
 
+## R08 2060 check of the published zip (2026-10-14, P138, by the 8 GB tester)
+
+- Zip 611,390,390 B, SHA-256 `c91dfc98...4cd0` matches; `llama-server --version` commit `4de6185494`. `ADD` 99/99,
+  `RMS_NORM` 51/51, `FLASH_ATTN_EXT` 3005/3005, `GATED_DELTA_NET` 55/55; the GDN "skipped: device cc 750" line once.
+- Bin hashes differ from the tester's own `75-real` build (`bin-rc55`), as expected: the zip carries the sm 75 / 86 / 89
+  release build. P139 reruns the sparse checks on the zip bins.
+- Default off, same session, alternated x2, vs bundle-20261013 at 64k / 96k / 128k: 36.5 / 25.95 / 17.1 vs 36.2 / 25.9 /
+  17.0 (-0.8 / -0.2 / -0.6 %, within 3 %). Sweep 4k-128k 53.6 / 47.8 / 36.5 / 26.2 / 16.2, minimum free 117 MiB; fresh
+  60k 38.2 / 38.2; 0 one-token answers (lookup A/B 0 of 22).
+- **Verdict.** Pass.
+
 ## Status
 
-- Published as bundle-20261014. Open: the tester's post-zip checks; D26 (sparse without the line cost) stays open after
+- Published as bundle-20261014; the 2060's post-zip check passed (R08); P139 (sparse on the zip bins) runs. D26 (sparse without the line cost) stays open after
   D26a / D26c / D26e; sparse stays opt-in.
 
