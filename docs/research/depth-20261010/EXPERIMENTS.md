@@ -335,3 +335,31 @@ VRAM line 43,520 (f16 mask), host tail ~197k cells, graphs off.
   dense from D11 (22.8, graphs off, another day and line) that is about +9 %, a cross-run figure only. On 12 GB the
   host tail at 192k is small (~80k cells), so the sparse gain is small here; the 8 GB card is where it matters (D16).
 - **Receipts.** `docs/receipts/sparse_whole.log` (19:19 block), `docs/receipts/sparse_whole.jsonl`.
+
+## D21 Sparse on the product base, CUDA graphs on, packed mask on (2026-10-13 20:49-21:40 void, 22:02-22:48)
+
+- **Question.** Does the sparse host-tail path (patch 0055 candidate) hold on the product base (0053 + 0054) with the
+  product switches: CUDA graphs on (0053 turns them off per graph past the line) and the packed mask on?
+- **Gate.** `D21-plan.json`, declared about 20:10 before the run: op tests 0 failures (`GATED_DELTA_NET` 55/55);
+  `sparse_edit` track arm 0 stale ops, engaged lines, no "needs an f16 mask" warning for decode; 160k at line 32,768:
+  sparse copies 10/10 and needles 12/12, sparse mean decode above dense; minimum free VRAM above 0.
+- **Setup.** `product-sparse` `3ab0af3c2` (`product-0054` + the sparse ggml diff of `9d9a968d9`), `root-psparse`
+  (bundle-0054 layout, `build-psparse` sm_89), the other session's script `d21_sparse_product.sh`, run by the 4070
+  release session. `SPARSE=8192,64,1024 GRAPHS=on PACKED=1`.
+- **Void first run.** It started 20:49 and stopped at a power cut at about 21:40 in the sparse-prefill step. The run
+  was repeated from the start at 22:02, after the memory overclock was checked under load (11751 MHz).
+- **Result (22:02-22:48).**
+  - Op tests: `FLASH_ATTN_EXT` 3005/3005, `GATED_DELTA_NET` 55/55.
+  - `sparse_edit`: track arm 0 stale ops on all three requests; the no-track control 272 stale ops (the check works);
+    engaged lines 1 per arm. One "needs an f16 mask" line, at 0.11 s (warmup, a prefill op), not from decode;
+    `c8bbb1898` (D22) logs it only for decode-sized ops.
+  - 160k: dense mean decode 13.8 tok/s (15.3 / 11.3 / 14.6), copies 10/10, needles 12/12; sparse 27.5 (31.1 / 23.2 /
+    28.2), copies 10/10, needles 12/12, 12 engaged lines. Cold prefill 571 (dense) and 605 (sparse).
+  - VRAM: peak used 9,140 MiB, minimum free 2,871 MiB. 1,820 CUDA-graph lines in the sparse arm's server log.
+  - CPU builds of other branches ran during parts of the run (logged as NOTE lines in the receipt; the speed gate's
+    margin is 2x).
+- **Verdict.** Pass. Sparse is 2.0x dense at 160k on the product base with graphs and the packed mask on, and keeps
+  the copies and needles.
+- **Receipts.** `docs/receipts/sparse_product_d21.log`, `docs/receipts/d21_vram.csv`, `docs/receipts/sparse_edit.log`
+  (22:02 block), `docs/receipts/sparse_prefill.log` + `.jsonl` (22:15 block; the 21:03-21:40 block is the void run).
+

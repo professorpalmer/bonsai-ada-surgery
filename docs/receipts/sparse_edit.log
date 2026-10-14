@@ -29,3 +29,33 @@
 6.04.207.314 W ggml_cuda_fa_sparse_mask: CHECK stale bounds: K 000000037B000000, 1256 page-heads of 3024 differ, first page 424 (n_host 48339, pages 756, from 738)
 6.04.216.232 W ggml_cuda_fa_sparse_mask: CHECK stale bounds: K 0000000C74C00000, 1256 page-heads of 3024 differ, first page 424 (n_host 48339, pages 756, from 738)
 18:26 === done
+20:50 === sparse edit: depth 160000, sparse 8192,64,1024, graphs on, packed 1, root C:\Users\pwall\AppData\Local\Temp\root-psparse
+20:51 arm track: health=1
+{"tag": "track", "files": 19, "edit_file": 14, "edit_char_frac": 0.911}
+{"tag": "track", "request": "base", "prompt_n": 158583, "predicted_n": 38, "stale_ops": 0, "select_diff_ops": 0, "wall_s": 283.5, "answer": "The last file, `aifc.py`, provides a Python implementation for reading and writing AIFF and AIFF-C audio files, includin"}
+{"tag": "track", "request": "edit", "prompt_n": 24966, "predicted_n": 38, "stale_ops": 0, "select_diff_ops": 0, "wall_s": 67.5, "answer": "The last file, `aifc.py`, provides a Python implementation for reading and writing AIFF and AIFF-C audio files, includin"}
+{"tag": "track", "request": "again", "prompt_n": 4, "predicted_n": 38, "stale_ops": 0, "select_diff_ops": 0, "wall_s": 2.5, "answer": "The last file, `aifc.py`, provides a Python implementation for reading and writing AIFF and AIFF-C audio files, includin"}
+20:57 arm notrack: health=1
+{"tag": "notrack", "files": 19, "edit_file": 14, "edit_char_frac": 0.911}
+{"tag": "notrack", "request": "base", "prompt_n": 158583, "predicted_n": 38, "stale_ops": 0, "select_diff_ops": 0, "wall_s": 279.3, "answer": "The last file, `aifc.py`, provides a Python implementation for reading and writing AIFF and AIFF-C audio files, includin"}
+{"tag": "notrack", "request": "edit", "prompt_n": 24966, "predicted_n": 38, "stale_ops": 176, "select_diff_ops": 0, "wall_s": 65.9, "answer": "The last file, `aifc.py`, provides a pure-Python implementation of the `aifc` module for reading and writing AIFF and AI"}
+{"tag": "notrack", "request": "again", "prompt_n": 4, "predicted_n": 38, "stale_ops": 176, "select_diff_ops": 0, "wall_s": 2.0, "answer": "The last file, `aifc.py`, provides a pure-Python implementation of the `aifc` module for reading and writing AIFF and AI"}
+5.51.575.126 W ggml_cuda_fa_sparse_mask: CHECK stale bounds: K 0000000E94C00000, 1260 page-heads of 2784 differ, first page 363 (n_host 44484, pages 696, from 678)
+5.51.582.911 W ggml_cuda_fa_sparse_mask: CHECK stale bounds: K 000000037B000000, 1260 page-heads of 2784 differ, first page 363 (n_host 44484, pages 696, from 678)
+5.51.591.619 W ggml_cuda_fa_sparse_mask: CHECK stale bounds: K 0000000C74C00000, 1260 page-heads of 2784 differ, first page 363 (n_host 44484, pages 696, from 678)
+21:03 === done
+22:03 === sparse edit: depth 160000, sparse 8192,64,1024, graphs on, packed 1, root C:\Users\pwall\AppData\Local\Temp\root-psparse
+22:03 arm track: health=1
+{"tag": "track", "files": 19, "edit_file": 14, "edit_char_frac": 0.911}
+{"tag": "track", "request": "base", "prompt_n": 158583, "predicted_n": 38, "stale_ops": 0, "select_diff_ops": 0, "wall_s": 283.0, "answer": "The last file, `aifc.py`, provides a Python implementation for reading and writing AIFF and AIFF-C audio files, includin"}
+{"tag": "track", "request": "edit", "prompt_n": 24966, "predicted_n": 38, "stale_ops": 0, "select_diff_ops": 0, "wall_s": 67.4, "answer": "The last file, `aifc.py`, provides a Python implementation for reading and writing AIFF and AIFF-C audio files, includin"}
+{"tag": "track", "request": "again", "prompt_n": 4, "predicted_n": 38, "stale_ops": 0, "select_diff_ops": 0, "wall_s": 2.7, "answer": "The last file, `aifc.py`, provides a Python implementation for reading and writing AIFF and AIFF-C audio files, includin"}
+22:09 arm notrack: health=1
+{"tag": "notrack", "files": 19, "edit_file": 14, "edit_char_frac": 0.911}
+{"tag": "notrack", "request": "base", "prompt_n": 158583, "predicted_n": 38, "stale_ops": 0, "select_diff_ops": 0, "wall_s": 277.4, "answer": "The last file, `aifc.py`, provides a Python implementation for reading and writing AIFF and AIFF-C audio files, includin"}
+{"tag": "notrack", "request": "edit", "prompt_n": 24966, "predicted_n": 48, "stale_ops": 272, "select_diff_ops": 0, "wall_s": 66.5, "answer": "The last file, `aifc.py`, provides a pure-Python implementation for reading and writing AIFF and AIFF-C audio files, inc"}
+{"tag": "notrack", "request": "again", "prompt_n": 4, "predicted_n": 48, "stale_ops": 272, "select_diff_ops": 0, "wall_s": 2.8, "answer": "The last file, `aifc.py`, provides a pure-Python implementation for reading and writing AIFF and AIFF-C audio files, inc"}
+5.49.097.908 W ggml_cuda_fa_sparse_mask: CHECK stale bounds: K 0000000E94C00000, 1260 page-heads of 2904 differ, first page 393 (n_host 46412, pages 726, from 708)
+5.49.107.551 W ggml_cuda_fa_sparse_mask: CHECK stale bounds: K 000000037B000000, 1260 page-heads of 2904 differ, first page 393 (n_host 46412, pages 726, from 708)
+5.49.114.757 W ggml_cuda_fa_sparse_mask: CHECK stale bounds: K 0000000C74C00000, 1260 page-heads of 2904 differ, first page 393 (n_host 46412, pages 726, from 708)
+22:15 === done
