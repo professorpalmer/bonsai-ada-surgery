@@ -74,7 +74,7 @@ How, and every receipt: [`docs/Q8_FULL_CONTEXT.md`](docs/Q8_FULL_CONTEXT.md). Sh
 | --- | --- | --- |
 | Windows, an NVIDIA card (RTX 20/30/40/50) | download the release zip, drop in the model, run `start-server.ps1` | [Quick start (Windows)](#quick-start-windows-nvidia) |
 | Hugging Face | the same bundle plus the ready-made MTP-grafted GGUF (`hf download`, no graft step) | [CaryPalmer/Ternary-Bonsai-2-27B-262k-GGUF](https://huggingface.co/CaryPalmer/Ternary-Bonsai-2-27B-262k-GGUF) |
-| Linux, NVIDIA driver + CUDA toolkit | `bash build/build_linux.sh` builds the pinned PrismML source with all 55 patches applied | [Quick start (Linux)](#quick-start-linux-nvidia) |
+| Linux, NVIDIA driver + CUDA toolkit | `bash build/build_linux.sh` builds the pinned PrismML source with all 57 patches applied | [Quick start (Linux)](#quick-start-linux-nvidia) |
 | your own llama.cpp workflow | build the fork branch `bonsai-q8-product`, or `git am` the series in `patches/` onto PrismML `adfffbe` | [The patch stack](#the-patch-stack) |
 | an older bundle of this repo | `git pull`, unzip the latest zip over it, run `layeretch_runtime.ps1` once | [Upgrading](#upgrading-from-an-older-bundle) |
 
@@ -456,13 +456,15 @@ Hadamard-embedding fix of sudoingX's #217 landed through #205. #285 was split at
 | 0053 | CUDA graphs off for graphs whose attention reads the host tail of a tiered KV cache, so the tier prefetch (copy engine, overlapped with compute) runs past the VRAM line; graphs below the line keep CUDA graphs; one log line per switch (`GGML_CUDA_KV_TIER_GRAPHS=1`: old behaviour). RTX 4070: 192k 23.6 -> 29.4, 250k 12.7 -> 14.6 tok/s; RTX 2060 SUPER: 128k +16 %, 192k +9 %, 245k +8 % | this repo |
 | 0054 | Chunked gated-delta-net prefill on tensor cores (port of [ggml-org/llama.cpp#29353](https://github.com/ggml-org/llama.cpp/pull/29353)): prefill-sized ops run a chunked BF16 MMA kernel instead of the per-token recurrent kernel; with state snapshots the last K tokens stay on the recurrent kernel; Ampere GA10x / Ada and newer only (other cards are checked first and keep the recurrent kernel; RTX 2060 SUPER: 32k prefill and decode unchanged); `GGML_CUDA_GDN_MMA_DISABLE=1` turns it off. RTX 4070: prefill +3 to +6 %, perplexity +0.024 % (8.0714 -> 8.0733), exact copies and needles unchanged. Not in a bundle yet | this repo (port) |
 | 0055 | Sparse host-tail reads for tiered KV decode (`GGML_CUDA_FA_SPARSE=B,P,R`, off by default; on 8 GB, `BONSAI_SPARSE=1` turns it on in the launcher, ~8 % slower below ~100k): a decode attention op past the VRAM line keeps the VRAM cells, the last R cells and max(B, 1/16 of the host tail) host cells (pages of P) whose page bounds score highest (`GGML_CUDA_FA_SPARSE_FRAC`), and the kernels skip the rest (MMA: 64-cell tile map; vec: 128-cell tile and 32-cell warp skip). Page bounds are int8 with one f16 scale per page and head, rounded outward (514 B per host cell at P 64), kept across ops and updated from the first written cell; below `GGML_CUDA_FA_SPARSE_MIN_HOST` host cells the op is the dense op. RTX 4070, 8 GB-like line: 160k 13.8 -> 27.3 tok/s, copies and needles equal to dense at 160k and 245k (a fixed 8192 lost one copy at 245k, so the budget grows with the tail); RTX 2060 SUPER, 262k: 160k 9.1 -> 19.6, 245k 5.3 -> 14.2. Not in a bundle yet | this repo |
+| 0056 | q3_0 K/V cache type (3.5 bits per value: f16 scale, 2-bit low and 1-bit high parts per 32 values; `--cache-type-k/-v q3_0`, launcher `BONSAI_CTK=q3_0`): 14,336 B per position instead of 18,432 for q4_0, so ~1.3x more positions fit in VRAM. RTX 2060 SUPER 8 GB: perplexity +0.56 % at 16k and +0.03 % at 64k vs q4_0, decode +23 % at 128k and +15 % at 192k, copies and needles equal, HumanEval 160/164 (#21 P108, P114, P117). Not in a bundle yet; default on 8 GB decided by the rule in `docs/research/q3port-20261013/` | this repo |
+| 0057 | K/V tile dequant in the MMA flash-attention loader as packed halves for q4_0, q8_0 and q3_0 (1024 + q in the mantissa bits, minus the offset, times d): bit-identical to the float path, no int/float conversions. RTX 4070, 64k, answers byte-identical: q3_0 +1.7 %, q4_0 +0.6 %, q8_0 +0.8 % decode (D27, D28) | this repo |
 
 How each cut was found (CUPTI traces, L1 wavefront counts, what did not work):
 [`surgery/ADA4070_PTQ1.md`](surgery/ADA4070_PTQ1.md) and [`docs/Q8_FULL_CONTEXT.md`](docs/Q8_FULL_CONTEXT.md).
 
 ## Quick start (Linux, NVIDIA)
 
-`build/build_linux.sh` fetches the pinned PrismML source (`adfffbe`) and applies **all 55 patches in `patches/`**,
+`build/build_linux.sh` fetches the pinned PrismML source (`adfffbe`) and applies **all 57 patches in `patches/`**,
 including the `common.cuh` header fix (0024) and the Hopper/Blackwell PDL dependency wait (0026). No manual patch
 application or Git author configuration is needed. There is no prebuilt Linux binary yet.
 

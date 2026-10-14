@@ -1,0 +1,116 @@
+From b86298dba97a2e8235509598555aec7e76660140 Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Wed, 14 Oct 2026 15:49:57 -0500
+Subject: [PATCH] cuda: K/V tile dequant in the MMA flash-attention loader as
+ packed halves (q4_0, q8_0, q3_0)
+
+The in-place quantized K/V loader built every weight as d*float(q) and rounded
+it to half. Each pair of weights is now built as a half2 directly: the code goes
+into the low mantissa bits of 1024.0 (0x6400), so the half is 1024 + q exactly
+(q8_0: q + 128 with the sign bit flipped); subtracting the offset gives the
+signed value exactly, and one half multiply by d rounds the exact product once.
+That is the same value as the float path rounded to half, so the tiles are
+bit-identical, with no int/float conversions.
+
+RTX 4070, 64k, all in VRAM, answers byte-identical to the float path for every
+type: q3_0 76.6 -> 77.9 tok/s (D27), q4_0 79.4 -> 79.9 (+0.6 %), q8_0 78.5 ->
+79.1 (+0.8 %) (D28). FLASH_ATTN_EXT 3115/3115.
+---
+ ggml/src/ggml-cuda/fattn-mma-f16.cuh | 59 +++++++++++++++++++---------
+ 1 file changed, 41 insertions(+), 18 deletions(-)
+
+diff --git a/ggml/src/ggml-cuda/fattn-mma-f16.cuh b/ggml/src/ggml-cuda/fattn-mma-f16.cuh
+index 356cc3254d..d074869815 100644
+--- a/ggml/src/ggml-cuda/fattn-mma-f16.cuh
++++ b/ggml/src/ggml-cuda/fattn-mma-f16.cuh
+@@ -463,46 +463,69 @@ static __device__ __forceinline__ void flash_attn_ext_f16_load_tile(
+     }
+ }
+ 
+-// Dequantize one q4_0 block (32 weights) given its scale and the 16 nibble bytes as 4 words, store 16 half2.
+-// Same arithmetic as dequantize_q4_0 -> half, so the tile is bit-identical to a to_fp16 pass over the cache.
++// Dequantize one q4_0 block (32 weights) given its scale and the 16 nibble bytes as 4 words, store 16 half2. As for
++// q3_0: each weight pair is built as a half2 from 1024 + q (mantissa bits), minus 1032, times d. The half multiply
++// rounds the exact product d*(q - 8) once, the same value as dequantize_q4_0 -> half, so the tile stays bit-identical
++// to a to_fp16 pass over the cache.
+ static __device__ __forceinline__ void flash_attn_ext_f16_store_q4_0_block(
+         half2 * const __restrict__ dst, const float d, const uint32_t q0, const uint32_t q1, const uint32_t q2, const uint32_t q3) {
+     const uint32_t q[4] = {q0, q1, q2, q3};
++    const half2 d2    = __float2half2_rn(d);   // exact: d came from an f16 scale
++    const half2 c1032 = __float2half2_rn(1032.0f);
+ #pragma unroll
+     for (int m = 0; m < 4; ++m) {
+-        const uint32_t v = q[m];
+-        // low nibbles are weights 4m..4m+3, high nibbles are weights 16+4m..16+4m+3
+-        dst[    2*m    ] = __floats2half2_rn(d*(float(int((v      ) & 0xF)) - 8.0f), d*(float(int((v >>  8) & 0xF)) - 8.0f));
+-        dst[    2*m + 1] = __floats2half2_rn(d*(float(int((v >> 16) & 0xF)) - 8.0f), d*(float(int((v >> 24) & 0xF)) - 8.0f));
+-        dst[8 + 2*m    ] = __floats2half2_rn(d*(float(int((v >>  4) & 0xF)) - 8.0f), d*(float(int((v >> 12) & 0xF)) - 8.0f));
+-        dst[8 + 2*m + 1] = __floats2half2_rn(d*(float(int((v >> 20) & 0xF)) - 8.0f), d*(float(int((v >> 28) & 0xF)) - 8.0f));
++        const uint32_t v   = q[m];
++        // bytes 0, 1 and 2, 3 into the low byte of each 16-bit lane; low nibbles are weights 4m..4m+3, high nibbles
++        // are weights 16+4m..16+4m+3
++        const uint32_t x01 = __byte_perm(v, 0, 0x4140);
++        const uint32_t x23 = __byte_perm(v, 0, 0x4342);
++        const uint32_t a = ( x01       & 0x000F000Fu) | 0x64006400u;
++        const uint32_t b = ( x23       & 0x000F000Fu) | 0x64006400u;
++        const uint32_t c = ((x01 >> 4) & 0x000F000Fu) | 0x64006400u;
++        const uint32_t e = ((x23 >> 4) & 0x000F000Fu) | 0x64006400u;
++        dst[    2*m    ] = __hmul2(__hsub2(*(const half2 *) &a, c1032), d2);
++        dst[    2*m + 1] = __hmul2(__hsub2(*(const half2 *) &b, c1032), d2);
++        dst[8 + 2*m    ] = __hmul2(__hsub2(*(const half2 *) &c, c1032), d2);
++        dst[8 + 2*m + 1] = __hmul2(__hsub2(*(const half2 *) &e, c1032), d2);
+     }
+ }
+ 
+ // Dequantize one q3_0 block (32 weights) given its scale, the 8 low-bit bytes as 2 words and the 4 high-bit bytes as
+-// 1 word (layout in ggml-common.h), store 16 half2. Same arithmetic as dequantize_q3_0 -> half.
++// 1 word (layout in ggml-common.h), store 16 half2. Each pair of weights is built as a half2 directly: the 3-bit codes go
++// into the low mantissa bits of 1024.0 (0x6400), so the half is 1024 + q exactly; minus 1028 gives q - 4 exactly, and
++// one half multiply by d rounds the exact product d*(q - 4) once, the same value as the float path rounded to half
++// (bit-exact with dequantize_q3_0 -> half), with no int/float conversions.
+ static __device__ __forceinline__ void flash_attn_ext_f16_store_q3_0_block(
+         half2 * const __restrict__ dst, const float d, const uint32_t l0, const uint32_t l1, const uint32_t h) {
+     const uint32_t l[2] = {l0, l1};
++    const half2 d2   = __float2half2_rn(d);   // exact: d came from an f16 scale
++    const half2 c1028 = __float2half2_rn(1028.0f);
+ #pragma unroll
+     for (int j = 0; j < 32; j += 2) {
+-        // weights j, j+1: low bits in bytes j%8, j%8+1 at shift 2*(j/8), high bit in bytes j%4, j%4+1 at shift j/4
+-        const uint32_t vl = l[(j%8)/4] >> (8*(j%4) + 2*(j/8));
+-        const uint32_t vh = h          >> (8*(j%4) +   j/4);
+-        const int q0 = int(( vl       & 3) | (( vh       & 1) << 2));
+-        const int q1 = int(((vl >> 8) & 3) | (((vh >> 8) & 1) << 2));
+-        dst[j/2] = __floats2half2_rn(d*(float(q0) - 4.0f), d*(float(q1) - 4.0f));
++        // weights j, j+1: low bits in bytes j%4, j%4+1 of word l[(j%8)/4] at shift 2*(j/8); high bit in bytes j%4,
++        // j%4+1 of h at shift j/4. The byte permute puts the two bytes into the low byte of each 16-bit lane.
++        const uint32_t sel = (j % 4) == 0 ? 0x4140 : 0x4342;
++        const uint32_t lo  = (__byte_perm(l[(j%8)/4], 0, sel) >> (2*(j/8))) & 0x00030003u;
++        const uint32_t hi  = ((__byte_perm(h,         0, sel) >> (j/4))     & 0x00010001u) << 2;
++        const uint32_t v   = lo | hi | 0x64006400u;
++        dst[j/2] = __hmul2(__hsub2(*(const half2 *) &v, c1028), d2);
+     }
+ }
+ 
+-// Dequantize one q8_0 block (32 weights) given its scale and the 32 int8 bytes as 8 words, store 16 half2.
++// Dequantize one q8_0 block (32 weights) given its scale and the 32 int8 bytes as 8 words, store 16 half2. Each weight
++// pair as a half2 from 1024 + (q + 128) (the sign bit flipped, 8 mantissa bits), minus 1152, times d: bit-exact with
++// the float path (d*q is exact in f32 and rounded to half once either way).
+ static __device__ __forceinline__ void flash_attn_ext_f16_store_q8_0_block(
+         half2 * const __restrict__ dst, const float d, const uint32_t * const __restrict__ q) {
++    const half2 d2    = __float2half2_rn(d);   // exact: d came from an f16 scale
++    const half2 c1152 = __float2half2_rn(1152.0f);
+ #pragma unroll
+     for (int m = 0; m < 8; ++m) {
+         const uint32_t v = q[m];
+-        dst[2*m    ] = __floats2half2_rn(d*float(int(int8_t(v & 0xFF))), d*float(int(int8_t((v >>  8) & 0xFF))));
+-        dst[2*m + 1] = __floats2half2_rn(d*float(int(int8_t((v >> 16) & 0xFF))), d*float(int(int8_t((v >> 24) & 0xFF))));
++        const uint32_t a = (__byte_perm(v, 0, 0x4140) ^ 0x00800080u) | 0x64006400u;
++        const uint32_t b = (__byte_perm(v, 0, 0x4342) ^ 0x00800080u) | 0x64006400u;
++        dst[2*m    ] = __hmul2(__hsub2(*(const half2 *) &a, c1152), d2);
++        dst[2*m + 1] = __hmul2(__hsub2(*(const half2 *) &b, c1152), d2);
+     }
+ }
+ 
+-- 
+2.55.0.windows.3
+
