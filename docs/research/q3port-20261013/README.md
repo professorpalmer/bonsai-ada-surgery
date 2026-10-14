@@ -17,6 +17,7 @@ q3_0 commit is kept on top of `product-sparse`, so the conflict work is done onc
 | Q03 op tests | `test-backend-ops -b CUDA0` for `FLASH_ATTN_EXT`, `SET_ROWS`, `CPY`, `GET_ROWS` on the q3_0 build: 0 FAIL, and q3_0 cases present |
 | Q04 perplexity | wikitext-2, `-c 2048`, 32 chunks, the same binary, K/V q8_0 / q4_0 / q3_0: q3_0 within 1 % of q4_0 |
 | Q05 sparse + q3_0 | `bench/sparse_prefill.sh`, 160k, 8 GB-like line (32,768 cells), sparse 8192,64,1024, graphs on, packed mask on, `BONSAI_CTK=q3_0`: copies 10/10, needles 12/12 |
+| Q07 q3_0 on 0055 | `q3-on-0055` `7c7b47e156` (= `product-0055` + q3_0), root-q3-55 (root-0055 + these bins), line pinned at 32,768, sparse 12288 floor (the 0055 opt-in), graphs on, packed mask on: q3_0 copies and needles not below q4_0 on the same items at 200k (20 items) and 245k (10 items); q3_0 mean decode not below q4_0 at the same pinned line (fewer bytes per host row). Written 2026-10-14 13:45, before the run |
 | Q06 (2060) | the tester's P108 / P114 / P117 set on the new build: the same results as on `6a4851286` within noise |
 
 ## Engines
