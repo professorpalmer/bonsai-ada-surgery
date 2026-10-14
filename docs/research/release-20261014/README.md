@@ -22,7 +22,7 @@ NORM on if D23 passes at 245k, else the budget fraction (`GGML_CUDA_FA_SPARSE_FR
 | R01 op tests | 4070 | `FLASH_ATTN_EXT` and `GATED_DELTA_NET` 0 FAIL |
 | R02 12 GB same text | 4070 | HumanEval 164 at medium on the bundle's binaries: the same 164 answers as bundle-20261013 (sparse is off by default on 12 GB, so the engine path is unchanged) |
 | R03 12 GB speed | 4070 | prefill and mean decode at 4k / 32k / 128k within 2 % of bundle-20261013, same session, memory clock noted |
-| R04 8 GB-like quality | 4070 | line 32,768, default sparse switches: 160k and 245k copies 10/10 and needles 12/12; if FRAC is the default, also 200k copies 10/10 |
+| R04 8 GB-like quality | 4070 | line 32,768, default sparse switches: 160k and 245k copies 10/10 and needles 12/12; if FRAC is the default, also 200k copies 10/10. **Amended 2026-10-14 09:04, after R04b's dense control and before R04c / R04d:** sparse copies and needles **not below dense on the same items** at each depth (the R06 wording) |
 | R05 8 GB-like speed | 4070 | sparse mean decode at 160k and 245k at least 1.8x dense, same session. **Amended 2026-10-14 07:18, before R05b runs:** for the opt-in mode with the launcher floor B 12288, 160k at least **1.5x**, 245k at least 1.8x, 200k reported as measured (no gate) |
 | R06 8 GB release check | 2060 | the tester's release-style check with the bundle zip and launcher: SHA, op tests, 4k-128k within 3 % of bundle-20261013 (same session), 160k / 245k at least 1.8x dense, 245k copies and needles equal to dense, fresh 60k, 0 one-token answers, minimum free at least 60 MiB, HumanEval on the bundle's binaries |
 | R07 publish | - | R01-R06 pass: zip from the release commit, GitHub release, Hugging Face, SHA on both, bins installed |
@@ -34,6 +34,14 @@ A result that misses a gate stops the publish; its entry says why and what chang
 constraint, and the copy data is thin (10-20 items per depth), so the kernel session declared the 160k speed gate for
 the opt-in mode as at least 1.5x (245k stays at 1.8x), instead of a depth-dependent floor tuned to one 10/10 sample.
 D25 (per-layer budget) is the planned route to win 160k speed back without a quality loss.
+
+**R04 gate amendment (2026-10-14 09:04).** The written R04 gate (copies 10/10) is one that dense itself cannot meet: in R04b,
+dense at 200k missed `_pydatetime.py` `_check_tzname` (9/10), the same item sparse missed in R04. So the gate becomes
+"sparse not below dense on the same items", which is R06's wording. At 245k this changes nothing: dense was 10/10 and
+sparse at B 8192 was 9/10 (D22b, a real sparse loss), which is why FRAC stays. Decision rule, declared before R04d:
+if R04d (FRAC only, floor 8192, 20 items at 200k) is not below dense on those items, #49 goes back to floor 8192, the
+1.5x amendment lapses unused, and R05 at 160k (1.88x against the 1.8x gate) stands; R05b then only records the floor's
+cost. If R04d is below dense and R04c (floor 12288) is not, the floor stays and R05b decides under the 1.5x gate.
 
 ## Engines
 
