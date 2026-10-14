@@ -1,0 +1,14 @@
+{
+ "id": "D21",
+ "declared": "2026-10-13 ~20:10 CDT, before the run",
+ "engine": "product-sparse 3ab0af3c2 (product-0054 de873117e + sparse ggml diff of fa-sparse-proto 9d9a968d9, no server prototype)",
+ "root": "%TEMP%/root-psparse (bundle-0054 layout, bins from build-psparse sm_89)",
+ "switches": {"GRAPHS": "on (patch 0053 turns graphs off per graph past the line)", "PACKED": "1 (packed KQ mask)"},
+ "gates": [
+  "test-backend-ops -o FLASH_ATTN_EXT: 0 failures; -o GATED_DELTA_NET: 55/55",
+  "bench/sparse_edit.sh SPARSE=8192,64,1024: track arm 0 stale ops, engaged lines > 0, 0 'needs an f16 mask' warnings for decode",
+  "bench/sparse_prefill.sh ARMS='dense sparse-decode' at 160k, line 32768: sparse copies 10/10 and needles 12/12; sparse mean decode > dense",
+  "nvidia-smi min free > 0 MiB over both arms"
+ ],
+ "then": "2060 release-style sweep on the same branch (#21): 4k-128k vs bundle-0054 within 3 %, 64k with MIN_HOST within 2 % of dense, 160k/245k >= 1.8x, fresh 60k, 0 one-token, min free >= 60 MiB, HumanEval"
+}

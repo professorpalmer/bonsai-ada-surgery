@@ -1,0 +1,14 @@
+{
+ "id": "D23",
+ "declared": "2026-10-14, before the run",
+ "question": "Is the 245k copy miss at B 8192 (D22: _pydecimal _convert_other, both bound formats; dense 10/10) a ranking problem? GGML_CUDA_FA_SPARSE_NORM=1 ranks pages by each Q head's bound relative to that head's best page.",
+ "engine": "product-sparse 8d6e0d3f4 (root-psparse8n)",
+ "switches": "graphs on, packed mask on, line 32768, B 8192 P 64 R 1024, int8 bounds, NORM=1",
+ "gates": [
+  "245k: copies 10/10 and needles 12/12",
+  "160k: copies 10/10 and needles 12/12",
+  "decode at 245k within 5 % of D22's int8 arm (24.5; clock state noted)"
+ ],
+ "reading": "pass at B 8192 = ranking problem fixed by NORM (promote NORM as default); fail while D22c B 12288/16384 pass = budget problem (scale B with the host tail)",
+ "amended": "2026-10-14 01:46, before the run: gate 3 (decode within 5 % of D22) is not applicable. D22 ran with the memory overclock (11751 MHz), tonight runs at the stock clock (10251 MHz) after a Windows-update reboot. D23 is quality-only; a speed reading needs NORM vs no-NORM inside one run."
+}

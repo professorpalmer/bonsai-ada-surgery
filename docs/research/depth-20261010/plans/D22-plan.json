@@ -1,0 +1,14 @@
+{
+ "id": "D22",
+ "declared": "2026-10-13 ~21:25 CDT, before the run",
+ "question": "int8 page bounds (f16 scale per page and head, rounded outward) at page 64: same retrieval as f16 bounds at half the VRAM?",
+ "engines": {"int8": "product-sparse c8bbb1898 (root-psparse8)", "f16": "product-sparse 3ab0af3c2 (root-psparse, D21)"},
+ "switches": "graphs on, packed mask on, line 32768 (8 GB-like), B 8192 P 64 R 1024",
+ "gates": [
+  "sparse_edit track arm (int8): 0 stale ops",
+  "160k: copies 10/10, needles 12/12 (int8)",
+  "245k: int8 copies and needles not below the f16 arm",
+  "160k decode within 3 % of D21's f16 sparse-decode arm",
+  "peak memory.used at 245k lower than the f16 arm (expected about -100 MiB)"
+ ]
+}
