@@ -55,3 +55,45 @@ the 00:31 Windows-update reboot). Every A/B is inside one session.
 
 - P127 on the 2060 (int8 bounds): the reserve still costs about 8 % at 64k. Sparse is opt-in for 0055
   (`BONSAI_SPARSE=1`, #49 `d927d6b`). R04 / R05 ran with sparse forced on, which is the opt-in path.
+
+## VRAM trace at 245k for the launcher headroom (07:15-08:15)
+
+- **Question.** What does sparse cost in VRAM at 245k, against what the launcher counts? (The 2060's P124 showed only
+  43 MiB free at 245k with f16 bounds, below R06's 60 MiB gate.)
+- **Setup.** root-0055, line pinned at 32,768, 245k, dense then sparse (B 8192 + FRAC), `nvidia-smi` every 1 s.
+- **Result.** Dense peak 8,613 MiB (min free 3,398); sparse peak 8,763 MiB (min free 3,248). Sparse - dense = 150 MiB;
+  the launcher's count was about 138 MiB (104 bounds + 32 fill + 2 tables): about 12 MiB missed.
+- **Decision.** #49 `3035572`: fixed headroom 36 -> 64 MiB (36 + 12 + 16). The 2060's P135 then had 153 MiB free at 245k.
+- **Receipts.** `docs/receipts/vram245_dense.csv`, `vram245_sparse-decode.csv`, `release_0055.log`.
+
+## R04b Dense control and floor 12288 at 200k (08:17-09:03)
+
+- Dense: copies **9/10** (miss `_pydatetime.py` `_check_tzname`), needles 12/12, 10.4 tok/s. Sparse floor 12288 (192 of
+  2,600 pages): 9/10 (the same item), 12/12, 22.0 tok/s.
+- So R04's 200k miss was a model miss on that item, not a sparse loss. The R04 gate was amended to "not below dense on
+  the same items" (README, written before R04c / R04d), with the floor decision rule.
+
+## R04c / R04d 20 copy items at 200k (09:03-10:25)
+
+- `bench/sparse_prefill_n.sh` (= `sparse_prefill.sh` with `--n ${CN}`), CN 20, the same 20 items in every arm:
+
+  | arm | pages kept | copies | needles | mean decode |
+  | --- | ---: | ---: | ---: | ---: |
+  | dense | - | 20/20 | 12/12 | 10.4 |
+  | sparse floor 12288 (R04c) | 192 | 20/20 | 12/12 | 22.0 |
+  | sparse FRAC 1/16 only (R04d) | 162 | **19/20** (`_pydecimal.py` `_convert_other`) | 12/12 | 22.9 |
+
+- **Verdict.** By the declared rule: FRAC alone is below dense, the floor is not, so the floor 12288 stays (#49
+  `3035572`). `_convert_other` is the sparse-sensitive item (also missed at 245k with B 8192): the first gate item for
+  D25.
+
+## R05b 160k with the floor (10:25-10:58)
+
+- Same session: dense 14.4 tok/s, 10/10, 12/12; sparse floor 12288: **24.1** tok/s, 10/10, 12/12 = **1.67x**. **Pass**
+  under the amended 1.5x gate (written before R05b). The floor's cost at 160k: 27.0 (B 8192, R05) -> 24.1 (-11 %).
+
+## Status
+
+- 4070 gates R01-R05: all pass (with the two declared amendments). R06 on the 2060: P135 pass (160k 1.65x, 245k 2.17x,
+  min free 153 MiB); P136 (copies and needles vs dense) pending. Then #56 + #49 merge and R07 (publish).
+

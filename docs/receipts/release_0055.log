@@ -41,3 +41,20 @@ b0055 mean decode 69.7 tok/s
 2026-10-14 07:15 R04 depth 200000: sparse-decode mean decode 22.9 tok/s {"tag": "sparse-decode", "depth": 200000, "correct": 9, "of": 10} {"tag": "sparse-decode", "depth": 200000, "correct": 12, "of": 12} 
 2026-10-14 07:15 === gates done
 2026-10-14 07:15 === VRAM trace at 245k for #49 headroom (root-0055, line 32768, 1 s samples)
+2026-10-14 07:17 NOTE: /tmp/root-0055/start-server.ps1 = #49 dfc994e (BONSAI_SPARSE=1 sets 12288,64,1024). A CPU build of another branch (D25) ran 07:16:57-07:17:13 at idle priority, during the VRAM trace's dense arm.
+2026-10-14 07:44 NOTE: CPU build of the PrismML base (test-backend-ops, sm_89, low priority) starts; it runs during the VRAM trace / R04b (memory and quality steps), and should end before R05b (a speed gate)
+2026-10-14 07:46 VRAM dense: peak used 8613 MiB, min free 3398 MiB (1870 samples)
+2026-10-14 07:52 NOTE: PrismML base build ends (ok=0)
+2026-10-14 08:15 VRAM sparse-decode: peak used 8763 MiB, min free 3248 MiB (1729 samples)
+2026-10-14 08:16 NOTE: /tmp/root-0055/start-server.ps1 = #49 3035572 (sparse headroom 36 -> 64 MiB, from the VRAM trace: sparse - dense = 150 MiB at 245k vs 138 expected). R04b/R04c/R05b pin the line, so their results do not depend on it.
+2026-10-14 08:17 === R04b: 200k dense control + sparse floor 12288 (root-0055)
+2026-10-14 08:41 R04b dense (B 8192): dense mean decode 10.4 tok/s {"tag": "dense", "depth": 200000, "correct": 9, "of": 10} {"tag": "dense", "depth": 200000, "correct": 12, "of": 12}  misses: _pydatetime.py _check_tzname;; 
+2026-10-14 09:03 R04b sparse-decode (B 12288): sparse-decode mean decode 22.0 tok/s {"tag": "sparse-decode", "depth": 200000, "correct": 9, "of": 10} {"tag": "sparse-decode", "depth": 200000, "correct": 12, "of": 12}  misses: _pydatetime.py _check_tzname;; keeps 192 of 2600 pages
+2026-10-14 09:03 === R04c: 20 copy items at 200k, dense and sparse floor 12288 (root-0055)
+2026-10-14 09:28 R04c dense (B 8192): dense mean decode 10.4 tok/s {"tag": "dense", "depth": 200000, "correct": 20, "of": 20} {"tag": "dense", "depth": 200000, "correct": 12, "of": 12}  misses: none
+2026-10-14 09:51 R04c sparse-decode (B 12288): sparse-decode mean decode 22.0 tok/s {"tag": "sparse-decode", "depth": 200000, "correct": 20, "of": 20} {"tag": "sparse-decode", "depth": 200000, "correct": 12, "of": 12}  misses: none
+2026-10-14 10:02 === R04d: 20 copy items at 200k, sparse FRAC 1/16 only (floor 8192), root-0055
+2026-10-14 10:25 R04d sparse FRAC-only: sparse-decode mean decode 22.9 tok/s {"tag": "sparse-decode", "depth": 200000, "correct": 19, "of": 20} {"tag": "sparse-decode", "depth": 200000, "correct": 12, "of": 12}  misses: _pydecimal.py _convert_other;
+2026-10-14 10:25 === R05b: 160k, dense and sparse floor 12288 (root-0055, #49 dfc994e)
+2026-10-14 10:42 R05b dense (B 8192): dense mean decode 14.4 tok/s {"tag": "dense", "depth": 160000, "correct": 10, "of": 10} {"tag": "dense", "depth": 160000, "correct": 12, "of": 12} 
+2026-10-14 10:58 R05b sparse-decode (B 12288): sparse-decode mean decode 24.1 tok/s {"tag": "sparse-decode", "depth": 160000, "correct": 10, "of": 10} {"tag": "sparse-decode", "depth": 160000, "correct": 12, "of": 12} 
