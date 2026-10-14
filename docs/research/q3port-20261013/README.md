@@ -20,6 +20,19 @@ q3_0 commit is kept on top of `product-sparse`, so the conflict work is done onc
 | Q07 q3_0 on 0055 | `q3-on-0055` `7c7b47e156` (= `product-0055` + q3_0), root-q3-55 (root-0055 + these bins), line pinned at 32,768, sparse 12288 floor (the 0055 opt-in), graphs on, packed mask on: q3_0 copies and needles not below q4_0 on the same items at 200k (20 items) and 245k (10 items); q3_0 mean decode not below q4_0 at the same pinned line (fewer bytes per host row). Written 2026-10-14 13:45, before the run |
 | Q06 (2060) | the tester's P108 / P114 / P117 set on the new build: the same results as on `6a4851286` within noise |
 
+## Decision rule for the next bundle (0056), written 2026-10-14 15:17 before P129-P132 land
+
+q3_0 ships in the next bundle either way, as `BONSAI_CTK=q3_0` (launcher cell size: PR #83). It becomes the **8 GB default**
+only if all of these hold on the RTX 2060 SUPER, on `q3-on-0055` `7c7b47e156`:
+
+- 64k mean decode within 5 % of q4_0 (P114 on the old engine: -6.5 %, from the q3_0 dequant cost; as measured that would
+  mean opt-in);
+- perplexity at 16k at most +1 % against q4_0;
+- HumanEval 164 at medium: at least 157/164;
+- exact copies and needles equal to q4_0 on the same items.
+
+If the 64k item misses, q3_0 ships opt-in and the dequant cost becomes a kernel item. The same rule as for sparse (0055).
+
 ## Engines
 
 - `q3-on-sparse` `bae6dccfe` (fork) = `product-sparse` `3ab0af3c2` (= `product-0054` + sparse) + q3_0.
