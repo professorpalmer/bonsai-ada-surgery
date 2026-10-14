@@ -97,6 +97,21 @@ Format per entry: **question**, **gate**, **setup**, **result**, **verdict**, **
   0056 rule: the 2060's quality items on `7c7b47e156` stay valid (bit-exact), and rule item 1 (64k within 5 % of q4_0)
   moves to the q3-fast build.
 
+## D28 Packed-half dequant for q4_0 and q8_0 (2026-10-14 15:49-16:07)
+
+- **Question.** The packed-half tile dequant (D27) extended to q4_0 (the 8 GB default) and q8_0 (the 12 GB default): is it
+  bit-exact, and not slower?
+- **Gate.** In the script header (the kernel session's `d28_q48fast.sh`), before the run: FLASH_ATTN_EXT 0 FAIL;
+  q4-old = q4-new and q8-old = q8-new answer hashes; new decode at 64k not below old, per type.
+- **Setup.** new = fork `q3-fast` `be604dec0` (`df218650a` + q4_0 / q8_0), root `root-q3fast2`; old = `root-q3-55`
+  (`7c7b47e156`). 64k all in VRAM, 12 GB recipe with `BONSAI_CTK` forced, alternated x2, driver 610.88. The build
+  ended before the run.
+- **Result.** Op tests 3115/3115, 0 FAIL. Hashes: q4_0 old = new = `edf0b1fbd89000ba`; q8_0 old = new =
+  `6e056aae95e76a19`. Mean decode at 64k (r1 / r2): q4_0 old 79.4 / 79.3, new 79.7 / 80.0 (+0.6 %); q8_0 old 78.4 /
+  78.5, new 78.9 / 79.2 (+0.8 %).
+- **Verdict.** Pass. Patch 0057 = the packed-half dequant for q3_0, q4_0 and q8_0 (bit-exact, slightly faster);
+  release gates in `../release-20261014b/`.
+
 ## Q06 2060 set
 
 - **Status.** Asked on #21 (2026-10-14 01:15): P108 / P114 / P117 on `4dbfe57d4` for `75-real`.
