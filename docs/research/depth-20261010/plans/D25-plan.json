@@ -1,0 +1,14 @@
+{
+ "id": "D25",
+ "declared": "2026-10-14, before the run",
+ "question": "Can a per-layer budget (more pages in the outer attention layers, fewer in the middle; D24 trace) keep exact copies at a lower total budget than the uniform floor 12288, and so win back the floor's 160k decode cost?",
+ "engine": "sparse-d25 eaa72d38a = product-0055 + GGML_CUDA_FA_SPARSE_LAYERS (root-psparse-d25)",
+ "config": "GGML_CUDA_FA_SPARSE=8192,64,1024, FRAC 1/16 (engine default), GGML_CUDA_FA_SPARSE_LAYERS=0-7:2,52-63:2,8-51:0.75 (attention layers: model 3,7 and 55,59,63 x2; the other 11 x0.75); per-op budget = max(8192, tail/16) x mult; mean over the 16 layers = 1.14 x base: 160k ~9.3k, 200k ~11.9k, 245k ~15.2k cells",
+ "switches": "graphs on, packed mask on, line 32768 (8 GB-like), stock memory clock, driver 610.88",
+ "gates": [
+  "200k, the R04c/R04d 20-item set: copies not below dense (20/20), needles 12/12",
+  "245k, the R04 10-item set (incl. _pydecimal _convert_other): copies not below dense (10/10), needles 12/12",
+  "160k: copies 10/10, needles 12/12, mean decode above R05b's floor-12288 arm (24.1 tok/s, same clock and driver)"
+ ],
+ "reading": "all pass: per-layer budget replaces the 12288 floor in the next bundle (lower total at 160k/200k). 245k uses a higher total (15.2k vs 13.3k), so its speed is recorded, not gated."
+}
