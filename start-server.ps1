@@ -286,7 +286,7 @@ $TierCellsDense = 0   # the line this card would get without sparse (for the sum
 $TierCells = 0
 [string[]]$TierArgs = @()
 if ($Tier) {
-    $CellBytes = switch ($Ctk) { 'q8_0' { 34816 } 'q4_0' { 18432 } 'f16' { 65536 } default { 34816 } }
+    $CellBytes = switch ($Ctk) { 'q8_0' { 34816 } 'q4_0' { 18432 } 'q3_0' { 14336 } 'f16' { 65536 } default { 34816 } }
     if ($env:BONSAI_KV_VRAM_CELLS) {
         $TierCells = [int]$env:BONSAI_KV_VRAM_CELLS
     } else {
