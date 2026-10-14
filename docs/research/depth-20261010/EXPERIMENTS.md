@@ -492,3 +492,34 @@ VRAM line 43,520 (f16 mask), host tail ~197k cells, graphs off.
   smaller fixed cost per step for a small host tail.
 - **Receipts.** `docs/receipts/sparse_overhead_d26a.log`.
 
+## D26c / D26e Two-level page bounds (2026-10-14 12:28-13:16)
+
+- **Question.** Can the page bounds take almost no VRAM (D26a: the 64k cost is the VRAM line)? Design (`sparse-d26`
+  `71dcac6fe`): coarse f16 bounds per superpage stay in VRAM; the fine int8 page bounds move to pinned host memory.
+  Per op the GPU scores superpages, keeps the top M x what the budget needs, then reads only their fine bounds over
+  PCIe. `GGML_CUDA_FA_SPARSE_OVERLAP=1` (debug) also runs the one-level selection and logs the share of its
+  non-recent pages the two-level path keeps.
+- **Gate.** Declared in the script headers: overlap >= 99 % and `_pydecimal.py` `_convert_other` copied exactly.
+- **Setup.** root `root-psparse-d26`, B 12288 floor + FRAC 1/16, line 32,768, graphs on, packed mask on, driver 610.88.
+- **D26c (super 16 pages, M 4 and M 8; 245k and 200k).** The script escaped the dollar in the log paths, so each arm's
+  logs went to one shared file one directory up and the 245k arms' logs were overwritten. The recovered 200k M 4 log:
+  two-level on ("bounds int8 two-level", 176 MiB counted), overlap 67.6-68.0 % (worst op 50.1 %). The item failed in
+  all three arms. Rejected: 16-page superpage bounds are too loose to rank.
+- **D26e (200k, fixed log paths).**
+
+  | superpage | M | overlap | worst op | item |
+  | ---: | ---: | ---: | ---: | --- |
+  | 4 pages | 4 | 87.6 % | 78.5 % | exact |
+  | 4 pages | 8 | **98.9 %** | 95.7 % | exact |
+  | 16 pages | 8 | 91.4 % | 81.5 % | exact |
+
+- **Verdict.** No arm meets the 99 % gate; superpage 4 / M 8 misses it by 0.1 point and copies the item. Two-level
+  stays a candidate: 4-page superpages cost about 129 B per host cell in VRAM (about 26 MiB at 213k host cells, against
+  104 MiB for full int8 bounds). Next: superpage 4 with a larger M, or 2-page superpages, then the full quality set and
+  64k at the dense line.
+- **Clock note.** These scripts logged `clocks.max.memory`, which always reads 10501 MHz. The memory overclock was off
+  at 04:11 (10251 MHz under load) and on by about 12:24 (11751 MHz under load at 13:09). Overlap and copies do not
+  depend on the clock.
+- **Receipts.** `docs/receipts/sparse_twolevel_d26c.log` (with a correction note), `d26c_200000_m4.server.log`,
+  `sparse_twolevel_d26e.log`.
+

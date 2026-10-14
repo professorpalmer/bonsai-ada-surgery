@@ -1,0 +1,14 @@
+12:56 === D26e start: sparse-d26 71dcac6fe (0055 + STAGE_MIN_Q fix + two-level bounds, sm_89), mem clock 10501 MHz, driver 610.88
+12:57 d26e_200000_m4_s4: health=1
+{"tag": "d26e_200000_m4_s4", "depth": 200000, "file": "_pydecimal.py", "fn": "_convert_other", "position_frac": 0.522, "lines": 18, "ok": true, "evaluated": 195919, "wall_s": 374.3}
+{"tag": "d26e_200000_m4_s4", "depth": 200000, "correct": 1, "of": 1}
+13:03 d26e_200000_m4_s4: engaged 5, last OVERLAP: 769 ops: two-level keeps 87.57 % of the one-level pages (worst op 78.5 %); M 4, super 4, keep 192 of 2552 pages
+13:03 d26e_200000_m8_s4: health=1
+{"tag": "d26e_200000_m8_s4", "depth": 200000, "file": "_pydecimal.py", "fn": "_convert_other", "position_frac": 0.522, "lines": 18, "ok": true, "evaluated": 195919, "wall_s": 374.9}
+{"tag": "d26e_200000_m8_s4", "depth": 200000, "correct": 1, "of": 1}
+13:09 d26e_200000_m8_s4: engaged 4, last OVERLAP: 513 ops: two-level keeps 98.94 % of the one-level pages (worst op 95.7 %); M 8, super 4, keep 192 of 2552 pages
+13:10 d26e_200000_m8_s16: health=1
+{"tag": "d26e_200000_m8_s16", "depth": 200000, "file": "_pydecimal.py", "fn": "_convert_other", "position_frac": 0.522, "lines": 18, "ok": true, "evaluated": 195919, "wall_s": 375.1}
+{"tag": "d26e_200000_m8_s16", "depth": 200000, "correct": 1, "of": 1}
+13:16 d26e_200000_m8_s16: engaged 5, last OVERLAP: 769 ops: two-level keeps 91.43 % of the one-level pages (worst op 81.5 %); M 8, super 16, keep 192 of 2552 pages
+13:16 === D26e done

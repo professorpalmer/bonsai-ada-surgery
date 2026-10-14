@@ -1,0 +1,391 @@
+0.00.020.718 I cmn  common_param: common_params_print_info: verbosity = 3 (adjust with the `-lv N` CLI arg)
+0.00.030.948 I srv    load_model: loading model 'C:/Users/pwall/Projects/bonsai-2-27b-serve\models\Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf'
+0.04.557.242 I cmn          init: llama threadpool init, n_threads = 16
+0.04.559.172 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+0.04.936.700 I common_speculative_init_result: draft context sized to 20736 tokens (spec-draft-window 16384, target 262144)
+0.04.936.706 I common_speculative_init_result: MTP draft context n_ubatch 512 -> 256 (LLAMA_MTP_DRAFT_UBATCH)
+0.04.936.706 I common_speculative_init_result: creating MTP draft context against the target model 'C:/Users/pwall/Projects/bonsai-2-27b-serve\models\Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf'
+0.05.588.419 I srv    load_model: initializing, n_slots = 1, n_ctx_slot = 262144, kv_unified = 'false'
+0.05.602.253 I srv    load_model: speculative decoding enabled: ngram-mod,draft-mtp
+0.05.606.558 I srv          init: chat template supports preserving reasoning, consider enabling it via --reasoning-preserve
+0.05.606.571 I srv  llama_server: model loaded
+0.05.606.572 I srv  llama_server: listening on http://0.0.0.0:8080
+0.05.606.573 W srv  llama_server: NOTICE: server default port will be changed to :9931 in a future release
+0.05.606.573 W srv  llama_server:         ref: https://github.com/ggml-org/llama.cpp/pull/26508
+0.06.962.616 I slot get_availabl: id  0 | task -1 | selected slot by LRU, t_last = -1
+0.06.962.772 W common_sampler_init: backend sampling is not compatible with reasoning budget, disabling
+0.06.962.776 I slot launch_slot_: id  0 | task 0 | processing task, is_child = 0
+0.07.047.034 W ggml_cuda_op_gated_delta_net_impl: chunked GDN prefill (MMA) engaged: 121 tokens (116 by MMA), K 5, H 48, H_k 16, raw 1, gather 1, seqs 1
+0.10.190.485 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =   4217, progress = 0.02, t =   3.05 s / 1381.28 tokens per second
+0.11.755.038 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =   6265, progress = 0.03, t =   4.60 s / 1361.02 tokens per second
+0.13.361.419 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =   8313, progress = 0.04, t =   6.20 s / 1340.02 tokens per second
+0.15.012.262 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  10361, progress = 0.05, t =   7.85 s / 1319.60 tokens per second
+0.16.746.665 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  12409, progress = 0.06, t =   9.59 s / 1294.55 tokens per second
+0.18.481.222 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  14457, progress = 0.07, t =  11.30 s / 1279.02 tokens per second
+0.20.264.005 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  16505, progress = 0.08, t =  13.09 s / 1261.21 tokens per second
+0.22.108.312 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  18553, progress = 0.09, t =  14.92 s / 1243.53 tokens per second
+0.24.013.530 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  20601, progress = 0.11, t =  16.82 s / 1224.87 tokens per second
+0.26.016.809 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  22649, progress = 0.12, t =  18.82 s / 1203.53 tokens per second
+0.28.026.144 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  24697, progress = 0.13, t =  20.82 s / 1186.28 tokens per second
+0.30.086.222 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  26745, progress = 0.14, t =  22.88 s / 1169.16 tokens per second
+0.32.196.637 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  28793, progress = 0.15, t =  24.99 s / 1152.29 tokens per second
+0.34.355.283 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  30841, progress = 0.16, t =  27.14 s / 1136.52 tokens per second
+0.36.003.016 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+0.36.554.489 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+0.36.605.699 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  32889, progress = 0.17, t =  29.39 s / 1119.23 tokens per second
+0.36.610.869 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+0.38.811.959 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+0.38.864.063 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  34937, progress = 0.18, t =  31.64 s / 1104.35 tokens per second
+0.38.869.304 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+0.41.119.886 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+0.41.170.647 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  36985, progress = 0.19, t =  33.95 s / 1089.53 tokens per second
+0.41.175.853 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+0.43.476.838 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+0.43.528.215 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  39033, progress = 0.20, t =  36.29 s / 1075.71 tokens per second
+0.43.533.628 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+0.45.884.266 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+0.45.935.795 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  41081, progress = 0.21, t =  38.69 s / 1061.87 tokens per second
+0.45.988.034 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+0.48.384.638 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+0.48.436.160 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  43129, progress = 0.22, t =  41.19 s / 1047.17 tokens per second
+0.48.441.548 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+0.50.890.376 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+0.50.941.613 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  45177, progress = 0.23, t =  43.69 s / 1034.13 tokens per second
+0.50.946.846 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+0.53.445.447 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+0.53.496.561 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  47225, progress = 0.24, t =  46.25 s / 1021.04 tokens per second
+0.53.501.916 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+0.56.062.615 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+0.56.114.704 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  49273, progress = 0.25, t =  48.86 s / 1008.44 tokens per second
+0.56.120.186 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+0.58.710.760 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+0.58.762.367 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  51321, progress = 0.26, t =  51.50 s / 996.47 tokens per second
+0.58.813.770 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+1.01.452.506 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+1.01.504.604 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  53369, progress = 0.27, t =  54.24 s / 984.01 tokens per second
+1.01.510.190 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+1.04.208.998 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+1.04.260.725 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  55417, progress = 0.28, t =  56.99 s / 972.46 tokens per second
+1.04.266.463 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+1.07.009.265 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+1.07.062.440 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  57465, progress = 0.29, t =  59.79 s / 961.18 tokens per second
+1.07.068.026 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+1.09.864.376 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+1.09.916.839 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  59513, progress = 0.30, t =  62.64 s / 950.14 tokens per second
+1.09.922.468 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+1.12.771.573 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+1.12.824.751 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  61561, progress = 0.31, t =  65.54 s / 939.35 tokens per second
+1.12.877.442 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+1.15.776.771 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+1.15.830.153 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  63609, progress = 0.32, t =  68.54 s / 928.11 tokens per second
+1.15.835.761 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+1.18.786.092 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+1.18.839.124 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  65657, progress = 0.34, t =  71.54 s / 917.82 tokens per second
+1.18.844.805 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+1.21.841.200 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+1.21.893.349 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  67705, progress = 0.35, t =  74.59 s / 907.74 tokens per second
+1.21.899.007 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+1.24.946.466 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+1.24.999.119 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  69753, progress = 0.36, t =  77.69 s / 897.88 tokens per second
+1.25.005.021 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+1.28.100.186 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+1.28.152.688 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  71801, progress = 0.37, t =  80.84 s / 888.23 tokens per second
+1.28.207.199 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+1.31.353.625 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+1.31.404.707 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  73849, progress = 0.38, t =  84.09 s / 878.25 tokens per second
+1.31.410.341 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+1.34.606.287 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+1.34.659.082 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  75897, progress = 0.39, t =  87.34 s / 869.01 tokens per second
+1.34.664.700 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+1.37.910.034 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+1.37.962.125 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  77945, progress = 0.40, t =  90.64 s / 859.97 tokens per second
+1.37.967.893 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+1.41.260.657 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+1.41.312.847 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  79993, progress = 0.41, t =  93.98 s / 851.16 tokens per second
+1.41.318.596 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+1.44.658.851 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+1.44.712.432 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  82041, progress = 0.42, t =  97.38 s / 842.52 tokens per second
+1.44.764.420 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+1.48.151.235 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+1.48.203.850 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  84089, progress = 0.43, t = 100.86 s / 833.75 tokens per second
+1.48.209.495 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+1.51.646.366 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+1.51.699.040 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  86137, progress = 0.44, t = 104.35 s / 825.44 tokens per second
+1.51.704.956 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+1.55.189.719 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+1.55.242.048 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  88185, progress = 0.45, t = 107.89 s / 817.38 tokens per second
+1.55.247.790 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+1.58.787.674 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+1.58.839.947 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  90233, progress = 0.46, t = 111.49 s / 809.36 tokens per second
+1.58.845.736 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+2.02.437.828 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+2.02.490.380 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  92281, progress = 0.47, t = 115.14 s / 801.49 tokens per second
+2.02.543.237 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+2.06.175.283 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+2.06.228.373 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  94329, progress = 0.48, t = 118.87 s / 793.56 tokens per second
+2.06.234.379 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+2.09.929.107 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+2.09.984.107 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  96377, progress = 0.49, t = 122.62 s / 785.98 tokens per second
+2.09.989.899 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+2.13.732.929 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+2.13.786.111 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =  98425, progress = 0.50, t = 126.42 s / 778.56 tokens per second
+2.13.792.056 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+2.17.581.699 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+2.17.634.156 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 100473, progress = 0.51, t = 130.25 s / 771.37 tokens per second
+2.17.639.833 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+2.21.485.881 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+2.21.537.513 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 102521, progress = 0.52, t = 134.15 s / 764.21 tokens per second
+2.21.591.200 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+2.25.478.410 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+2.25.530.617 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 104569, progress = 0.53, t = 138.15 s / 756.91 tokens per second
+2.25.536.829 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+2.29.477.353 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+2.29.529.714 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 106617, progress = 0.54, t = 142.13 s / 750.12 tokens per second
+2.29.535.732 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+2.33.524.705 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+2.33.577.561 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 108665, progress = 0.55, t = 146.19 s / 743.34 tokens per second
+2.33.583.511 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+2.37.621.478 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+2.37.672.036 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 110713, progress = 0.57, t = 150.27 s / 736.76 tokens per second
+2.37.678.069 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+2.41.760.596 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+2.41.814.038 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 112761, progress = 0.58, t = 154.41 s / 730.28 tokens per second
+2.41.866.541 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+2.45.995.652 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+2.46.047.854 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 114809, progress = 0.59, t = 158.64 s / 723.73 tokens per second
+2.46.053.915 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+2.50.231.332 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+2.50.285.966 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 116857, progress = 0.60, t = 162.87 s / 717.50 tokens per second
+2.50.291.841 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+2.54.526.518 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+2.54.578.620 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 118905, progress = 0.61, t = 167.17 s / 711.29 tokens per second
+2.54.584.668 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+2.58.870.759 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+2.58.922.547 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 120953, progress = 0.62, t = 171.50 s / 705.26 tokens per second
+2.58.928.679 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+3.03.262.078 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+3.03.314.498 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 123001, progress = 0.63, t = 175.89 s / 699.32 tokens per second
+3.03.367.674 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+3.07.754.819 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+3.07.808.430 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 125049, progress = 0.64, t = 180.37 s / 693.30 tokens per second
+3.07.814.551 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+3.12.245.371 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+3.12.297.367 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 127097, progress = 0.65, t = 184.87 s / 687.50 tokens per second
+3.12.303.573 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+3.16.787.731 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+3.16.839.590 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 129145, progress = 0.66, t = 189.40 s / 681.85 tokens per second
+3.16.845.875 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+3.21.381.185 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+3.21.433.729 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 131193, progress = 0.67, t = 193.99 s / 676.30 tokens per second
+3.21.439.767 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+3.26.021.350 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+3.26.074.323 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 133241, progress = 0.68, t = 198.62 s / 670.84 tokens per second
+3.26.129.173 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+3.30.762.704 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+3.30.815.604 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 135289, progress = 0.69, t = 203.35 s / 665.29 tokens per second
+3.30.822.148 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+3.35.500.907 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+3.35.555.149 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 137337, progress = 0.70, t = 208.09 s / 660.00 tokens per second
+3.35.561.447 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+3.40.288.474 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+3.40.340.932 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 139385, progress = 0.71, t = 212.87 s / 654.79 tokens per second
+3.40.346.853 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+3.45.125.011 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+3.45.177.473 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 141433, progress = 0.72, t = 217.70 s / 649.66 tokens per second
+3.45.183.851 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+3.50.012.336 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+3.50.064.490 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 143481, progress = 0.73, t = 222.59 s / 644.61 tokens per second
+3.50.117.468 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+3.54.991.155 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+3.55.043.271 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 145529, progress = 0.74, t = 227.57 s / 639.49 tokens per second
+3.55.049.542 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+3.59.979.137 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+4.00.031.082 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 147577, progress = 0.75, t = 232.55 s / 634.60 tokens per second
+4.00.037.632 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+4.05.015.931 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+4.05.069.390 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 149625, progress = 0.76, t = 237.59 s / 629.77 tokens per second
+4.05.075.976 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+4.10.104.632 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+4.10.156.746 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 151673, progress = 0.77, t = 242.67 s / 625.02 tokens per second
+4.10.162.778 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+4.15.240.144 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+4.15.293.197 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 153721, progress = 0.78, t = 247.80 s / 620.34 tokens per second
+4.15.346.735 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+4.20.480.114 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+4.20.532.918 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 155769, progress = 0.80, t = 253.03 s / 615.62 tokens per second
+4.20.539.259 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+4.25.715.778 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+4.25.768.384 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 157817, progress = 0.81, t = 258.27 s / 611.06 tokens per second
+4.25.774.658 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+4.30.996.883 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+4.31.052.737 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 159865, progress = 0.82, t = 263.54 s / 606.61 tokens per second
+4.31.059.311 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+4.36.331.864 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+4.36.384.910 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 161913, progress = 0.83, t = 268.87 s / 602.20 tokens per second
+4.36.391.379 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+4.41.713.088 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+4.41.765.263 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 163961, progress = 0.84, t = 274.25 s / 597.86 tokens per second
+4.41.819.218 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+4.47.195.349 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+4.47.245.909 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 166009, progress = 0.85, t = 279.72 s / 593.48 tokens per second
+4.47.252.375 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+4.52.677.304 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+4.52.729.681 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 168057, progress = 0.86, t = 285.20 s / 589.25 tokens per second
+4.52.736.296 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+4.58.209.469 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+4.58.261.543 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 170105, progress = 0.87, t = 290.72 s / 585.12 tokens per second
+4.58.268.118 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+5.03.793.242 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+5.03.845.480 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 172153, progress = 0.88, t = 296.30 s / 581.00 tokens per second
+5.03.852.536 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+5.09.421.429 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+5.09.476.399 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 174201, progress = 0.89, t = 301.94 s / 576.95 tokens per second
+5.09.531.550 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+5.15.151.283 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+5.15.205.777 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 176249, progress = 0.90, t = 307.65 s / 572.88 tokens per second
+5.15.212.414 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+5.20.886.198 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+5.20.939.938 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 178297, progress = 0.91, t = 313.38 s / 568.95 tokens per second
+5.20.946.498 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+5.26.665.574 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+5.26.718.047 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 180345, progress = 0.92, t = 319.17 s / 565.04 tokens per second
+5.26.724.658 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+5.32.493.226 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+5.32.545.385 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 182393, progress = 0.93, t = 324.99 s / 561.23 tokens per second
+5.32.551.858 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+5.38.369.651 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+5.38.420.311 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 184441, progress = 0.94, t = 330.85 s / 557.48 tokens per second
+5.38.473.489 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+5.44.340.933 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+5.44.396.265 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 186489, progress = 0.95, t = 336.82 s / 553.68 tokens per second
+5.44.403.051 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+5.50.309.576 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+5.50.361.882 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 188537, progress = 0.96, t = 342.79 s / 550.01 tokens per second
+5.50.368.530 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+5.56.337.533 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+5.56.389.804 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 190585, progress = 0.97, t = 348.81 s / 546.38 tokens per second
+5.56.396.544 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.02.412.103 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.02.464.370 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 192633, progress = 0.98, t = 354.88 s / 542.81 tokens per second
+6.02.471.392 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.08.540.767 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.08.595.709 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 194681, progress = 0.99, t = 361.01 s / 539.27 tokens per second
+6.08.649.304 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.10.884.494 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.10.900.773 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 195403, progress = 1.00, t = 363.67 s / 537.31 tokens per second
+6.10.954.231 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.12.479.830 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.12.488.405 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens = 195915, progress = 1.00, t = 364.95 s / 536.82 tokens per second
+6.12.548.793 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.12.564.167 W ggml_cuda_fa_sparse_mask: OVERLAP 1 ops: two-level keeps 74.74 % of the one-level pages (worst op 74.7 %); M 4, super 16, keep 192 of 2552 pages
+6.12.564.208 W ggml_cuda_fa_sparse_mask: GGML_CUDA_FA_SPARSE B=12288 P=64 R=1024 fast, bounds int8 two-level: 1 ops; this op 4 queries, host tail 163328 cells, keeps 192 of 2552 pages + recent
+6.12.829.513 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.12.849.720 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.13.005.237 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.13.013.205 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.13.173.617 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.13.181.444 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.13.337.565 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.13.345.604 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.13.501.671 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.13.509.711 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.13.663.750 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.13.671.610 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.13.829.853 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.13.838.123 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.13.996.186 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.14.004.452 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.14.158.847 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.14.167.073 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.14.321.510 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.14.329.722 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.14.485.130 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.14.492.857 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.14.648.296 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.14.656.470 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.14.810.790 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.14.818.960 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.14.979.382 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.14.987.171 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.15.141.480 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.15.149.287 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.15.303.666 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.15.311.544 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.15.317.120 W ggml_cuda_fa_sparse_mask: OVERLAP 257 ops: two-level keeps 67.89 % of the one-level pages (worst op 51.8 %); M 4, super 16, keep 192 of 2552 pages
+6.15.469.387 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.15.477.639 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.15.632.676 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.15.641.030 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.15.796.523 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.15.804.435 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.15.961.144 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.15.969.291 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.16.125.125 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.16.133.173 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.16.287.582 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.16.295.673 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.16.454.290 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.16.462.584 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.16.617.367 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.16.625.621 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.16.784.259 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.16.792.469 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.16.947.256 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.16.955.076 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.17.109.465 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.17.117.516 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.17.274.553 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.17.282.455 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.17.438.115 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.17.446.619 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.17.606.909 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.17.615.340 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.17.770.810 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.17.779.046 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.17.935.409 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.17.943.249 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.17.948.872 W ggml_cuda_fa_sparse_mask: OVERLAP 513 ops: two-level keeps 68.01 % of the one-level pages (worst op 50.1 %); M 4, super 16, keep 192 of 2552 pages
+6.18.102.425 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.18.110.318 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.18.266.803 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.18.275.205 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.18.434.113 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.18.442.461 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.18.600.865 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.18.609.159 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.18.768.615 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.18.777.103 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.18.933.711 I slot print_timing: id  0 | task 0 | n_gen =    101, tg =  16.38 t/s, tg_3s =  16.55 t/s
+6.18.934.347 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.18.942.527 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.19.099.289 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.19.107.526 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.19.266.266 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.19.274.396 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.19.435.779 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.19.444.021 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.19.604.493 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.19.612.909 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.19.769.630 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.19.777.995 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.19.938.450 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.19.946.742 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.20.101.975 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.20.110.227 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.20.264.962 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.20.273.354 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.20.428.416 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.20.436.799 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.20.592.852 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.20.600.803 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.20.606.541 W ggml_cuda_fa_sparse_mask: OVERLAP 769 ops: two-level keeps 67.59 % of the one-level pages (worst op 50.1 %); M 4, super 16, keep 192 of 2552 pages
+6.20.759.972 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.20.768.198 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.20.927.170 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
+6.20.935.183 W ggml_cuda_graph_check_compability: attention reads the host tail of the tiered KV cache: CUDA graphs off, tier prefetch pipeline on
+6.21.092.315 I slot print_timing: id  0 | task 0 | prompt eval time =  365867.73 ms / 195919 tokens (    1.87 ms per token,   535.49 tokens per second)
+6.21.092.317 I slot print_timing: id  0 | task 0 |        eval time =    8261.82 ms /   139 tokens (   59.87 ms per token,    16.70 tokens per second)
+6.21.092.318 I slot print_timing: id  0 | task 0 |       total time =  374129.54 ms / 196058 tokens
+6.21.092.318 I slot print_timing: id  0 | task 0 |    graphs reused =         50
+6.21.092.331 I slot print_timing: id  0 | task 0 | draft acceptance = 0.45000 (   90 accepted /   200 generated), mean len =  2.80
+6.21.095.680 I slot      release: id  0 | task 0 | stop processing: n_tokens = 196059, truncated = 0

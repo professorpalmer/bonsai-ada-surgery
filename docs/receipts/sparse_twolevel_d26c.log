@@ -1,0 +1,16 @@
+12:28 === D26c start: sparse-d26 71dcac6fe (0055 + STAGE_MIN_Q fix + two-level bounds, sm_89), mem clock 10501 MHz, driver 610.88
+12:29 d26c_245000_m4: health=1
+{"tag": "d26c_245000_m4", "depth": 245000, "file": "_pydecimal.py", "fn": "_convert_other", "position_frac": 0.444, "lines": 18, "ok": false, "evaluated": 230646, "wall_s": 499.0}
+{"tag": "d26c_245000_m4", "depth": 245000, "correct": 0, "of": 1}
+12:37 d26c_245000_m4: engaged , last OVERLAP: 
+12:37 d26c_245000_m8: health=1
+{"tag": "d26c_245000_m8", "depth": 245000, "file": "_pydecimal.py", "fn": "_convert_other", "position_frac": 0.444, "lines": 18, "ok": false, "evaluated": 230646, "wall_s": 487.8}
+{"tag": "d26c_245000_m8", "depth": 245000, "correct": 0, "of": 1}
+12:45 d26c_245000_m8: engaged , last OVERLAP: 
+12:46 d26c_200000_m4: health=1
+{"tag": "d26c_200000_m4", "depth": 200000, "file": "_pydecimal.py", "fn": "_convert_other", "position_frac": 0.522, "lines": 18, "ok": false, "evaluated": 195919, "wall_s": 374.3}
+{"tag": "d26c_200000_m4", "depth": 200000, "correct": 0, "of": 1}
+12:52 d26c_200000_m4: engaged , last OVERLAP: 
+12:52 === D26c done
+2026-10-14 12:54 NOTE (release session): D26c VOID. No launcher or server log exists for any arm (logs/d26c_*.launcher.log and .server.log were never created, so the 'engaged' and OVERLAP fields are empty), yet every arm reached health=1. Which server answered is not proven. _convert_other failed in all three arms, where the one-level floor-12288 path copied it at 245k (R04) and 200k (R04c). Sent back to the kernel session to check the launch.
+2026-10-14 12:56 CORRECTION (release session): D26c is NOT void. The script escaped the dollar in the log paths, so PowerShell wrote each arm's logs one directory up as 'logs$NAME.*' (each arm overwrote the last). The kernel session moved the last arm's logs to logs/d26c_200000_m4.{server,launcher}.log; they show the d26 server with two-level on ('bounds int8 two-level', 176 MiB counted) and OVERLAP 67.6-68.0 % of the one-level pages (worst op 50.1 %) at 200k, M 4, super 16. The 245k arms' logs are lost (overwritten); their item results (fail) stand. Verdict: two-level M4 / super 16 rejected (overlap 68 %).
