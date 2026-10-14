@@ -1,0 +1,1 @@
+{"id": "Q01", "date": "2026-10-13", "hw": "-", "engine": "bae6dccfe (q3-on-sparse)", "script": "git cherry-pick", "question": "q3_0 onto product-0054 / product-sparse", "arms": "-", "gate": "none", "verdict": "clean on both", "receipts": ["fork branch q3-on-sparse"], "gpu_h": 0.0}
