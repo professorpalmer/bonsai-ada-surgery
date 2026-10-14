@@ -1,0 +1,42 @@
+2026-10-14 15:30 NOTE (release session): the q3-fast nvcc build ran 15:19:46-15:29:43 at idle priority, before D27's start: no overlap. Started from session f82461a3.
+15:30 === D27 start: fast q3-fast df218650a (7c7b47e156 + packed-half q3_0 tile dequant, sm_89, build-q3fast), old C:\Users\pwall\AppData\Local\Temp\root-q3-55, depth 64000, driver 610.88
+15:33 op test FLASH_ATTN_EXT (q3-fast):  3115/3115 tests passed 0 FAIL lines
+15:33 r1 q4: health=1; mem clock under load 11751 MHz; kv     tiered: cells 0..260352 in VRAM, 260352..262144 in system RAM (
+r1 q4 code   depth  64000 (evaluated 64009): prefill   964.1 tok/s  ttft  66.39s  decode   89.3 tok/s (400 tok)
+r1 q4 prose  depth  64000 (evaluated 512): prefill   603.9 tok/s  ttft   0.85s  decode   70.0 tok/s (400 tok)
+r1 q4 bash   depth  64000 (evaluated 516): prefill   606.0 tok/s  ttft   0.85s  decode   79.4 tok/s (400 tok)
+r1 q4 mean decode 79.6 tok/s
+15:35 r1 q3-old: health=1; mem clock under load 11751 MHz; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (
+q3-old hash 8ae434b2d6a99c5a 740
+q3-old hash 7e6aadac8bfe022a 710
+q3-old hash edb700ca5697ec31 130
+q3-old hash all a090a7f00152d5ef
+r1 q3-old code   depth  64000 (evaluated 64009): prefill   949.0 tok/s  ttft  67.45s  decode   84.7 tok/s (400 tok)
+r1 q3-old prose  depth  64000 (evaluated 512): prefill   592.7 tok/s  ttft   0.86s  decode   68.5 tok/s (400 tok)
+r1 q3-old bash   depth  64000 (evaluated 516): prefill   601.2 tok/s  ttft   0.86s  decode   76.7 tok/s (400 tok)
+r1 q3-old mean decode 76.6 tok/s
+15:37 r1 q3-fast: health=1; mem clock under load 11751 MHz; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (
+q3-fast hash 8ae434b2d6a99c5a 740
+q3-fast hash 7e6aadac8bfe022a 710
+q3-fast hash edb700ca5697ec31 130
+q3-fast hash all a090a7f00152d5ef
+r1 q3-fast code   depth  64000 (evaluated 64009): prefill   969.2 tok/s  ttft  66.04s  decode   85.7 tok/s (400 tok)
+r1 q3-fast prose  depth  64000 (evaluated 512): prefill   607.2 tok/s  ttft   0.84s  decode   69.5 tok/s (400 tok)
+r1 q3-fast bash   depth  64000 (evaluated 516): prefill   610.8 tok/s  ttft   0.84s  decode   78.4 tok/s (400 tok)
+r1 q3-fast mean decode 77.9 tok/s
+15:39 r2 q4: health=1; mem clock under load 11751 MHz; kv     tiered: cells 0..260352 in VRAM, 260352..262144 in system RAM (
+r2 q4 code   depth  64000 (evaluated 64009): prefill   958.9 tok/s  ttft  66.75s  decode   88.6 tok/s (400 tok)
+r2 q4 prose  depth  64000 (evaluated 512): prefill   595.6 tok/s  ttft   0.86s  decode   69.4 tok/s (400 tok)
+r2 q4 bash   depth  64000 (evaluated 516): prefill   605.5 tok/s  ttft   0.85s  decode   78.8 tok/s (400 tok)
+r2 q4 mean decode 78.9 tok/s
+15:40 r2 q3-old: health=1; mem clock under load 11751 MHz; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (
+r2 q3-old code   depth  64000 (evaluated 64009): prefill   948.3 tok/s  ttft  67.50s  decode   84.4 tok/s (400 tok)
+r2 q3-old prose  depth  64000 (evaluated 512): prefill   593.0 tok/s  ttft   0.86s  decode   68.4 tok/s (400 tok)
+r2 q3-old bash   depth  64000 (evaluated 516): prefill   595.7 tok/s  ttft   0.87s  decode   76.0 tok/s (400 tok)
+r2 q3-old mean decode 76.3 tok/s
+15:42 r2 q3-fast: health=1; mem clock under load 11751 MHz; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (
+r2 q3-fast code   depth  64000 (evaluated 64009): prefill   968.8 tok/s  ttft  66.07s  decode   86.2 tok/s (400 tok)
+r2 q3-fast prose  depth  64000 (evaluated 512): prefill   608.9 tok/s  ttft   0.84s  decode   69.8 tok/s (400 tok)
+r2 q3-fast bash   depth  64000 (evaluated 516): prefill   616.5 tok/s  ttft   0.84s  decode   78.2 tok/s (400 tok)
+r2 q3-fast mean decode 78.1 tok/s
+15:44 === D27 done

@@ -31,6 +31,9 @@ only if all of these hold on the RTX 2060 SUPER, on `q3-on-0055` `7c7b47e156`:
 - HumanEval 164 at medium: at least 157/164;
 - exact copies and needles equal to q4_0 on the same items.
 
+Amendment (2026-10-14 15:50, after D27, before P129-P132 land): rule item 1 (64k speed) is measured on q3-fast
+`df218650a` (bit-exact with `7c7b47e156`, D27); the quality items on `7c7b47e156` stay valid.
+
 If the 64k item misses, q3_0 ships opt-in and the dequant cost becomes a kernel item. The same rule as for sparse (0055).
 
 ## Engines

@@ -74,6 +74,29 @@ Format per entry: **question**, **gate**, **setup**, **result**, **verdict**, **
   bytes per host row). On an 8 GB card the larger win is the line itself (1.31x more positions in VRAM, P114); the 2060's
   P129-P132 measure that on this build.
 
+## D27 Faster q3_0 tile dequant (q3-fast) (2026-10-14 15:30-15:44)
+
+- **Question.** The 2060 measured q3_0 6.5 % slower than q4_0 at 64k (P114, the dequant cost). Does a faster MMA tile
+  dequant (packed half2: each pair of 3-bit codes becomes `1024 + q` in one half2, bit-exact with the float path) close
+  it before the 0056 default decision?
+- **Gate.** In the script header (the kernel session's `d27_q3fast.sh`), before the run: FLASH_ATTN_EXT 0 FAIL on
+  q3-fast; q3-fast answers byte-identical to q3-old (3 prompts, temp 0); q3-fast 64k decode not below q3-old. Reported:
+  q3-fast vs q4_0.
+- **Setup.** q3-fast = fork `df218650a` (`7c7b47e156` + the dequant), root `root-q3fast`; q3-old = `root-q3-55`. 12 GB
+  recipe with `BONSAI_CTK` forced, 64k all in VRAM, graphs on, `bench/quick_tps.py`, alternated x2, 11751 MHz under
+  load, driver 610.88. The build (idle priority) ended before the run.
+- **Result.** Op tests 3115/3115, 0 FAIL. Answer hashes: q3-old `a090a7f00152d5ef` = q3-fast `a090a7f00152d5ef`.
+
+  | arm | r1 | r2 | mean | vs q4_0 |
+  | --- | ---: | ---: | ---: | ---: |
+  | q4_0 | 79.6 | 78.9 | 79.25 | - |
+  | q3_0 old | 76.6 | 76.3 | 76.45 | -3.5 % |
+  | q3-fast | 77.9 | 78.1 | **78.0** | **-1.6 %** |
+
+- **Verdict.** Pass. q3-fast is bit-exact and halves the shallow cost of q3_0 on the 4070 (+2.0 % over q3-old). For the
+  0056 rule: the 2060's quality items on `7c7b47e156` stay valid (bit-exact), and rule item 1 (64k within 5 % of q4_0)
+  moves to the q3-fast build.
+
 ## Q06 2060 set
 
 - **Status.** Asked on #21 (2026-10-14 01:15): P108 / P114 / P117 on `4dbfe57d4` for `75-real`.
