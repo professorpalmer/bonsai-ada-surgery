@@ -1,0 +1,52 @@
+From c2cf6d6450a44f313d2dbf021185a092fda2b4cb Mon Sep 17 00:00:00 2001
+From: Empressia <sphere.soffie@gmail.com>
+Date: Wed, 23 Sep 2026 04:04:58 +0900
+Subject: [PATCH] server: support input_image in function_call_output (#20663)
+ (#22575)
+
+* server: support input_image in function_call_output (#20663)
+
+* server: fix if statement spacing
+
+* server: avoid repeated type lookup
+
+(cherry picked from ggml-org/llama.cpp commit 4098fdc922460470caa12659249e55f77c06730f)
+---
+ tools/server/server-chat.cpp | 20 +++++++++++++++++---
+ 1 file changed, 17 insertions(+), 3 deletions(-)
+
+diff --git a/tools/server/server-chat.cpp b/tools/server/server-chat.cpp
+index a6fe3c6ba6..a3a4ea152f 100644
+--- a/tools/server/server-chat.cpp
++++ b/tools/server/server-chat.cpp
+@@ -203,10 +203,24 @@ json server_chat_convert_responses_to_chatcmpl(const json & response_body) {
+                 } else {
+                     json chatcmpl_outputs = item.at("output");
+                     for (json & chatcmpl_output : chatcmpl_outputs) {
+-                        if (!chatcmpl_output.contains("type") || chatcmpl_output.at("type") != "input_text") {
+-                            throw std::invalid_argument("Output of tool call should be 'Input text'");
++                        if (!chatcmpl_output.contains("type")) {
++                            throw std::invalid_argument("Output of tool call missing 'type' field");
++                        }
++                        const auto type = chatcmpl_output.at("type");
++                        if (type != "input_text" && type != "input_image") {
++                            throw std::invalid_argument("Output of tool call should be 'Input text' or 'Input image'");
++                        }
++                        if (type == "input_text") {
++                            chatcmpl_output["type"] = "text";
++                        } else if (type == "input_image") {
++                            if (!chatcmpl_output.contains("image_url")) {
++                                throw std::invalid_argument("'image_url' is required");
++                            }
++                            chatcmpl_output["type"] = "image_url";
++                            chatcmpl_output["image_url"] = json {
++                                {"url", chatcmpl_output.at("image_url")}
++                            };
+                         }
+-                        chatcmpl_output["type"] = "text";
+                     }
+                     chatcmpl_messages.push_back(json {
+                         {"content",      chatcmpl_outputs},
+-- 
+2.55.0.windows.3
+
