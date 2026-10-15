@@ -71,7 +71,7 @@ same tree as the build.
 
 - **Found by the 2060's post-zip check (P142, on #21):** the `bundle-20261015` launcher printed `window 262144 / q4_0`
   and line 61,696 with no `BONSAI_CTK`. Its q3_0 check was `$Help -match '<0x08>q3_0<0x08>'`: two backspace bytes
-  where `` (word boundary) was meant, written by an escaped string in the final #91 revision. The pattern never
+  where `\b` (word boundary) was meant, written by an escaped string in the final #91 revision. The pattern never
   matched, so 8 GB cards stayed on q4_0. No harm (the previous default), but the release's main change was not active.
   A repo-wide scan for control bytes found one more, older case: `layer<0x0C>etch_runtime.ps1` (a form feed) in two
   README lines since the first commit. Both fixed in #108 (reviewed on the 4070: the fixed pattern matches the 0056
