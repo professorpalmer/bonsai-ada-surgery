@@ -579,3 +579,21 @@ VRAM line 43,520 (f16 mask), host tail ~197k cells, graphs off.
   normally; (d) `sparse_edit.py` with `GGML_CUDA_FA_SPARSE_CHECK=1` at 160k: 0 stale pages; (e) 245k copies (n 20)
   and needles (n 24) not below the R10 dense result item by item (strict and lenient copy scores reported).
 
+## D26h-2 plan: self-timing engage on the 4070 (written 2026-10-15, before the run; issue #105)
+
+- Engine: fork `sparse-d26h` `79332dbbb` (late reserve + `GGML_CUDA_FA_SPARSE_AUTO=1`: per 16k band of `n_kv`, the first
+  decode graph with >= `MIN_HOST` host cells at the dense line runs a trial, 3 + 24 graphs dense, then demote + 3 + 24
+  sparse; sparse is kept only if its median graph period is > 3 % faster, else the chunk is promoted back to VRAM.
+  Decisions persist per process and in a calibration file). Launcher branch `launcher-late-reserve` `358f048`.
+- **G1 (hand-set env, line pinned 80,640, q3_0, AUTO=1, MIN_HOST 16384, DEMOTE_FRAC 0.045898, a fresh calib file):**
+  one server, rising depths 96k / 112k / 128k / 160k / 245k (quick_tps); per-band trial and decision lines logged;
+  decode at each depth vs off (same pin, no sparse) in a second server. Rule: once a depth's band is decided, its
+  decode is not below off by more than 3 %. (The trial request itself can be mixed.)
+- **G2 (determinism):** restart with the same calib file: no trials, the same decisions, the same answer bytes at
+  128k as a second request in G1's decided state.
+- **G3:** a calib file with another key is ignored (trials run again), and the launcher line says so.
+- **G4:** 245k needles (n 24) vs the dense q3_0 control (D26h-1e), item by item, and copies strict / lenient.
+- **G5 (launcher path):** `BONSAI_8GB=1` with the branch launcher and the new bins: the `kv sparse calib` line prints,
+  sparse auto is on with `BONSAI_SPARSE` unset, the line is the dense line.
+- The 2060 runs the launcher defaults (P144) after this.
+
