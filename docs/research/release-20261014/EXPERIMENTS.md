@@ -212,6 +212,30 @@ the 00:31 Windows-update reboot). Every A/B is inside one session.
 - **Tooling:** PR #98 adds a lenient copy score next to the strict one: leading comment lines count only when they
   equal the source lines directly above the function. Both scores are reported; gates name the one they use.
 
+## R11 RTX 2060 SUPER, the same check on another item set (2026-10-15, P141, by the 8 GB tester)
+
+- The `bundle-20261014` zip bins, 245k, fresh server per test, the rig's own `pycode.raw` (other items than R10's),
+  strict copy score; sparse line 51,712 cells.
+
+  | 245k | copies (n 20) | needles (n 24) |
+  | --- | ---: | ---: |
+  | dense | 20/20 | 24/24 |
+  | `BONSAI_SPARSE=1`, FRAC 1/16 (shipped) | 20/20 | 23/24: miss at position 0.271 (~66k cells, past the line) |
+  | `BONSAI_SPARSE=1` + FRAC 1/8 | **20/20** | **24/24** |
+
+  | mean decode, same session | 160k | 245k | minimum free |
+  | --- | ---: | ---: | ---: |
+  | FRAC 1/16 | 17.5 | 13.6 | 153 MiB |
+  | FRAC 1/8 | 16.9 | 10.9 | 153 MiB |
+  | dense (same bins, P135 / P139) | 10.6 | 6.2 | |
+
+- **Against the amended #95 rule:** (a) 1/8 not below 1/16 on any item: pass; (b) not below dense on any item in the
+  host tail: pass (equal on all 44); (c) at least 1.5x dense at 160k and 245k: pass (1.59x, 1.76x). 0 one-token
+  answers.
+- **Verdict.** On both cards and both item sets, the shipped FRAC 1/16 loses at least one item past the line at 245k,
+  and FRAC 1/8 loses none. 1/8 costs 3 % against 1/16 at 160k and 20 % at 245k. PR #95 meets its rule.
+- **Receipts.** #21 and #95 (P141).
+
 ## Status
 
 - Published as bundle-20261014; the 2060's post-zip checks passed (R08 default, R09 sparse). D26 (sparse without the line cost) stays open after
