@@ -10,7 +10,7 @@ python bench/code_needle.py --base http://127.0.0.1:8080 --key-file artifacts/ap
 positions of its source in the prompt, from /tokenize plus the chat template's prefix) and exits without generating:
 the input for GGML_CUDA_FA_SPARSE_TRACE=a,b.
 """
-import argparse, ast, json, os, re, sys, time, urllib.request
+import argparse, ast, difflib, json, os, re, sys, time, urllib.request
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from quick_tps import n_tokens  # noqa: E402
@@ -39,6 +39,7 @@ def main():
     ap.add_argument("--out", default="")
     ap.add_argument("--only", default="")
     ap.add_argument("--span", action="store_true")
+    ap.add_argument("--diff", action="store_true", help="print a unified diff for each miss")
     a = ap.parse_args()
     key = open(a.key_file).read().strip()
     text = open(CORPUS, encoding="utf-8").read()
@@ -94,6 +95,7 @@ def main():
                               "cells": [c0, c1], "lead": lead}), flush=True)
         return
     ok = 0
+    ok_lead = 0
     for t in targets:
         q = (f"From the file `{t['file']}` above, output the exact source code of the function `{t['fn']}`, "
              "unchanged, in one python code block. Output nothing else.")
@@ -102,15 +104,25 @@ def main():
         r, dt = post(a.base, key, body)
         ans = r["choices"][0]["message"]["content"] or ""
         m = re.search(r"```(?:python)?\n(.*?)```", ans, re.S)
-        hit = norm(m.group(1) if m else ans) == norm(t["code"])
+        got = m.group(1) if m else ans
+        hit = norm(got) == norm(t["code"])
+        # lenient score, reported next to the strict one: the answer may also carry the comment lines that stand
+        # directly above the function in the file (R10b: sparse copied `# Just raise TypeError ...` + an exact body)
+        g = got.splitlines()
+        while g and g[0].lstrip().startswith("#"):
+            g = g[1:]
+        hit_lead = hit or norm("\n".join(g)) == norm(t["code"])
         ok += hit
+        ok_lead += hit_lead
+        if not hit and a.diff:
+            print("\n".join(difflib.unified_diff(t["code"].splitlines(), got.splitlines(), "want", "got", lineterm="")), flush=True)
         rec = {"tag": a.tag, "depth": a.depth, "file": t["file"], "fn": t["fn"], "position_frac": round(t["pos"] / len(ctx), 3),
-               "lines": t["code"].count("\n") + 1, "ok": hit, "evaluated": r.get("timings", {}).get("prompt_n"), "wall_s": round(dt, 1)}
+               "lines": t["code"].count("\n") + 1, "ok": hit, "ok_lead": hit_lead, "evaluated": r.get("timings", {}).get("prompt_n"), "wall_s": round(dt, 1)}
         print(json.dumps(rec), flush=True)
         if a.out:
             with open(a.out, "a", encoding="utf-8") as f:
                 f.write(json.dumps(rec) + "\n")
-    print(json.dumps({"tag": a.tag, "depth": a.depth, "correct": ok, "of": len(targets)}), flush=True)
+    print(json.dumps({"tag": a.tag, "depth": a.depth, "correct": ok, "correct_lead": ok_lead, "of": len(targets)}), flush=True)
 
 
 if __name__ == "__main__":
