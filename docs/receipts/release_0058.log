@@ -1,0 +1,15 @@
+09:39 0058 gates, root-0058 (commit b86298dba9), mmproj on CPU, layer off
+responses_tool_image: 'The main color is **red** (a solid, vivid red fills the entire image).'
+responses_tool_text: 'The page title is **"Shiba Heaven"**. The page appears to be an online generator or tool for creating and sharing "Shiba" images (likely Shiba Inu dog photos).'
+responses_tool_bad: ERROR {"code": 400, "message": "Output of tool call should be 'Input text' or 'Input image'", "type": "invalid_request_error"}
+chat_tool_image: "The main color is red — it's a solid, bright red filling the entire viewport (roughly pure red, similar to #FF0000)."
+09:43 === bundle-20261015c gates on the staged zip (commit c2cf6d6450)
+ADD   99/99 tests passed
+RMS_NORM   51/51 tests passed
+GET_ROWS   123/123 tests passed
+FLASH_ATTN_EXT   3115/3115 tests passed
+T1 8GB: window 262144 / q3_0  (trained max 262144)
+vision Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf on the CPU (no VRAM; BONSAI_MMPROJ_GPU=1 to offload)
+responses_tool_image: 'The screenshot shows a solid block of color. The main color is **red** — a pure, vivid red (#FF0000).'
+responses_tool_text: 'I\'ve taken a screenshot of the page. The page title is **"Shiba Heaven"**.'
+chat_tool_image: 'The main color is **red** — the entire screenshot is a solid red background.'

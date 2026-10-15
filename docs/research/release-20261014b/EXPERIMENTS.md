@@ -90,6 +90,26 @@ same tree as the build.
   now start with a superseded line; Hugging Face zip `29940a2` + card `ecda22d` (#110), LFS oid matches.
 - **Verdict.** Published. The 2060 repeats the default-launcher part of P142 on the 15b zip.
 
+## S07 bundle-20261015c: images in Responses API tool outputs (2026-10-15)
+
+- **Bug (#112, reported by a user by DM):** an agent harness on `/v1/responses` whose browser tool returned a screenshot
+  got HTTP 400 "Output of tool call should be 'Input text'", and every later request in that session failed (the item
+  stays in the history). Reproduced on the 4070 with the shipped bins + mmproj. The chat-completions path accepted the
+  same image in a tool message (the model named the colour).
+- **Fix:** patch 0058 = ggml-org/llama.cpp `4098fdc922` cherry-picked (fork `product-0058` `c2cf6d645`, #113, kernel
+  session). Gates (`docs/receipts/release_0058.log`), first on the test root, then on the staged zip: the Responses tool
+  image is read ("red"); a text-only tool output is unchanged; a bad item type is a clean 400; the chat path is
+  unchanged; op tests ADD 99/99, RMS_NORM 51/51, GET_ROWS 123/123, FLASH_ATTN_EXT 3115/3115; T1 (`BONSAI_8GB=1`):
+  `window 262144 / q3_0`.
+- **Build note.** The first release build failed at cmake generate: Windows temp cleanup had deleted sources in
+  `%TEMP%\stock-adfffbe` again. `git checkout -- .` and a rebuild (`LLAMA_COMMIT c2cf6d6450`). `ggml-cuda.dll` is
+  byte-identical to 0056; three other ggml DLLs differ in bytes after the full rebuild (no code change in them); the
+  gates ran on these bins.
+- **Published:** release commit `0d45cd03` (#114); zip = the 15b layout, 10 entries changed (README + 9 engine files),
+  616,639,105 bytes, SHA-256 `a46ae100baef2ba38ad48a0a40c28c0e975d394e958e29dbe7b140a272f2560a`; GitHub
+  `bundle-20261015c` (digest matches; 15b notes say superseded); Hugging Face zip `f0ecff7` + card `9f9b92c` (#116), LFS
+  oid matches. Product `bin/` installed (`c2cf6d6450`; 15b bins kept in `bin-20261015/`).
+
 ## Status
 
 - S01-S06 done: bundle-20261015 is published. P132 (sparse + q3_0) adds numbers but is not a rule item; the 2060's
