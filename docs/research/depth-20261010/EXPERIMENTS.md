@@ -537,3 +537,31 @@ VRAM line 43,520 (f16 mask), host tail ~197k cells, graphs off.
 - **Gate (from #105).** No depth <= 128k loses more than 2 % (mean of the two rounds). The 2060's D26g decides the
   default; this is a pre-check (PCIe 4.0 here, so a pass here is necessary, not sufficient).
 
+## D26g-pre result (2026-10-15 06:45-07:16)
+
+- As planned; memory clock 11751 MHz under load, driver 610.88. Arms alternated x2 (off, sparse, off2, sparse2); the
+  root `/tmp/root-0056r` = the gated `b86298dba9` bins + the release-commit launcher (`0cbd0dcc`). (The arms file in
+  the plan PR pointed at the repo root; it was changed to this root before the run.) Mean decode, mean of two rounds:
+
+  | depth | off (line 80,640) | sparse (line 73,984) | change |
+  | ---: | ---: | ---: | ---: |
+  | 64k | 78.1 | 78.1 | 0.0 % |
+  | 80k | 81.0 | 56.1 | **-30.7 %** |
+  | 96k | 57.1 | 59.1 | +3.5 % |
+  | 112k | 51.6 | 43.3 | **-16.1 %** |
+  | 128k | 50.9 | 41.2 | **-19.1 %** |
+
+  Round-to-round spread at most 1.3 %.
+- **Verdict: fail** (gate: no depth <= 128k loses more than 2 %). Two separate effects:
+  1. **The line step (80k).** Off still holds 80k in VRAM; sparse has a ~6k host tail there and reads it dense (below
+     `MIN_HOST`). This is the cost the late reserve (#105 step 2) removes.
+  2. **Sparse engaged and slower than dense (112k, 128k).** The sparse arm's host tail is 38k-54k cells, above
+     `MIN_HOST` (32,768), so sparse runs; it keeps max(12,288, tail / 8) cells and reads them in place
+     (`STAGE_MIN_Q=9`), while dense prefetches the whole tail with the copy engine. On PCIe 4.0 at this tail size the
+     prefetch wins. 96k is +3.5 % because both arms are dense there (sparse tail 22k < `MIN_HOST`). Step 2 does not
+     fix this: the engage threshold has to follow the crossover (P121 on the 2060: between ~18k and ~61k host
+     cells; P122: sparse 1.17x at 128k with an 80k tail).
+- **Next.** The 2060's D26g (P143, PCIe 3.0) decides. If it shows the same pattern, default-on needs both the late
+  reserve and a higher (or measured, per card) `MIN_HOST`.
+- **Receipts.** `docs/receipts/d26g_pre.log`.
+

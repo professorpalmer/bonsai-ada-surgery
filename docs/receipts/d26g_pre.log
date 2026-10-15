@@ -1,0 +1,95 @@
+06:45 clock check pending
+06:45 === depth arms d26gpre: depths 64000 80000 96000 112000 128000 (/c/Users/pwall/Projects/bonsai-rel0054/bench/arms/d26g_pre.txt)
+06:45 arm off (C:\Users\pwall\AppData\Local\Temp\root-0056r; BONSAI_CTK=q3_0 BONSAI_KV_VRAM_CELLS=80640): health=1; kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; shared CUDA 
+off code   depth  64000 (evaluated 64009): prefill   970.9 tok/s  ttft  65.92s  decode   85.4 tok/s (400 tok)
+off prose  depth  64000 (evaluated 512): prefill   585.4 tok/s  ttft   0.87s  decode   69.4 tok/s (400 tok)
+off bash   depth  64000 (evaluated 516): prefill   619.1 tok/s  ttft   0.83s  decode   78.1 tok/s (400 tok)
+off mean decode 77.6 tok/s
+off code   depth  80000 (evaluated 16508): prefill   699.0 tok/s  ttft  23.62s  decode   87.5 tok/s (400 tok)
+off prose  depth  80000 (evaluated 512): prefill   556.2 tok/s  ttft   0.92s  decode   70.7 tok/s (400 tok)
+off bash   depth  80000 (evaluated 516): prefill   561.6 tok/s  ttft   0.92s  decode   84.1 tok/s (400 tok)
+off mean decode 80.7 tok/s
+off code   depth  96000 (evaluated 16508): prefill   629.6 tok/s  ttft  26.22s  decode   72.4 tok/s (400 tok)
+off prose  depth  96000 (evaluated 512): prefill   513.9 tok/s  ttft   1.00s  decode   45.3 tok/s (400 tok)
+off bash   depth  96000 (evaluated 516): prefill   518.5 tok/s  ttft   1.00s  decode   54.4 tok/s (400 tok)
+off mean decode 57.4 tok/s
+off code   depth 112000 (evaluated 16495): prefill   571.4 tok/s  ttft  28.87s  decode   55.1 tok/s (400 tok)
+off prose  depth 112000 (evaluated 512): prefill   471.1 tok/s  ttft   1.09s  decode   44.4 tok/s (400 tok)
+off bash   depth 112000 (evaluated 516): prefill   476.2 tok/s  ttft   1.08s  decode   55.7 tok/s (400 tok)
+off mean decode 51.7 tok/s
+06:50 clock under load: 11751 MHz, 610.88
+off code   depth 128000 (evaluated 127340): prefill   742.2 tok/s  ttft 171.58s  decode   52.8 tok/s (400 tok)
+off prose  depth 128000 (evaluated 512): prefill   435.5 tok/s  ttft   1.18s  decode   37.9 tok/s (400 tok)
+off bash   depth 128000 (evaluated 516): prefill   440.2 tok/s  ttft   1.17s  decode   61.6 tok/s (400 tok)
+off mean decode 50.8 tok/s
+06:52 off: 'one sync per K write' warnings: 0
+06:52 arm sparse (C:\Users\pwall\AppData\Local\Temp\root-0056r; BONSAI_CTK=q3_0 BONSAI_KV_VRAM_CELLS=73984 GGML_CUDA_FA_SPARSE=12288,64,1024 GGML_CUDA_FA_SPARSE_FRAC=0.125 GGML_CUDA_FA_SPARSE_FAST=1 GGML_CUDA_KV_TIER_STAGE_MIN_Q=9 GGML_CUDA_FA_SPARSE_MIN_HOST=32768): health=1; kv     tiered: cells 0..73984 in VRAM, 73984..262144 in system RAM; shared CUDA 
+kv     sparse host-tail reads: 12288,64,1024 (B,P,R), budget max(B, host tail x 
+sparse code   depth  64000 (evaluated 64009): prefill   969.2 tok/s  ttft  66.04s  decode   86.6 tok/s (400 tok)
+sparse prose  depth  64000 (evaluated 512): prefill   611.6 tok/s  ttft   0.84s  decode   70.2 tok/s (400 tok)
+sparse bash   depth  64000 (evaluated 516): prefill   619.4 tok/s  ttft   0.83s  decode   78.2 tok/s (400 tok)
+sparse mean decode 78.3 tok/s
+sparse code   depth  80000 (evaluated 16508): prefill   696.1 tok/s  ttft  23.72s  decode   67.6 tok/s (400 tok)
+sparse prose  depth  80000 (evaluated 512): prefill   557.4 tok/s  ttft   0.92s  decode   44.7 tok/s (400 tok)
+sparse bash   depth  80000 (evaluated 516): prefill   564.1 tok/s  ttft   0.91s  decode   56.8 tok/s (400 tok)
+sparse mean decode 56.3 tok/s
+sparse code   depth  96000 (evaluated 16508): prefill   627.8 tok/s  ttft  26.30s  decode   77.8 tok/s (400 tok)
+sparse prose  depth  96000 (evaluated 512): prefill   508.0 tok/s  ttft   1.01s  decode   45.1 tok/s (400 tok)
+sparse bash   depth  96000 (evaluated 516): prefill   514.8 tok/s  ttft   1.00s  decode   53.8 tok/s (400 tok)
+sparse mean decode 58.9 tok/s
+sparse code   depth 112000 (evaluated 16495): prefill   571.0 tok/s  ttft  28.89s  decode   51.4 tok/s (400 tok)
+sparse prose  depth 112000 (evaluated 512): prefill   463.3 tok/s  ttft   1.11s  decode   32.5 tok/s (400 tok)
+sparse bash   depth 112000 (evaluated 516): prefill   469.4 tok/s  ttft   1.10s  decode   46.1 tok/s (400 tok)
+sparse mean decode 43.3 tok/s
+sparse code   depth 128000 (evaluated 127340): prefill   741.5 tok/s  ttft 171.73s  decode   49.2 tok/s (400 tok)
+sparse prose  depth 128000 (evaluated 512): prefill   432.9 tok/s  ttft   1.18s  decode   29.8 tok/s (400 tok)
+sparse bash   depth 128000 (evaluated 516): prefill   435.0 tok/s  ttft   1.19s  decode   44.8 tok/s (400 tok)
+sparse mean decode 41.3 tok/s
+07:00 sparse: 'one sync per K write' warnings: 0
+07:00 arm off2 (C:\Users\pwall\AppData\Local\Temp\root-0056r; BONSAI_CTK=q3_0 BONSAI_KV_VRAM_CELLS=80640): health=1; kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; shared CUDA 
+off2 code   depth  64000 (evaluated 64009): prefill   969.6 tok/s  ttft  66.02s  decode   86.8 tok/s (400 tok)
+off2 prose  depth  64000 (evaluated 512): prefill   612.8 tok/s  ttft   0.84s  decode   70.3 tok/s (400 tok)
+off2 bash   depth  64000 (evaluated 516): prefill   618.3 tok/s  ttft   0.83s  decode   78.9 tok/s (400 tok)
+off2 mean decode 78.6 tok/s
+off2 code   depth  80000 (evaluated 16508): prefill   697.7 tok/s  ttft  23.66s  decode   87.2 tok/s (400 tok)
+off2 prose  depth  80000 (evaluated 512): prefill   555.7 tok/s  ttft   0.92s  decode   71.1 tok/s (400 tok)
+off2 bash   depth  80000 (evaluated 516): prefill   563.6 tok/s  ttft   0.92s  decode   85.4 tok/s (400 tok)
+off2 mean decode 81.3 tok/s
+off2 code   depth  96000 (evaluated 16508): prefill   628.0 tok/s  ttft  26.29s  decode   71.5 tok/s (400 tok)
+off2 prose  depth  96000 (evaluated 512): prefill   507.3 tok/s  ttft   1.01s  decode   45.0 tok/s (400 tok)
+off2 bash   depth  96000 (evaluated 516): prefill   511.9 tok/s  ttft   1.01s  decode   54.3 tok/s (400 tok)
+off2 mean decode 56.9 tok/s
+off2 code   depth 112000 (evaluated 16495): prefill   572.2 tok/s  ttft  28.83s  decode   54.9 tok/s (400 tok)
+off2 prose  depth 112000 (evaluated 512): prefill   467.5 tok/s  ttft   1.10s  decode   44.1 tok/s (400 tok)
+off2 bash   depth 112000 (evaluated 516): prefill   472.8 tok/s  ttft   1.09s  decode   55.4 tok/s (400 tok)
+off2 mean decode 51.5 tok/s
+off2 code   depth 128000 (evaluated 127340): prefill   741.8 tok/s  ttft 171.67s  decode   52.7 tok/s (400 tok)
+off2 prose  depth 128000 (evaluated 512): prefill   435.6 tok/s  ttft   1.18s  decode   38.2 tok/s (400 tok)
+off2 bash   depth 128000 (evaluated 516): prefill   442.2 tok/s  ttft   1.17s  decode   62.1 tok/s (400 tok)
+off2 mean decode 51.0 tok/s
+07:07 off2: 'one sync per K write' warnings: 0
+07:08 arm sparse2 (C:\Users\pwall\AppData\Local\Temp\root-0056r; BONSAI_CTK=q3_0 BONSAI_KV_VRAM_CELLS=73984 GGML_CUDA_FA_SPARSE=12288,64,1024 GGML_CUDA_FA_SPARSE_FRAC=0.125 GGML_CUDA_FA_SPARSE_FAST=1 GGML_CUDA_KV_TIER_STAGE_MIN_Q=9 GGML_CUDA_FA_SPARSE_MIN_HOST=32768): health=1; kv     tiered: cells 0..73984 in VRAM, 73984..262144 in system RAM; shared CUDA 
+kv     sparse host-tail reads: 12288,64,1024 (B,P,R), budget max(B, host tail x 
+sparse2 code   depth  64000 (evaluated 64009): prefill   968.7 tok/s  ttft  66.08s  decode   86.1 tok/s (400 tok)
+sparse2 prose  depth  64000 (evaluated 512): prefill   612.7 tok/s  ttft   0.84s  decode   69.6 tok/s (400 tok)
+sparse2 bash   depth  64000 (evaluated 516): prefill   618.3 tok/s  ttft   0.83s  decode   78.2 tok/s (400 tok)
+sparse2 mean decode 77.9 tok/s
+sparse2 code   depth  80000 (evaluated 16508): prefill   696.8 tok/s  ttft  23.69s  decode   67.7 tok/s (400 tok)
+sparse2 prose  depth  80000 (evaluated 512): prefill   557.0 tok/s  ttft   0.92s  decode   44.1 tok/s (400 tok)
+sparse2 bash   depth  80000 (evaluated 516): prefill   558.8 tok/s  ttft   0.92s  decode   56.2 tok/s (400 tok)
+sparse2 mean decode 56.0 tok/s
+sparse2 code   depth  96000 (evaluated 16508): prefill   628.0 tok/s  ttft  26.29s  decode   78.8 tok/s (400 tok)
+sparse2 prose  depth  96000 (evaluated 512): prefill   512.2 tok/s  ttft   1.00s  decode   45.8 tok/s (400 tok)
+sparse2 bash   depth  96000 (evaluated 516): prefill   516.9 tok/s  ttft   1.00s  decode   53.8 tok/s (400 tok)
+sparse2 mean decode 59.4 tok/s
+sparse2 code   depth 112000 (evaluated 16495): prefill   570.1 tok/s  ttft  28.93s  decode   51.8 tok/s (400 tok)
+sparse2 prose  depth 112000 (evaluated 512): prefill   466.3 tok/s  ttft   1.10s  decode   32.5 tok/s (400 tok)
+sparse2 bash   depth 112000 (evaluated 516): prefill   471.2 tok/s  ttft   1.10s  decode   45.7 tok/s (400 tok)
+sparse2 mean decode 43.3 tok/s
+sparse2 code   depth 128000 (evaluated 127340): prefill   741.5 tok/s  ttft 171.72s  decode   48.9 tok/s (400 tok)
+sparse2 prose  depth 128000 (evaluated 512): prefill   428.2 tok/s  ttft   1.20s  decode   29.6 tok/s (400 tok)
+sparse2 bash   depth 128000 (evaluated 516): prefill   434.2 tok/s  ttft   1.19s  decode   44.8 tok/s (400 tok)
+sparse2 mean decode 41.1 tok/s
+07:15 sparse2: 'one sync per K write' warnings: 0
+07:15 === d26gpre done
+07:16 === D26g-pre end; Mirai product: === product start 2026-10-15 07:16 engine 784986b41: inner health=1 vram=11459 MiB
