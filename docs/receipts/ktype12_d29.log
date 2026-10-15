@@ -1,0 +1,32 @@
+14:51 === D29 start: root C:\Users\pwall\AppData\Local\Temp\root-15c (commit c2cf6d6450), driver 610.88
+14:52 q8_0: health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool 
+14:52 === D29 PAUSED before results (the release session ran D26h-3b first: the q3_0 budget is on the 8 GB release path); D29 restarts after it
+15:47 === D29 start: root C:\Users\pwall\AppData\Local\Temp\root-15c (commit c2cf6d6450), driver 610.88
+15:48 q8_0: health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool 
+15:49 q8_0 mem clock under load: 11751 MHz
+q8_0 64000 mean decode 78.5 tok/s
+q8_0 128000 mean decode 78.3 tok/s
+q8_0 192000 mean decode 26.7 tok/s
+q8_0 245000 mean decode 15.4 tok/s
+16:10 q8_0q: health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool 
+q8_0 copies: {"tag": "q8_0", "depth": 245000, "correct": 20, "correct_lead": 20, "of": 20}
+q8_0 needles: {"tag": "q8_0", "depth": 245000, "correct": 23, "of": 24}
+16:31 q4_0: health=1; kv     tiered: cells 0..260352 in VRAM, 260352..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool 
+16:32 q4_0 mem clock under load: 11751 MHz
+q4_0 64000 mean decode 80.1 tok/s
+q4_0 128000 mean decode 76.6 tok/s
+q4_0 192000 mean decode 64.2 tok/s
+q4_0 245000 mean decode 61.0 tok/s
+16:49 q4_0q: health=1; kv     tiered: cells 0..260352 in VRAM, 260352..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool 
+q4_0 copies: {"tag": "q4_0", "depth": 245000, "correct": 20, "correct_lead": 20, "of": 20}
+q4_0 needles: {"tag": "q4_0", "depth": 245000, "correct": 24, "of": 24}
+17:07 q3_0: health=1; 
+17:08 q3_0 mem clock under load: 11751 MHz
+q3_0 64000 mean decode 81.6 tok/s
+q3_0 128000 mean decode 69.2 tok/s
+q3_0 192000 mean decode 64.0 tok/s
+q3_0 245000 mean decode 55.1 tok/s
+17:24 q3_0q: health=1; 
+q3_0 copies: {"tag": "q3_0", "depth": 245000, "correct": 19, "correct_lead": 20, "of": 20}
+q3_0 needles: {"tag": "q3_0", "depth": 245000, "correct": 23, "of": 24}
+17:42 === D29 done
