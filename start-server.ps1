@@ -263,10 +263,12 @@ if ($Spec -gt 0) {
 $SparsePage = 0
 $SparseAvail = $CudaDll.Contains('GGML_CUDA_FA_SPARSE_MIN_HOST')
 if ($Small -and $env:BONSAI_SPARSE -eq '1' -and -not $env:GGML_CUDA_FA_SPARSE -and $SparseAvail) {
-    $env:GGML_CUDA_FA_SPARSE = '12288,64,1024'   # floor 12288; the engine keeps max(floor, host tail / 16): 200k needed more than 10.4k (R04)
+    $env:GGML_CUDA_FA_SPARSE = '12288,64,1024'   # floor 12288; with FRAC below the op keeps max(floor, host tail x FRAC): 200k needed more than 10.4k (R04)
     if (-not $env:GGML_CUDA_FA_SPARSE_FAST) { $env:GGML_CUDA_FA_SPARSE_FAST = '1' }
     if (-not $env:GGML_CUDA_KV_TIER_STAGE_MIN_Q) { $env:GGML_CUDA_KV_TIER_STAGE_MIN_Q = '9' }
     if (-not $env:GGML_CUDA_FA_SPARSE_MIN_HOST) { $env:GGML_CUDA_FA_SPARSE_MIN_HOST = '32768' }
+    # budget max(floor, host tail / 8): with / 16 one exact copy was lost at 245k on a 20-item set (R10); / 8 = dense
+    if (-not $env:GGML_CUDA_FA_SPARSE_FRAC) { $env:GGML_CUDA_FA_SPARSE_FRAC = '0.125' }
 }
 if ($env:GGML_CUDA_FA_SPARSE) {
     $SparseParts = $env:GGML_CUDA_FA_SPARSE -split ','
