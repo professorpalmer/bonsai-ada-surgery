@@ -623,3 +623,44 @@ VRAM line 43,520 (f16 mask), host tail ~197k cells, graphs off.
   needles at 245k not below q8_0 on the same items, then a HumanEval run of the candidate (>= 158) before any launcher
   change.
 
+## D26h-1 result: late reserve smoke (2026-10-15 10:43-12:00)
+
+- Root `/tmp/root-d26h`: `ggml-cuda` from `sparse-d26h` `49882ba3b` (the `llama-common` version label is stale,
+  `7c7b47e156`; the DLL has the late-reserve code). Line pinned 80,640, q3_0. Receipts `docs/receipts/d26h1.log/.jsonl`.
+- (a) 64k: late 76.8 vs off 77.6 (-1.0 %), no demotion: **pass**. (b) 128k: the late reserve fired once, "192.0 MiB
+  ... (line 84260 -> 70217 cells)" (VMM 2 MiB pages: 6 MiB x 32 parts, vs 159 MiB planned; the engine counts the line
+  with the page rounding), 0 CUDA errors; decode 38.9 vs off 49.4 vs today's sparse at 68,608 34.1: late beats today's
+  sparse by 14 %, but sparse engaged is 21 % below dense at 128k on this card (the crossover). (c) after the demotion,
+  fresh 64k and 75k prompts: 83.5 / 83.5, normal: **pass**. (d) sparse_edit CHECK at 160k: 0 stale, 0 selection
+  differs: **pass**. (e) 245k copies 19/20 strict, 20/20 lenient; needles 22/24 (vault 13, 14 wrong).
+- **D26h-1e, the dense q3_0 control** (same root and line, no sparse): 245k needles 23/24 (vault 14 only). So sparse at
+  FRAC 1/8 with q3_0 lost vault 13: a real loss, followed up in D26h-3.
+
+## D26h-2 result: self-timing engage (2026-10-15 12:00-13:45)
+
+- Root `/tmp/root-d26h2`: `79332dbbb` bins + launcher `358f048`. Receipts `docs/receipts/d26h2.log/.jsonl`.
+- **G1 pass.** One server, rising depths, then the same depths again in the decided state; vs off (same pin):
+
+  | depth | auto, first pass | auto, decided | off |
+  | ---: | ---: | ---: | ---: |
+  | 96k | 54.0 | 57.5 | 54.4 |
+  | 112k | 51.1 | 56.9 | 52.5 |
+  | 128k | 48.4 | 49.8 | 49.3 |
+  | 160k | 39.5 | 39.1 | 39.6 |
+  | 245k | 23.7 | 24.3 | 23.7 |
+
+  Calibration file after G1: bands 6, 7, 9, 14 all **dense** (median ms per graph dense / sparse: 55.8 / 74.7, 58.1 /
+  79.3, 69.6 / 88.4, 127.1 / 123.9; at band 14 sparse was 2.5 % faster, under the 3 % rule). On the 4070 (PCIe 4.0,
+  q3_0) sparse never wins enough, so auto = dense; no depth is below off by more than 3 %. 128k needles 6/6.
+- **G2 pass.** Restart with the same file: "sparse auto: 4 band decisions from ...", no trials; the six 128k needle
+  answers are identical to G1's (the bench records the extracted code); 128k 49.0, 245k 23.5.
+- **G3 pass.** A copy of the file under another key: "0 band decisions", then "timing band 112-128k ... dense 58.5 ms,
+  sparse 79.5 ms per graph -> dense".
+- **G4 pass.** 245k in the decided state (dense on this card): needles 23/24 (vault 14, as dense), copies 19/20 strict,
+  20/20 lenient. (Not a test of sparse quality on this card, since auto chose dense; D26h-3 tests the budget.)
+- **G5 pass.** The launcher path (`BONSAI_8GB=1`, `BONSAI_SPARSE` unset): with the default margin the 8 GB preset put
+  the whole 262k q3_0 window in VRAM on this 12 GB card (no tier line); with margin 3600 the line was 143,872, and the
+  launcher printed "kv sparse host-tail reads: auto (dense line 143872 ...)" and "kv sparse calib: ... new". The test
+  calibration file in `%LOCALAPPDATA%onsai` was removed after the run.
+- **Verdict.** The engine and launcher behave as designed on the 4070. The 8 GB decision is the 2060's P144.
+
