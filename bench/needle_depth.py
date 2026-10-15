@@ -35,6 +35,9 @@ def main():
     ap.add_argument("--n", type=int, default=12)
     ap.add_argument("--tag", default="")
     ap.add_argument("--out", default="")
+    ap.add_argument("--only", type=int, default=0, help="ask only vault N (same document)")
+    ap.add_argument("--span", action="store_true",
+                    help="print each fact's KV cell span and exit (the input for GGML_CUDA_FA_SPARSE_TRACE=a,b)")
     a = ap.parse_args()
     key = open(a.key_file).read().strip()
     rng = random.Random(7)
@@ -50,8 +53,25 @@ def main():
             parts.append(f"The access code for vault {v} is {codes[v]}.")
         parts.append(sentence(i))
     doc = "Facility notes:\n" + " ".join(parts) + "\n\n"
+    if a.span:
+        # tokens the chat template puts before the user text: prompt_n of the bare head minus its own tokens
+        head = "Facility notes:\n"
+        r, _ = post(a.base, key, {"messages": [{"role": "user", "content": head}], "max_tokens": 1,
+                                  "chat_template_kwargs": {"enable_thinking": False}})
+        lead = r.get("timings", {}).get("prompt_n", 0) - n_tokens(a.base, key, head)
+        for v in range(1, a.n + 1):
+            if a.only and v != a.only:
+                continue
+            fact = f"The access code for vault {v} is {codes[v]}."
+            pos = doc.index(fact)
+            c0 = lead + n_tokens(a.base, key, doc[:pos])
+            c1 = lead + n_tokens(a.base, key, doc[:pos + len(fact)])
+            print(json.dumps({"vault": v, "position_frac": round((v - 0.5) / a.n, 3), "cells": [c0, c1], "lead": lead}), flush=True)
+        return
     ok = 0
     for v in range(1, a.n + 1):
+        if a.only and v != a.only:
+            continue
         body = {"messages": [{"role": "user", "content": doc + f"What is the access code for vault {v}? Answer with the 4 digits only."}],
                 "max_tokens": 16, "temperature": 0, "chat_template_kwargs": {"enable_thinking": False}}
         r, dt = post(a.base, key, body)
