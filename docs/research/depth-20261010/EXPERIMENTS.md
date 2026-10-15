@@ -608,3 +608,18 @@ VRAM line 43,520 (f16 mask), host tail ~197k cells, graphs off.
 - **Rule (declared before the run).** The launcher sets q3_0 to the smallest FRAC that equals dense on the n 24 and
   n 28 needle sets and the n 20 copy set (lenient score). Other K types keep 1/8.
 
+## D29 plan: K/V type on the 12 GB recipe (written 2026-10-15, before the run)
+
+- **Question.** 12 GB runs q8_0 (34,816 B per position, line ~120k of 262k). q4_0 (18,432 B) and q3_0 (14,336 B) put
+  1.9x / 2.4x the positions in VRAM; q3_0 may hold the whole 262k window, with no host tail. Is a 12 GB type change
+  worth it?
+- **Setup.** bundle-20261015c bins (`c2cf6d6450`, staged zip as root), 12 GB launcher defaults per type (the launcher
+  sizes the line), layer off. Per type: one server for quick_tps 64k / 128k / 192k / 245k (memory clock read under
+  load), and a fresh server for the 245k quality part (code_needle n 20 with the lenient score, needle_depth n 24).
+  Script by the kernel session; the release session added layer off, the fresh server for the quality part, the clock
+  under load and the product stop / restore.
+- **Known.** Perplexity at -c 2048: q8_0 8.0733, q4_0 8.0900, q3_0 8.1366.
+- **Gate for a 12 GB default change (declared before the run):** decode at least +15 % at 192k and 245k, copies and
+  needles at 245k not below q8_0 on the same items, then a HumanEval run of the candidate (>= 158) before any launcher
+  change.
+
