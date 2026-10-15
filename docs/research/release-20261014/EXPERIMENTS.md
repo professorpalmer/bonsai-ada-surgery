@@ -126,8 +126,27 @@ the 00:31 Windows-update reboot). Every A/B is inside one session.
   60k 38.2 / 38.2; 0 one-token answers (lookup A/B 0 of 22).
 - **Verdict.** Pass.
 
+## R09 RTX 2060 SUPER, sparse on the published zip bins (2026-10-14, P139, by the 8 GB tester)
+
+- **Question.** Do the release-built bins of bundle-20261014 give the RC sparse results (P135 / P136)?
+- **Setup.** The zip bins, a test copy of the release launcher `bfae9143`, 245k cold, dense (default) vs
+  `BONSAI_SPARSE=1` (launcher: `12288,64,1024`, 167 MiB of page bounds counted, VRAM line 61,184 -> 51,712).
+- **Result.**
+
+  | 245k, cold | dense | sparse |
+  | --- | ---: | ---: |
+  | mean decode | 6.2 | **13.6 (2.19x)** |
+  | trace minimum free | 106 MiB | 153 MiB |
+  | copies / needles | 10/10, 12/12 (P136) | 10/10, 12/12 |
+
+  HumanEval 164 on the zip bins, default switches: 158/164, the same six fails as P87 (32, 40, 92, 93, 145, 160). 0
+  one-token answers in every arm.
+- **Verdict.** Pass. The release bins match the RC (P135: 13.7 at 245k, minimum free 153). bundle-20261014 is fully
+  checked on the 2060.
+- **Receipts.** #21 (P139).
+
 ## Status
 
-- Published as bundle-20261014; the 2060's post-zip check passed (R08); P139 (sparse on the zip bins) runs. D26 (sparse without the line cost) stays open after
+- Published as bundle-20261014; the 2060's post-zip checks passed (R08 default, R09 sparse). D26 (sparse without the line cost) stays open after
   D26a / D26c / D26e; sparse stays opt-in.
 
