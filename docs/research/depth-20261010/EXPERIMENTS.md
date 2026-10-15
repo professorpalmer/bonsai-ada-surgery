@@ -565,3 +565,17 @@ VRAM line 43,520 (f16 mask), host tail ~197k cells, graphs off.
   reserve and a higher (or measured, per card) `MIN_HOST`.
 - **Receipts.** `docs/receipts/d26g_pre.log`.
 
+## D26h-1 plan: late reserve smoke on the 4070 (written 2026-10-15, before the run; issue #105)
+
+- Engine: fork `sparse-d26h` `49882ba3b` (= `product-0058` + late reserve: the top chunk of each part's VRAM head is
+  its own VMM allocation; at the first graph whose attention host tail reaches `MIN_HOST`, the engine copies it to
+  pinned host memory, remaps it at the same address, frees the VRAM and logs "late reserve: ... (line A -> B
+  cells)"). sm_89 bins from the kernel session; root = the release root with these bins.
+- Line pinned (launcher math bypassed): 80,640 cells, q3_0, sparse env as `BONSAI_SPARSE=1` (FRAC 1/8),
+  `GGML_CUDA_KV_TIER_DEMOTE_FRAC=0.045898` (80,640 -> 68,608), graphs on, packed mask on.
+- **Checks (gates):** (a) 64k decode = off at 80,640 within 2 %, no late-reserve line; (b) 128k: the line appears once
+  (80,640 -> ~68,608), no CUDA error, sane answers; decode reported against off at 80,640 and today's sparse at
+  68,608; (c) the same server after (b): a fresh 64k and a ~75k prompt (writes into the demoted chunk) answer
+  normally; (d) `sparse_edit.py` with `GGML_CUDA_FA_SPARSE_CHECK=1` at 160k: 0 stale pages; (e) 245k copies (n 20)
+  and needles (n 24) not below the R10 dense result item by item (strict and lenient copy scores reported).
+
