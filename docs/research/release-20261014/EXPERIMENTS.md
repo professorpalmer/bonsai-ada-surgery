@@ -157,6 +157,22 @@ the 00:31 Windows-update reboot). Every A/B is inside one session.
 - **Gate.** Sparse = dense on every item. If an item differs: rerun that arm with FRAC 1/8; if 1/8 matches dense, the
   8 GB launcher sets FRAC 1/8 (as Mirai) after a 2060 speed check.
 
+## R10 Result: the shipped sparse rule on 20 copies + 24 needles at 245k (2026-10-14 22:57-23:42)
+
+- Setup as the R10 plan; `docs/receipts/sparse_r10.log`, `sparse_r10.jsonl`. Sparse server log: "host tail 211712
+  cells, keeps 206 of 3308 pages" (6.2 %).
+
+  | 245k | copies (n 20) | needles (n 24) | items wrong |
+  | --- | ---: | ---: | --- |
+  | dense | 20/20 | 23/24 | vault 14 (0.562): `1968` for `8104` |
+  | sparse, shipped rule (FRAC 1/16) | 19/20 | 22/24 | `_check_tzname` (0.128); vault 13 (0.521) `2542` for `2408`; vault 15 (0.604) `2144` for `7851` |
+
+  Sparse gets vault 14 right, where dense is wrong.
+- **Verdict: fail.** Item by item, sparse loses three items that dense gets right (one copy, two needles). The
+  shipped opt-in rule is too thin at 245k on this item set. `_check_tzname` is the R04 200k miss again.
+- **Next (as planned).** R10b: the same set with `GGML_CUDA_FA_SPARSE_FRAC=0.125`; P141 on the 2060 (another item set,
+  a FRAC 1/8 arm with speed); PR #95 (launcher FRAC 1/8 for `BONSAI_SPARSE=1`) merges by its written rule.
+
 ## Status
 
 - Published as bundle-20261014; the 2060's post-zip checks passed (R08 default, R09 sparse). D26 (sparse without the line cost) stays open after
