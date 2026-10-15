@@ -53,8 +53,22 @@ same tree as the build.
   packed-half tile dequant removes more conversion work than on the 4070 (D28: +0.6 %).
 - **Verdict: pass** (the gate was "not more than 2 % slower"; it is faster). Users who set `BONSAI_CTK=q4_0` get it.
 
+## S06 Publish: bundle-20261015 (2026-10-15)
+
+- PRs: #88 (0056 + 0057, `52bce80bc`) and #91 (q3_0 8 GB default, `7df4a098f`) merged by the kernel session; #95
+  (sparse budget 1/8) before them; #102 README upgrade note -> release commit `0cbd0dcc`; #103 Hugging Face card.
+- Zip: the bundle-20261014 layout (66 entries); engine bins from the release build (`LLAMA_COMMIT b86298dba9`, sm 75 /
+  86 / 89), byte-identical to the gated `/tmp/root-0056/bin` (16 of 16); every other file from `git archive 0cbd0dcc`;
+  12 entries changed against bundle-20261014 (README, the launcher, 10 engine files). 616,638,283 bytes, SHA-256
+  `23db0bc477274314e817f3eaeda185b9ac314f31d346f45fc4861b2e3ae7dd16`.
+- GitHub release `bundle-20261015` on `0cbd0dcc` (asset digest matches); Hugging Face zip `7639ca2`, card `28a57e3`
+  (LFS oid matches, same size).
+- Installed: the engine bins in the product `bin/` (`llama-server --version` commit `b86298dba9`, byte compare with the
+  gated root OK); bundle-20261014 kept in `bin-20261014/`.
+- **Verdict.** Published. The 2060's post-zip check (default launcher: q3_0 on 8 GB, no `BONSAI_CTK`) follows on #21.
+
 ## Status
 
-- S01-S05 pass. P132 (sparse + q3_0) adds numbers but is not a rule item. Next: #88 + #91 merge, the README note
-  (release commit), S06 (publish). The bundle also carries #95 (`BONSAI_SPARSE=1` budget 1/8, R10 / R10b / R11 in
+- S01-S06 done: bundle-20261015 is published. P132 (sparse + q3_0) adds numbers but is not a rule item; the 2060's
+  post-zip check follows. The bundle also carries #95 (`BONSAI_SPARSE=1` budget 1/8, R10 / R10b / R11 in
   release-20261014).
