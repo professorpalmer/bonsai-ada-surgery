@@ -597,3 +597,14 @@ VRAM line 43,520 (f16 mask), host tail ~197k cells, graphs off.
   sparse auto is on with `BONSAI_SPARSE` unset, the line is the dense line.
 - The 2060 runs the launcher defaults (P144) after this.
 
+## D26h-3 plan: the sparse budget for q3_0 K/V (written 2026-10-15, before the run)
+
+- **Why.** D26h-1 (FRAC 1/8, q3_0, 245k) missed needle vault 13, which the dense q3_0 control (D26h-1e, 23/24) gets
+  right. With q8_0 (R10b) and q4_0 (P141) FRAC 1/8 equalled dense. Likely cause (kernel session): coarser K makes the
+  attention over the host tail flatter, so the needed pages win by a smaller margin. The bounds are computed from the
+  dequantized q3_0 K, the same K attention uses, so they stay true upper bounds; it is a budget question per K type.
+- **Setup.** 245k, q3_0, line 80,640, fresh server per arm: needles n 28 (positions other than the n 24 set) for dense,
+  FRAC 1/8 and FRAC 1/6; the n 20 copy set for FRAC 1/6; decode for FRAC 1/8 vs 1/6.
+- **Rule (declared before the run).** The launcher sets q3_0 to the smallest FRAC that equals dense on the n 24 and
+  n 28 needle sets and the n 20 copy set (lenient score). Other K types keep 1/8.
+
