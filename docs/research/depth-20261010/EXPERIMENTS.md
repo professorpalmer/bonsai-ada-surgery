@@ -688,3 +688,22 @@ VRAM line 43,520 (f16 mask), host tail ~197k cells, graphs off.
 - **Cost.** On the 4070 sparse is slower than dense at 245k for every budget, so auto keeps dense there (D26h-2). On
   the 2060 the auto mode times 1/4 against dense per band (P144).
 
+## D29 result: K/V type on the 12 GB recipe (2026-10-15 15:47-17:42)
+
+- As planned; memory clock 11751 MHz under load in every arm, driver 610.88. (A first start at 14:51 was paused before
+  any result for D26h-3b, which was on the 8 GB release path; logged in the receipt.) Receipts
+  `docs/receipts/ktype12_d29.log/.jsonl`.
+
+  | type | VRAM line (cells) | 64k | 128k | 192k | 245k | copies 245k strict / lenient | needles 245k |
+  | --- | ---: | ---: | ---: | ---: | ---: | --- | ---: |
+  | q8_0 (today) | 129,024 | 78.5 | 78.3 | 26.7 | 15.4 | 20 / 20 | 23/24 (14) |
+  | **q4_0** | 260,352 | 80.1 | 76.6 | **64.2** | **61.0** | **20 / 20** | **24/24** |
+  | q3_0 | whole window | 81.6 | 69.2 | 64.0 | 55.1 | 19 / 20 | 23/24 |
+
+- **q4_0 passes the speed and quality parts of the gate:** 192k 2.4x, 245k 4.0x q8_0 (gate +15 %); copies 20/20 and
+  needles 24/24 at 245k, not below q8_0 on the same items. The line holds 99.3 % of the window, so the PCIe cliff past
+  ~129k is gone. q3_0 holds the whole window but is slower than q4_0 at 245k and not more accurate, so q4_0 is the
+  candidate.
+- **Next (the gate's last item):** HumanEval 164 at medium on the 12 GB launcher with `BONSAI_CTK=q4_0`
+  (bundle-20261015c bins), at least 158, before any 12 GB default change.
+
