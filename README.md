@@ -76,7 +76,7 @@ How, and every receipt: [`docs/Q8_FULL_CONTEXT.md`](docs/Q8_FULL_CONTEXT.md). Sh
 | Hugging Face | the same bundle plus the ready-made MTP-grafted GGUF (`hf download`, no graft step) | [CaryPalmer/Ternary-Bonsai-2-27B-262k-GGUF](https://huggingface.co/CaryPalmer/Ternary-Bonsai-2-27B-262k-GGUF) |
 | Linux, NVIDIA driver + CUDA toolkit | `bash build/build_linux.sh` builds the pinned PrismML source with all 57 patches applied | [Quick start (Linux)](#quick-start-linux-nvidia) |
 | your own llama.cpp workflow | build the fork branch `bonsai-q8-product`, or `git am` the series in `patches/` onto PrismML `adfffbe` | [The patch stack](#the-patch-stack) |
-| an older bundle of this repo | `git pull`, unzip the latest zip over it, run `layeretch_runtime.ps1` once | [Upgrading](#upgrading-from-an-older-bundle) |
+| an older bundle of this repo | `git pull`, unzip the latest zip over it, run `layer\fetch_runtime.ps1` once | [Upgrading](#upgrading-from-an-older-bundle) |
 
 The serving flags behind every number are listed under [Quick start (Linux)](#quick-start-linux-nvidia) as one
 `llama-server` command line, so any build of the patched engine can reproduce the recipe.
@@ -389,7 +389,7 @@ change nothing. It does four things:
   through untouched (the model otherwise retypes paginated tool data into code and loses tasks).
 - **Key check.** Requests with a wrong API key are rejected before any work is done.
 
-Enable it once with `layeretch_runtime.ps1` (downloads the checksummed WASI Python, installs `wasmtime`, runs the
+Enable it once with `layer\fetch_runtime.ps1` (downloads the checksummed WASI Python, installs `wasmtime`, runs the
 isolation canaries). It needs Python 3 on PATH. Without the runtime the plain server starts as before;
 `BONSAI_LAYER=0` turns the layer off. Per request: `"code_interpreter": true|false`, `"api_cards": false`,
 `"api_lint": false`, `"input_file": false`.
