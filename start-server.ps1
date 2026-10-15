@@ -105,8 +105,12 @@ $Ctx = if ($env:BONSAI_CTX) { [int]$env:BONSAI_CTX } elseif ($Small) { if ($Smal
 # launcher, VRAM line 80,640 vs 61,696 positions (1.31x); decode 64k 41.0 vs 39.6 tok/s (+3.5 %), 128k +44 %, 192k +34 %;
 # perplexity +0.56 % at 16k; HumanEval 163/164; copies and needles at 160k equal to q4_0 (#21 P129-P131, rule in
 # docs/research/q3port-20261013). BONSAI_CTK=q4_0 keeps the previous default.
+# 12 GB: q4_0 since D29 (docs/research/depth-20261010): 18,432 B per position puts ~99 % of the 262k window in VRAM
+# (RTX 4070: line 129,024 -> 260,352 at margin 1000, 242,176 at margin 1300 with the display on the card); decode
+# 192k 26.7 -> 64.2 and 245k 15.4 -> 61.0 tok/s; 245k copies 20/20, needles 24/24 (q8_0 23/24); perplexity -c 2048
+# 8.0733 -> 8.0900 (+0.21 %); HumanEval 158/164. BONSAI_CTK=q8_0 keeps the previous 12 GB default.
 $HasQ3 = $Help -match '\bq3_0\b'
-$Ctk = if ($env:BONSAI_CTK) { $env:BONSAI_CTK } elseif ($Small) { if ($HasQ3) { 'q3_0' } else { 'q4_0' } } else { 'q8_0' }
+$Ctk = if ($env:BONSAI_CTK) { $env:BONSAI_CTK } elseif ($Small) { if ($HasQ3) { 'q3_0' } else { 'q4_0' } } else { 'q4_0' }
 $Port = if ($env:BONSAI_PORT) { [int]$env:BONSAI_PORT } else { 8080 }
 
 # ---- Reasoning ------------------------------------------------------------------------------------------
