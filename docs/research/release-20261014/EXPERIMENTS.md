@@ -196,6 +196,22 @@ the 00:31 Windows-update reboot). Every A/B is inside one session.
   the 2060). The copy scorer gets an option to accept comment lines directly above the function, reported next to
   the strict score (both, never only the lenient one).
 
+## Decision: the PR #95 rule is amended before P141 (2026-10-15 00:45)
+
+- **Rule as written on #95 (before R10b):** merge if R10b copies and needles are not below dense, P141's FRAC 1/8 arm is
+  not below dense on its set, and P141's 1/8 speed is at least 1.5x dense at 160k and 245k. Strict copy score.
+- **R10b against that rule:** strictly not met (copies 19/20 vs 20/20). The metric is not changed after the data:
+  the strict score stays the record.
+- **Why amend instead of stop:** (1) the one strict miss, `_check_tzname`, is inside the VRAM line, where sparse drops
+  nothing; the answer is the exact body plus the real comment line above it in the source file, an output difference,
+  not a lost page; (2) on the same 44 items the shipped rule (FRAC 1/16, what users run today) loses that item and two
+  needles (R10), so FRAC 1/8 is equal to or better than the shipped rule on every item.
+- **Amended rule (declared on #95 by the kernel session before P141 ran):** merge if P141's FRAC 1/8 arm is (a) not
+  below FRAC 1/16 on any item of the 2060's set, (b) not below dense on any item whose text sits in the host tail
+  (pages sparse can drop), and (c) at least 1.5x dense at 160k and 245k.
+- **Tooling:** PR #98 adds a lenient copy score next to the strict one: leading comment lines count only when they
+  equal the source lines directly above the function. Both scores are reported; gates name the one they use.
+
 ## Status
 
 - Published as bundle-20261014; the 2060's post-zip checks passed (R08 default, R09 sparse). D26 (sparse without the line cost) stays open after
