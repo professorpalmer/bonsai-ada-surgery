@@ -117,6 +117,12 @@ the tiered-KV runtime are detected and get the previous 96k all-VRAM recipe.
 
 ### Upgrading from an older bundle
 
+`bundle-20261015c` fixes **agent tools that return images through the Responses API** (patch 0058, a cherry-pick of
+ggml-org/llama.cpp `4098fdc922`). A harness on `/v1/responses` whose tool returned a screenshot got HTTP 400 ("Output
+of tool call should be 'Input text'"), and every later request in that session failed too (#112). Now an
+`input_image` in a tool output reaches the model like an image in a user message (with `BONSAI_MMPROJ` set).
+Server-only change; the attention and cache code are the same as `bundle-20261015b`.
+
 `bundle-20261015b` fixes the launcher of `bundle-20261015`: its q3_0 check never matched (two control characters in
 the pattern), so 8 GB cards stayed on q4_0. The engine is the same; with 15b the 8 GB default is q3_0 as described
 below. If you run `bundle-20261015`, take the new zip or set `BONSAI_CTK=q3_0`.
@@ -621,7 +627,7 @@ python bench\mtp_identity.py                   # greedy draft-on vs draft-off
 
 | Path | What |
 | --- | --- |
-| `patches/` | the 57-commit stack on PrismML `adfffbe`, `git am`-able |
+| `patches/` | the 58-commit stack on PrismML `adfffbe`, `git am`-able |
 | `start-server.ps1`, `start-remote.ps1` | the recipe (LAN / Cloudflare tunnel) |
 | `build/build_linux.sh`, `start-linux.sh` | Linux build from the pinned base + patches, first-run launcher |
 | `tests/`, `.github/workflows/` | Linux setup tests, Linux CUDA compile and PDL code-generation CI |
