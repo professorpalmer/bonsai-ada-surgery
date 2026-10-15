@@ -14,6 +14,8 @@ function Select-CompleteGguf([string]$Path, [int64]$MinBytes) {
 # 8 GB cards (docs/8GB.md): q4_0 K/V, a 131k window, the Q4_0 MTP head with draft 1 / tail 1 when its file is present,
 # the shared CUDA pool and f16 prefill. Detected from total VRAM; BONSAI_8GB=1 forces it, BONSAI_8GB=0 turns it off.
 $TotalMiB = [int]((& nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits | Select-Object -First 1).Trim())
+# BONSAI_TOTAL_MIB: test hook, the card size the presets see (the VRAM line is still sized from the real free VRAM)
+if ($env:BONSAI_TOTAL_MIB) { $TotalMiB = [int]$env:BONSAI_TOTAL_MIB }
 $Small = if ($env:BONSAI_8GB) { $env:BONSAI_8GB -eq '1' } else { $TotalMiB -le 8704 }
 $Model = $null
 if ($env:BONSAI_MODEL) {
@@ -105,12 +107,16 @@ $Ctx = if ($env:BONSAI_CTX) { [int]$env:BONSAI_CTX } elseif ($Small) { if ($Smal
 # launcher, VRAM line 80,640 vs 61,696 positions (1.31x); decode 64k 41.0 vs 39.6 tok/s (+3.5 %), 128k +44 %, 192k +34 %;
 # perplexity +0.56 % at 16k; HumanEval 163/164; copies and needles at 160k equal to q4_0 (#21 P129-P131, rule in
 # docs/research/q3port-20261013). BONSAI_CTK=q4_0 keeps the previous default.
-# 12 GB: q4_0 since D29 (docs/research/depth-20261010): 18,432 B per position puts ~99 % of the 262k window in VRAM
+# 12 GB band (total VRAM up to 14 GB): q4_0 since D29 (docs/research/depth-20261010): 18,432 B per position puts ~99 % of
+# the 262k window in VRAM
 # (RTX 4070: line 129,024 -> 260,352 at margin 1000, 242,176 at margin 1300 with the display on the card); decode
 # 192k 26.7 -> 64.2 and 245k 15.4 -> 61.0 tok/s; 245k copies 20/20, needles 24/24 (q8_0 23/24); perplexity -c 2048
-# 8.0733 -> 8.0900 (+0.21 %); HumanEval 158/164. BONSAI_CTK=q8_0 keeps the previous 12 GB default.
+# 8.0733 -> 8.0900 (+0.21 %); HumanEval 158/164. BONSAI_CTK=q8_0 keeps the previous 12 GB default. Larger cards keep
+# q8_0: there most or all of the q8_0 window fits in VRAM, so q4_0 would cost precision for little or nothing.
+$Band12 = -not $Small -and $TotalMiB -le 14336
 $HasQ3 = $Help -match '\bq3_0\b'
-$Ctk = if ($env:BONSAI_CTK) { $env:BONSAI_CTK } elseif ($Small) { if ($HasQ3) { 'q3_0' } else { 'q4_0' } } else { 'q4_0' }
+$Ctk = if ($env:BONSAI_CTK) { $env:BONSAI_CTK } elseif ($Small) { if ($HasQ3) { 'q3_0' } else { 'q4_0' } } elseif ($Band12) { 'q4_0' } else { 'q8_0' }
+$CtkWhy = if ($env:BONSAI_CTK) { 'BONSAI_CTK' } elseif ($Small) { '8 GB default' } elseif ($Band12) { '12 GB default, BONSAI_CTK=q8_0 for the previous one' } else { 'q8_0: the card holds most of the window' }
 $Port = if ($env:BONSAI_PORT) { [int]$env:BONSAI_PORT } else { 8080 }
 
 # ---- Reasoning ------------------------------------------------------------------------------------------
@@ -469,7 +475,7 @@ if ($env:BONSAI_RAM_BUDGET -ne '0' -and $Help -match '--cache-ram' -and $Help -m
 
 if ($Small) { Write-Host "8gb    preset on ($TotalMiB MiB card; BONSAI_8GB=0 turns it off): ub $Ubatch, f16 prefill to $($env:GGML_CUDA_FA_PREFILL_F16) cells$(if ($env:GGML_CUDA_FA_CHUNK -and $env:GGML_CUDA_FA_CHUNK -ne '0') { ", deeper in chunks of $($env:GGML_CUDA_FA_CHUNK)" })" }
 Write-Host "model  $(Split-Path $Model -Leaf)"
-Write-Host "window $Ctx / $Ctk  (trained max 262144)"
+Write-Host "window $Ctx / $Ctk  ($CtkWhy; trained max 262144)"
 if ($TierCells -gt 0) { Write-Host "kv     tiered: cells 0..$TierCells in VRAM, $TierCells..$Ctx in system RAM$(if ($Margin) { " (VRAM margin $Margin MiB)" })$(if ($PoolMiB) { "; shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off)" })$(if ($MaskSavedMiB) { "; packed KQ mask ($MaskSavedMiB MiB saved)" })" }
 if ($SparsePage -and $TierCells -gt 0 -and $env:GGML_CUDA_FA_SPARSE_AUTO -eq '1') {
     Write-Host "kv     sparse host-tail reads: auto (dense line $TierCells; past it the engine times dense vs sparse per 16k band and keeps the faster; BONSAI_SPARSE=0 off, =1 forced)"
