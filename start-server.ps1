@@ -267,7 +267,8 @@ if ($Small -and $env:BONSAI_SPARSE -eq '1' -and -not $env:GGML_CUDA_FA_SPARSE -a
     if (-not $env:GGML_CUDA_FA_SPARSE_FAST) { $env:GGML_CUDA_FA_SPARSE_FAST = '1' }
     if (-not $env:GGML_CUDA_KV_TIER_STAGE_MIN_Q) { $env:GGML_CUDA_KV_TIER_STAGE_MIN_Q = '9' }
     if (-not $env:GGML_CUDA_FA_SPARSE_MIN_HOST) { $env:GGML_CUDA_FA_SPARSE_MIN_HOST = '32768' }
-    # budget max(floor, host tail / 8): with / 16 one exact copy was lost at 245k on a 20-item set (R10); / 8 = dense
+    # budget max(floor, host tail / 8). At 245k, / 16 lost needles that / 8 and dense keep (4070 R10 / R10b; 2060 R11:
+    # / 8 = dense on all 44 items, / 16 one needle less). RTX 2060 SUPER, / 8: 1.59x dense at 160k, 1.76x at 245k (R11)
     if (-not $env:GGML_CUDA_FA_SPARSE_FRAC) { $env:GGML_CUDA_FA_SPARSE_FRAC = '0.125' }
 }
 if ($env:GGML_CUDA_FA_SPARSE) {
@@ -426,10 +427,10 @@ Write-Host "model  $(Split-Path $Model -Leaf)"
 Write-Host "window $Ctx / $Ctk  (trained max 262144)"
 if ($TierCells -gt 0) { Write-Host "kv     tiered: cells 0..$TierCells in VRAM, $TierCells..$Ctx in system RAM$(if ($Margin) { " (VRAM margin $Margin MiB)" })$(if ($PoolMiB) { "; shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off)" })$(if ($MaskSavedMiB) { "; packed KQ mask ($MaskSavedMiB MiB saved)" })" }
 if ($SparsePage -and $TierCells -gt 0) {
-    Write-Host "kv     sparse host-tail reads: $($env:GGML_CUDA_FA_SPARSE) (B,P,R), from $(if ($env:GGML_CUDA_FA_SPARSE_MIN_HOST) { $env:GGML_CUDA_FA_SPARSE_MIN_HOST } else { 0 }) host cells on; $([int](($Ctx - $TierCells) * $SparseCellBytes / 1MB) + 64) MiB of page bounds counted$(if ($TierCellsDense -gt $TierCells) { ": VRAM line $TierCellsDense -> $TierCells cells" })"
-    if ($Small) { Write-Host "       8 GB, 262k: ~1.9x decode at 160k, ~2.3-2.7x at 245k; ~8 % slower below ~100k (shorter VRAM line). BONSAI_SPARSE=0 or unset: off." }
+    Write-Host "kv     sparse host-tail reads: $($env:GGML_CUDA_FA_SPARSE) (B,P,R), budget max(B, host tail x $(if ($env:GGML_CUDA_FA_SPARSE_FRAC) { $env:GGML_CUDA_FA_SPARSE_FRAC } else { '0.0625' })), from $(if ($env:GGML_CUDA_FA_SPARSE_MIN_HOST) { $env:GGML_CUDA_FA_SPARSE_MIN_HOST } else { 0 }) host cells on; $([int](($Ctx - $TierCells) * $SparseCellBytes / 1MB) + 64) MiB of page bounds counted$(if ($TierCellsDense -gt $TierCells) { ": VRAM line $TierCellsDense -> $TierCells cells" })"
+    if ($Small) { Write-Host "       8 GB, 262k: ~1.6x decode at 160k, ~1.8x at 245k; ~8 % slower below ~100k (shorter VRAM line). BONSAI_SPARSE=0 or unset: off." }
 } elseif ($Small -and $SparseAvail -and $TierCells -gt 0) {
-    Write-Host "kv     deep sessions (160k+): BONSAI_SPARSE=1 reads only the relevant pages of the system-RAM tail: ~1.9x decode at 160k, ~2.3x at 245k, ~8 % slower below ~100k"
+    Write-Host "kv     deep sessions (160k+): BONSAI_SPARSE=1 reads only the relevant pages of the system-RAM tail: ~1.6x decode at 160k, ~1.8x at 245k, ~8 % slower below ~100k"
 }
 if ($env:GGML_CUDA_KV_TIER_STAGING_FRAC) { Write-Host "kv     staging buffer for cells $TierCells..$($TierCells + $StageCells); past that the system RAM rows are read in place$(if ($Packed) { '; packed KQ mask' })" }
 if ($Small -and $Has262 -and -not $Small262 -and -not $env:BONSAI_CTX -and $RamGiB -gt 0 -and $RamGiB -lt 24) { Write-Host "note   window 131k: the 262k window needs 24 GB of system RAM or more ($RamGiB GB here); BONSAI_CTX=262144 tries it" }
