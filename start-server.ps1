@@ -282,8 +282,9 @@ if ($Small -and ($env:BONSAI_SPARSE -eq '1' -or $SparseAuto) -and -not $env:GGML
     # budget max(floor, host tail / 8). At 245k, / 16 lost needles that / 8 and dense keep (4070 R10 / R10b; 2060 R11:
     # / 8 = dense on all 44 items, / 16 one needle less). RTX 2060 SUPER, / 8: 1.59x dense at 160k, 1.76x at 245k (R11)
     # per K type: a coarser K flattens attention over the tail, so the needed pages win by less and need a larger
-    # budget. q3_0: set from the D26h q3_0 sets at 245k (the smallest FRAC equal to dense); others: 1/8 (R10b, R11)
-    $SparseFracByType = @{ 'q3_0' = '0.125' }
+    # budget. q3_0: 1/4, the smallest FRAC equal to dense item by item at 245k on two needle sets (n 24, n 28) and the
+    # copy set (D26h-3 / 3b: 1/8 and 1/6 each lost a needle); others: 1/8 (R10b, R11)
+    $SparseFracByType = @{ 'q3_0' = '0.25' }
     if (-not $env:GGML_CUDA_FA_SPARSE_FRAC) { $env:GGML_CUDA_FA_SPARSE_FRAC = $(if ($SparseFracByType.ContainsKey($Ctk)) { $SparseFracByType[$Ctk] } else { '0.125' }) }
 }
 if ($env:GGML_CUDA_FA_SPARSE) {
