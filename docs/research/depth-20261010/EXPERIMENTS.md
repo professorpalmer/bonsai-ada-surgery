@@ -526,3 +526,14 @@ VRAM line 43,520 (f16 mask), host tail ~197k cells, graphs off.
 - **Receipts.** `docs/receipts/sparse_twolevel_d26c.log` (with a correction note), `d26c_200000_m4.server.log`,
   `sparse_twolevel_d26e.log`.
 
+## D26g-pre plan: the q3_0 line cost on the 4070 (written 2026-10-15, before the run; issue #105)
+
+- **Question.** With q3_0 (the 8 GB default since bundle-20261015) the sparse reserve moves the 2060's line from 80,640
+  to about 74k. Is there a decode loss at 64k-128k, sparse vs off, when the lines are those two?
+- **Setup.** RTX 4070, bundle-20261015 bins (product `bin/`, `b86298dba9`), 12 GB launcher with `BONSAI_CTK=q3_0` and
+  the line pinned: off 80,640; sparse 73,984 (80,640 - 6,656) with the env that `BONSAI_SPARSE=1` sets (FRAC 1/8).
+  `bench/depth_arms.sh bench/arms/d26g_pre.txt` (tag d26gpre), arms alternated x2, depths 64k / 80k / 96k / 112k /
+  128k.
+- **Gate (from #105).** No depth <= 128k loses more than 2 % (mean of the two rounds). The 2060's D26g decides the
+  default; this is a pre-check (PCIe 4.0 here, so a pass here is necessary, not sufficient).
+
