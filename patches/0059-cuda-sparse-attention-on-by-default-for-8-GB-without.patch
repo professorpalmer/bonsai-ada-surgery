@@ -1,0 +1,671 @@
+From ab94810051d13310ea8f21d855e097ccfcb9bac9 Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Thu, 15 Oct 2026 13:53:30 -0500
+Subject: [PATCH] cuda: sparse attention on by default for 8 GB, without a
+ shallow-depth cost (late reserve + self-timing engage)
+
+Late reserve (GGML_CUDA_KV_TIER_DEMOTE_FRAC=d): the top d of every VRAM head of
+a tiered KV buffer is its own VMM allocation. Below the depth where sparse
+attention engages, the dense line is kept. When it first engages (an attention
+op's host tail reaches GGML_CUDA_FA_SPARSE_MIN_HOST), the engine syncs, copies
+that chunk to pinned system RAM, maps it at the same address (with a VRAM
+staging slot of its own), frees the VRAM, and the page bounds use it. The tier
+line, staging, write-back and the CUDA-graph check move with it; kernel
+addresses do not change. The host runs a range touches are handled as one span.
+
+Self-timing engage (GGML_CUDA_FA_SPARSE_AUTO=1): per 16k band of context, the
+first decode graphs past MIN_HOST time dense (dense line) and then sparse (after
+the demotion); sparse is kept only when it is more than 3 % faster, else the
+chunk moves back to VRAM. Decisions last for the process and are stored in
+GGML_CUDA_FA_SPARSE_CALIB under GGML_CUDA_FA_SPARSE_CALIB_KEY, so a depth runs
+the same mode on every request and after a restart.
+
+RTX 4070, 2060-like line 80,640, q3_0: 64k unchanged (no demotion); the
+decided state equals sparse off at 96k-245k (PCIe 4.0: dense wins every band);
+a restart with the file loads the decisions with no trials and the same answer
+bytes; a changed key times again; 245k needles equal to dense.
+---
+ ggml/src/ggml-cuda/fattn.cu     |  21 +-
+ ggml/src/ggml-cuda/ggml-cuda.cu | 478 +++++++++++++++++++++++++++++++-
+ 2 files changed, 488 insertions(+), 11 deletions(-)
+
+diff --git a/ggml/src/ggml-cuda/fattn.cu b/ggml/src/ggml-cuda/fattn.cu
+index d19b404b82..44effaee73 100644
+--- a/ggml/src/ggml-cuda/fattn.cu
++++ b/ggml/src/ggml-cuda/fattn.cu
+@@ -710,6 +710,20 @@ static std::mutex                                fa_sparse_mtx;
+ static std::map<const char *, fa_sparse_table>   fa_sparse_tables;
+ static std::atomic<uintptr_t>                    fa_sparse_lo{UINTPTR_MAX}, fa_sparse_hi{0};
+ 
++// free every page-bound table (the engage rule moves the late-reserve chunk back to VRAM; the tables are rebuilt from
++// the K cache when sparse runs again). Call with the device idle.
++void ggml_cuda_fa_sparse_release_tables() {
++    std::lock_guard<std::mutex> lock(fa_sparse_mtx);
++    for (auto & [base, t] : fa_sparse_tables) {
++        if (t.mx) {
++            CUDA_CHECK(cudaFree(t.mx));
++        }
++    }
++    fa_sparse_tables.clear();
++    fa_sparse_lo.store(UINTPTR_MAX);
++    fa_sparse_hi.store(0);
++}
++
+ // the bytes [p, p + n) may have changed: in each table that holds some of them, the host cells from the first written
+ // one on. rows: the rows a set_rows wrote, relative to p, when its rows (row_bytes) match the table's (else every row of
+ // [p, p + n) counts as written). Writes that end before the host tail change nothing. Call with fa_sparse_mtx held.
+@@ -745,10 +759,13 @@ static bool fa_sparse_maybe_tracked(const void * p, size_t n) {
+ 
+ // graph setup (ggml-cuda.cu): an attention op the fast path takes stays out of the tier prefetch, which would copy the
+ // whole host tail ahead of it (same shape checks as ggml_cuda_fa_sparse_mask)
++bool ggml_cuda_fa_sparse_auto_allows();   // ggml-cuda.cu: the self-timing engage rule (GGML_CUDA_FA_SPARSE_AUTO)
++
+ bool ggml_cuda_fa_sparse_eligible(const ggml_tensor * fa) {
+     const fa_sparse_cfg & cfg = fa_sparse();
+     const ggml_tensor * Q = fa->src[0], * K = fa->src[1], * M = fa->src[3];
+-    if (cfg.budget <= 0 || !cfg.fast || !K || !M || M->type != GGML_TYPE_F16 || Q->ne[1] > cfg.maxq) {
++    if (cfg.budget <= 0 || !cfg.fast || !K || !M || M->type != GGML_TYPE_F16 || Q->ne[1] > cfg.maxq ||
++            !ggml_cuda_fa_sparse_auto_allows()) {
+         return false;
+     }
+     // the selected region: the host tail, or with GGML_CUDA_FA_SPARSE_SINKS every cell from the sinks on (the op must
+@@ -1085,7 +1102,7 @@ static bool ggml_cuda_fa_sparse_mask(ggml_backend_cuda_context & ctx, const ggml
+         ggml_cuda_pool_alloc<half> & mask_buf, ggml_tensor * mask_out,
+         ggml_cuda_pool_alloc<uint8_t> & union_buf, fa_sparse_pages * pages_out) {
+     const fa_sparse_cfg & cfg = fa_sparse();
+-    if (cfg.budget <= 0) {
++    if (cfg.budget <= 0 || !ggml_cuda_fa_sparse_auto_allows()) {
+         return false;
+     }
+     const ggml_tensor * Q = dst->src[0];
+diff --git a/ggml/src/ggml-cuda/ggml-cuda.cu b/ggml/src/ggml-cuda/ggml-cuda.cu
+index ccc876fb94..eb9bc47a40 100644
+--- a/ggml/src/ggml-cuda/ggml-cuda.cu
++++ b/ggml/src/ggml-cuda/ggml-cuda.cu
+@@ -71,6 +71,7 @@
+ #include "ggml.h"
+ 
+ #include <algorithm>
++#include <chrono>
+ #include <array>
+ #include <atomic>
+ #include <charconv>
+@@ -1129,6 +1130,21 @@ struct ggml_cuda_tier_span {
+ };
+ static std::vector<ggml_cuda_tier_span> g_tier_spans; // guarded by g_tier_mutex
+ 
++// one allocation of a tiered buffer (demot: the top of a VRAM head that GGML_CUDA_KV_TIER_DEMOTE_FRAC set apart)
++struct ggml_cuda_tier_vrun {
++    CUdeviceptr ptr; size_t len; CUmemGenericAllocationHandle h; bool staged; bool host; bool demot;
++};
++// a tiered buffer with demotable chunks (late reserve for the sparse page bounds)
++struct ggml_cuda_tier_rec {
++    CUdeviceptr va = 0, va2 = 0;
++    int physical = 0;
++    std::string key;
++    std::vector<ggml_cuda_tier_vrun> runs;
++    bool demotable = false;
++    bool demoted   = false;
++};
++static std::vector<std::shared_ptr<ggml_cuda_tier_rec>> g_tier_recs; // guarded by g_tier_mutex
++
+ static void ggml_cuda_tier_span_register(CUdeviceptr va, size_t total, const std::vector<ggml_cuda_tier_run> & runs) {
+     std::lock_guard<std::mutex> lock(g_tier_mutex);
+     g_tier_spans.push_back({ va, total, runs });
+@@ -1222,6 +1238,159 @@ static bool ggml_cuda_tier_staging_handle(int physical, const std::string & key,
+     return true;
+ }
+ 
++// Late reserve (GGML_CUDA_KV_TIER_DEMOTE_FRAC): move the demotable chunk at the top of every VRAM head to pinned system
++// RAM, at the same virtual address, so its VRAM is free for the sparse page bounds. Called once, with the device idle,
++// when sparse attention first engages. The chunk joins the staged host tail: its alias pages get a VRAM staging slot of
++// their own, and the entry's host runs (the tier line, staging, write-back, the CUDA-graph check) include it from then on.
++// Kernels keep the same addresses. Returns the bytes of VRAM freed.
++static size_t ggml_cuda_tier_demote_all() {
++    std::lock_guard<std::mutex> lock(g_tier_mutex);
++    size_t freed = 0;
++    for (auto & rec : g_tier_recs) {
++        if (rec->demoted || !rec->demotable) {
++            continue;
++        }
++        CUmemAllocationProp ph = {};
++        ph.type          = CU_MEM_ALLOCATION_TYPE_PINNED;
++        ph.location.type = CU_MEM_LOCATION_TYPE_HOST;
++        ph.location.id   = 0;
++        CUmemAccessDesc ad = {};
++        ad.location.type = CU_MEM_LOCATION_TYPE_DEVICE;
++        ad.location.id   = rec->physical;
++        ad.flags         = CU_MEM_ACCESS_FLAGS_PROT_READWRITE;
++        int slot = 64;   // staging slots of the chunks: shared by the buffers of one cache, as the tail slots are
++        for (auto & rr : rec->runs) {
++            if (!rr.demot || rr.host) {
++                continue;
++            }
++            CUmemGenericAllocationHandle hh;
++            CU_CHECK(cuMemCreate(&hh, rr.len, &ph, 0));
++            // copy the chunk through a temporary mapping of the host handle, then swap the mapping at the same address
++            CUdeviceptr tmp = 0;
++            CU_CHECK(cuMemAddressReserve(&tmp, rr.len, 0, 0, 0));
++            CU_CHECK(cuMemMap(tmp, rr.len, 0, hh, 0));
++            CU_CHECK(cuMemSetAccess(tmp, rr.len, &ad, 1));
++            CU_CHECK(cuMemcpyDtoD(tmp, rr.ptr, rr.len));
++            CU_CHECK(cuCtxSynchronize());
++            const size_t off = rr.ptr - rec->va;
++            CU_CHECK(cuMemUnmap(rr.ptr, rr.len));
++            CU_CHECK(cuMemMap(rr.ptr, rr.len, 0, hh, 0));
++            CU_CHECK(cuMemSetAccess(rr.ptr, rr.len, &ad, 1));
++            CU_CHECK(cuMemUnmap(tmp, rr.len));
++            CU_CHECK(cuMemAddressFree(tmp, rr.len));
++            if (rec->va2) {
++                CUmemGenericAllocationHandle sh;
++                CU_CHECK(cuMemUnmap(rec->va2 + off, rr.len));
++                if (!ggml_cuda_tier_staging_handle(rec->physical, rec->key, slot++, rr.len, &sh)) {
++                    // no staging slot: map the host pages in place in the alias (read over PCIe, still correct)
++                    sh = hh;
++                }
++                CU_CHECK(cuMemMap(rec->va2 + off, rr.len, 0, sh, 0));
++                CU_CHECK(cuMemSetAccess(rec->va2 + off, rr.len, &ad, 1));
++                if (sh != hh) {
++                    CU_CHECK(cuMemsetD8(rec->va2 + off, 0, rr.len));
++                }
++                for (auto & e : g_tier_entries) {
++                    if (e.va == rec->va && sh != hh) {
++                        e.host_runs.push_back({ off, rr.len });
++                        std::sort(e.host_runs.begin(), e.host_runs.end());
++                    }
++                }
++            }
++            for (auto & sp : g_tier_spans) {
++                if (sp.va == rec->va) {
++                    for (auto & r2 : sp.runs) {
++                        if (r2.off == off) {
++                            r2.host = true;
++                        }
++                    }
++                }
++            }
++            CU_CHECK(cuMemRelease(rr.h));
++            rr.h    = hh;
++            rr.host = true;
++            freed  += rr.len;
++        }
++        rec->demoted = true;
++    }
++    return freed;
++}
++
++// The reverse of ggml_cuda_tier_demote_all: move the demoted chunks back to VRAM at the same address (the self-timing
++// engage rule chose dense for this depth). The page-bound tables must be freed first. Returns false if VRAM was short
++// (the chunks that could not move stay in system RAM, still correct).
++static bool ggml_cuda_tier_promote_all() {
++    std::lock_guard<std::mutex> lock(g_tier_mutex);
++    bool ok = true;
++    for (auto & rec : g_tier_recs) {
++        if (!rec->demoted) {
++            continue;
++        }
++        CUmemAllocationProp pd = {};
++        pd.type          = CU_MEM_ALLOCATION_TYPE_PINNED;
++        pd.location.type = CU_MEM_LOCATION_TYPE_DEVICE;
++        pd.location.id   = rec->physical;
++        CUmemAccessDesc ad = {};
++        ad.location.type = CU_MEM_LOCATION_TYPE_DEVICE;
++        ad.location.id   = rec->physical;
++        ad.flags         = CU_MEM_ACCESS_FLAGS_PROT_READWRITE;
++        bool all = true;
++        for (auto & rr : rec->runs) {
++            if (!rr.demot || !rr.host) {
++                continue;
++            }
++            CUmemGenericAllocationHandle hv;
++            if (cuMemCreate(&hv, rr.len, &pd, 0) != CUDA_SUCCESS) {
++                all = false;
++                continue;
++            }
++            CUdeviceptr tmp = 0;
++            CU_CHECK(cuMemAddressReserve(&tmp, rr.len, 0, 0, 0));
++            CU_CHECK(cuMemMap(tmp, rr.len, 0, hv, 0));
++            CU_CHECK(cuMemSetAccess(tmp, rr.len, &ad, 1));
++            CU_CHECK(cuMemcpyDtoD(tmp, rr.ptr, rr.len));
++            CU_CHECK(cuCtxSynchronize());
++            const size_t off = rr.ptr - rec->va;
++            CU_CHECK(cuMemUnmap(rr.ptr, rr.len));
++            CU_CHECK(cuMemMap(rr.ptr, rr.len, 0, hv, 0));
++            CU_CHECK(cuMemSetAccess(rr.ptr, rr.len, &ad, 1));
++            CU_CHECK(cuMemUnmap(tmp, rr.len));
++            CU_CHECK(cuMemAddressFree(tmp, rr.len));
++            if (rec->va2) {
++                // the alias maps VRAM head pages to themselves again
++                CU_CHECK(cuMemUnmap(rec->va2 + off, rr.len));
++                CU_CHECK(cuMemMap(rec->va2 + off, rr.len, 0, hv, 0));
++                CU_CHECK(cuMemSetAccess(rec->va2 + off, rr.len, &ad, 1));
++                for (auto & e : g_tier_entries) {
++                    if (e.va == rec->va) {
++                        for (size_t k = 0; k < e.host_runs.size(); ++k) {
++                            if (e.host_runs[k].first == off) {
++                                e.host_runs.erase(e.host_runs.begin() + k);
++                                break;
++                            }
++                        }
++                    }
++                }
++            }
++            for (auto & sp : g_tier_spans) {
++                if (sp.va == rec->va) {
++                    for (auto & r2 : sp.runs) {
++                        if (r2.off == off) {
++                            r2.host = false;
++                        }
++                    }
++                }
++            }
++            CU_CHECK(cuMemRelease(rr.h));
++            rr.h    = hv;
++            rr.host = false;
++        }
++        rec->demoted = !all;
++        ok = ok && all;
++    }
++    return ok;
++}
++
+ // For a tensor range [ptr, ptr + nbytes) inside a tiered buffer with a staging alias: copy its host-backed
+ // bytes into the staging buffers (stream-ordered) and return the same range in the alias, whose pages are
+ // all VRAM. nullptr when ptr is not in such a buffer or no byte of the range is host-backed.
+@@ -1342,15 +1511,25 @@ static ggml_backend_buffer_t ggml_backend_cuda_tier_alloc(ggml_backend_buffer_ty
+         const char * e = getenv("GGML_CUDA_KV_TIER_STAGING_FRAC");
+         return e ? std::max(0.0, atof(e)) : 2.0;
+     }();
++    // GGML_CUDA_KV_TIER_DEMOTE_FRAC=d (late reserve for GGML_CUDA_FA_SPARSE): the top d x part bytes of each VRAM head are
++    // their own allocation, so they can move to system RAM later (ggml_cuda_tier_demote_all) and free that VRAM
++    static const double demote_frac = [] {
++        const char * e = getenv("GGML_CUDA_KV_TIER_DEMOTE_FRAC");
++        return e ? std::max(0.0, atof(e)) : 0.0;
++    }();
+     std::vector<bool> in_vram(n_pages);
+     std::vector<bool> staged(n_pages);
++    std::vector<bool> demot(n_pages);
+     size_t n_vram = 0;
+     for (size_t p = 0; p < n_pages; ++p) {
+         const size_t off  = p * gran;
+         const size_t ip   = std::min<size_t>(off / std::max<size_t>(part, 1), parts - 1);
+         const size_t head = (size_t) (bctx->vram_frac * part);
++        // rounded up to the allocation granularity: rounding down in every part could free less than the bounds need
++        const size_t dlen = std::min(head, ((size_t) (demote_frac * part) + gran - 1) / gran * gran);
+         in_vram[p] = off - ip*part < head;
+         staged[p]  = !in_vram[p] && (double) (off - ip*part - head) < stage_frac * (double) part;
++        demot[p]   = in_vram[p] && dlen > 0 && off - ip*part >= head - dlen;
+         n_vram += in_vram[p];
+     }
+ 
+@@ -1361,8 +1540,7 @@ static ggml_backend_buffer_t ggml_backend_cuda_tier_alloc(ggml_backend_buffer_ty
+         return nullptr;
+     }
+ 
+-    struct run { CUdeviceptr ptr; size_t len; CUmemGenericAllocationHandle h; bool staged; bool host; };
+-    std::vector<run> runs;
++    std::vector<ggml_cuda_tier_vrun> runs;
+     auto undo = [runs_p = &runs, va, total]() {
+         for (auto & rr : *runs_p) {
+             cuMemUnmap(rr.ptr, rr.len);
+@@ -1373,7 +1551,7 @@ static ggml_backend_buffer_t ggml_backend_cuda_tier_alloc(ggml_backend_buffer_ty
+ 
+     for (size_t p = 0; p < n_pages; ) {
+         size_t q = p;
+-        while (q < n_pages && in_vram[q] == in_vram[p] && staged[q] == staged[p]) {
++        while (q < n_pages && in_vram[q] == in_vram[p] && staged[q] == staged[p] && demot[q] == demot[p]) {
+             ++q;
+         }
+         const size_t len = (q - p) * gran;
+@@ -1392,7 +1570,7 @@ static ggml_backend_buffer_t ggml_backend_cuda_tier_alloc(ggml_backend_buffer_ty
+             undo();
+             return nullptr;
+         }
+-        runs.push_back({ va + p*gran, len, h, (bool) staged[p], !in_vram[p] });
++        runs.push_back({ va + p*gran, len, h, (bool) staged[p], !in_vram[p], (bool) demot[p] });
+         p = q;
+     }
+ 
+@@ -1465,8 +1643,21 @@ static ggml_backend_buffer_t ggml_backend_cuda_tier_alloc(ggml_backend_buffer_ty
+         }
+     }
+ 
++    // the runs live on in a shared record: a demotion swaps handles, and the release below must free the current ones
++    auto rec = std::make_shared<ggml_cuda_tier_rec>();
++    rec->va = va; rec->va2 = va2; rec->physical = physical; rec->key = ggml_cuda_tier_staging_key(bctx->name);
++    rec->runs = runs;
++    for (auto & rr : runs) {
++        rec->demotable = rec->demotable || rr.demot;
++    }
++    if (rec->demotable) {
++        std::lock_guard<std::mutex> lock(g_tier_mutex);
++        g_tier_recs.push_back(rec);
++    }
++
+     ggml_backend_cuda_buffer_context * ctx = new ggml_backend_cuda_buffer_context(device, (void *) va);
+-    ctx->release = [runs, va, va2, total, device]() {
++    ctx->release = [rec, va, va2, total, device]() {
++        const std::vector<ggml_cuda_tier_vrun> & runs = rec->runs;
+         ggml_cuda_set_device(device);
+         cudaDeviceSynchronize();
+         ggml_cuda_tier_span_unregister(va);
+@@ -1482,6 +1673,13 @@ static ggml_backend_buffer_t ggml_backend_cuda_tier_alloc(ggml_backend_buffer_ty
+             cuMemRelease(rr.h);
+         }
+         cuMemAddressFree(va, total);
++        std::lock_guard<std::mutex> lock(g_tier_mutex);
++        for (size_t i = 0; i < g_tier_recs.size(); ++i) {
++            if (g_tier_recs[i].get() == rec.get()) {
++                g_tier_recs.erase(g_tier_recs.begin() + i);
++                break;
++            }
++        }
+     };
+     return ggml_backend_buffer_init(buft, ggml_backend_cuda_buffer_interface, ctx, size);
+ }
+@@ -1536,17 +1734,22 @@ static const ggml_cuda_tier_entry * ggml_cuda_tier_find(const void * ptr) {
+     return nullptr;
+ }
+ 
+-// first host run of e that intersects [lo, hi) (offsets in the tiered buffer), as [a, b)
++// the host runs of e that intersect [lo, hi) (offsets in the tiered buffer), as one span [a, b) from the first one's
++// start to the last one's end (a demoted chunk and the staged tail after it are two runs; bytes between them, if any,
++// are host pages mapped in place in the alias, so copying them is harmless)
+ static bool ggml_cuda_tier_host_part(const ggml_cuda_tier_entry * e, size_t lo, size_t hi, size_t * a, size_t * b) {
++    bool any = false;
+     for (auto & hr : e->host_runs) {
+         const size_t x = std::max(lo, hr.first), y = std::min(hi, hr.first + hr.second);
+         if (x < y) {
+-            *a = x;
++            if (!any) {
++                *a = x;
++            }
+             *b = y;
+-            return true;
++            any = true;
+         }
+     }
+-    return false;
++    return any;
+ }
+ 
+ // first cell (row nb[1]) of t that lives in a host run of its tiered buffer, -1 when none (GGML_CUDA_FA_SPARSE)
+@@ -1665,11 +1868,265 @@ static void ggml_cuda_tier_prefetch(ggml_backend_cuda_context & ctx, ggml_cuda_t
+     ts.inflight = true;
+ }
+ 
++// Self-timing engage rule (GGML_CUDA_FA_SPARSE_AUTO=1, with the late reserve). Per band of 16k context cells, the
++// first time a decode graph reaches it past GGML_CUDA_FA_SPARSE_MIN_HOST host cells (at the dense line), the engine
++// times N graphs dense (dense line) and N graphs sparse (after the late-reserve demotion), keeps the faster mode
++// (sparse only when > 3 % faster) and moves the chunk back to VRAM if dense won. The decisions are kept for the life
++// of the process and in GGML_CUDA_FA_SPARSE_CALIB (one line per band, under GGML_CUDA_FA_SPARSE_CALIB_KEY), so the
++// same depth always runs the same mode: only the request that first reaches a band runs mixed modes.
++static bool g_sparse_allowed = true;
++bool ggml_cuda_fa_sparse_auto_allows() {
++    return g_sparse_allowed;
++}
++void ggml_cuda_fa_sparse_release_tables();
++
++struct ggml_cuda_sparse_auto {
++    bool    on = false;
++    int64_t band_cells = 16384, min_host = 16384, maxq = 64;
++    int     n_trial = 24, n_warm = 3;
++    std::string path, key;
++    std::map<int64_t, int> decision;            // band -> 1 sparse, 2 dense
++    std::map<int64_t, std::pair<double, double>> ms;
++    int64_t dense_line = -1;
++    // trial
++    int64_t trial_band = -1;
++    int     phase = 0;                          // 0 none, 1 dense, 2 sparse
++    int     seen = 0;
++    std::vector<double> t_dense, t_sparse;
++    std::chrono::steady_clock::time_point last;
++    bool    last_valid = false;
++};
++static ggml_cuda_sparse_auto & ggml_cuda_sparse_auto_state() {
++    static ggml_cuda_sparse_auto a = [] {
++        ggml_cuda_sparse_auto r;
++        const char * e = getenv("GGML_CUDA_FA_SPARSE_AUTO");
++        const char * sp = getenv("GGML_CUDA_FA_SPARSE");
++        r.on = e && atoi(e) != 0 && sp && atoll(sp) > 0;
++        if (const char * m = getenv("GGML_CUDA_FA_SPARSE_MIN_HOST")) { r.min_host = std::max<long long>(1, atoll(m)); }
++        if (const char * q = getenv("GGML_CUDA_FA_SPARSE_MAXQ"))     { r.maxq = std::max(1, atoi(q)); }
++        if (const char * n = getenv("GGML_CUDA_FA_SPARSE_AUTO_N"))   { r.n_trial = std::max(4, atoi(n)); }
++        if (const char * c = getenv("GGML_CUDA_FA_SPARSE_CALIB"))     { r.path = c; }
++        if (const char * k = getenv("GGML_CUDA_FA_SPARSE_CALIB_KEY")) { r.key = k; }
++        if (r.on && !r.path.empty()) {
++            FILE * f = fopen(r.path.c_str(), "r");
++            if (f) {
++                char line[512];
++                bool key_ok = false;
++                while (fgets(line, sizeof(line), f)) {
++                    std::string l(line);
++                    while (!l.empty() && (l.back() == '\n' || l.back() == '\r')) { l.pop_back(); }
++                    if (l.rfind("key ", 0) == 0) {
++                        key_ok = l.substr(4) == r.key;
++                    } else if (key_ok && l.rfind("band ", 0) == 0) {
++                        long long b = 0; char mode[16] = {}; double md = 0, msp = 0;
++                        if (sscanf(l.c_str(), "band %lld %15s %lf %lf", &b, mode, &md, &msp) >= 2) {
++                            r.decision[b] = strcmp(mode, "sparse") == 0 ? 1 : 2;
++                            r.ms[b] = { md, msp };
++                        }
++                    }
++                }
++                fclose(f);
++                GGML_LOG_WARN("%s: sparse auto: %zu band decisions from %s\n", __func__, r.decision.size(), r.path.c_str());
++            }
++        }
++        r.last = std::chrono::steady_clock::now();
++        return r;
++    }();
++    return a;
++}
++
++static void ggml_cuda_sparse_auto_save(const ggml_cuda_sparse_auto & a) {
++    if (a.path.empty()) {
++        return;
++    }
++    FILE * f = fopen(a.path.c_str(), "w");
++    if (!f) {
++        return;
++    }
++    fprintf(f, "key %s\n", a.key.c_str());
++    for (auto & [b, d] : a.decision) {
++        auto it = a.ms.find(b);
++        fprintf(f, "band %lld %s %.3f %.3f\n", (long long) b, d == 1 ? "sparse" : "dense",
++            it != a.ms.end() ? it->second.first : 0.0, it != a.ms.end() ? it->second.second : 0.0);
++    }
++    fclose(f);
++}
++
++static double ggml_cuda_median(std::vector<double> v) {
++    if (v.empty()) {
++        return 0.0;
++    }
++    std::sort(v.begin(), v.end());
++    return v[v.size()/2];
++}
++
++static size_t ggml_cuda_tier_demote_all();
++static void ggml_cuda_sparse_set_mode(bool sparse) {
++    // sparse needs the late reserve in place (the page bounds live in that VRAM); dense moves the chunk back
++    bool demoted = false;
++    {
++        std::lock_guard<std::mutex> lock(g_tier_mutex);
++        for (auto & rec : g_tier_recs) {
++            demoted = demoted || rec->demoted;
++        }
++    }
++    if (sparse && !demoted) {
++        CUDA_CHECK(cudaDeviceSynchronize());
++        ggml_cuda_tier_demote_all();
++    } else if (!sparse && demoted) {
++        CUDA_CHECK(cudaDeviceSynchronize());
++        ggml_cuda_fa_sparse_release_tables();
++        ggml_cuda_tier_promote_all();
++    }
++    g_sparse_allowed = sparse;
++}
++
++// at graph begin: time decode graphs that reach the host tail, and set the mode for this graph
++static void ggml_cuda_sparse_auto_graph(const ggml_cgraph * cgraph) {
++    ggml_cuda_sparse_auto & a = ggml_cuda_sparse_auto_state();
++    if (!a.on) {
++        return;
++    }
++    int64_t n_kv = -1, fh = -1;
++    for (int i = 0; i < cgraph->n_nodes; ++i) {
++        const ggml_tensor * n = cgraph->nodes[i];
++        if (n->op == GGML_OP_FLASH_ATTN_EXT && n->src[0] && n->src[1] && n->src[0]->ne[1] <= a.maxq) {
++            const int64_t h = ggml_cuda_tier_first_host_cell(n->src[1]);
++            if (h >= 0) {
++                n_kv = n->src[1]->ne[1];
++                fh   = h;
++                break;
++            }
++        }
++    }
++    const auto now = std::chrono::steady_clock::now();
++    if (n_kv < 0) {
++        return;   // not a decode graph past the line (prefill, the MTP draft context): the step period runs on
++    }
++    bool demoted = false;
++    {
++        std::lock_guard<std::mutex> lock(g_tier_mutex);
++        for (auto & rec : g_tier_recs) {
++            demoted = demoted || rec->demoted;
++        }
++    }
++    if (a.dense_line < 0 && !demoted) {
++        a.dense_line = fh;
++    }
++    const int64_t dense_line = a.dense_line >= 0 ? a.dense_line : fh;
++    if (n_kv - dense_line < a.min_host) {
++        if (demoted) {
++            ggml_cuda_sparse_set_mode(false);   // shallower than the engage point again (a new, short conversation)
++        }
++        g_sparse_allowed = false;
++        a.last_valid = false;
++        return;
++    }
++    const int64_t band = n_kv / a.band_cells;
++    const double  dt   = std::chrono::duration<double, std::milli>(now - a.last).count();
++    const bool    dt_ok = a.last_valid && dt < 1500.0;
++    a.last = now;
++    a.last_valid = true;
++
++    auto it = a.decision.find(band);
++    if (it != a.decision.end() && a.trial_band != band) {
++        const bool want = it->second == 1;
++        if (want != g_sparse_allowed || want != demoted) {
++            ggml_cuda_sparse_set_mode(want);
++            a.last_valid = false;
++        }
++        return;
++    }
++    // trial for this band: dense first (dense line), then sparse (demoted)
++    if (a.trial_band != band) {
++        a.trial_band = band;
++        a.phase = 1;
++        a.seen = 0;
++        a.t_dense.clear();
++        a.t_sparse.clear();
++        ggml_cuda_sparse_set_mode(false);
++        a.last_valid = false;
++        GGML_LOG_WARN("%s: sparse auto: timing band %lld-%lldk (dense, then sparse)\n", __func__,
++            (long long) (band*a.band_cells/1024), (long long) ((band + 1)*a.band_cells/1024));
++        return;
++    }
++    if (dt_ok && ++a.seen > a.n_warm) {
++        (a.phase == 1 ? a.t_dense : a.t_sparse).push_back(dt);
++    }
++    if (a.phase == 1 && (int) a.t_dense.size() >= a.n_trial) {
++        a.phase = 2;
++        a.seen = 0;
++        ggml_cuda_sparse_set_mode(true);
++        a.last_valid = false;
++    } else if (a.phase == 2 && (int) a.t_sparse.size() >= a.n_trial) {
++        const double md = ggml_cuda_median(a.t_dense), msp = ggml_cuda_median(a.t_sparse);
++        const bool sparse = msp < 0.97*md;
++        a.decision[band] = sparse ? 1 : 2;
++        a.ms[band] = { md, msp };
++        a.trial_band = -1;
++        a.phase = 0;
++        GGML_LOG_WARN("%s: sparse auto: band %lld-%lldk: dense %.1f ms, sparse %.1f ms per graph -> %s\n", __func__,
++            (long long) (band*a.band_cells/1024), (long long) ((band + 1)*a.band_cells/1024), md, msp, sparse ? "sparse" : "dense");
++        ggml_cuda_sparse_auto_save(a);
++        if (!sparse) {
++            ggml_cuda_sparse_set_mode(false);
++        }
++        a.last_valid = false;
++    }
++}
++
++// late reserve: demote the VRAM chunks once an attention op of this graph has a host tail of at least
++// GGML_CUDA_FA_SPARSE_MIN_HOST cells (sparse attention engages there and allocates its page bounds)
++static void ggml_cuda_tier_maybe_demote(const ggml_cgraph * cgraph) {
++    static const bool want = [] {
++        const char * d = getenv("GGML_CUDA_KV_TIER_DEMOTE_FRAC");
++        const char * sp = getenv("GGML_CUDA_FA_SPARSE");
++        return d && atof(d) > 0.0 && sp && atoll(sp) > 0;
++    }();
++    static const int64_t min_host = [] {
++        const char * e = getenv("GGML_CUDA_FA_SPARSE_MIN_HOST");
++        return e ? std::max<long long>(0, atoll(e)) : 0;
++    }();
++    static bool done = false;
++    if (!want || done || ggml_cuda_sparse_auto_state().on) {
++        return;
++    }
++    {
++        std::lock_guard<std::mutex> lock(g_tier_mutex);
++        bool any = false;
++        for (auto & rec : g_tier_recs) {
++            any = any || (rec->demotable && !rec->demoted);
++        }
++        if (!any) {
++            return;
++        }
++    }
++    for (int i = 0; i < cgraph->n_nodes; ++i) {
++        const ggml_tensor * n = cgraph->nodes[i];
++        if (n->op != GGML_OP_FLASH_ATTN_EXT || !n->src[1]) {
++            continue;
++        }
++        const int64_t fh = ggml_cuda_tier_first_host_cell(n->src[1]);
++        if (fh >= 0 && n->src[1]->ne[1] - fh >= std::max<int64_t>(1, min_host)) {
++            CUDA_CHECK(cudaDeviceSynchronize());
++            const int64_t before = fh;
++            const size_t freed = ggml_cuda_tier_demote_all();
++            const int64_t after = ggml_cuda_tier_first_host_cell(n->src[1]);
++            GGML_LOG_WARN("%s: late reserve: %.1f MiB of the VRAM line moved to system RAM for the sparse page bounds "
++                "(line %lld -> %lld cells)\n", __func__, freed/1048576.0, (long long) before, (long long) after);
++            done = true;
++            return;
++        }
++    }
++}
++
+ static void ggml_cuda_tier_graph_begin(ggml_backend_cuda_context & ctx, ggml_cuda_tier_state & ts, const ggml_cgraph * cgraph, bool enable) {
+     ts.rd.clear();
+     ts.rd_next = 0;
+     ts.fa.clear();
+     ts.next = 0;
++    ggml_cuda_sparse_auto_graph(cgraph);
++    ggml_cuda_tier_maybe_demote(cgraph);
+     static const bool redirect_on = [] {
+         const char * v = getenv("GGML_CUDA_KV_TIER_REDIRECT");
+         return v == nullptr || atoi(v) != 0;
+@@ -1801,6 +2258,9 @@ void ggml_cuda_tier_fa_end(ggml_backend_cuda_context & ctx) {
+     }
+ }
+ #else
++bool ggml_cuda_fa_sparse_auto_allows() {
++    return true;
++}
+ static bool ggml_cuda_tier_graph_wants_pipeline(const ggml_cgraph * cgraph) {
+     GGML_UNUSED(cgraph);
+     return false;
+-- 
+2.55.0.windows.3
+
