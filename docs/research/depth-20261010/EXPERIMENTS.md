@@ -664,3 +664,27 @@ VRAM line 43,520 (f16 mask), host tail ~197k cells, graphs off.
   written: the 128k request stayed below that line, so no band was timed (checked after the run).
 - **Verdict.** The engine and launcher behave as designed on the 4070. The 8 GB decision is the 2060's P144.
 
+## D26h-3 / 3b / 3c results: the q3_0 sparse budget (2026-10-15 13:46-15:47)
+
+- Root `/tmp/root-d26h2` (`79332dbbb`), q3_0, line 80,640, 245k, fresh server per arm, `MIN_HOST` 32768, late
+  reserve on. Receipts `docs/receipts/d26h3.log/.jsonl`. Dense n 24 from D26h-1e.
+
+  | FRAC | pages kept | needles n 24 (wrong) | needles n 28 (wrong) | copies n 20 strict / lenient | decode 245k (4070) |
+  | --- | ---: | --- | --- | --- | ---: |
+  | dense | all | 23/24 (14) | 25/28 (15, 19, 24) | 20/20 (R10 set) | 23.7 (D26h-2 off) |
+  | 1/8 | 340 of 2723 | 22/24 (13, 14) | 25/28 (15, 16, 24) | 19 / 20 | 22.7 |
+  | 1/6 | 453 of 2723 | 23/24 (14) | 25/28 (15, 16, 24) | 19 / 20 | 20.6 |
+  | **1/4** | 680 of 2723 | **23/24 (14)** | **25/28 (15, 19, 24)** | 19 / 20 | 19.1 |
+
+  The strict copy miss is `_check_tzname` with its comment line in every arm (R10b); the lenient score is 20/20.
+- **Verdict (the rule declared in the D26h-3 plan): q3_0 = FRAC 1/4**, the smallest budget equal to dense item by item
+  on both needle sets and the copy set. 1/8 and 1/6 both answer vault 16 "2186" (dense "2144"); 1/4 answers it right.
+  The launcher table (#126, `7f16808`) sets q3_0 to 0.25; q4_0 / q8_0 stay at 1/8.
+- **D26h-3c, TRACE at FRAC 1/6** (query row 0 of each decode op, 3 ops per layer): vault 16 (wrong) had its page
+  dropped in 8 of 48 ops (layers 1, 11, 12, 13); the control vault 17 (right) had its page dropped in 25 of 48 ops.
+  So the number of drops does not predict a miss: an item can survive heavy dropping when the layers it depends on keep
+  it. Only an end-to-end item test can set the budget, which is how it was set.
+- **Note for D29.** Dense q3_0 itself misses 3 of 28 needles at 245k (the q8_0 R10 dense run missed 1 of 24).
+- **Cost.** On the 4070 sparse is slower than dense at 245k for every budget, so auto keeps dense there (D26h-2). On
+  the 2060 the auto mode times 1/4 against dense per band (P144).
+

@@ -1,0 +1,75 @@
+13:46 === D26h-3 (root-d26h2, q3_0, line 80,640, 245k)
+13:46 server dense (BONSAI_CTK=q3_0 BONSAI_KV_VRAM_CELLS=80640): health=1
+dense needles n28: {"tag": "dense-n28", "depth": 245000, "correct": 25, "of": 28}
+13:55 server f8 (BONSAI_CTK=q3_0 BONSAI_KV_VRAM_CELLS=80640 GGML_CUDA_FA_SPARSE=12288,64,1024 GGML_CUDA_FA_SPARSE_FAST=1 GGML_CUDA_KV_TIER_STAGE_MIN_Q=9 GGML_CUDA_FA_SPARSE_MIN_HOST=32768 GGML_CUDA_KV_TIER_DEMOTE_FRAC=0.045898 GGML_CUDA_FA_SPARSE_FRAC=0.125): health=1
+f8 needles n28: {"tag": "f8-n28", "depth": 245000, "correct": 25, "of": 28}
+14:04 f8: 8.38.981.531 W ggml_cuda_fa_sparse_mask: GGML_CUDA_FA_SPARSE B=12288 P=64 R=1024 fast, bounds int8: 1025 ops; this op 4 queries, host tail 174263 cells, keeps 340 of 2723 pages + recent
+14:04 server f8t (BONSAI_CTK=q3_0 BONSAI_KV_VRAM_CELLS=80640 GGML_CUDA_FA_SPARSE=12288,64,1024 GGML_CUDA_FA_SPARSE_FAST=1 GGML_CUDA_KV_TIER_STAGE_MIN_Q=9 GGML_CUDA_FA_SPARSE_MIN_HOST=32768 GGML_CUDA_KV_TIER_DEMOTE_FRAC=0.045898 GGML_CUDA_FA_SPARSE_FRAC=0.125): health=1
+f8 245000 mean decode 22.7 tok/s
+14:13 server f6a (BONSAI_CTK=q3_0 BONSAI_KV_VRAM_CELLS=80640 GGML_CUDA_FA_SPARSE=12288,64,1024 GGML_CUDA_FA_SPARSE_FAST=1 GGML_CUDA_KV_TIER_STAGE_MIN_Q=9 GGML_CUDA_FA_SPARSE_MIN_HOST=32768 GGML_CUDA_KV_TIER_DEMOTE_FRAC=0.045898 GGML_CUDA_FA_SPARSE_FRAC=0.1667): health=1
+f6 needles n28: {"tag": "f6-n28", "depth": 245000, "correct": 25, "of": 28}
+14:22 f6a: 8.39.528.339 W ggml_cuda_fa_sparse_mask: GGML_CUDA_FA_SPARSE B=12288 P=64 R=1024 fast, bounds int8: 1025 ops; this op 4 queries, host tail 174263 cells, keeps 453 of 2723 pages + recent
+14:23 server f6b (BONSAI_CTK=q3_0 BONSAI_KV_VRAM_CELLS=80640 GGML_CUDA_FA_SPARSE=12288,64,1024 GGML_CUDA_FA_SPARSE_FAST=1 GGML_CUDA_KV_TIER_STAGE_MIN_Q=9 GGML_CUDA_FA_SPARSE_MIN_HOST=32768 GGML_CUDA_KV_TIER_DEMOTE_FRAC=0.045898 GGML_CUDA_FA_SPARSE_FRAC=0.1667): health=1
+f6 needles n24: {"tag": "f6-n24", "depth": 245000, "correct": 23, "of": 24}
+14:32 server f6c (BONSAI_CTK=q3_0 BONSAI_KV_VRAM_CELLS=80640 GGML_CUDA_FA_SPARSE=12288,64,1024 GGML_CUDA_FA_SPARSE_FAST=1 GGML_CUDA_KV_TIER_STAGE_MIN_Q=9 GGML_CUDA_FA_SPARSE_MIN_HOST=32768 GGML_CUDA_KV_TIER_DEMOTE_FRAC=0.045898 GGML_CUDA_FA_SPARSE_FRAC=0.1667): health=1
+f6 copies n20: {"tag": "f6-c20", "depth": 245000, "correct": 19, "correct_lead": 20, "of": 20}
+14:42 server f6t (BONSAI_CTK=q3_0 BONSAI_KV_VRAM_CELLS=80640 GGML_CUDA_FA_SPARSE=12288,64,1024 GGML_CUDA_FA_SPARSE_FAST=1 GGML_CUDA_KV_TIER_STAGE_MIN_Q=9 GGML_CUDA_FA_SPARSE_MIN_HOST=32768 GGML_CUDA_KV_TIER_DEMOTE_FRAC=0.045898 GGML_CUDA_FA_SPARSE_FRAC=0.1667): health=1
+f6 245000 mean decode 20.6 tok/s
+14:50 === D26h-3 end
+14:52 === D26h-3b FRAC 1/4 (the D26h-3 rule: neither 1/8 nor 1/6 equalled dense item by item; root-d26h2, q3_0, line 80,640, 245k)
+14:52 server f4a (BONSAI_CTK=q3_0 BONSAI_KV_VRAM_CELLS=80640 GGML_CUDA_FA_SPARSE=12288,64,1024 GGML_CUDA_FA_SPARSE_FAST=1 GGML_CUDA_KV_TIER_STAGE_MIN_Q=9 GGML_CUDA_FA_SPARSE_MIN_HOST=32768 GGML_CUDA_KV_TIER_DEMOTE_FRAC=0.045898 GGML_CUDA_FA_SPARSE_FRAC=0.25): health=1
+f4 needles n28: {"tag": "f4-n28", "depth": 245000, "correct": 25, "of": 28}
+15:01 f4a: 8.39.436.643 W ggml_cuda_fa_sparse_mask: GGML_CUDA_FA_SPARSE B=12288 P=64 R=1024 fast, bounds int8: 1025 ops; this op 5 queries, host tail 174263 cells, keeps 680 of 2723 pages + recent
+15:01 server f4b (BONSAI_CTK=q3_0 BONSAI_KV_VRAM_CELLS=80640 GGML_CUDA_FA_SPARSE=12288,64,1024 GGML_CUDA_FA_SPARSE_FAST=1 GGML_CUDA_KV_TIER_STAGE_MIN_Q=9 GGML_CUDA_FA_SPARSE_MIN_HOST=32768 GGML_CUDA_KV_TIER_DEMOTE_FRAC=0.045898 GGML_CUDA_FA_SPARSE_FRAC=0.25): health=1
+f4 needles n24: {"tag": "f4-n24", "depth": 245000, "correct": 23, "of": 24}
+15:11 server f4c (BONSAI_CTK=q3_0 BONSAI_KV_VRAM_CELLS=80640 GGML_CUDA_FA_SPARSE=12288,64,1024 GGML_CUDA_FA_SPARSE_FAST=1 GGML_CUDA_KV_TIER_STAGE_MIN_Q=9 GGML_CUDA_FA_SPARSE_MIN_HOST=32768 GGML_CUDA_KV_TIER_DEMOTE_FRAC=0.045898 GGML_CUDA_FA_SPARSE_FRAC=0.25): health=1
+f4 copies n20: {"tag": "f4-c20", "depth": 245000, "correct": 19, "correct_lead": 20, "of": 20}
+15:21 server f4t (BONSAI_CTK=q3_0 BONSAI_KV_VRAM_CELLS=80640 GGML_CUDA_FA_SPARSE=12288,64,1024 GGML_CUDA_FA_SPARSE_FAST=1 GGML_CUDA_KV_TIER_STAGE_MIN_Q=9 GGML_CUDA_FA_SPARSE_MIN_HOST=32768 GGML_CUDA_KV_TIER_DEMOTE_FRAC=0.045898 GGML_CUDA_FA_SPARSE_FRAC=0.25): health=1
+f4 245000 mean decode 19.1 tok/s
+15:30 === D26h-3b end
+15:30 === D26h-3c TRACE (FRAC 1/6 arm, 245k, n 28 set): vault 16 (sparse wrong) and vault 17 (control)
+15:30 server span: health=1
+15:30 spans: {"vault": 16, "position_frac": 0.554, "cells": [130376, 130390], "lead": 132} | {"vault": 17, "position_frac": 0.589, "cells": [139364, 139378], "lead": -1}
+15:31 server t16: health=1
+{"tag": "trace-v16", "depth": 245000, "vault": 16, "position_frac": 0.554, "want": "2144", "answer": "2186", "ok": false, "evaluated": 244419, "wall_s": 470.6}
+15:38 vault 16 (cells 130376..130390): 48 trace lines, 8 dropped, 40 kept
+  layer  0: ops 3 dropped 0 rank mean 216 min 67 max 315
+  layer  1: ops 3 dropped 3 rank mean 770 min 559 max 939
+  layer  2: ops 3 dropped 0 rank mean 171 min 65 max 297
+  layer  3: ops 3 dropped 0 rank mean 14 min 11 max 20
+  layer  4: ops 3 dropped 0 rank mean 15 min 9 max 20
+  layer  5: ops 3 dropped 0 rank mean 17 min 15 max 20
+  layer  6: ops 3 dropped 0 rank mean 48 min 24 max 86
+  layer  7: ops 3 dropped 0 rank mean 32 min 5 max 63
+  layer  8: ops 3 dropped 0 rank mean 110 min 16 max 291
+  layer  9: ops 3 dropped 0 rank mean 312 min 214 max 448
+  layer 10: ops 3 dropped 0 rank mean 205 min 14 max 325
+  layer 11: ops 3 dropped 2 rank mean 734 min 9 max 1178
+  layer 12: ops 3 dropped 2 rank mean 762 min 61 max 1127
+  layer 13: ops 3 dropped 1 rank mean 557 min 85 max 1219
+  layer 14: ops 3 dropped 0 rank mean 42 min 7 max 75
+  layer 15: ops 3 dropped 0 rank mean 15 min 5 max 22
+7.54.833.135 W ggml_cuda_fa_sparse_mask: TRACE layer 0 op 1: cells 130376..130390 = pages 939..940 of 2723; best rank 315 (page 939, score 587.502, top 695.166), keep 453: kept
+7.54.845.949 W ggml_cuda_fa_sparse_mask: TRACE layer 1 op 2: cells 130376..130390 = pages 939..940 of 2723; best rank 939 (page 939, score 594.141, top 727.428), keep 453: DROPPED
+15:39 server t17: health=1
+{"tag": "trace-v17", "depth": 245000, "vault": 17, "position_frac": 0.589, "want": "4943", "answer": "4943", "ok": true, "evaluated": 244419, "wall_s": 470.4}
+15:47 vault 17 (cells 139364..139378): 48 trace lines, 25 dropped, 23 kept
+  layer  0: ops 3 dropped 3 rank mean 797 min 603 max 1131
+  layer  1: ops 3 dropped 3 rank mean 1396 min 618 max 1951
+  layer  2: ops 3 dropped 2 rank mean 1402 min 441 max 1958
+  layer  3: ops 3 dropped 1 rank mean 294 min 111 max 475
+  layer  4: ops 3 dropped 1 rank mean 417 min 318 max 553
+  layer  5: ops 3 dropped 1 rank mean 412 min 135 max 709
+  layer  6: ops 3 dropped 0 rank mean 307 min 192 max 431
+  layer  7: ops 3 dropped 1 rank mean 408 min 150 max 866
+  layer  8: ops 3 dropped 1 rank mean 437 min 274 max 702
+  layer  9: ops 3 dropped 3 rank mean 622 min 475 max 754
+  layer 10: ops 3 dropped 2 rank mean 1049 min 250 max 1984
+  layer 11: ops 3 dropped 2 rank mean 685 min 215 max 1162
+  layer 12: ops 3 dropped 2 rank mean 785 min 375 max 1517
+  layer 13: ops 3 dropped 1 rank mean 853 min 230 max 1885
+  layer 14: ops 3 dropped 0 rank mean 235 min 55 max 348
+  layer 15: ops 3 dropped 2 rank mean 532 min 105 max 951
+7.54.726.681 W ggml_cuda_fa_sparse_mask: TRACE layer 0 op 1: cells 139364..139378 = pages 1080..1080 of 2723; best rank 1131 (page 1080, score 568.393, top 693.539), keep 453: DROPPED
+7.54.739.800 W ggml_cuda_fa_sparse_mask: TRACE layer 1 op 2: cells 139364..139378 = pages 1080..1080 of 2723; best rank 1951 (page 1080, score 574.283, top 730.118), keep 453: DROPPED
+15:47 === D26h-3c end
