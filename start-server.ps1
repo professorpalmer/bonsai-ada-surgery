@@ -351,6 +351,15 @@ if ($Tier) {
             if ($SparsePage) { $TierCellsDense = [int]([math]::Floor((($FreeMiB - $Margin - $FixedMiB + 64) * 1MB - $Ctx * $CellBytes / 16) / ($CellBytes * 15 / 16) / 256) * 256) }
         }
     }
+    # Late reserve (engine with GGML_CUDA_KV_TIER_DEMOTE_FRAC): keep the dense VRAM line. When sparse first engages,
+    # the engine moves the top (dense - sparse) cells of the line to system RAM and puts the page bounds in that VRAM,
+    # so contexts below that point run exactly as without sparse. BONSAI_SPARSE_LATE=0: reserve from the start.
+    $TierCellsSparse = 0
+    if ($SparsePage -and $TierCellsDense -gt $TierCells -and $CudaDll.Contains('GGML_CUDA_KV_TIER_DEMOTE_FRAC') -and $env:BONSAI_SPARSE_LATE -ne '0') {
+        $env:GGML_CUDA_KV_TIER_DEMOTE_FRAC = '{0:F6}' -f (($TierCellsDense - $TierCells) / $Ctx)
+        $TierCellsSparse = $TierCells
+        $TierCells = $TierCellsDense
+    }
     if ($TierCells -ge $Ctx) {
         $TierCells = 0   # the whole window fits: plain cache
     } elseif ($TierCells -lt 16384) {
@@ -432,8 +441,9 @@ Write-Host "model  $(Split-Path $Model -Leaf)"
 Write-Host "window $Ctx / $Ctk  (trained max 262144)"
 if ($TierCells -gt 0) { Write-Host "kv     tiered: cells 0..$TierCells in VRAM, $TierCells..$Ctx in system RAM$(if ($Margin) { " (VRAM margin $Margin MiB)" })$(if ($PoolMiB) { "; shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off)" })$(if ($MaskSavedMiB) { "; packed KQ mask ($MaskSavedMiB MiB saved)" })" }
 if ($SparsePage -and $TierCells -gt 0) {
-    Write-Host "kv     sparse host-tail reads: $($env:GGML_CUDA_FA_SPARSE) (B,P,R), budget max(B, host tail x $(if ($env:GGML_CUDA_FA_SPARSE_FRAC) { $env:GGML_CUDA_FA_SPARSE_FRAC } else { '0.0625' })), from $(if ($env:GGML_CUDA_FA_SPARSE_MIN_HOST) { $env:GGML_CUDA_FA_SPARSE_MIN_HOST } else { 0 }) host cells on; $([int](($Ctx - $TierCells) * $SparseCellBytes / 1MB) + 64) MiB of page bounds counted$(if ($TierCellsDense -gt $TierCells) { ": VRAM line $TierCellsDense -> $TierCells cells" })"
-    if ($Small) { Write-Host "       8 GB, 262k: ~1.6x decode at 160k, ~1.8x at 245k; ~8 % slower below ~100k (shorter VRAM line). BONSAI_SPARSE=0 or unset: off." }
+    Write-Host "kv     sparse host-tail reads: $($env:GGML_CUDA_FA_SPARSE) (B,P,R), budget max(B, host tail x $(if ($env:GGML_CUDA_FA_SPARSE_FRAC) { $env:GGML_CUDA_FA_SPARSE_FRAC } else { '0.0625' })), from $(if ($env:GGML_CUDA_FA_SPARSE_MIN_HOST) { $env:GGML_CUDA_FA_SPARSE_MIN_HOST } else { 0 }) host cells on; $([int](($Ctx - $TierCells) * $SparseCellBytes / 1MB) + 64) MiB of page bounds counted$(if ($TierCellsSparse -gt 0) { ": VRAM line $TierCells, $TierCellsSparse once sparse engages (late reserve)" } elseif ($TierCellsDense -gt $TierCells) { ": VRAM line $TierCellsDense -> $TierCells cells" })"
+    if ($Small -and $TierCellsSparse -gt 0) { Write-Host "       8 GB, 262k: ~1.6x decode at 160k, ~1.8x at 245k; below the engage point the dense line is kept. BONSAI_SPARSE=0 or unset: off." }
+    elseif ($Small) { Write-Host "       8 GB, 262k: ~1.6x decode at 160k, ~1.8x at 245k; ~8 % slower below ~100k (shorter VRAM line). BONSAI_SPARSE=0 or unset: off." }
 } elseif ($Small -and $SparseAvail -and $TierCells -gt 0) {
     Write-Host "kv     deep sessions (160k+): BONSAI_SPARSE=1 reads only the relevant pages of the system-RAM tail: ~1.6x decode at 160k, ~1.8x at 245k, ~8 % slower below ~100k"
 }
