@@ -173,6 +173,29 @@ the 00:31 Windows-update reboot). Every A/B is inside one session.
 - **Next (as planned).** R10b: the same set with `GGML_CUDA_FA_SPARSE_FRAC=0.125`; P141 on the 2060 (another item set,
   a FRAC 1/8 arm with speed); PR #95 (launcher FRAC 1/8 for `BONSAI_SPARSE=1`) merges by its written rule.
 
+## R10b The same set with FRAC 1/8 (2026-10-14 23:43 - 10-15 00:04), and what the copy miss is (00:10-00:25)
+
+- One arm, the R10 sparse env + `GGML_CUDA_FA_SPARSE_FRAC=0.125` ("keeps 413 of 3308 pages", 12.5 %).
+
+  | 245k | copies (n 20) | needles (n 24) | items wrong |
+  | --- | ---: | ---: | --- |
+  | dense (R10) | 20/20 | 23/24 | vault 14 |
+  | sparse 1/16 (R10) | 19/20 | 22/24 | `_check_tzname`, vault 13, vault 15 |
+  | **sparse 1/8** | 19/20 | 23/24 | `_check_tzname`, vault 14 |
+
+  With 1/8 the needles are the same items as dense (vault 14 wrong in both); vaults 13 and 15 come back.
+- **The `_check_tzname` miss is the scorer, not recall.** The function sits at cells 30,772-30,823, inside the VRAM
+  line (32,768), so sparse reads all of it. A rerun of that one item on the sparse arm with a diff
+  (`bench/code_needle_dump.py`, untracked copy of `code_needle.py` that prints the diff on a miss) shows the body
+  exact, plus the comment line that stands just above the function in the file (`# Just raise TypeError if the arg
+  isn't None or a string.`). The strict scorer counts that as a miss; dense left the comment out. The R04 200k miss
+  is the same function (cells 30,639-30,690, also inside the line).
+- **Verdict.** Strictly, R10b copies are 19/20 against 20/20. In substance, FRAC 1/8 equals dense on all 44 items: the
+  only copy difference is an extra leading comment line from the source file. FRAC 1/16 loses two real needles.
+- **Decision.** The FRAC 1/16 rule is too thin at 245k (R10); FRAC 1/8 is the candidate (PR #95, merge rule: P141 on
+  the 2060). The copy scorer gets an option to accept comment lines directly above the function, reported next to
+  the strict score (both, never only the lenient one).
+
 ## Status
 
 - Published as bundle-20261014; the 2060's post-zip checks passed (R08 default, R09 sparse). D26 (sparse without the line cost) stays open after

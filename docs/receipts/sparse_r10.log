@@ -11,3 +11,8 @@ sparse needles: {"tag": "r10-sparse", "depth": 245000, "correct": 22, "of": 24}
 23:42 Mirai product restored: === product start 2026-10-14 23:42 engine 784986b41: inner health=1 vram=11459 MiB
 23:42 === R10b (FRAC 1/8 arm): 245k, copies n 20 + needles n 24, dense vs sparse (bin: commit 4de6185494)
 23:43 arm sparse8 (GGML_CUDA_FA_SPARSE=12288,64,1024 GGML_CUDA_FA_SPARSE_FAST=1 GGML_CUDA_KV_TIER_STAGE_MIN_Q=9 GGML_CUDA_FA_SPARSE_MIN_HOST=32768 GGML_CUDA_FA_SPARSE_FRAC=0.125): health=1; kv     tiered: cells 0..32768 in VRAM, 32768..262144 in system RAM; shared CUDA pool on (B
+sparse8 copies: {"tag": "r10-sparse8", "depth": 245000, "correct": 19, "of": 20}
+sparse8 needles: {"tag": "r10-sparse8", "depth": 245000, "correct": 23, "of": 24}
+00:04 sparse8: 20.40.570.994 W ggml_cuda_fa_sparse_mask: GGML_CUDA_FA_SPARSE B=12288 P=64 R=1024 fast, bounds int8: 10241 ops; this op 4 queries, host tail 211712 cells, keeps 413 of 33
+00:04 === R10b end
+00:04 Mirai product restored: === product start 2026-10-15 00:04 engine 784986b41: inner health=1 vram=11459 MiB
