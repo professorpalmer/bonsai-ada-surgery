@@ -117,6 +117,10 @@ the tiered-KV runtime are detected and get the previous 96k all-VRAM recipe.
 
 ### Upgrading from an older bundle
 
+`bundle-20261015b` fixes the launcher of `bundle-20261015`: its q3_0 check never matched (two control characters in
+the pattern), so 8 GB cards stayed on q4_0. The engine is the same; with 15b the 8 GB default is q3_0 as described
+below. If you run `bundle-20261015`, take the new zip or set `BONSAI_CTK=q3_0`.
+
 `bundle-20261015` makes **8 GB cards faster and puts more of the window in VRAM** (patches 0056 and 0057).
 - **q3_0 K/V is the new 8 GB default** (patch 0056: 3.5 bits per value, 14,336 B per position instead of 18,432 for
   q4_0). The VRAM line holds 1.31x the positions (RTX 2060 SUPER, 262k: 61,696 -> 80,640). Decode against q4_0 on the
