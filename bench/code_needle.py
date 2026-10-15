@@ -107,11 +107,14 @@ def main():
         got = m.group(1) if m else ans
         hit = norm(got) == norm(t["code"])
         # lenient score, reported next to the strict one: the answer may also carry the comment lines that stand
-        # directly above the function in the file (R10b: sparse copied `# Just raise TypeError ...` + an exact body)
-        g = got.splitlines()
-        while g and g[0].lstrip().startswith("#"):
-            g = g[1:]
-        hit_lead = hit or norm("\n".join(g)) == norm(t["code"])
+        # directly above the function in the file, exactly as they are there (R10b: sparse copied
+        # `# Just raise TypeError ...` + an exact body); a comment the source does not have still fails
+        g = norm(got).splitlines()
+        k = 0
+        while k < len(g) and g[k].lstrip().startswith("#"):
+            k += 1
+        above = [l.rstrip() for l in ctx[:t["pos"]].splitlines()][-k:] if k else []
+        hit_lead = hit or (k > 0 and g[:k] == above and "\n".join(g[k:]) == norm(t["code"]))
         ok += hit
         ok_lead += hit_lead
         if not hit and a.diff:
