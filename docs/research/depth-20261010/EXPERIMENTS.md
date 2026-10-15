@@ -661,6 +661,6 @@ VRAM line 43,520 (f16 mask), host tail ~197k cells, graphs off.
 - **G5 pass.** The launcher path (`BONSAI_8GB=1`, `BONSAI_SPARSE` unset): with the default margin the 8 GB preset put
   the whole 262k q3_0 window in VRAM on this 12 GB card (no tier line); with margin 3600 the line was 143,872, and the
   launcher printed "kv sparse host-tail reads: auto (dense line 143872 ...)" and "kv sparse calib: ... new". The test
-  calibration file in `%LOCALAPPDATA%onsai` was removed after the run.
+  calibration file in `%LOCALAPPDATA%\bonsai` was removed after the run.
 - **Verdict.** The engine and launcher behave as designed on the 4070. The 8 GB decision is the 2060's P144.
 
