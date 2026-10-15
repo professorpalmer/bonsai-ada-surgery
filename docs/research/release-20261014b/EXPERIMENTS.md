@@ -67,6 +67,29 @@ same tree as the build.
   gated root OK); bundle-20261014 kept in `bin-20261014/`.
 - **Verdict.** Published. The 2060's post-zip check (default launcher: q3_0 on 8 GB, no `BONSAI_CTK`) follows on #21.
 
+## S06b The launcher bug and bundle-20261015b (2026-10-15)
+
+- **Found by the 2060's post-zip check (P142, on #21):** the `bundle-20261015` launcher printed `window 262144 / q4_0`
+  and line 61,696 with no `BONSAI_CTK`. Its q3_0 check was `$Help -match '<0x08>q3_0<0x08>'`: two backspace bytes
+  where `` (word boundary) was meant, written by an escaped string in the final #91 revision. The pattern never
+  matched, so 8 GB cards stayed on q4_0. No harm (the previous default), but the release's main change was not active.
+  A repo-wide scan for control bytes found one more, older case: `layer<0x0C>etch_runtime.ps1` (a form feed) in two
+  README lines since the first commit. Both fixed in #108 (reviewed on the 4070: the fixed pattern matches the 0056
+  `--help` and not the 0055 one; the shipped pattern matched neither).
+- **Why the gates missed it.** S01-S06 ran the engine on the 4070 with the 12 GB path and checked that the zip's
+  launcher equals the release commit; nothing ran the 8 GB selection from the zip on this side. The 2060 ran the
+  q3_0 rule items with a launcher test copy that set the type itself.
+- **New gate, T1 (kept for every release from now on):** unzip, run the bundle's own launcher with `BONSAI_8GB=1` on
+  the 4070 (and with `BONSAI_SPARSE=1` + a pinned line): the window line must name the 8 GB type, the sparse line must
+  name the budget, one short request must answer. Also: no control bytes in tracked text files (`git grep -P`).
+- **bundle-20261015b:** release commit `444de562` (#109 README note on top of #108); zip = the 20261015 zip with
+  `README.md` and `start-server.ps1` from `444de562` (2 entries changed; engine bins the same), 616,638,401 bytes,
+  SHA-256 `a6bf7adda3ed97de03a8105fb97b91afa68207544abea24e3b33572bb4035776`. T1 on the staged bundle: `window 262144 /
+  q3_0`, replies OK; pinned line 80,640 + sparse: "budget max(B, host tail x 0.125) ... 153 MiB of page bounds"
+  (`docs/receipts/release_0056b.log`). GitHub release `bundle-20261015b` (digest matches); the `bundle-20261015` notes
+  now start with a superseded line; Hugging Face zip `29940a2` + card `ecda22d` (#110), LFS oid matches.
+- **Verdict.** Published. The 2060 repeats the default-launcher part of P142 on the 15b zip.
+
 ## Status
 
 - S01-S06 done: bundle-20261015 is published. P132 (sparse + q3_0) adds numbers but is not a rule item; the 2060's

@@ -1,0 +1,10 @@
+08:27 20261015b T1 arm default (, BONSAI_8GB=1, staged bundle): health=1; reply 'OK.'
+8gb    preset on (12282 MiB card; BONSAI_8GB=0 turns it off): ub 512, f16 prefill to 32768 cells, deeper in chunks of 32768
+window 262144 / q3_0  (trained max 262144)
+08:27 20261015b T1 arm sparse (BONSAI_SPARSE=1, BONSAI_8GB=1, staged bundle): health=1; reply 'OK'
+8gb    preset on (12282 MiB card; BONSAI_8GB=0 turns it off): ub 512, f16 prefill to 32768 cells, deeper in chunks of 32768
+window 262144 / q3_0  (trained max 262144)
+08:27 20261015b T1 arm sparsepin (BONSAI_SPARSE=1, BONSAI_KV_VRAM_CELLS=80640, BONSAI_8GB=1): health=1
+window 262144 / q3_0  (trained max 262144)
+kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off)
+kv     sparse host-tail reads: 12288,64,1024 (B,P,R), budget max(B, host tail x 0.125), from 32768 host cells on; 153 MiB of page bounds counted
