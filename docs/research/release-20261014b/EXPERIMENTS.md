@@ -31,7 +31,30 @@ same tree as the build.
 
   **Pass** (all within 2 %, all at or above bundle-20261014).
 
+## S04 8 GB default rule (RTX 2060 SUPER, P129 / P130 / P131 on `b86298dba`, by the 8 GB tester)
+
+| rule item | result | record |
+| --- | --- | --- |
+| 1. 64k decode q3_0 within 5 % of q4_0 (alternated x2, same session) | 41.0 vs 39.6, **+3.5 %** | P130 |
+| 2. perplexity at 16k at most +1 % | **+0.56 %** (7.9491 vs 7.9050); 64k +0.03 %; identical to P108 to 4 decimals | P129 |
+| 3. HumanEval 164 at least 157 | **163/164** (HumanEval/93 fails) | P131 |
+| 4. 160k copies / needles = q4_0 | q3_0 10/10 + 12/12 = q4_0 10/10 + 12/12 | P130 |
+
+- Sweep (one server per type): 4k -1.8 %, 64k -1.7 %, **128k +44 %**, **192k +34 %**; line 80,640 vs 61,696 cells
+  (1.31x); trace minimum free >= 91 MiB; 0 one-token answers. q3_0 op tests (SET_ROWS 14/14, GET_ROWS 4/4, CPY 7/7,
+  FLASH_ATTN_EXT 110/110) pass on sm_75.
+- The tester reads 163/164 as no loss on code, not a gain (greedy runs flip near-tie items).
+- **Verdict: pass.** By the rule written before the runs, q3_0 becomes the 8 GB default (#91).
+
+## S05 8 GB q4_0 under 0056 + 0057 (P140)
+
+- `b86298dba` vs the `bundle-20261014` zip bins, q4_0 default switches, same session, alternated x2: answers identical
+  11/11 in all four runs; mean decode **64k 35.7 -> 39.6 (+11.2 %), 128k 15.7 -> 16.9 (+7.6 %)**. On sm_75 the
+  packed-half tile dequant removes more conversion work than on the 4070 (D28: +0.6 %).
+- **Verdict: pass** (the gate was "not more than 2 % slower"; it is faster). Users who set `BONSAI_CTK=q4_0` get it.
+
 ## Status
 
-- 4070 gates S01-S03 pass. S04 / S05 on the 2060 (P129-P132 on `b86298dba`) decide the 8 GB default; then #88 merges
-  and S06 (publish).
+- S01-S05 pass. P132 (sparse + q3_0) adds numbers but is not a rule item. Next: #88 + #91 merge, the README note
+  (release commit), S06 (publish). The bundle also carries #95 (`BONSAI_SPARSE=1` budget 1/8, R10 / R10b / R11 in
+  release-20261014).
