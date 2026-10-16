@@ -15,10 +15,15 @@ line at 80,640 cells with q3_0 K/V (the 2060 line), so a deep prompt sits mostly
   32k-64k chunk 857 -> 892 (+4.2 %), the 64k-128k chunk 618 -> 653 (+5.6 %). quick_tps reuses the cache between depths
   on one server, so only the 32k row is a cold read. Decode 2-5 % lower, confounded by the different outputs (draft
   acceptance). Receipt: `docs/receipts/prefill_ncols2_t2a.log`.
-- **Cause and decision (kernel session):** the MMA config is chosen per ncols; for head 256 it changes the K/V tile
-  length per softmax step (nbatch_fa), so the rescale points and the accumulation order move. At best PPL-equal, not
-  byte-identical. No more 4070 time: if the 2060 (P154) shows >= 10 % cold prefill at 64k / 128k, a T2a-2 plan with PPL,
-  KL, items and decode with MTP off comes first; otherwise T2a is closed.
+- **Cause (kernel session, corrected on #138 comment 6214090726):** ncols is the same in both arms (32 on Turing, 64 on
+  Ada). The switch changes the number of Q tiles, and with it the stream-k split of the KV range across blocks, so the
+  partial sums are combined in a different order. At best PPL-equal, not byte-identical. (A first reading, a change of
+  the K/V tile length per softmax step, was wrong.)
+- **P154 on the 2060 (sm_75, #138 comment 6213954510):** cold 64k 1.067x, cold 128k 1.110x, decode equal, the 4k code
+  answer byte-identical. The declared rule asked for >= 10 % at 64k and 128k, so T2a as declared does not pass.
+- **T2a-2** (a new plan, sm_75 only, #138 comment 6214090726): Q1 PPL + KL at 4k / 16k (KL <= 0.001, top-1 >= 99.5 %,
+  PPL within +-0.2 %), then Q3 a cold 245k pair (>= 1.10x), then Q2 n24 / n28 / copies at 245k vs the 2060 default; stop
+  at the first fail. Runs on the 2060.
 
 ## T2b-1: MMQ column-tile cap for the PTQ1_0 prefill matmuls, 4070 control (04:31-04:47)
 
