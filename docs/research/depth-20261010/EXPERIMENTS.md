@@ -707,3 +707,14 @@ VRAM line 43,520 (f16 mask), host tail ~197k cells, graphs off.
 - **Next (the gate's last item):** HumanEval 164 at medium on the 12 GB launcher with `BONSAI_CTK=q4_0`
   (bundle-20261015c bins), at least 158, before any 12 GB default change.
 
+## D29 HumanEval and D29b: the gate's last item, and the display-on-card margin (2026-10-15 17:54-19:04)
+
+- **HumanEval 164** at medium, 12 GB launcher, `BONSAI_CTK=q4_0`, bundle-20261015c bins, memory clock 11751 MHz:
+  **158/164** (fails 36, 47, 93, 116, 132, 145; 0 test-process failures; mean tokens 2,225). Gate (>= 158): **pass**.
+  D29's gate is now fully passed for q4_0 on 12 GB.
+- **D29b**, the same q4_0 launcher with the margin it uses when the display is on the card (1300 MiB): line
+  **242,176** cells (92.4 % of the window); decode 192k **62.5**, 245k **45.7** tok/s (q8_0: 26.7 / 15.4). So 245k is
+  3.0x q8_0 with the display on the card and 4.0x with the display on the iGPU (D29, line 260,352).
+- **Decision.** 12 GB default K/V type q8_0 -> q4_0, only for 10-12 GB cards (launcher #126 `1817b03`: larger cards
+  keep q8_0, where the q8_0 window fits; the window line prints the reason). Ships with D26 in one release.
+

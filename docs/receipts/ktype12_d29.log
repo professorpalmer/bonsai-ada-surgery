@@ -30,3 +30,13 @@ q3_0 245000 mean decode 55.1 tok/s
 q3_0 copies: {"tag": "q3_0", "depth": 245000, "correct": 19, "correct_lead": 20, "of": 20}
 q3_0 needles: {"tag": "q3_0", "depth": 245000, "correct": 23, "of": 24}
 17:42 === D29 done
+17:55 D29 HumanEval q4_0 12 GB: mem clock under load 11751 MHz
+wrote artifacts/humaneval-d29-q4-12gb\summary.json
+d29-q4-12gb: mean tokens 2225 median 527, over 4k: 21
+18:49 === d29-q4-12gb done
+D29 HumanEval q4_0 12 GB: 158/164; fails ['HumanEval/36', 'HumanEval/47', 'HumanEval/93', 'HumanEval/116', 'HumanEval/132', 'HumanEval/145']; 0xC0000142 0
+18:49 === D29 HumanEval end
+18:50 === D29b q4_0, margin 1300 (display-on-card margin): health=1; kv     tiered: cells 0..242176 in VRAM, 242176..262144 in system RAM (VRAM margin 1300 MiB); shared CUDA pool 
+D29b q4_0 m1300 192000 mean decode 62.5 tok/s
+D29b q4_0 m1300 245000 mean decode 45.7 tok/s
+19:04 === D29b end
