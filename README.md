@@ -30,7 +30,7 @@ whole prompt. GDDR6X +1500 MHz (as in every number in this repo since #221), dis
 | window on 12 GB with q8_0 KV | 96k (q4_0 for 262k) | **262,144** |
 | decode at 32k / 64k | 47.6 / 36.9 | **78 / 69** on new text, **175 / 109** on code (2026-10-08 table) |
 | decode when the answer copies the context (file rewrite), 4k / 130k / 250k | 117 / 63 / 18.5 (MTP only) | **352 / 164 / 66** (lookup drafting) |
-| KV precision at 262k | q4_0: 1 flipped top token in 48 | q8_0: **1 in 160** |
+| KV cache at 262k on 12 GB | q4_0, much of the window in system RAM | q4_0 with **~99 % of the window in VRAM** (245k 4x faster than q8_0) |
 | apps that send `effort: "high"` | HTTP 500 on every request | answered (normalized to medium) |
 | apps with a 256-4096 token cap, thinking on | cut off mid-think | answered (cap raised to the think budget) |
 | HumanEval 164 from apps that send `effort: "high"` | 0 (HTTP 500) | **160** |
@@ -116,6 +116,25 @@ Windows demotes a background process's memory, and puts as many positions in VRA
 the tiered-KV runtime are detected and get the previous 96k all-VRAM recipe.
 
 ### Upgrading from an older bundle
+
+`bundle-20261016` gives **12 GB cards the whole window at speed** and makes **sparse reads automatic on 8 GB** (patch
+0059 and the launcher).
+- **12 GB: the default K/V cache is now q4_0** (10-12 GB cards). It holds 260,352 of the 262,144 positions in VRAM with
+  the display on another GPU (242,176 with the display on the card), so decode no longer falls off past ~129k: RTX
+  4070, 245k **14.8 -> 60.4 tok/s** (4.1x), 192k 26.7 -> 64.2; with the display on the card, 245k 45.7 (3x). Quality at
+  245k: exact copies 20/20 and needles 24/24 (q8_0: 20/20, 23/24); HumanEval 164 158/164 (the q8_0 runs: 158);
+  perplexity +0.21 % (-c 2048). Without the drafter q4_0 is as fast as q8_0 at 4k and faster deeper (32k +3.8 %, 128k
+  +9.6 %). `BONSAI_CTK=q8_0` restores the previous cache; cards with more VRAM keep q8_0.
+- **8 GB: sparse host-tail reads are on by default, and cost nothing below the VRAM line.** The VRAM line stays the
+  dense one; when a session goes past it, the engine times dense and sparse reads once per 16k of context and keeps
+  the faster, and stores the choice (`%LOCALAPPDATA%\bonsai\sparse-calib.txt`) so the next run is the same. RTX 2060
+  SUPER, q3_0, against sparse off on the same build: 64k-128k within 1.5 %, 160k +2.6 %, 245k +10 %; the same 128k
+  answer byte for byte on two fresh servers; at 245k the exact copies and needles equal sparse off item by item. The sparse budget for q3_0 is 1/4 of the system-RAM part (a 1/8 budget
+  lost a fact at 245k on a wider item set). `BONSAI_SPARSE=0` turns it off, `=1` forces it.
+- Against bundle-20261014 (the q4_0 default before the q3_0 change), the 8 GB card is about 1.5x faster at depth:
+  128k ~15.8 -> 22.8, 245k ~6.2 -> 9.8 tok/s.
+- The launcher now survives starts with redirected output (hidden window, scheduled task: #16) and exits with the
+  server's exit code.
 
 `bundle-20261015c` fixes **agent tools that return images through the Responses API** (patch 0058, a cherry-pick of
 ggml-org/llama.cpp `4098fdc922`). A harness on `/v1/responses` whose tool returned a screenshot got HTTP 400 ("Output
@@ -344,9 +363,12 @@ projector the server has no image input, and it rejects a request that contains 
 The complaint about Bonsai 2 is code and agentic work, and most of that gap is runtime, not compression.
 Details and every measurement: [`docs/QUALITY.md`](docs/QUALITY.md).
 
-- **KV precision.** q4_0 KV flips the top token on 1 in 48 positions at depth, q8_0 on 1 in 160 (KL 0.00218 vs
-  0.00017 against f16 KV). Every published 12 GB recipe used q4_0 to fit the window; this one keeps q8_0 across
-  all of it. ([chart](docs/img/kv.png))
+- **KV precision.** Per token, q4_0 KV flips the top token on 1 in 48 positions at depth, q8_0 on 1 in 160 (KL 0.00218
+  vs 0.00017 against f16 KV; [chart](docs/img/kv.png)). On the tasks that matter at depth the two are equal: at 245k
+  exact code copies 20/20 and needles 24/24 with q4_0 (q8_0: 20/20, 23/24), HumanEval 158 for both, perplexity +0.21 %
+  (`docs/research/depth-20261010/` D29). Because q4_0 keeps ~99 % of the 262k window in VRAM on a 12 GB card, it is the
+  12 GB default from bundle-20261016 (245k decode 4x q8_0); `BONSAI_CTK=q8_0` keeps the per-token precision when the
+  window is short.
 - **Reasoning effort.** The GGUF template defaults to `xhigh` (an extra "think carefully" line: runaway thinking,
   empty answers). `low` behaves close to `xhigh`. `medium` is the model's natural thinking and beats both, and
   thinking off, at every output cap from 2k up (Killy's HumanEval grid: 160-161 of 164). Default: `medium` with a
