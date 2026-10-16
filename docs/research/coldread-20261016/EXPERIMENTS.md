@@ -132,12 +132,13 @@ line at 80,640 cells with q3_0 K/V (the 2060 line), so a deep prompt sits mostly
 | Q0a | per query, 1/4 | **fail**: n24 loses vault 6 | `t3_q0ab_prefill_sparse.log` |
 | Q0b | per 64-query tile, **1/2** | **pass** on all three sets: n24 24/24 (gain 14), n28 27/28 (miss 15 = dense; gains 19, 24), copies 19 / 20 = dense | `t3_q0ab_*`, `t3_q0b2_prefill_sparse.log` |
 | S0 | 8k KL of the speed path (two void runs: a missing tool DLL; the RAM guard stopped a 16k base at 31 GB) | keep-all arm KLD 0 / top 100 % (correct); 1/2: KLD 0.0027, top 97.8 %; 1/4: 0.011, 96.1 % | `t3_s0_kl.log` |
-| S1 | first speed path, cold reads | slower than dense: 128k 0.79x, 245k 0.64x (the per-(page, query) score kernel) | `t3_s1_speed.log` |
+| S1 | first speed path (+ the per-tile skip map, 5225e138c), cold reads | part 1: the map changes nothing (1/2 with and without it: KLD 0.002740); slower than dense: 128k 0.79x, 245k 0.64x (the per-(page, query) score kernel) | `t3_s1_speed.log` |
 | S2 | tiled score kernel | 128k **1.07x** (rule 1.10x: not met); scores 42.8 -> 2.7 ms per op | `t3_s2_speed.log` |
 | S3 | split by stage, 245k | **245k 1.159x** (526.0 -> 609.8 tok/s, 463.7 -> 400.0 s): rule 1.15x **met**; to the 2060 for a speed probe | `t3_s3_split.log` |
 | S4 / S5 | per-tile skip map: diagnostics | the map is built (mean visible 0.667); Nsight Compute: -21.8 % kernel time per deep launch; S4's -7 % was diluted by dense ops below the VRAM line | `t3_s4_vis.log`, `t3_s5_ncu.log` |
 
-The "T3 engage lines: 0" in Q0 means a filtered INFO line; the sparse op counter showed 5,121 prefill-only ops.
+Q0 / Q0a / Q0b ran the quality-only emulation (a per-query mask on the dense kernel), not the speed path; the speed
+path's own item gates are still open (2060). The "T3 engage lines: 0" in Q0 means a filtered INFO line; the sparse op counter showed 5,121 prefill-only ops.
 
 ## P152 (2060): the full window is free up to 128k
 
