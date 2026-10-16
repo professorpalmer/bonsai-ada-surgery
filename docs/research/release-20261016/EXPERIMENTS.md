@@ -78,3 +78,13 @@ with the release bins (`LLAMA_COMMIT ab94810051`, sm 75 / 86 / 89 + PTX) and mai
   `5558057` (#136; 59 patches, the 12 GB q4_0 rows), LFS oid matches. Product `bin/` installed (`ab94810051`; 15c kept in
   `bin-20261015c/`).
 - **Verdict.** Published. The 2060's post-zip check follows on #105.
+
+## U07 post-zip check on the RTX 2060 SUPER (P150, by the 8 GB tester, #105): PASS
+
+- Zip 616,653,192 B, sha256 match; the zip launcher has 0 control bytes; build 10800, commit `ab94810051`;
+  FLASH_ATTN_EXT 3115/3115, GET_ROWS 123/123, SET_ROWS 177/177.
+- Zip launcher defaults: `window 262144 / q3_0 (8 GB default)`, line 80,384, sparse host-tail reads auto, calib new.
+- One-server sweep: 4k 54.0, 64k 41.1, 128k 22.3, 160k 16.7, 245k 9.8 tok/s (P146 auto: 41.0 / 22.8 / 16.0 / 9.8, all
+  within 3 %). Bands: 112-128k dense, 144-160k sparse, 224-240k sparse. Cold 245k read-in 1,696 s (as P143). No
+  one-token answers; lowest free VRAM in the trace 71 MiB.
+- With this, every U07 item is done. Source: https://github.com/professorpalmer/bonsai-ada-surgery/issues/105#issuecomment-6212599332
