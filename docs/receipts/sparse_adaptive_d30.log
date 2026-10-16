@@ -1,0 +1,20 @@
+03:10 === D30 start: sparse-d30 2295d37d0 (0059 + adaptive page budget, sm_89, build-q3fast), mem clock under load sampled per arm
+03:11 server d30_t4_n24: health=1 (GGML_CUDA_FA_SPARSE_DELTA=4); 
+{"tag": "d30_t4_n24", "depth": 245000, "correct": 22, "of": 24}
+03:19 d30_t4_n24: clock 11751 MHz; last KEPTSTAT: 
+03:20 server d30_t4_n28: health=1 (GGML_CUDA_FA_SPARSE_DELTA=4); 
+{"tag": "d30_t4_n28", "depth": 245000, "correct": 26, "of": 28}
+03:29 d30_t4_n28: clock 11751 MHz; last KEPTSTAT: 
+03:29 server d30_t4_copies: health=1 (GGML_CUDA_FA_SPARSE_DELTA=4); 
+{"tag": "d30_t4_copies", "depth": 245000, "correct": 19, "correct_lead": 20, "of": 20}
+03:39 d30_t4_copies: clock 11751 MHz; last KEPTSTAT: 
+03:39 server d30_t8_n24: health=1 (GGML_CUDA_FA_SPARSE_DELTA=8); 
+{"tag": "d30_t8_n24", "depth": 245000, "correct": 23, "of": 24}
+03:48 d30_t8_n24: clock 11751 MHz; last KEPTSTAT: 
+03:48 server d30_t8_n28: health=1 (GGML_CUDA_FA_SPARSE_DELTA=8); 
+{"tag": "d30_t8_n28", "depth": 245000, "correct": 26, "of": 28}
+03:57 d30_t8_n28: clock 11751 MHz; last KEPTSTAT: 
+03:57 server d30_t8_copies: health=1 (GGML_CUDA_FA_SPARSE_DELTA=8); 
+{"tag": "d30_t8_copies", "depth": 245000, "correct": 19, "correct_lead": 20, "of": 20}
+04:07 d30_t8_copies: clock 11751 MHz; last KEPTSTAT: 
+04:07 === D30 done
