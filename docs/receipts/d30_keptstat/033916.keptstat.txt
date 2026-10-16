@@ -1,0 +1,4 @@
+8.05.426.087 W ggml_cuda_fa_sparse_mask: KEPTSTAT 256 ops: mean kept 0.241 of host pages (cap 0.250, floor 0.125)
+8.15.756.901 W ggml_cuda_fa_sparse_mask: KEPTSTAT 512 ops: mean kept 0.240 of host pages (cap 0.250, floor 0.125)
+8.27.584.625 W ggml_cuda_fa_sparse_mask: KEPTSTAT 768 ops: mean kept 0.239 of host pages (cap 0.250, floor 0.125)
+8.35.700.770 W ggml_cuda_fa_sparse_mask: KEPTSTAT 1024 ops: mean kept 0.237 of host pages (cap 0.250, floor 0.125)

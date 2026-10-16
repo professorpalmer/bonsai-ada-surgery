@@ -718,3 +718,40 @@ VRAM line 43,520 (f16 mask), host tail ~197k cells, graphs off.
 - **Decision.** 12 GB default K/V type q8_0 -> q4_0, only for 10-12 GB cards (launcher #126 `1817b03`: larger cards
   keep q8_0, where the q8_0 window fits; the window line prints the reason). Ships with D26 in one release.
 
+
+## D30 plan: adaptive sparse page budget (written 2026-10-16, before the run; issue #138)
+
+- **Question.** q3_0 needs FRAC 1/4 for dense quality (D26h-3); 1/8 gave the 2060 1.44x at 245k (P143), 1/4 only
+  +10 %. Can a per-row budget keep the 1/8 speed at the 1/4 quality?
+- **Mechanism** (kernel fork `sparse-d30` 2295d37d0 = 0059 + `GGML_CUDA_FA_SPARSE_FLOOR_FRAC` + `_DELTA` +
+  `_KEPTSTAT`): each row keeps max(B, floor x tail) pages, then adds pages up to the FRAC cap only while their bound is
+  within DELTA logits of the row's best. Peaked rows stay near the floor, flat rows go to the cap. KEPTSTAT prints the
+  mean kept share every 256 sparse decode ops.
+- **Setup.** 4070, q3_0, 245k, line pinned 80,640 (the 2060 line), sparse forced (auto off), graphs and packed mask on,
+  cap 1/4 + floor 1/8, DELTA 4 and 8; per arm one fresh server per set: needle_depth n 24, n 28, code_needle n 20
+  (`plans/d30_adaptive.sh`).
+- **Gate (declared before the run):** an arm passes when every item equals dense on the three sets (dense, D26h-1e /
+  D26h-3: n24 misses 14; n28 misses 15, 19, 24; copies 19 strict / 20 lenient) AND its mean kept share is below 0.20.
+- **Amendment (2026-10-16 03:31, issue #138).** After P149 part 1 (the 2060 keeps vault 16 at 1/8, the 4070 loses it),
+  an arm whose only 4070 difference from dense is one item also goes to the 2060 for its own item check. When it was
+  posted, the two DELTA 4 needle results were already in the log (not read), so for DELTA 4 it counts as written after
+  them. Caution added: 8 GB Ada cards run the same sm_89 kernels, so a launcher change needs a pass on both rigs.
+
+## D30 result: both arms fail (2026-10-16 03:10-04:07)
+
+| arm | n24 | n28 | copies (strict / lenient) | mean kept share | gate |
+|---|---|---|---|---|---|
+| dense (reference) | 23/24, miss 14 | 25/28, miss 15, 19, 24 | 19 / 20 (miss `_check_tzname`) | 1 | |
+| DELTA 4 | 22/24, miss 14, **15** ("vault 15 is 4943", want 7851) | 26/28, miss 15, 24 | 19 / 20, same miss | **0.148** | FAIL: loses vault 15 |
+| DELTA 8 | 23/24, miss 14 | 26/28, miss 15, 24 | 19 / 20, same miss | **0.237-0.241** | FAIL: share >= 0.20 |
+
+- Memory clock 11,751 MHz in every arm. Receipts: `docs/receipts/sparse_adaptive_d30.log` / `.jsonl`, KEPTSTAT lines
+  in `docs/receipts/d30_keptstat/` (file name = server start time; 032918 is DELTA 4 copies, the others DELTA 8).
+- The KEPTSTAT lines of the DELTA 4 n24 / n28 servers are lost: the job script's log paths had `\${NAME}` inside bash
+  double quotes, so every server wrote one file in the repo root and each arm overwrote the last. From the DELTA 4
+  copies server on, a copier saved each log. The needle and copy scores are not affected.
+- The mechanism works (DELTA 4 stays near the floor, DELTA 8 near the cap), but no DELTA in this pair gives dense items
+  below 0.20: DELTA 8 is the shipped fixed cap with extra work; DELTA 4 loses the same kind of item as fixed 1/8. Both
+  arms get n28 vault 19 right where dense misses it: the items near the threshold move with small changes (P149).
+- **Decision (kernel session, 2026-10-16):** the adaptive budget is closed, with no intermediate DELTA (5-6 would be a
+  narrow pass on one rig, and P149 shows threshold items move between rigs). Sparse decode stays as shipped in 0059.
