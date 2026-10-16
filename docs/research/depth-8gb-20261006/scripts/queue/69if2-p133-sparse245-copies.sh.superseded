@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# P133 (#21, the 4070's quality question before 0055 ships): exact code copies (10) and needles (12) at 245k on the 2060,
+# product-sparse c8bbb1898 (int8 bounds, bin-psparse8 from P127), launcher-sparse 8a47ffe test copy (graphs on, packed on).
+# Arms (fresh server per test, as P105): dense (BONSAI_SPARSE=0); sparse B 8192 (launcher default); sparse B 16384
+# (GGML_CUDA_FA_SPARSE=16384,64,1024 by hand); sparse B 8192 + GGML_CUDA_FA_SPARSE_NORM=1 (the kernel session's ranking lead,
+# #21 06:52Z; added before the run). Build: 8d6e0d3f4 (= c8bbb1898 + NORM, off by default). Per-item results in code.jsonl / needle.jsonl.
+# Reading (declared before the run): which items each arm misses; does sparse B 8192 miss _convert_other (4070) or
+# _calc_julian_from_U_or_W (P105 on d6c6e9f01) or another; does B 16384 or NORM at B 8192 restore 10/10 (NORM 10/10 = a
+# ranking problem, the budget can stay). No pass/fail: input for #56 / #49.
+export QTPS_TIMEOUT=7200
+cd /c/bonsai/8gb; R=receipts/p133; mkdir -p $R
+B=/c/bonsai/bonsai-ada-surgery/bin-psparse8
+[ -f $B/llama-server.exe ] || { echo "no bin-psparse8 (P127 builds it)" > $R/summary.txt; exit 1; }
+L='C:/bonsai/bonsai-ada-surgery/start-server-sparsetest2.ps1'; KEY=C:/bonsai/bonsai-ada-surgery/artifacts/api_key.txt
+V="BONSAI_BIN=C:/bonsai/bonsai-ada-surgery/bin-psparse8;BONSAI_LAYER=0"
+serve() { powershell -NoProfile -ExecutionPolicy Bypass -File stop.ps1 >/dev/null 2>&1
+  schtasks //run //tn BonsaiAB_P3 >/dev/null; sleep 4; schtasks //run //tn BonsaiAB_P5 >/dev/null; sleep 6
+  powershell -NoProfile -ExecutionPolicy Bypass -File serve.ps1 -Tag p133_$1 -Launcher "$L" -Vars "$2" >/dev/null 2>&1
+  for i in $(seq 1 120); do curl -s localhost:8080/health | grep -q ok && break; sleep 5; done
+  O=$(ls -t logs/*p133_$1*.out.log 2>/dev/null | head -1); [ -n "$O" ] && grep -hE "^kv |VRAM line" "$O" > $R/$1.launcher.txt; }
+for arm in dense s8192 s16384 s8192norm; do
+  case $arm in dense) VA="$V;BONSAI_SPARSE=0";; s8192) VA="$V";; s16384) VA="$V;GGML_CUDA_FA_SPARSE=16384,64,1024";; s8192norm) VA="$V;GGML_CUDA_FA_SPARSE_NORM=1";; esac
+  serve ${arm}_code "$VA"
+  PYTHONUTF8=1 python benchx/code_needle.py --key-file $KEY --depth 245000 --n 10 --tag ${arm}_245000 --out $R/code.jsonl > $R/${arm}_code.txt 2>&1
+  serve ${arm}_needle "$VA"
+  PYTHONUTF8=1 python benchx/needle_depth.py --key-file $KEY --depth 245000 --n 12 --tag ${arm}_245000 --out $R/needle.jsonl > $R/${arm}_needle.txt 2>&1
+done
+powershell -NoProfile -ExecutionPolicy Bypass -File stop.ps1 >/dev/null 2>&1
+{ for arm in dense s8192 s16384 s8192norm; do echo "== $arm: code $(tail -1 $R/${arm}_code.txt) | needles $(tail -1 $R/${arm}_needle.txt)"; cat $R/${arm}_code.launcher.txt 2>/dev/null; done
+  python - <<'PY'
+import json
+for f in ('receipts/p133/code.jsonl','receipts/p133/needle.jsonl'):
+    try:
+        for l in open(f):
+            r=json.loads(l)
+            if not r.get('ok', True): print('MISS', f.split('/')[-1], r.get('tag'), r.get('file'), r.get('fn') or r.get('key') or r.get('fact'), r.get('position_frac'))
+    except FileNotFoundError: pass
+PY
+} > $R/summary.txt

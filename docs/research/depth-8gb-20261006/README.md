@@ -12,12 +12,19 @@ host-tail reads and tier-graphs were built there and checked here on 8 GB (P101-
 Read `REPORT.md` first. For a single experiment, read `experiments/P###.md`. For the levers we can reuse on the next
 model, read `TOOLBOX.md`.
 
+P133 to P155b (2026-10-14 to 2026-10-16: driver 610.88, the sparse opt-in release bundle-20261014, q3_0 by default in
+bundle-20261015 / 15b / 15c, automatic sparse in bundle-20261016 and the 8 GB card, the cold read-in work on #138) are in
+[`experiments/index-p133-p155.md`](experiments/index-p133-p155.md) and
+[`experiments/events-p133-p155.md`](experiments/events-p133-p155.md). P149b, P152, P155 and P155b were open (pending
+or running) when that range was written. `REPORT.md` is not updated for this range yet.
+
 | Path | What |
 | --- | --- |
 | `REPORT.md` | Bottom line, what shipped, what was rejected, results by day, open items |
 | `TOOLBOX.md` | Every lever, method and tool: how to turn it on, measured effect on 8 GB, status, model-specific or general |
 | `experiments/P###.md` | One record per experiment: setup, frozen gate, method, every number, deviations, verdict, later corrections, what it changed |
 | `experiments/index-*.md` | One row per experiment |
+| [`experiments/index-p133-p155.md`](experiments/index-p133-p155.md) | The latest range: P133-P155b (events: [`experiments/events-p133-p155.md`](experiments/events-p133-p155.md), E38-E56) |
 | `runs.jsonl` | One JSON line per experiment: id, date, card, engine commit, script, env, metrics, verdict, receipts (same fields as `../depth-20261010/runs.jsonl`, for comparing future models and engines) |
 | `experiments/events-*.md` | Entries that are not experiments: incidents, rig baseline changes, releases, PRs, coordination, decisions |
 | `NOTEBOOK.md` | The full lab notebook, in time order, unchanged (plans, results, corrections, incidents) |
