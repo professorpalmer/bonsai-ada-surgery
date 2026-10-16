@@ -25,7 +25,7 @@ because the MTP draft context was not in the file (P157b); 0060/0061 fix that. 0
 | R4 sm_89 unchanged | 4070, release bins vs bundle-20261016 bins | d27 hashes (3 prompts, temp 0) identical on the 12 GB default and on `BONSAI_8GB=1` (NCOLS2 stays off on sm_89); cold 128k prefill within 2 % |
 | R5 launcher paths (T1) | 4070, staged zip | default -> q4_0 (12 GB); `BONSAI_8GB=1` -> q3_0 + sparse auto; `BONSAI_TOTAL_MIB=24576` -> q8_0; `BONSAI_SLOT_SAVE_PATH` -> the slots line, save + restore of a short prompt; each answers one request; 0 control bytes in tracked text files |
 | R6 saved conversation on the release zip | 4070, staged zip, `BONSAI_8GB=1`, 131k | T1-h flow: both files, restore line, answer = memory |
-| R7 publish | - | zip from the release commit, GitHub + Hugging Face, SHA on both, bins installed, 2060 post-zip check |
+| R7 publish | - | zip from the release commit, GitHub + Hugging Face, SHA on both, bins installed, 2060 post-zip check; in that check one fresh-server restore at 64k + ~4k new tokens with MTP on (the shipped sm_75 bins): >= 150 tok/s new-token eval, the restore line, 0 CUDA errors |
 
 If R2 fails: drop 0062/0063 and ship 0060/0061 alone (R1, R3-R7 on a rebuilt sidecar-only engine). If R1 fails: no
 release; `BONSAI_SLOT_SAVE_PATH` stays documented with the limit (the first big turn after a restore is slow on 8 GB
