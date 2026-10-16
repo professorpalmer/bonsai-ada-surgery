@@ -623,3 +623,6 @@ try {
         if ($Mine -notcontains $n) { Remove-Item "Env:$n" -ErrorAction SilentlyContinue }
     }
 }
+# the server's exit code is the launcher's (powershell -File otherwise exits 0 after a crashed server; the cleanup above
+# does not touch $LASTEXITCODE)
+exit $LASTEXITCODE
