@@ -30,3 +30,15 @@ because the MTP draft context was not in the file (P157b); 0060/0061 fix that. 0
 If R2 fails: drop 0062/0063 and ship 0060/0061 alone (R1, R3-R7 on a rebuilt sidecar-only engine). If R1 fails: no
 release; `BONSAI_SLOT_SAVE_PATH` stays documented with the limit (the first big turn after a restore is slow on 8 GB
 cards).
+
+## Amendment (2026-10-16 15:00, after R1 failed and before P156d's result)
+
+R1 **failed** (P158, #138 comment 6223202209): on the 2060 every MTP-on restore + a ~4k-token continuation crashed
+(`ggml-cuda.cu:109`, 5 / 5), with the sidecar restored and with it moved aside; `BONSAI_SPEC=0` worked (213.7 tok/s).
+The sidecar (0060 / 0061 above) does not ship. R3 / R4 had passed on the 4070 (`docs/receipts/release_0060.log`).
+
+New candidate: kernel fork `product-0060t` **9fae15924** = product-0059 + the two tile commits only (cherry-picks of
+8f1516fae / 1bee9252a; `ggml/` identical to product-0060, no server change). Patches: **0060** = the NCOLS2 switch,
+**0061** = NCOLS2=2 by default on Turing. Gates: R2 (P156d) as written; R3 / R4 rerun on bins rebuilt from 9fae15924
+(R4's sm_89 hash identity must hold again); R5 without the slot path; R6 dropped; R7 with a cold 245k read on the
+2060 post-zip check instead of the restore. If R2 fails: no release.
