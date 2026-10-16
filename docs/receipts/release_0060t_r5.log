@@ -1,0 +1,18 @@
+18:39 === release-0060t R5 start: zip sha256 fe5a3845fe7bef2d, engine commit 9fae15924e
+18:39 control bytes in the zip's text files: 0 []
+18:39 R5 default (): health=1; window 262144 / q4_0  (12 GB default, BONSAI_CTK=q8_0 for the previous one; trained max 262144)
+18:39 R5 default: 
+18:39 R5 default: answer: Red, blue, and yellow.
+18:39 R5 8gb (BONSAI_8GB=1): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)
+18:39 R5 8gb: 
+18:39 R5 8gb: answer: Red, blue, and yellow.
+18:40 R5 24gb (BONSAI_TOTAL_MIB=24576): health=1; window 262144 / q8_0  (q8_0: the card holds most of the window; trained max 262144)
+18:40 R5 24gb: 
+18:40 R5 24gb: answer: Red, blue, and yellow.
+18:40 === release-0060t R5 done
+18:41 R5 note: on a free 12 GB card the default (q4_0) and BONSAI_8GB=1 (q3_0) arms hold the whole window in VRAM, so no tier / sparse line prints (as in R4); the 8 GB sparse path is shown with the 2060 line pinned:
+18:41 R5 8gb + BONSAI_KV_VRAM_CELLS=80640: health=1
+window 262144 / q3_0  (8 GB default; trained max 262144)
+kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off)
+kv     sparse host-tail reads: auto (dense line 80640; past it the engine times dense vs sparse per 16k band and keeps the faster; BONSAI_SPARSE=0 off
+18:41 R5 8gb pinned: answer: Red, blue, and yellow.
