@@ -86,3 +86,7 @@ r0059 mean decode 45.5 tok/s
 01:21 r0059: 'one sync per K write' warnings: 0
 01:21 === rel0059ns done
 01:21 === U04b end
+03:02 === U02 re-run on the final zip (release commit fed8ae2d, launcher with #134)
+U02r default (, started piped 2>&1 | Out-File): health=1 reply 'OK.'
+U02r eightgb (BONSAI_8GB=1 BONSAI_VRAM_MARGIN=3600, started piped 2>&1 | Out-File): health=1 reply 'OK'
+U02r big (BONSAI_TOTAL_MIB=24576, started piped 2>&1 | Out-File): health=1 reply 'OK'
