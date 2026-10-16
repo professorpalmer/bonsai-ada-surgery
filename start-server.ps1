@@ -1,4 +1,4 @@
-# Bonsai 2 27B server (LAN + localhost): the full 262,144-token window with q8_0 K/V on a 12 GB card.
+# Bonsai 2 27B server (LAN + localhost): the full 262,144-token window on 8 GB (q3_0 K/V) and 12 GB (q4_0 K/V) cards.
 # Every default below is measured on an RTX 4070 12 GB; the receipts are in docs/Q8_FULL_CONTEXT.md.
 $ErrorActionPreference = 'Stop'
 # Variables set in this window before the launcher runs. A value left over from an earlier test (BONSAI_SPEC=0 is the
@@ -585,6 +585,10 @@ try {
 # The launcher sizes the GPU memory itself (the VRAM line above). The engine's own automatic fit has nothing to adjust
 # with every layer set, and it only printed "failed to fit params to free device memory ... abort". Turn it off.
 [string[]]$FitArgs = if ($Help -match '--fit ') { @('--fit', 'off') } else { @() }
+# From here only the server runs. Under $ErrorActionPreference = 'Stop', Windows PowerShell 5.1 turns each stderr line of a
+# native program into an error record when the launcher's output is redirected (hidden window, scheduled task, 2>&1), and
+# the first one stops the launcher (issue #16, howdya). The server's own exit code still reaches the caller.
+$ErrorActionPreference = 'Continue'
 Set-Location $Bin
 try {
 & .\llama-server.exe @TierArgs @RamArgs @SpecArgs @BsArgs @BudgetMsgArgs @HarnessArgs @MmprojArgs @FitArgs `
