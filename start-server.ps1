@@ -585,13 +585,23 @@ try {
 # The launcher sizes the GPU memory itself (the VRAM line above). The engine's own automatic fit has nothing to adjust
 # with every layer set, and it only printed "failed to fit params to free device memory ... abort". Turn it off.
 [string[]]$FitArgs = if ($Help -match '--fit ') { @('--fit', 'off') } else { @() }
+# Saved conversations on disk (#138 T1): BONSAI_SLOT_SAVE_PATH=<folder> passes --slot-save-path. Then
+# POST /slots/0?action=save {"filename": "x.bin"} writes the slot (KV + GDN / conv states) and action=restore reads it back.
+# A request that continues the saved conversation does not read the prompt again: 245k in ~2 s instead of minutes
+# (4070 T1-b; byte-identical answers). A request that changes the history before the saved end reads it all again.
+[string[]]$SlotArgs = @()
+if ($env:BONSAI_SLOT_SAVE_PATH) {
+    New-Item -ItemType Directory -Force $env:BONSAI_SLOT_SAVE_PATH | Out-Null
+    $SlotArgs = @('--slot-save-path', $env:BONSAI_SLOT_SAVE_PATH)
+    Write-Host "slots  saved conversations: $($env:BONSAI_SLOT_SAVE_PATH) (POST /slots/0?action=save / restore)"
+}
 # From here only the server runs. Under $ErrorActionPreference = 'Stop', Windows PowerShell 5.1 turns each stderr line of a
 # native program into an error record when the launcher's output is redirected (hidden window, scheduled task, 2>&1), and
 # the first one stops the launcher (issue #16, howdya). The server's own exit code still reaches the caller.
 $ErrorActionPreference = 'Continue'
 Set-Location $Bin
 try {
-& .\llama-server.exe @TierArgs @RamArgs @SpecArgs @BsArgs @BudgetMsgArgs @HarnessArgs @MmprojArgs @FitArgs `
+& .\llama-server.exe @TierArgs @RamArgs @SpecArgs @BsArgs @BudgetMsgArgs @HarnessArgs @MmprojArgs @FitArgs @SlotArgs `
     --reasoning-budget $ThinkBudget `
     -n $NPredict `
     -m $Model `
