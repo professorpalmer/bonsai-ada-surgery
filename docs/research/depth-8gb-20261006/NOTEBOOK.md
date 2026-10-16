@@ -2778,3 +2778,356 @@ Queue: P124 (running) -> P127 -> P133 -> P128 -> P129-P132 -> P125 -> P119 -> P1
 - P118: a few small ops rose by up to 0.09 ms ("all other ops equal or lower" is not exact).
 - P121 header says 128k extends; P121 / P122 did a full 127,340-token prefill. P120 header: rewritten twice (10-13 rig time).
   P125 header names P113 as a HumanEval reference; P113 had no HumanEval.
+
+## 2026-10-14 06:52Z kernel-session lead: ranking, not budget -> P133 gets a NORM arm; P127 builds 8d6e0d3f4
+8d6e0d3f4 (product-sparse) = c8bbb1898 + GGML_CUDA_FA_SPARSE_NORM=1 (rank pages by each Q head's bound relative to that head's
+best page; off by default; one file, fattn.cu). prism-tiergraphs product-sparse-int8-2060 -> 8d6e0d3f4 before P127 builds;
+P127 / P128 headers note it (default path = c8bbb1898). P133 arms: dense, s8192, s16384, s8192 + NORM=1. Posted on #21.
+
+## 2026-10-14 02:29 Windows Update restart + NEW NVIDIA DRIVER 610.88 (was 591.86); P124 partial; P134 (driver baseline)
+Event log: 02:29:09 MoUsoCoreWorker planned restart (Service pack); 02:29:16-02:30:21 WindowsUpdateClient installed "NVIDIA
+Display Driver Update (32.0.16.1088)" = 610.88; 02:32:57 and 02:33:28 TrustedInstaller planned restarts (Upgrade);
+02:36:12 KB5127648 (26200.9711) installed. Clean shutdowns (no 41 / 1001 / 6008). Boot 02:33:51. Fan back to 41 % -> slot 5.
+P124 (3ab0af3c2, launcher c1908b7 defaults, 591.86), PARTIAL: def sweep 4k 52.8 / 32k 47.4 / 64k 35.2 / 96k 27.0 / 128k 26.0,
+min free 171; deep_def 160k 20.2, 245k 14.4, trace min free 43 MiB at 02:04:21 (gate 60: FAIL - the f16-bounds reserve is
+NOT spare at 245k, answer to the 4070's trim question); deep_off 160k 10.6, 245k not reached (restart 02:29). 160k ratio
+1.91x. Not rerun on 3ab0af3c2 (superseded by the int8 build; P128 covers it). Script -> done/*.partial-restart.
+P134 (queue 69ic3, first): op tests + P126b's same-session 1011 vs 1013 sweep on 610.88 = the driver delta vs P126b.
+All later runs are on 610.88; cross-driver comparisons are not valid.
+Cary to decide: pause Windows Update / block driver updates during runs (system setting; not done by the agent).
+
+## 2026-10-14 P127 (result): int8 bounds - line cost 7,936 cells (was 13,824), but 64k still -8.1 % -> 5 % rule NOT met
+Run 06:42-07:08 (queue 69if; driver 610.88). Build 8d6e0d3f4 try 1 (06:43:48). FA 3005/3005, GDN 55/55. Launcher 8a47ffe test
+copy: "138 MiB of page bounds counted: VRAM line 62464 -> 54528 cells". off_r1 line 63,488, 38.2 (38.8/37.9/37.8), min free
+108; def_r1 54,528, 35.4 (36.0/35.1/35.0), min free 268; off_r2 62,464, 38.0 (38.7/37.5/37.7), 108; def_r2 54,528, 34.6
+(35.1/34.3/34.2), 266. Means 38.1 vs 35.0 = -8.1 % (-7.3 / -8.9). 0 sparse ops, 0 one-token, no warmup warning.
+Reading: at 64k even ~9.5k host cells cost ~8 % (off arm ~1.5k); the halved reserve did not move the 64k cost (P123 -7.0 %
+at 13.8k cells). Options posted on #21: opt-in for 0055; default on with the printed trade; an engine change (bounds in the
+staging region or allocate past MIN_HOST while shrinking staging). Their call.
+
+## 2026-10-14 ~07:15 (local) the 4070's overnight decisions: FRAC budget, opt-in sparse; R06 plan on the RC
+#21 / #56 (08:55Z): D22c at 245k: B 8192 9/10 (_convert_other), 12288 and 16384 10/10, dense 10/10; D23 NORM at B 8192 9/10
+(same miss) -> NORM out; budget = max(B, host tail x GGML_CUDA_FA_SPARSE_FRAC 1/16). RC: product-0055 4de618549.
+11:47Z: the 43 MiB at 245k (P124) - launcher may miss ~20 MiB; 4070 measuring (R05 peak VRAM); final headroom in #49.
+12:12Z: decision option 1 - sparse opt-in BONSAI_SPARSE=1, default off (#49 d927d6b); D26 (bounds without a line cost) next.
+R06 (docs/research/release-20261014): SHA, op tests, 4k-128k within 3 % of bundle-20261013 same session, 160k / 245k >= 1.8x,
+245k copies / needles = dense, fresh 60k, 0 one-token, min free >= 60, HumanEval on the bundle bins.
+Queue changes: P128, P133 (8d6e0d3f4) and P125 (3ab0af3c2) superseded -> done/*.superseded. New: P135 (queue 69ic4: build RC
+4de618549 in prism-tiergraphs product-0055-rc-2060 -> bin-rc55, op tests, 160k->245k dense vs BONSAI_SPARSE=1, launcher test copy
+start-server-rc55.ps1 = #49 d927d6b + BONSAI_BIN); P136 (69ic5: copies / needles at 245k and 200k, dense vs sparse). P120 ->
+bin-rc55 + BONSAI_SPARSE=1 (third change before it ran). Order: P134 -> P135 -> P136 -> P129-P132 -> P119 -> P120. Posted on #21.
+
+## 2026-10-14 4070 R04 FAIL at 200k (RC 4de618549, FRAC 1/16 ~10.4k cells, keeps 162 of 2604 pages): miss _pydatetime _check_tzname
+(0.15); publish stopped; R04b (dense 200k, 12288 floor) queued there. P136 (not started) gets a third arm before the run:
+BONSAI_SPARSE=1 + GGML_CUDA_FA_SPARSE=12288,64,1024; order 200k then 245k. Posted on #21.
+
+## 2026-10-14 P134 (result): driver 610.88 neutral; releases equal again; R06 reference
+Run 07:08-08:05 (queue 69ic3). Op tests ADD 99/99, RMS_NORM 51/51, FA 3005/3005, GDN 55/55. Lines 62,464 (r1) / 62,976 (r2),
+loaded free 272-280. 1011 r1 37.6/27.3/17.6, 1013 r1 37.8/25.6/18.0, 1011 r2 37.8/27.2/17.6, 1013 r2 37.7/27.3/17.6.
+Means 1011 37.7/27.25/17.6, 1013 37.75/26.45/17.8. 0 one-token. vs 591.86 at the same line (P126b cut run 38.2/27.6/17.7):
+equal; vs P126b rerun (line ~61.3k) +4-5 %: the spread follows the line, not the driver. R06 reference = P134. Posted on #21.
+
+## 2026-10-14 13:16Z #49 3035572 (4070): sparse headroom 36 -> 64 MiB (245k trace: sparse - dense 150 MiB vs 138 counted, +16
+margin); BONSAI_SPARSE=1 sets floor B 12288 (engine max(B, tail/16)); 160k gate for opt-in now >= 1.5x (245k stays 1.8x).
+start-server-rc55.ps1 swapped to 3035572 at ~08:25 while P135 ran its dense arm (unaffected: sparse off); P135's sparse arm
+(starts later) uses 3035572 - P135's header still names d927d6b (not edited while running; this entry is the record).
+P136 rewritten before the run: dense vs BONSAI_SPARSE=1 at 200k, 245k, 160k (12 fresh servers). Posted on #21.
+
+## 2026-10-14 14:04Z PR #67 (4070): R04b - dense at 200k misses the same item sparse missed (_check_tzname): the model's own miss.
+R04 amended before R04d: 'sparse not below dense on the same items'; floor decision rule declared before R04d. P136 already
+compares dense vs sparse per item at each depth (matches the amended gate).
+
+## 2026-10-14 P135 (result): RC 4de618549 + #49 3035572 - sparse opt-in 1.65x at 160k, 2.17x at 245k, min free 153 MiB - PASS
+Run 08:05-09:48 (queue 69ic4). Build try 1 (08:07:26). FA 3005/3005, GDN 55/55. dense (default; launcher d927d6b copy at its
+start, dense path unaffected): line 61,696, loaded free 319; 160k 10.6 (10.6/10.6/10.5), 245k 6.3 (6.6/5.7/6.5); prefill 188.9 /
+141.6; min free 117. sparse (BONSAI_SPARSE=1, launcher 3035572): "12288,64,1024 ... 167 MiB of page bounds counted: VRAM line
+61696 -> 52224", loaded free 451; 160k 17.5 (17.9/17.0/17.5), 245k 13.7 (13.9/12.7/14.4); prefill 187.4 / 140.5; follow-ups
+equal; min free 153 MiB at 09:46:37; 22 sparse lines. 0 one-token. Gates: 160k >= 1.5x (amended) PASS (1.65x; my 1.8x no),
+245k >= 1.8x PASS (2.17x), min free >= 60 PASS. Floor 12288 vs 8192 at 160k: 17.5 vs 20.2 (P124, other build). Posted on #21.
+
+## 2026-10-14 17:25Z D26a (4070): 64k sparse cost = the line (overhead +0.2 %, line +2.6 % on PCIe 4.0). P137 (queue 69ic6, after
+P136, reading in its header): the same three arms on the 2060 (off_short pinned 52,224 / on_short BONSAI_SPARSE=1 / off_long),
+alternated x2. P136 partial: 200k dense 10/10 + 12/12, sparse 10/10 + 12/12; 245k dense copies 10/10. Posted on #21.
+
+## 2026-10-14 18:41Z PR #75 merged (pool off with -md; reviewed from 8 GB: MTP default unchanged, PoolMiB follows $PoolOn).
+PR #76: 4070 gate Q07 = q3_0 on product-0055 (q3-on-0055 7c7b47e156). The 2060 q3 set (P129-P132, not started) moved to
+7c7b47e156 before the runs: prism-q3kv branch q3-on-0055-2060; launcher copy start-server-sparsetest2q3.ps1 rebuilt from
+start-server-rc55.ps1 (#49 3035572) + 'q3_0' { 14336 }; P132 arms now set BONSAI_SPARSE=1 (opt-in launcher). Headers noted.
+
+## 2026-10-14 P136 (result): RC sparse copies / needles = dense at 160k / 200k / 245k (all 10/10 + 12/12) - PASS
+Run 09:48-14:31 (queue 69ic5). bin-rc55 (4de618549) + #49 3035572 test copy, 12 fresh servers. dense and BONSAI_SPARSE=1 both 10/10
+copies and 12/12 needles at 200k, 245k and 160k; 0 misses. R06 pre-run items all PASS (P135 + P136). Remaining R06 on the zip:
+SHA, op tests, bin hashes vs bin-rc55, default-off same-session A/B vs bundle-20261013, fresh 60k x2, HumanEval. Posted on #21.
+
+## 2026-10-14 19:37Z 4070: all release gates pass on the RC (R01-R05 + amendments; 2060 P135 / P136); merging #56 (0055) then #49;
+README note for bundle-20261014 merged (#77). Next: the release; then the 2060's final check on the zip (P138).
+
+## 2026-10-14 19:40Z bundle-20261014 PUBLISHED (patch 0055 sparse opt-in; zip c91dfc98...4cd0, 611,390,390 B; release commit bfae9143;
+engine 4de6185494 sm 75/86/89). P138 / P139 (queue 69hb / 69hc, next after P137; gates in headers): the post-zip R06 checks.
+Launcher test copy start-server-1014test.ps1 = bfae9143 start-server.ps1 + BONSAI_BIN (= rc55 launcher + #75 only, diffed).
+Note: zip bins are a fat build, so not byte-equal to the 75-real bin-rc55; P139 reruns 245k speed / min free / copies / needles
+and HumanEval on the zip bins. Posted on #21.
+
+## 2026-10-14 P137 (result): D26a on Turing - no engine overhead (+0.1 %); line cost -2.6 % (52,224 vs 61,696) = the 4070's
+Run 14:31-15:01 (queue 69ic6). bin-rc55 + #49 3035572, 64k, x2 alternated: off_short (pinned 52,224) 35.4 / 35.4; on_short
+(BONSAI_SPARSE=1, 52,224, 0 sparse ops) 35.5 / 35.4; off_long (61,696) 36.4 / 36.3. 0 one-token.
+Reading: P123 / P127's -7 / -8 % came from off arms at 61.7k-63.5k serving 64k with ~no host tail: the 64k cost on Turing is
+mostly a step (any host tail vs none), small slope after. For D26: bounds must not take line from the no-tail range (staging
+span idea), a smaller reserve alone does not help. Posted on #21.
+
+## 2026-10-14 20:15Z PR #81: q3port Q07 PASS on the 4070 (q3_0 on product-0055, 7c7b47e156). The 2060 set P129-P132 already targets it.
+
+## 2026-10-14 20:18Z 0056 default rule for q3_0 (PR #84, before P129-P132): default on 8 GB only if (1) 64k decode within 5 % of q4_0
+(same session, alternated), (2) PPL 16k <= +1 %, (3) HumanEval >= 157, (4) copies / needles = q4_0. Else opt-in BONSAI_CTK=q3_0.
+PR #83 merged: launcher q3_0 cell size 14,336 on main. P130 updated before the run: alternated 64k A/B q4/q3 x2 + q4_0 copies /
+needles at 160k on 7c7b47e156. Posted on #21.
+
+## 2026-10-14 20:20Z kernel session: faster q3_0 dequant for the attention tile loader (pairs of 3-bit codes -> half2, meant
+bit-exact with 7c7b47e156), D27 on the 4070. Keep P129-P132 on 7c7b47e156; if D27 is byte-identical, PPL / HumanEval / copies
+carry over; only rule 1 (64k q3 vs q4) reruns on the new commit (one alternated A/B) when they post it.
+
+## 2026-10-14 20:44Z D27 PASS (4070): q3-fast df218650a (7c7b47e156 + half2 tile dequant), bit-exact answers, 64k q3 -1.6 % vs q4_0
+(old -3.5 %) on the 4070. The 2060 q3 set (P129-P132, not started) switched before the runs to df218650a (prism-q3kv branch
+q3-fast-2060); headers noted; all 0056 rule items measured directly on it. Posted on #21.
+
+## 2026-10-14 20:47Z PR #86 gates for the next bundle (0056 q3_0 + 0057 packed-half dequant for q3/q4/q8; D28 pending). 2060 gates:
+S04 (q3_0 default rule on the 0057 build) and S05 (q4_0 default unchanged: same answers as bundle-20261014, <= 2 % slower at 64k /
+128k). Plan: P129-P132 on df218650a cover the quality items (bit-exact); S04 item 1 + S05 on the 0057 build when posted. Posted on #21.
+
+## 2026-10-14 21:08Z PR #88 (0056 + 0057 = product-0056 b86298dba); D28 PASS (q4 +0.6 %, q8 +0.8 % on 4070, byte-identical). The 2060
+q3 set switched (third time, before the runs) to b86298dba (prism-q3kv product-0056-2060). S05 queued as P140 (69ii2, gate in its
+header): q4_0 default b86298dba vs bundle-20261014 zip, same launcher, alternated x2: answer hashes (lookup_ab d0) + 64k / 128k
+within 2 %. Posted on #21.
+
+## 2026-10-14 P138 (result): bundle-20261014 zip release check (default switches) - PASS
+Run 15:01-16:36 (queue 69hb). Zip 611,390,390 B sha match; version build 10796 commit 4de6185494; ADD 99/99, RMS_NORM 51/51, FA
+3005/3005, GDN 55/55; GDN "skipped: device cc 750" once (my summary's grep printed 0: quoting, checked by hand). Hashes (computed by
+hand after the script's sha256sum printed nothing): ggml-cuda.dll zip 8430E8907DFA7472 vs rc55 5A5B9BD2FCE0E51B; llama-server.exe
+E69B6EABBA85632F vs 607AC1814D2DF75E (fat build vs 75-real). A/B same session x2 (64k/96k/128k): 1013 36.4/25.9/17.1, 36.6/26.0/
+17.1; 1014 36.2/25.9/17.0, 36.2/25.9/17.0 -> -0.8/-0.2/-0.6 %. Sweep 53.6/47.8/36.5/26.2/16.2, min free 117. Fresh 60k 38.2/38.2
+(min free 153). lookup_ab 0/22 one-token; 0 one-token everywhere. Posted on #21. P139 running (zip sparse + HumanEval).
+
+## 2026-10-14 22:33Z PR #90: release-20261014b S01-S03 PASS on the 4070 (0056 + 0057). Remaining: the 2060's S04 / S05 (P129-P132, P140).
+
+## 2026-10-14 P139 (result): bundle-20261014 zip bins - sparse 2.19x at 245k, min free 153, copies / needles = dense, HumanEval 158 - PASS
+Run 16:36-19:28 (queue 69hc). dense245: line 61,696, loaded free 319, 6.2 tok/s, min free 106 (17:03:34). sparse245
+(BONSAI_SPARSE=1): "12288,64,1024 ... 167 MiB ... VRAM line 61184 -> 51712", loaded free 443, 13.6 tok/s (2.19x), min free 153
+(17:39:33). Sparse 245k copies 10/10, needles 12/12. HumanEval 158/164 (2,642 s), fails 32, 40, 92, 93, 145, 160 = P87's set. 0 one-token.
+bundle-20261014 fully checked on the 2060 (P138 + P139). Posted on #21. P129 (S04 build + PPL on b86298dba) started 19:28.
+
+## 2026-10-14 P129 (result): S04 rule 2 PASS on b86298dba - PPL 16k q3_0 +0.56 %, identical to P108 to 4 decimals
+Run 19:28-20:53 (queue 69ih). Build b86298dba try 1 (19:50:52) -> bin-q3sparse. Op tests SET_ROWS 14/14, GET_ROWS 4/4, CPY 7/7,
+FA 110/110 (q3_0 cases). PPL 16k q4_0 7.9050 +/- 0.05444, q3_0 7.9491 +/- 0.05477; 64k q4_0 7.2074 +/- 0.07120, q3_0 7.2098 +/-
+0.07105 - all equal to P108 (6a4851286): 0057 is output-neutral on Turing for q4_0 and q3_0 here. Posted on #21.
+
+## 2026-10-14 P130 (partial, 22:31): S04 rule 1 PASS - 64k q3_0 41.0 / 41.0 vs q4_0 39.6 / 39.6 (+3.5 %)
+b86298dba, launcher sparsetest2q3, sparse off, lookup on. Lines q4_0 61,696 / q3_0 80,640. Sweep q4 54.6 / 41.8 / 15.8 / 9.2,
+q3 53.6 / 41.1 / 22.8 / 12.3 at 4k / 64k / 128k / 192k (+44 % at 128k, +34 % at 192k). 160k quality arms running. Posted on #21.
+
+## 2026-10-15 03:57Z PR #93: R10 plan (4070): wider items for the shipped sparse rule (Mirai S missed a needle digit at 0.958 with
+FRAC 1/16 + 12288 floor); 245k code_needle n20 / needle_depth n24, dense vs sparse; if a miss: FRAC 1/8 + a 2060 speed check.
+P141 (queue 69il, after P132; gate = R10): the same on the 2060 with the zip bins (other item set). Posted on #21.
+
+## 2026-10-15 04:07Z PR #94: issue #21 archived in docs/research/issue21-20261010/ (18 decisions + verbatim thread). Agreed: close #21
+after the 0056 bundle ships and P141 is in; new issue for the next phase (D26).
+
+## 2026-10-14 P130 (result): S04 items 1 + 4 PASS; P114 gates PASS on b86298dba
+Run 20:53-23:26 (queue 69ii). 64k A/B x2: q4 39.6 / 39.6, q3 41.0 / 41.0 (+3.5 %); min free 116-125. Sweep q4 54.6/41.8/15.8/9.2,
+q3 53.6/41.1/22.8/12.3 (4k/64k/128k/192k); min free 114 / 91. 160k (sparse off, fresh servers): q3_0 copies 10/10, needles 12/12;
+q4_0 10/10, 12/12. 0 one-token. Lines 61,696 / 80,640 (1.31x). Posted on #21.
+
+## 2026-10-15 04:30Z R10 partial (4070): shipped sparse rule 245k copies 19/20 (miss _check_tzname 0.128; dense 20/20); needles dense
+23/24 (vault 14 wrong in dense too). R10b = FRAC 1/8 there. PR #95 (launcher: FRAC 1/8 for BONSAI_SPARSE=1, merges only if R10b + P141
+pass; quality both item sets, >= 1.5x at 160k / 245k). P141 changed before the run: arms dense / sparse 1/16 / sparse 1/8 (n20 + n24),
++ decode 160k->245k for 1/16 and 1/8 with trace; moved to 69ii3 (right after P140). Posted on #21.
+
+## 2026-10-15 04:45Z R10 COMPLETE: FAIL (4070) - shipped FRAC 1/16 at 245k loses copy _check_tzname (0.128), vault 13 (0.521), vault 15
+(0.604) that dense gets right (dense 20/20 + 23/24; vault 14 wrong in dense, right in sparse). R10b (1/8) running; P141 decides #95 too.
+
+## 2026-10-15 P140 (result): S05 PASS - q4_0 default answers identical (11/11 x4); q4_0 +11.2 % at 64k, +7.6 % at 128k with 0057
+Run 23:26-00:25 (queue 69ii2). b86298dba vs bundle-20261014 zip bins, launcher sparsetest2q3, default switches. lookup_ab d0 11 items:
+identical in all 4 runs; 0 one-token. Speed 1014: 35.7/15.7, 35.6/15.7; 0056: 39.6/16.9, 39.7/16.9 (64k/128k), loaded free 319 all.
+On Turing 0057 helps q4_0 far more than on the 4070 (+0.6 %, D28). Posted on #21. P141 (R10b 2060) started 00:25.
+
+## 2026-10-15 05:26Z PR #97: R10b (4070) FRAC 1/8 = dense in substance on their 245k n20 / n24 set. #95 now waits only for P141 (running).
+
+## 2026-10-15 05:27Z #95 rule amended before P141 (PR #99): merge if P141's FRAC 1/8 arm (a) is not below FRAC 1/16 on any item of the
+2060 set, (b) not below dense on any item in the droppable host tail, (c) >= 1.5x dense at 160k and 245k. Reason: R10b's strict miss
+(_check_tzname, cells 30,772-30,823) is inside the VRAM line; the answer has the exact body + the real comment above it. PR #98 merged:
+bench/code_needle.py lenient score (leading comment lines = the source lines above) + --diff; the rig's benchx copy is strict-only and
+logs position_frac (enough for (b)). Posted on #21.
+
+## 2026-10-15 P141 (result): FRAC 1/8 PASSES the amended #95 rule on the 2060 set; shipped 1/16 misses a needle at 245k
+Run 00:25-05:24 (queue 69ii3). bundle-20261014 zip bins, launcher 1014test. 245k n20 / n24, fresh servers: dense 20/20 + 24/24; sparse 1/16
+(shipped) 20/20 + 23/24 (miss needle at position 0.271, ~66k cells, past the sparse line 51,712); sparse 1/8 20/20 + 24/24. Speed 160k ->
+245k: 1/16 17.5 / 13.6, 1/8 16.9 / 10.9 (min free 153 both); vs dense P135 10.6 / P139 6.2 -> 1/8 1.59x / 1.76x. Rule (a) (b) (c) PASS.
+0 one-token. Posted on #21 and #95. P131 (HumanEval q3_0) started 05:24.
+
+## 2026-10-15 10:29Z #95 merged (launcher: FRAC 1/8 for BONSAI_SPARSE=1, summary prints the budget, depth-trade text ~1.6x / ~1.8x); R11 = P141.
+The 4070 asked for status at 09:47Z during P141 (no partial posted for ~5 h): process fix - partial lines on runs > 3 h.
+
+## 2026-10-15 P131 (result): HumanEval q3_0 on b86298dba 163/164 (99.39 %, fail 93) -> S04 all four items PASS; q3_0 = 8 GB default by rule
+Run 05:24-06:15 (queue 69ij). Line 80,640. 3,028 s. S04: (1) 64k +3.5 % P130, (2) PPL 16k +0.56 % P129, (3) 163/164 P131, (4) 160k copies /
+needles = q4_0 P130. S05 PASS P140. Posted on #21 and #91 (OK to merge from 8 GB). P132 running (sparse + q3_0, FRAC 1/16; bundle will
+use 1/8 after #95).
+
+## 2026-10-15 11:37Z all release-20261014b gates pass (4070 S01-S03; 2060 S04 + S05). Merging #88 (0056 + 0057) then #91 (q3_0 8 GB default).
+Next: the bundle (likely bundle-20261015); the 2060 post-zip check when published.
+
+## 2026-10-15 11:40Z bundle-20261015 PUBLISHED (0056 q3_0 + 0057 packed-half; q3_0 8 GB default; BONSAI_SPARSE=1 budget 1/8). Zip 616,638,283 B,
+sha256 23db0bc477274314e817f3eaeda185b9ac314f31d346f45fc4861b2e3ae7dd16; engine b86298dba9; launcher = release commit 0cbd0dcc.
+P142 (queue 69ia0, gates in its header): the post-zip check. Launcher test copy start-server-1015test.ps1 (0cbd0dcc + BONSAI_BIN).
+P119 / P120 changed before the runs: bundle-20261015 default / + BONSAI_SPARSE=1, launcher 1015test. Posted on #21.
+
+## 2026-10-15 11:44Z #105 opened (successor of #21): D26 sparse default-on. Step 1 D26g (2060, data only): with q3_0 the line is 80,640
+and the reserve ~6.6k q3_0 cells (sparse line ~74k), so 64k stays in VRAM in both arms. Gate (declared in #105 before the runs): no depth
+<= 128k loses > 2 % (sparse vs off), 160k / 245k gains stand. If pass: launcher-only change BONSAI_SPARSE default 1 on 8 GB. Step 2
+(late reserve, engine) only if it fails in ~74k-110k. P143 = D26g (queue 69ia1, after P142, gate copied in its header). Posted on #105.
+#21 closes after P142.
+
+## 2026-10-15 06:58 P132 stopped (partial: sparse + q4_0 at 160k 17.7, 245k not reached); not needed for the card (FRAC 1/16, old launcher).
+Cary: the card items are top priority. P144 (queue 69ia2, gate in its header): 245k copies n20 / needles n24, dense vs BONSAI_SPARSE=1,
+on the bundle-20261015 zip with its launcher defaults (q3_0) = the shipped-setup quality receipt. Order: P142 (running 06:59) -> P143
+(D26g) -> P144 -> P119 -> P120.
+
+## 2026-10-15 12:17Z D26g-pre FAIL on the 4070 (q3_0, lines pinned to the 2060's 80,640 / 73,984): 64k 0.0 %, 80k -30.7 % (line step), 96k
++3.5 %, 112k -16.1 %, 128k -19.1 % (sparse engages at MIN_HOST 32,768 and is slower than dense with prefetch on PCIe 4.0). Plan D26h
+(after P143): late reserve (removes the line step) + a self-timing engage rule (alternate dense / sparse blocks, keep the faster per 16k
+host-tail band, decision fixed per band for determinism). P143 changed before the run: + arm sp_mh64k (MIN_HOST 65536, 112k/128k/160k).
+Realistic: sparse default-on = engine work (D26h), days. Posted on #105.
+
+## 2026-10-15 P142 (result): bundle-20261015 post-zip - RELEASE BUG: the default launcher never selects q3_0 (backspace bytes); fix PR #108
+Run 06:59-08:15 (queue 69ia0). Zip sha match; version build 10798 commit b86298dba9; ADD 99/99, RMS_NORM 51/51, FA 3115/3115, GDN 55/55,
+SET_ROWS 177/177, CPY 259/259, GET_ROWS 123/123; 0 one-token (lookup_ab 0/22); min free >= 117. But every arm printed "window 262144 /
+q4_0", line 61,696 (sparse 61,696 -> 52,224). Cause: start-server.ps1 line 108 $HasQ3 = $Help -match '<0x08>q3_0<0x08>' (backspace bytes
+for backslash-b; bytes 27 08 71 33 5f 30 08 27); probe in the serve.ps1 way: -match 'q3_0' True, HasQ3 False, Ctk q4_0; fixed: HasQ3 True,
+Ctk q3_0. Same class as the rig's own inline-bash backslash loss (my first fix attempt wrote 0x08 back; fixed via chr(92) script).
+Repo scan for control chars: README.md layer<0x0C>etch_runtime.ps1 x2 (form feed for backslash-f) - fixed in the same PR #108; a NUL in an
+artifacts data file left alone. P142 numbers = q4_0 + 0057: 4k 55.3, 64k 42.1, 128k 15.8; fresh 60k 42.6 / 42.5; BONSAI_SPARSE=1 245k
+11.0 (budget 1/8 printed), min free 153. Posted on #21 and #105.
+P143 (first start 08:15, q4_0 by the bug) stopped -> receipts/p143-q4-launcherbug; restarted 08:20 with the fixed test copy: q3_0, line
+80,640 confirmed in its log.
+
+## 2026-10-15 13:25Z PR #108 merged (4070 confirmed: backspaces came with the final #91 revision; fixed pattern matches 0056 --help, not 0055;
+README form feed from the first commit). #109 README note; re-release bundle-20261015b follows. P143 / P144 use the same engine bins + the
+fixed launcher copy = the 15b setup. Plan: short post-zip check on 15b (SHA, default launcher picks q3_0, quick sweep) when published.
+
+## 2026-10-15 13:28Z bundle-20261015b published (launcher fix): zip 616,638,401 B, sha256 a6bf7add...5776, release commit 444de56. P145 (queue
+69ia15, after P143, before P144; gates in its header): the zip's own start-server.ps1 (control-byte check + test copy with BONSAI_BIN), q3_0
+default, sweep vs P130, fresh 60k. Posted on #105.
+
+## 2026-10-15 10:35 CDT P143 partial (D26g on the 2060): FAILS the #105 gate
+Same session, alternated x2, q3_0 default launcher (line 80,640). Mean decode off vs BONSAI_SPARSE=1: 64k 41.05/40.7 (-0.9 %), 80k 37.5/35.0
+(-6.7 %), 96k 34.85/33.8 (-3.0 %), 112k 32.5/26.5 (-18.5 %), 128k 22.6/22.55 (-0.2 %). Cause: line step 80,640 -> 68,608 (159 MiB page bounds
+counted up front), host tail under MIN_HOST 65536 from 68.6k to ~134k so sparse does not engage. sp_mh64k (full prefill): 112k 24.7, 128k 19.3,
+160k 20.6. Decision: default-on is not shippable as built; it supports D26h (late reserve). Card wording "one switch" unless D26h passes.
+Deep pair (160k-245k) still running. Posted on #105.
+
+## 2026-10-15 10:45 CDT Decision (Cary): the card waits for D26h
+Cary: "willing to wait... i want to deliver the best possible product". No "one switch" interim card. The card waits for D26h
+(late page-bound reserve + self-timing engage) to pass the #105 gate on the 2060, plus P143 deep pair, P145 and P144. Asked the 4070
+to put D26h first (#105).
+
+## 2026-10-15 11:27 CDT P143 result (D26g on the 2060): FAIL; deep gain 1.34x / 1.44x on q3_0
+CORRECTION to the 10:35 entry: the main sparse arms ran MIN_HOST 32768, line 80,640 -> 69,120 (sp_r2 80,128 -> 68,608); the 68,608 /
+65536 values were sp_mh64k. Two causes: line step at 80k/96k (sparse not engaged, tail 10.9k/26.9k) and sparse engaged but slower at 112k
+(tail ~42.9k, -18.5 %); about even at 128k (tail ~58.9k). sparse_mask lines: sp 20/20, mh64k 12, deep_sp 22.
+Deep pair (full prefill, one server each): 160k off 14.9 / sparse 20.0 (1.34x); 245k off 8.8 / sparse 12.7 (1.44x). Prefill equal.
+Min free 80 / 175 MiB. 0 one-token in all arms. The q3_0 deep gain is below P135's q4_0 1.65x / 2.17x; the card uses the q3_0 numbers.
+Partial post on #105 edited with the correction; result posted on #105. P145 started 11:27.
+
+## 2026-10-15 11:52 CDT P145 result: bundle-20261015b PASS on the 2060
+Zip sha match; zip launcher 0 control bytes; build 10798 commit b86298dba9; FA 3115/3115. Zip's own launcher, default: window 262144 / q3_0,
+line 80,128. Sweep 53.2 / 40.8 / 22.7 vs P130 53.6 / 41.1 / 22.8 (all within 1 %). Fresh 60k 40.0. 0 one-token. Min free 83 / 111 MiB.
+Posted on #21 (can close) and #105. P144 started.
+- #21 closed (agreed with the 4070).
+
+## 2026-10-15 18:35 CDT D26h on the 2060: P147 (15c check) running, P146 (D26h gate) queued; P144 result
+Missed the 4070's D26h posts (16:56Z-20:22Z) for ~3 h: the queue ran fillers (lookup, HumanEval, deep) after P144, so the GPU was
+not idle but the top-prio item waited. Fix: filler_a_deep stopped by hand at 18:34.
+Build: vendor/prism-q3kv detached at ab9481005 (product-0059; was product-0056-2060 b86298dba), build-q3kv incremental 18:31-18:33 exit 0
+-> tooling/bin-d26h (old bins kept in tooling/bin-b86298dba-keep). DLL has GGML_CUDA_FA_SPARSE_AUTO / KV_TIER_DEMOTE_FRAC / FA_SPARSE_CALIB.
+Launcher: #126 launcher-late-reserve 7f16808 -> start-server-d26htest.ps1 (+BONSAI_BIN line, 0 control bytes).
+P146 = the 4070's "P144" ask (gates G1-G4 in the script header). P147 = bundle-20261015c post-zip check.
+P144 result: 245k q3_0, 1/8: dense copies 20/20 needles 23/24; sparse 20/20, 23/24; same miss (pos 0.562). Posted on #105.
+
+## 2026-10-15 18:55 CDT P147 result: bundle-20261015c PASS on the 2060
+sha match; build 10799 c2cf6d6450; ADD 99/99 GET_ROWS 123/123 FA 3115/3115 (110 q3_0); zip launcher q3_0, line 80,640; 4k 53.3 / 64k 40.6
+vs P130 53.6 / 41.0; 0 one-token; min free 111. Ran while nothing else used the CPU (the D26h build had ended 18:33). P146 started 18:55.
+
+## 2026-10-15 19:10 CDT P146 restarts (two false starts, no data)
+Try 1 (19:02): tooling/bin-d26h had no CUDA runtime DLLs: the launcher help probe failed (window 131072 / q4_0) and the server did not start.
+Fix: bin-d26h = build + cublas64_13 / cublasLt64_13 / cudart64_13 / nvJitLink_130_0 / nvvm64_40_0 from bin-q3sparse (--version commit ab9481005).
+Try 2 (19:08:17): a sed edit replaced the running file, but bash had the old one open (old BIN): stopped. Try 3 = queue 69jb, 19:08:34.
+A cleanup rm of receipts/p146 raced the try-3 start: folder + setup header re-made by hand; op-test lines may be missing (try 1: 3115 / 123 / 177 pass).
+Lesson: copy a test bin from an existing bin-* folder (it has the CUDA DLLs); never edit a queue script in place while it runs.
+
+## 2026-10-15 19:35 CDT P148 queued (245k quality on auto, #105 23:38Z ask)
+Auto vs dense, code n20 + needles n24 + n28, fresh server per test; forced arm if auto ran no sparse op. Note: the engine line
+"GGML_CUDA_FA_SPARSE needs an f16 mask (LLAMA_ARG_KQ_MASK_PACKED=0); off" appears once early in P146 auto_r1 AND in P143 sp_r1, where
+sparse then ran (keeps 192 of 655 pages): not a fault. 4070: one combined release (D26 + D29 12 GB q4_0) waits for P146 + P148.
+
+## 2026-10-15 23:39 CDT P146 result (D26h on the 2060): PASS G1-G4
+r2 auto/off: 64k 41.0/41.0, 80k 37.6/37.7, 96k 35.2/35.2, 112k 32.3/32.8 (-1.5 %), 128k 22.8/22.7, 160k 16.0/15.6 (+2.6 %),
+245k 9.8/8.9 (+10.1 %). r1 similar (112k -1.8 %). det_a = det_b (1,471 B, ee6f83c5...). 0 one-token; trace min free >= 71 MiB.
+Bands: 96-112k dense, 112-128k dense, 144-160k sparse (118.0 vs 110.3 ms), 224-240k sparse (204.1 vs 186.4 ms).
+Findings: (1) FRAC 1/4 keeps only +10 % at 245k vs P143's 1.44x at 1/8 on the same card. (2) Calib key holds the exact line; the line
+moves 512 cells between launches here, so r2 re-timed all bands ("ignored (key mismatch)"). Both posted on #105. P148 started 23:38.
+
+## 2026-10-16 00:00 CDT 4070: P146 = merge gate (after the calib-key line rounding); release cut after P148. P149 queued (1/8 forced, n28 first, then n24 + code), not blocking.
+
+## 2026-10-16 02:56 CDT P148 result: PASS - auto = dense item by item at 245k
+code 20/20 both; n24 23/24 both (miss vault 14, 0.562); n28 27/28 both (miss vault 15, 0.518). Auto ran sparse (keeps 668 of 2675
+pages). Calib file used (4 bands). Rig note: 2060 dense n28 27/28 vs 4070 dense 25/28 (15, 19, 24). The 2060 has no open item for
+release-20261016. Posted on #105. P149 (1/8 forced) running.
+
+## 2026-10-16 03:20 CDT Deep-context research (Cary: "28 min at max context is unusable", "card says set 131k")
+Issue #138 opened with the plan: levers 1-7 (disk prefix cache; block-sparse prefill; per-layer sparse budgets; FA kernel; prefill
+matmul; depth-gated tail 2; trained cache eviction). Fit: cold 245k ~35 % fixed (~590 s) / ~65 % attention (~1,100 s); decode 245k ~95 %
+PCIe. Queued P151 (245k op-time profile, zip bins) and P152 (BONSAI_CTX 131k vs 262k at 4k-128k) after P150; P149b after them.
+Cold 128k = ~595 s (P143 sp_mh64k ttft).
+
+## 2026-10-16 03:30 CDT P149 part 1: FRAC 1/8 forced, n28 at 245k = 27/28, miss vault 15 only (= P148 dense). Vault 16 correct on the 2060.
+Rigs disagree (4070 lost 16 at 1/8). P149 stopped after n28 by plan; P150 started 03:28. Posted on #105.
+
+## 2026-10-16 03:55 CDT Cold read-in plan posted on #138 (Cary: "useless in current form")
+Floor: fixed work ~2.4 ms/token (64k ~154 s, 128k ~310 s, 245k ~590 s) even with free attention; ub 1024 did not help (P22/P26).
+Tracks: T1 disk prefix cache + pre-read (2060), T2 exact kernels (4070), T3 sparse prefill attention, T4 token selection (early layers
+or a small Bonsai 2 scorer; the only track under the floor; opt-in first). Order: P150 -> P151 -> P152 -> P153 (slot save/restore).
+
+## 2026-10-16 04:10 CDT P154 queued (T2a, #138): t2-prefill 2724a8349 NCOLS2=2, cold 64k/128k A/B x2 + 4k byte check. Order P150 -> P154 -> P151 -> P152 -> P149b.
+4070: D30 (adaptive page budget, floor 1/8 + up to 1/4 within DELTA logits) running; a budget change needs a pass on both rigs.
+
+## 2026-10-16 04:55 CDT P150 result: bundle-20261016 PASS on the 2060; card merged (#142)
+sha match; ab94810051; FA/GET_ROWS/SET_ROWS pass; zip launcher q3_0 + auto, line 80,384; sweep 54.0 / 41.1 / 22.3 / 16.7 / 9.8 at
+4k / 64k / 128k / 160k / 245k; cold 245k 1,696 s; 0 one-token; min free 71. Card: headline "128k now runs faster than 64k did",
+honest note "cold read-in not faster yet". PR #142 merged f6b2f86. P154 started.
+
+## 2026-10-16 05:55 CDT P154 result (T2a on sm_75): cold TTFT 64k 221.2 -> 207.2 s (1.067x), 128k 589.1 -> 530.8 s (1.110x)
+alternated x2, fresh server per prompt; op tests pass both; 4k answer byte-identical on the 2060 (4070 differed on 2 of 3 prompts).
+Decode same. Posted on #138; 4070 rule (>= 10 %) met at 128k only: their call on T2a-2. P151 running.
+
+## 2026-10-16 06:15 CDT T1 (4070 T1-b PASS: restore + continue 245k in 2.2 s vs 468 s cold, byte-identical). 2060 takes server + launcher:
+branch launcher-slot-save-path (BONSAI_SLOT_SAVE_PATH -> --slot-save-path); P153 queued (69jea5, after P151): T1-b on the 2060 +
+thinking-on pair at 64k. Next: automatic prefix cache in the layer (design on #138 first).
+
+## 2026-10-16 06:30 CDT P151 result: cold 245k op shares (time-weighted) FA 65.3 %, MUL_MAT 25.2 %, GDN 4.1 %, other 5.4 %
+Up to 128k: FA ~51 %, MUL_MAT ~38 %. MUL_MAT flat per table (fixed cost). TTFT 1,697 s. Floor confirmed (~10 min at 245k with free
+attention). Posted on #138. P153 started.
+
+## 2026-10-16 06:45 CDT T1-c design posted on #138 (layer SlotCache): tokens via /apply-template + /tokenize; save at the END OF THE PROMPT
+(prefill-only call + save) so the next turn always extends it; restore the longest saved token prefix on mismatch; LRU disk budget
+20 GB; gates E1 restart, E2 switching, E3 edited history, short prompts unchanged. P153 thinking pair decides the cheaper variant.
+
+## 2026-10-16 07:15 CDT T1-c built (branch layer-slot-cache: layer/slot_cache.py + 4 hooks in bonsai_layer.py); offline test vs a fake
+server passes (save, continue, restart-restore, short skip, switching). Bug found before any run: the first hook ran before the layer
+adds run_python to the tools, so the tokens would not match: moved to the send points. P155 queued (69jea6, after P153): gates E1 / E3 / S
++ thinking-on pair, layer run with the sandbox stubbed (no wasmtime on this rig).
+
+## 2026-10-16 07:40 CDT P153 result (T1-b on the 2060): G1-G4 PASS thinking off: restore + continue 64k 1.85 s, 128k 2.75 s, 245k 5.23 s
+(cold 1,689 s); files 1,049 / 1,938 / 3,492 MiB; B2 == D2. Thinking on 64k: in memory 117 tokens (RAM checkpoint), after restore
+65,722 (full re-read): confirms the save-at-prompt-end design. Posted on #138. P155 started.
+
+## 2026-10-16 08:10 CDT T1-c v2 (4070 review: save before the generation prompt; n_saved): layer_v2 built, offline test pass; P155b queued.
+P156 = T2a-2 queued (Q1 PPL/KL 4k+16k, Q3 cold 245k pair, Q2 items). T1-d (read ahead: prefill_only request) design + T3 ask posted
+on #138. Note: a backspace byte got into a P155b comment line (C:<BS>onsai) from a Python escape; fixed with bytes; ctrl 0.

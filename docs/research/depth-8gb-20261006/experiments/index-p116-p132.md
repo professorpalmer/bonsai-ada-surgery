@@ -6,6 +6,7 @@ launcher PR #49, int8 bounds, patch 0055 = draft PR #56, the q3_0 port, the powe
 `events-p109-p132.md`, E23-E37. P109b, P114 and P115 are in `index-p109-p115.md`. State at the time of writing:
 2026-10-14 01:54, P124 running; queue order (notebook entry 06:43Z): P127, P133, P128, P129, P130, P131, P132, P125,
 P119, P120. P133 (245k copies and needles on c8bbb1898: dense, sparse B 8192, sparse B 16384) is outside this range.
+Next range: [`index-p133-p155.md`](index-p133-p155.md) ([P133](P133.md)).
 
 | ID | date | title | status | one-line result |
 | --- | --- | --- | --- | --- |

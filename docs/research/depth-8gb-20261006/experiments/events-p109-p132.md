@@ -22,6 +22,7 @@ from `events-p090-p108.md` (E1-E22). Times with "Z" are UTC (GitHub, notebook he
 - [E35 4070 D22 (int8 bounds) and patch 0055 = draft PR #56](#e35-4070-d22-int8-bounds-and-patch-0055--draft-pr-56)
 - [E36 q3_0 port 4dbfe57d4: the 4070 gates and the Q06 request](#e36-q3_0-port-4dbfe57d4-the-4070-gates-and-the-q06-request)
 - [E37 Lessons recorded in this range](#e37-lessons-recorded-in-this-range)
+- Continued in [`events-p133-p155.md`](events-p133-p155.md) (E38-E56)
 
 ## E23 Recap: the sparse VRAM allocations, 8d5b862fc and 3299a0b4b (MIN_HOST)
 
