@@ -37,3 +37,20 @@ differs. With P156 (PPL +0.018-0.023 %, KL 0) and P156c (cold 245k 1,707.1 -> 1,
 - Pool peak (product-0060p code, line 80,640, `GGML_CUDA_POOL_LOG=1`): pool[0] grows in 79 steps of 2-4 MiB to 170
   MiB during a cold 131k read; a continuation adds nothing -> `GGML_CUDA_POOL_RESERVE_MIB=192` candidate. Receipt
   `docs/receipts/pool_peak_0060p.log`.
+
+## R5 on the staged zip (2026-10-16 18:39-18:41): pass
+
+`bonsai-bundle-win-x64-20261016b.zip` unzipped fresh, its own launcher: default -> `window 262144 / q4_0 (12 GB
+default ...)`; `BONSAI_8GB=1` -> q3_0; `BONSAI_TOTAL_MIB=24576` -> q8_0 with `kv tiered`; each answered one request.
+On a free 12 GB card the q4_0 and q3_0 arms hold the whole window in VRAM, so no tier / sparse line prints; with the
+2060 line pinned (`BONSAI_KV_VRAM_CELLS=80640`) the 8 GB arm prints `kv tiered` + `kv sparse host-tail reads: auto` and
+answers. 0 control bytes in the zip's text files. Receipt `docs/receipts/release_0060t_r5.log`.
+
+## R7 publish (18:45-18:55)
+
+Release commit `baa7275b` (PR #153, reviewed by the kernel session: the 8 GB restore limit with
+`BONSAI_SHARED_POOL=0`, sm_75 wording). Zip from the bundle-20261016 layout + bins from `9fae15924e` + the release
+commit's files (9 files changed: README, launcher, 7 engine binaries): 616,655,338 B, SHA-256
+`fe5a3845fe7bef2d813bd385e47c5e818628eacf0427332ab7b8275f9c843f6b`. GitHub release `bundle-20261016b` and Hugging Face
+(`CaryPalmer/Ternary-Bonsai-2-27B-262k-GGUF`, zip + card) show the same SHA. Card PR #154. Bins installed in the
+4070 product folder (backup `bin-ab94810051`). The 2060 post-zip check (cold 245k with defaults) was asked on #105.
