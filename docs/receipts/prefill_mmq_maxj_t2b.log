@@ -1,0 +1,179 @@
+04:31 === T2b-1 start: t2-prefill 5bb256bb4 (0059 + FA_PREFILL_NCOLS2 + MMQ_MAX_J + PTQ1_0 prefill perf cases, sm_89, build-q3fast), driver 610.88
+04:31 G1 J=128: 166 OK, 0 FAIL lines, 2/2 backends passed
+04:31 G1 J=64: 170 OK, 0 FAIL lines, 2/2 backends passed
+04:31 G1 J=48: 170 OK, 0 FAIL lines, 2/2 backends passed
+G2 r1 J=128   MUL_MAT(type_a=ptq1_0,type_b=f32,m=4096,n=512,k=14336,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=128   MUL_MAT(type_a=ptq1_0,type_b=f32,m=10240,n=512,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=128   MUL_MAT(type_a=ptq1_0,type_b=f32,m=6144,n=512,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=128   MUL_MAT(type_a=ptq1_0,type_b=f32,m=5120,n=512,k=6144,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=128   MUL_MAT(type_a=ptq1_0,type_b=f32,m=17408,n=512,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=128   MUL_MAT(type_a=ptq1_0,type_b=f32,m=5120,n=512,k=17408,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=128   MUL_MAT(type_a=ptq1_0,type_b=f32,m=12288,n=512,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=128   MUL_MAT(type_a=ptq1_0,type_b=f32,m=10240,n=2048,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=128   MUL_MAT(type_a=ptq1_0,type_b=f32,m=6144,n=2048,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=128   MUL_MAT(type_a=ptq1_0,type_b=f32,m=5120,n=2048,k=6144,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=128   MUL_MAT(type_a=ptq1_0,type_b=f32,m=17408,n=2048,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=128   MUL_MAT(type_a=ptq1_0,type_b=f32,m=5120,n=2048,k=17408,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=128 m=12288 n=2048 k=5120 2715.60 us
+04:33 G2 r1 J=128 sum us/run: 2715.6; mem clock 12001 MHz
+G2 r1 J=64   MUL_MAT(type_a=ptq1_0,type_b=f32,m=4096,n=512,k=14336,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=64   MUL_MAT(type_a=ptq1_0,type_b=f32,m=10240,n=512,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=64   MUL_MAT(type_a=ptq1_0,type_b=f32,m=6144,n=512,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=64   MUL_MAT(type_a=ptq1_0,type_b=f32,m=5120,n=512,k=6144,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=64   MUL_MAT(type_a=ptq1_0,type_b=f32,m=17408,n=512,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=64   MUL_MAT(type_a=ptq1_0,type_b=f32,m=5120,n=512,k=17408,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=64   MUL_MAT(type_a=ptq1_0,type_b=f32,m=12288,n=512,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=64   MUL_MAT(type_a=ptq1_0,type_b=f32,m=10240,n=2048,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=64   MUL_MAT(type_a=ptq1_0,type_b=f32,m=6144,n=2048,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=64   MUL_MAT(type_a=ptq1_0,type_b=f32,m=5120,n=2048,k=6144,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=64   MUL_MAT(type_a=ptq1_0,type_b=f32,m=17408,n=2048,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=64   MUL_MAT(type_a=ptq1_0,type_b=f32,m=5120,n=2048,k=17408,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=64 m=12288 n=2048 k=5120 3206.96 us
+04:34 G2 r1 J=64 sum us/run: 3207.0; mem clock 12001 MHz
+G2 r1 J=48   MUL_MAT(type_a=ptq1_0,type_b=f32,m=4096,n=512,k=14336,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=48   MUL_MAT(type_a=ptq1_0,type_b=f32,m=10240,n=512,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=48   MUL_MAT(type_a=ptq1_0,type_b=f32,m=6144,n=512,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=48   MUL_MAT(type_a=ptq1_0,type_b=f32,m=5120,n=512,k=6144,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=48   MUL_MAT(type_a=ptq1_0,type_b=f32,m=17408,n=512,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=48   MUL_MAT(type_a=ptq1_0,type_b=f32,m=5120,n=512,k=17408,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=48   MUL_MAT(type_a=ptq1_0,type_b=f32,m=12288,n=512,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=48   MUL_MAT(type_a=ptq1_0,type_b=f32,m=10240,n=2048,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=48   MUL_MAT(type_a=ptq1_0,type_b=f32,m=6144,n=2048,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=48   MUL_MAT(type_a=ptq1_0,type_b=f32,m=5120,n=2048,k=6144,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=48   MUL_MAT(type_a=ptq1_0,type_b=f32,m=17408,n=2048,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=48   MUL_MAT(type_a=ptq1_0,type_b=f32,m=5120,n=2048,k=17408,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r1 J=48 m=12288 n=2048 k=5120 3625.80 us
+04:35 G2 r1 J=48 sum us/run: 3625.8; mem clock 11751 MHz
+G2 r2 J=128   MUL_MAT(type_a=ptq1_0,type_b=f32,m=4096,n=512,k=14336,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=128   MUL_MAT(type_a=ptq1_0,type_b=f32,m=10240,n=512,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=128   MUL_MAT(type_a=ptq1_0,type_b=f32,m=6144,n=512,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=128   MUL_MAT(type_a=ptq1_0,type_b=f32,m=5120,n=512,k=6144,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=128   MUL_MAT(type_a=ptq1_0,type_b=f32,m=17408,n=512,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=128   MUL_MAT(type_a=ptq1_0,type_b=f32,m=5120,n=512,k=17408,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=128   MUL_MAT(type_a=ptq1_0,type_b=f32,m=12288,n=512,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=128   MUL_MAT(type_a=ptq1_0,type_b=f32,m=10240,n=2048,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=128   MUL_MAT(type_a=ptq1_0,type_b=f32,m=6144,n=2048,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=128   MUL_MAT(type_a=ptq1_0,type_b=f32,m=5120,n=2048,k=6144,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=128   MUL_MAT(type_a=ptq1_0,type_b=f32,m=17408,n=2048,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=128   MUL_MAT(type_a=ptq1_0,type_b=f32,m=5120,n=2048,k=17408,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=128 m=12288 n=2048 k=5120 2720.26 us
+04:36 G2 r2 J=128 sum us/run: 2720.3; mem clock 11751 MHz
+G2 r2 J=64   MUL_MAT(type_a=ptq1_0,type_b=f32,m=4096,n=512,k=14336,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=64   MUL_MAT(type_a=ptq1_0,type_b=f32,m=10240,n=512,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=64   MUL_MAT(type_a=ptq1_0,type_b=f32,m=6144,n=512,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=64   MUL_MAT(type_a=ptq1_0,type_b=f32,m=5120,n=512,k=6144,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=64   MUL_MAT(type_a=ptq1_0,type_b=f32,m=17408,n=512,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=64   MUL_MAT(type_a=ptq1_0,type_b=f32,m=5120,n=512,k=17408,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=64   MUL_MAT(type_a=ptq1_0,type_b=f32,m=12288,n=512,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=64   MUL_MAT(type_a=ptq1_0,type_b=f32,m=10240,n=2048,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=64   MUL_MAT(type_a=ptq1_0,type_b=f32,m=6144,n=2048,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=64   MUL_MAT(type_a=ptq1_0,type_b=f32,m=5120,n=2048,k=6144,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=64   MUL_MAT(type_a=ptq1_0,type_b=f32,m=17408,n=2048,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=64   MUL_MAT(type_a=ptq1_0,type_b=f32,m=5120,n=2048,k=17408,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=64 m=12288 n=2048 k=5120 3210.86 us
+04:37 G2 r2 J=64 sum us/run: 3210.9; mem clock 11751 MHz
+G2 r2 J=48   MUL_MAT(type_a=ptq1_0,type_b=f32,m=4096,n=512,k=14336,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=48   MUL_MAT(type_a=ptq1_0,type_b=f32,m=10240,n=512,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=48   MUL_MAT(type_a=ptq1_0,type_b=f32,m=6144,n=512,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=48   MUL_MAT(type_a=ptq1_0,type_b=f32,m=5120,n=512,k=6144,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=48   MUL_MAT(type_a=ptq1_0,type_b=f32,m=17408,n=512,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=48   MUL_MAT(type_a=ptq1_0,type_b=f32,m=5120,n=512,k=17408,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=48   MUL_MAT(type_a=ptq1_0,type_b=f32,m=12288,n=512,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=48   MUL_MAT(type_a=ptq1_0,type_b=f32,m=10240,n=2048,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=48   MUL_MAT(type_a=ptq1_0,type_b=f32,m=6144,n=2048,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=48   MUL_MAT(type_a=ptq1_0,type_b=f32,m=5120,n=2048,k=6144,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=48   MUL_MAT(type_a=ptq1_0,type_b=f32,m=17408,n=2048,k=5120,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=48   MUL_MAT(type_a=ptq1_0,type_b=f32,m=5120,n=2048,k=17408,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0): ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+G2 r2 J=48 m=12288 n=2048 k=5120 3635.45 us
+04:38 G2 r2 J=48 sum us/run: 3635.4; mem clock 11751 MHz
+04:38 G3 r1 j128: health=1; mem clock 11751 MHz
+j128 hash 8ae434b2d6a99c5a 740
+j128 hash 7e6aadac8bfe022a 710
+j128 hash edb700ca5697ec31 130
+j128 hash all a090a7f00152d5ef
+G3 r1 j128 code   depth   4000 (evaluated 4048): prefill  1279.8 tok/s  ttft   3.16s  decode  102.5 tok/s (400 tok)
+G3 r1 j128 prose  depth   4000 (evaluated 512): prefill   982.9 tok/s  ttft   0.52s  decode   89.4 tok/s (400 tok)
+G3 r1 j128 bash   depth   4000 (evaluated 516): prefill  1015.4 tok/s  ttft   0.51s  decode   96.2 tok/s (400 tok)
+G3 r1 j128 mean decode 96.0 tok/s
+G3 r1 j128 code   depth  16000 (evaluated 12504): prefill  1211.5 tok/s  ttft  10.32s  decode  107.6 tok/s (400 tok)
+G3 r1 j128 prose  depth  16000 (evaluated 512): prefill   870.4 tok/s  ttft   0.59s  decode   96.0 tok/s (400 tok)
+G3 r1 j128 bash   depth  16000 (evaluated 516): prefill   888.1 tok/s  ttft   0.58s  decode  116.6 tok/s (400 tok)
+G3 r1 j128 mean decode 106.7 tok/s
+G3 r1 j128 code   depth  32000 (evaluated 16524): prefill  1042.2 tok/s  ttft  15.86s  decode  119.2 tok/s (400 tok)
+G3 r1 j128 prose  depth  32000 (evaluated 512): prefill   764.1 tok/s  ttft   0.67s  decode  102.5 tok/s (400 tok)
+G3 r1 j128 bash   depth  32000 (evaluated 516): prefill   771.5 tok/s  ttft   0.67s  decode   96.7 tok/s (400 tok)
+G3 r1 j128 mean decode 106.1 tok/s
+04:40 G3 r1 j64: health=1; mem clock 11751 MHz
+j64 hash 8ae434b2d6a99c5a 740
+j64 hash d80a0ba455dbba6c 638
+j64 hash 8f187e7bfcb9ed30 130
+j64 hash all 4429007220515ac1
+G3 r1 j64 code   depth   4000 (evaluated 4048): prefill  1121.6 tok/s  ttft   3.61s  decode  103.1 tok/s (400 tok)
+G3 r1 j64 prose  depth   4000 (evaluated 512): prefill   891.6 tok/s  ttft   0.57s  decode   86.8 tok/s (400 tok)
+G3 r1 j64 bash   depth   4000 (evaluated 516): prefill   895.0 tok/s  ttft   0.58s  decode   97.7 tok/s (400 tok)
+G3 r1 j64 mean decode 95.9 tok/s
+G3 r1 j64 code   depth  16000 (evaluated 12504): prefill  1063.9 tok/s  ttft  11.75s  decode  112.9 tok/s (400 tok)
+G3 r1 j64 prose  depth  16000 (evaluated 512): prefill   792.2 tok/s  ttft   0.65s  decode   92.0 tok/s (400 tok)
+G3 r1 j64 bash   depth  16000 (evaluated 516): prefill   803.7 tok/s  ttft   0.64s  decode   95.7 tok/s (400 tok)
+G3 r1 j64 mean decode 100.2 tok/s
+G3 r1 j64 code   depth  32000 (evaluated 16524): prefill   933.6 tok/s  ttft  17.70s  decode  117.3 tok/s (400 tok)
+G3 r1 j64 prose  depth  32000 (evaluated 512): prefill   711.4 tok/s  ttft   0.72s  decode  101.3 tok/s (400 tok)
+G3 r1 j64 bash   depth  32000 (evaluated 516): prefill   712.9 tok/s  ttft   0.72s  decode   92.4 tok/s (400 tok)
+G3 r1 j64 mean decode 103.7 tok/s
+04:41 G3 r1 j48: health=1; mem clock 11751 MHz
+j48 hash 8ae434b2d6a99c5a 740
+j48 hash a2e989830583809e 651
+j48 hash edb700ca5697ec31 130
+j48 hash all 04ff69f6d2dfd4ba
+G3 r1 j48 code   depth   4000 (evaluated 4048): prefill  1026.0 tok/s  ttft   3.95s  decode  101.8 tok/s (400 tok)
+G3 r1 j48 prose  depth   4000 (evaluated 512): prefill   821.2 tok/s  ttft   0.62s  decode   86.4 tok/s (400 tok)
+G3 r1 j48 bash   depth   4000 (evaluated 516): prefill   841.5 tok/s  ttft   0.61s  decode   98.1 tok/s (400 tok)
+G3 r1 j48 mean decode 95.4 tok/s
+G3 r1 j48 code   depth  16000 (evaluated 12504): prefill   971.2 tok/s  ttft  12.88s  decode  120.2 tok/s (400 tok)
+G3 r1 j48 prose  depth  16000 (evaluated 512): prefill   745.4 tok/s  ttft   0.69s  decode   81.4 tok/s (400 tok)
+G3 r1 j48 bash   depth  16000 (evaluated 516): prefill   744.4 tok/s  ttft   0.69s  decode   89.1 tok/s (400 tok)
+G3 r1 j48 mean decode 96.9 tok/s
+G3 r1 j48 code   depth  32000 (evaluated 16524): prefill   861.2 tok/s  ttft  19.19s  decode  108.3 tok/s (400 tok)
+G3 r1 j48 prose  depth  32000 (evaluated 512): prefill   671.3 tok/s  ttft   0.76s  decode   88.6 tok/s (400 tok)
+G3 r1 j48 bash   depth  32000 (evaluated 516): prefill   673.8 tok/s  ttft   0.77s  decode  103.0 tok/s (400 tok)
+G3 r1 j48 mean decode 100.0 tok/s
+04:43 G3 r2 j128: health=1; mem clock 11751 MHz
+G3 r2 j128 code   depth   4000 (evaluated 4048): prefill  1286.5 tok/s  ttft   3.15s  decode  102.7 tok/s (400 tok)
+G3 r2 j128 prose  depth   4000 (evaluated 512): prefill   985.3 tok/s  ttft   0.52s  decode   88.8 tok/s (400 tok)
+G3 r2 j128 bash   depth   4000 (evaluated 516): prefill  1002.6 tok/s  ttft   0.51s  decode   95.3 tok/s (400 tok)
+G3 r2 j128 mean decode 95.6 tok/s
+G3 r2 j128 code   depth  16000 (evaluated 12504): prefill  1212.3 tok/s  ttft  10.31s  decode  107.5 tok/s (400 tok)
+G3 r2 j128 prose  depth  16000 (evaluated 512): prefill   881.4 tok/s  ttft   0.58s  decode   96.5 tok/s (400 tok)
+G3 r2 j128 bash   depth  16000 (evaluated 516): prefill   883.9 tok/s  ttft   0.58s  decode  117.5 tok/s (400 tok)
+G3 r2 j128 mean decode 107.2 tok/s
+G3 r2 j128 code   depth  32000 (evaluated 16524): prefill  1043.3 tok/s  ttft  15.84s  decode  119.1 tok/s (400 tok)
+G3 r2 j128 prose  depth  32000 (evaluated 512): prefill   772.7 tok/s  ttft   0.66s  decode  102.7 tok/s (400 tok)
+G3 r2 j128 bash   depth  32000 (evaluated 516): prefill   771.7 tok/s  ttft   0.67s  decode   96.2 tok/s (400 tok)
+G3 r2 j128 mean decode 106.0 tok/s
+04:44 G3 r2 j64: health=1; mem clock 11751 MHz
+G3 r2 j64 code   depth   4000 (evaluated 4048): prefill  1125.7 tok/s  ttft   3.60s  decode  103.5 tok/s (400 tok)
+G3 r2 j64 prose  depth   4000 (evaluated 512): prefill   895.3 tok/s  ttft   0.57s  decode   87.6 tok/s (400 tok)
+G3 r2 j64 bash   depth   4000 (evaluated 516): prefill   907.7 tok/s  ttft   0.57s  decode   98.6 tok/s (400 tok)
+G3 r2 j64 mean decode 96.6 tok/s
+G3 r2 j64 code   depth  16000 (evaluated 12504): prefill  1064.2 tok/s  ttft  11.75s  decode  112.8 tok/s (400 tok)
+G3 r2 j64 prose  depth  16000 (evaluated 512): prefill   797.3 tok/s  ttft   0.64s  decode   91.7 tok/s (400 tok)
+G3 r2 j64 bash   depth  16000 (evaluated 516): prefill   796.1 tok/s  ttft   0.65s  decode   94.7 tok/s (400 tok)
+G3 r2 j64 mean decode 99.8 tok/s
+G3 r2 j64 code   depth  32000 (evaluated 16524): prefill   933.3 tok/s  ttft  17.70s  decode  117.5 tok/s (400 tok)
+G3 r2 j64 prose  depth  32000 (evaluated 512): prefill   713.2 tok/s  ttft   0.72s  decode  102.5 tok/s (400 tok)
+G3 r2 j64 bash   depth  32000 (evaluated 516): prefill   716.4 tok/s  ttft   0.72s  decode   93.3 tok/s (400 tok)
+G3 r2 j64 mean decode 104.4 tok/s
+04:46 G3 r2 j48: health=1; mem clock 11751 MHz
+G3 r2 j48 code   depth   4000 (evaluated 4048): prefill  1026.3 tok/s  ttft   3.94s  decode  102.7 tok/s (400 tok)
+G3 r2 j48 prose  depth   4000 (evaluated 512): prefill   818.0 tok/s  ttft   0.63s  decode   86.1 tok/s (400 tok)
+G3 r2 j48 bash   depth   4000 (evaluated 516): prefill   829.7 tok/s  ttft   0.62s  decode   98.1 tok/s (400 tok)
+G3 r2 j48 mean decode 95.6 tok/s
+G3 r2 j48 code   depth  16000 (evaluated 12504): prefill   972.2 tok/s  ttft  12.86s  decode  121.9 tok/s (400 tok)
+G3 r2 j48 prose  depth  16000 (evaluated 512): prefill   747.8 tok/s  ttft   0.68s  decode   82.3 tok/s (400 tok)
+G3 r2 j48 bash   depth  16000 (evaluated 516): prefill   751.0 tok/s  ttft   0.69s  decode   90.1 tok/s (400 tok)
+G3 r2 j48 mean decode 98.1 tok/s
+G3 r2 j48 code   depth  32000 (evaluated 16524): prefill   861.4 tok/s  ttft  19.18s  decode  107.1 tok/s (400 tok)
+G3 r2 j48 prose  depth  32000 (evaluated 512): prefill   664.7 tok/s  ttft   0.77s  decode   87.9 tok/s (400 tok)
+G3 r2 j48 bash   depth  32000 (evaluated 516): prefill   669.0 tok/s  ttft   0.77s  decode  101.8 tok/s (400 tok)
+G3 r2 j48 mean decode 98.9 tok/s
+04:47 === T2b-1 done
