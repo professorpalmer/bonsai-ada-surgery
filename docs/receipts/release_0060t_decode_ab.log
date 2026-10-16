@@ -1,0 +1,20 @@
+15:51 === 0060t decode A/B start: new commit 9fae15924e, old commit ab94810051
+run 1 old code   depth 128000 (evaluated 127340): prefill   758.2 tok/s  ttft 167.95s  decode   67.3 tok/s (400 tok)
+15:55 run 1 old: clock 11751 MHz, 2745 MHz, 63
+run 2 new code   depth 128000 (evaluated 127340): prefill   756.9 tok/s  ttft 168.23s  decode   66.9 tok/s (400 tok)
+15:58 run 2 new: clock 11751 MHz, 2700 MHz, 68
+run 3 new code   depth 128000 (evaluated 127340): prefill   756.9 tok/s  ttft 168.25s  decode   67.0 tok/s (400 tok)
+16:02 run 3 new: clock 11751 MHz, 2730 MHz, 67
+run 4 old code   depth 128000 (evaluated 127340): prefill   756.9 tok/s  ttft 168.24s  decode   67.1 tok/s (400 tok)
+16:05 run 4 old: clock 11751 MHz, 2685 MHz, 67
+run 5 new code   depth 128000 (evaluated 127340): prefill   756.6 tok/s  ttft 168.32s  decode   66.8 tok/s (400 tok)
+16:08 run 5 new: clock 11751 MHz, 2745 MHz, 66
+run 6 old code   depth 128000 (evaluated 127340): prefill   756.3 tok/s  ttft 168.36s  decode   67.1 tok/s (400 tok)
+16:12 run 6 old: clock 11751 MHz, 2775 MHz, 62
+run 7 old code   depth 128000 (evaluated 127340): prefill   756.5 tok/s  ttft 168.33s  decode   66.8 tok/s (400 tok)
+16:15 run 7 old: clock 11751 MHz, 2700 MHz, 67
+run 8 new code   depth 128000 (evaluated 127340): prefill   755.5 tok/s  ttft 168.55s  decode   67.3 tok/s (400 tok)
+16:19 run 8 new: clock 11751 MHz, 2670 MHz, 68
+decode mean old 67.07 new 67.00 tok/s, difference -0.11 %
+block 1: old 67.20 new 66.95 -> -0.37 %
+block 2: old 66.95 new 67.05 -> +0.15 %

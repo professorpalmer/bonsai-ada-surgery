@@ -74,7 +74,7 @@ How, and every receipt: [`docs/Q8_FULL_CONTEXT.md`](docs/Q8_FULL_CONTEXT.md). Sh
 | --- | --- | --- |
 | Windows, an NVIDIA card (RTX 20/30/40/50) | download the release zip, drop in the model, run `start-server.ps1` | [Quick start (Windows)](#quick-start-windows-nvidia) |
 | Hugging Face | the same bundle plus the ready-made MTP-grafted GGUF (`hf download`, no graft step) | [CaryPalmer/Ternary-Bonsai-2-27B-262k-GGUF](https://huggingface.co/CaryPalmer/Ternary-Bonsai-2-27B-262k-GGUF) |
-| Linux, NVIDIA driver + CUDA toolkit | `bash build/build_linux.sh` builds the pinned PrismML source with all 59 patches applied | [Quick start (Linux)](#quick-start-linux-nvidia) |
+| Linux, NVIDIA driver + CUDA toolkit | `bash build/build_linux.sh` builds the pinned PrismML source with all 61 patches applied | [Quick start (Linux)](#quick-start-linux-nvidia) |
 | your own llama.cpp workflow | build the fork branch `bonsai-q8-product`, or `git am` the series in `patches/` onto PrismML `adfffbe` | [The patch stack](#the-patch-stack) |
 | an older bundle of this repo | `git pull`, unzip the latest zip over it, run `layer\fetch_runtime.ps1` once | [Upgrading](#upgrading-from-an-older-bundle) |
 
@@ -116,6 +116,14 @@ Windows demotes a background process's memory, and puts as many positions in VRA
 the tiered-KV runtime are detected and get the previous 96k all-VRAM recipe.
 
 ### Upgrading from an older bundle
+
+`bundle-20261016b` makes **cold reads faster on RTX 20-series (Turing) cards** (patches 0060 / 0061): prefill
+attention packs 2 query heads per column group by default on sm_75 (no padding columns, fewer K/V tile loads). RTX 2060
+SUPER, cold prompts: 64k 1.067x, 128k 1.110x, **245k 1,707 -> 1,489 s (1.147x)**; perplexity +0.02 %, KL 0, and at 245k
+the copy and needle items equal the previous default. Other cards are unchanged (byte-identical answers on an RTX 4070).
+`GGML_CUDA_FA_PREFILL_NCOLS2=8` turns it off. The launcher in this bundle also has `BONSAI_SLOT_SAVE_PATH` (saved
+conversations, see [the knobs table](#knobs-environment-variables); on 8 GB cards with MTP on, the first long turn after a restore is
+slow, `BONSAI_SPEC=0` avoids it).
 
 `bundle-20261016` gives **12 GB cards the whole window at speed** and makes **sparse reads automatic on 8 GB** (patch
 0059 and the launcher).
@@ -509,13 +517,15 @@ Hadamard-embedding fix of sudoingX's #217 landed through #205. #285 was split at
 | 0057 | K/V tile dequant in the MMA flash-attention loader as packed halves for q4_0, q8_0 and q3_0 (1024 + q in the mantissa bits, minus the offset, times d): bit-identical to the float path, no int/float conversions. RTX 4070, 64k, answers byte-identical: q3_0 +1.7 %, q4_0 +0.6 %, q8_0 +0.8 % decode (D27, D28) | this repo |
 | 0058 | Responses API (`/v1/responses`): a tool result (`function_call_output`) may hold an `input_image`, sent on as an `image_url` part (with `BONSAI_MMPROJ`). It was rejected with HTTP 400 ("Output of tool call should be 'Input text'"), and a client that keeps the item in its history then failed on every later request. Cherry-pick of ggml-org/llama.cpp `4098fdc922` | [ggml-org #22575](https://github.com/ggml-org/llama.cpp/pull/22575) |
 | 0059 | Sparse attention without a shallow-depth cost: **late reserve** (`GGML_CUDA_KV_TIER_DEMOTE_FRAC`): the dense VRAM line is kept until sparse first engages; then the top of each VRAM head moves to system RAM at the same address and its VRAM holds the page bounds. **Self-timing engage** (`GGML_CUDA_FA_SPARSE_AUTO`): per 16k band of context the engine times dense against sparse once and keeps the faster (sparse only when > 3 % faster), stored in a calibration file so a depth runs the same mode on every request and after a restart. The 8 GB launcher uses both by default (`BONSAI_SPARSE=0` off, `=1` forced). Not in a bundle yet | this repo |
+| 0060 | `GGML_CUDA_FA_PREFILL_NCOLS2=2`: prefill-sized MMA flash attention with a GQA ratio that 8 does not divide (Bonsai: 24 Q / 4 KV heads) packs 2 Q heads per column group instead of 8 (no padding columns, each K/V tile loaded for more tokens). PPL-equal, not byte-identical (the stream-k split changes with the number of Q tiles) | this repo |
+| 0061 | NCOLS2=2 **by default on Turing** (sm_75) only; `GGML_CUDA_FA_PREFILL_NCOLS2=8` turns it off, `=2` turns it on elsewhere. RTX 2060 SUPER: cold 245k 1.147x, 128k 1.110x; PPL +0.02 %, KL 0, 245k copies / needles = default (`docs/research/coldread-20261016/`, `docs/research/release-0060/`) | this repo |
 
 How each cut was found (CUPTI traces, L1 wavefront counts, what did not work):
 [`surgery/ADA4070_PTQ1.md`](surgery/ADA4070_PTQ1.md) and [`docs/Q8_FULL_CONTEXT.md`](docs/Q8_FULL_CONTEXT.md).
 
 ## Quick start (Linux, NVIDIA)
 
-`build/build_linux.sh` fetches the pinned PrismML source (`adfffbe`) and applies **all 59 patches in `patches/`**,
+`build/build_linux.sh` fetches the pinned PrismML source (`adfffbe`) and applies **all 61 patches in `patches/`**,
 including the `common.cuh` header fix (0024) and the Hopper/Blackwell PDL dependency wait (0026). No manual patch
 application or Git author configuration is needed. There is no prebuilt Linux binary yet.
 
@@ -653,7 +663,7 @@ python bench\mtp_identity.py                   # greedy draft-on vs draft-off
 
 | Path | What |
 | --- | --- |
-| `patches/` | the 58-commit stack on PrismML `adfffbe`, `git am`-able |
+| `patches/` | the 61-commit stack on PrismML `adfffbe`, `git am`-able |
 | `start-server.ps1`, `start-remote.ps1` | the recipe (LAN / Cloudflare tunnel) |
 | `build/build_linux.sh`, `start-linux.sh` | Linux build from the pinned base + patches, first-run launcher |
 | `tests/`, `.github/workflows/` | Linux setup tests, Linux CUDA compile and PDL code-generation CI |

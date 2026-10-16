@@ -1,0 +1,86 @@
+15:48:25 === pool peak start: health=1; kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; shared CUDA pool on (B
+{"depth": 131072, "phase": "prime", "file": "poolpeak.bin", "answer_a": "vault 1: 8411\nvault 2: 8629\nvault 3: 8402\nvault 4: 9320\nvault 5: 4111\nvault 6: 4025\nvault 7: 9387\nvault 8: 8794", "a_pro
+15:51:36 growth lines: 80
+0.03.172.613 I cmn          init: llama threadpool init, n_threads = 16
+0.03.213.799 W grow: cuda pool[0] grew by 2.0 MiB to 2.0 MiB
+0.04.795.838 W grow: cuda pool[0] grew by 2.0 MiB to 4.0 MiB
+0.04.846.476 W grow: cuda pool[0] grew by 4.0 MiB to 8.0 MiB
+0.04.986.823 W grow: cuda pool[0] grew by 2.0 MiB to 10.0 MiB
+0.04.986.989 W grow: cuda pool[0] grew by 4.0 MiB to 14.0 MiB
+0.06.041.984 W grow: cuda pool[0] grew by 2.0 MiB to 16.0 MiB
+0.06.457.966 W grow: cuda pool[0] grew by 2.0 MiB to 18.0 MiB
+0.06.815.743 W grow: cuda pool[0] grew by 2.0 MiB to 20.0 MiB
+0.07.176.797 W grow: cuda pool[0] grew by 2.0 MiB to 22.0 MiB
+0.07.544.422 W grow: cuda pool[0] grew by 2.0 MiB to 24.0 MiB
+0.07.962.136 W grow: cuda pool[0] grew by 2.0 MiB to 26.0 MiB
+0.08.329.814 W grow: cuda pool[0] grew by 2.0 MiB to 28.0 MiB
+0.08.702.111 W grow: cuda pool[0] grew by 2.0 MiB to 30.0 MiB
+0.09.077.320 W grow: cuda pool[0] grew by 2.0 MiB to 32.0 MiB
+0.09.506.392 W grow: cuda pool[0] grew by 2.0 MiB to 34.0 MiB
+0.09.884.091 W grow: cuda pool[0] grew by 2.0 MiB to 36.0 MiB
+0.10.265.265 W grow: cuda pool[0] grew by 2.0 MiB to 38.0 MiB
+0.10.650.512 W grow: cuda pool[0] grew by 2.0 MiB to 40.0 MiB
+0.11.092.965 W grow: cuda pool[0] grew by 2.0 MiB to 42.0 MiB
+0.11.478.348 W grow: cuda pool[0] grew by 2.0 MiB to 44.0 MiB
+0.11.870.491 W grow: cuda pool[0] grew by 2.0 MiB to 46.0 MiB
+0.12.265.737 W grow: cuda pool[0] grew by 2.0 MiB to 48.0 MiB
+0.12.771.988 W grow: cuda pool[0] grew by 2.0 MiB to 50.0 MiB
+0.13.162.286 W grow: cuda pool[0] grew by 2.0 MiB to 52.0 MiB
+0.13.565.922 W grow: cuda pool[0] grew by 2.0 MiB to 54.0 MiB
+0.13.978.502 W grow: cuda pool[0] grew by 2.0 MiB to 56.0 MiB
+0.14.449.960 W grow: cuda pool[0] grew by 2.0 MiB to 58.0 MiB
+0.14.861.372 W grow: cuda pool[0] grew by 2.0 MiB to 60.0 MiB
+0.15.280.694 W grow: cuda pool[0] grew by 2.0 MiB to 62.0 MiB
+0.15.700.380 W grow: cuda pool[0] grew by 2.0 MiB to 64.0 MiB
+0.16.186.490 W grow: cuda pool[0] grew by 2.0 MiB to 66.0 MiB
+0.16.610.269 W grow: cuda pool[0] grew by 2.0 MiB to 68.0 MiB
+0.17.037.041 W grow: cuda pool[0] grew by 2.0 MiB to 70.0 MiB
+0.17.468.923 W grow: cuda pool[0] grew by 2.0 MiB to 72.0 MiB
+0.17.968.827 W grow: cuda pool[0] grew by 2.0 MiB to 74.0 MiB
+0.18.403.923 W grow: cuda pool[0] grew by 2.0 MiB to 76.0 MiB
+0.18.841.858 W grow: cuda pool[0] grew by 2.0 MiB to 78.0 MiB
+0.19.284.523 W grow: cuda pool[0] grew by 2.0 MiB to 80.0 MiB
+0.19.797.972 W grow: cuda pool[0] grew by 2.0 MiB to 82.0 MiB
+0.20.244.189 W grow: cuda pool[0] grew by 2.0 MiB to 84.0 MiB
+0.20.694.135 W grow: cuda pool[0] grew by 2.0 MiB to 86.0 MiB
+0.21.147.277 W grow: cuda pool[0] grew by 2.0 MiB to 88.0 MiB
+0.21.715.207 W grow: cuda pool[0] grew by 2.0 MiB to 90.0 MiB
+0.22.169.849 W grow: cuda pool[0] grew by 2.0 MiB to 92.0 MiB
+0.22.630.593 W grow: cuda pool[0] grew by 2.0 MiB to 94.0 MiB
+0.23.103.938 W grow: cuda pool[0] grew by 2.0 MiB to 96.0 MiB
+0.23.632.849 W grow: cuda pool[0] grew by 2.0 MiB to 98.0 MiB
+0.24.101.482 W grow: cuda pool[0] grew by 2.0 MiB to 100.0 MiB
+0.24.574.378 W grow: cuda pool[0] grew by 2.0 MiB to 102.0 MiB
+0.25.048.859 W grow: cuda pool[0] grew by 2.0 MiB to 104.0 MiB
+0.25.597.699 W grow: cuda pool[0] grew by 2.0 MiB to 106.0 MiB
+0.26.077.322 W grow: cuda pool[0] grew by 2.0 MiB to 108.0 MiB
+0.26.561.727 W grow: cuda pool[0] grew by 2.0 MiB to 110.0 MiB
+0.27.047.006 W grow: cuda pool[0] grew by 2.0 MiB to 112.0 MiB
+0.27.606.965 W grow: cuda pool[0] grew by 2.0 MiB to 114.0 MiB
+0.28.097.223 W grow: cuda pool[0] grew by 2.0 MiB to 116.0 MiB
+0.28.593.309 W grow: cuda pool[0] grew by 2.0 MiB to 118.0 MiB
+0.29.090.840 W grow: cuda pool[0] grew by 2.0 MiB to 120.0 MiB
+0.29.662.293 W grow: cuda pool[0] grew by 2.0 MiB to 122.0 MiB
+0.30.165.024 W grow: cuda pool[0] grew by 2.0 MiB to 124.0 MiB
+0.30.672.058 W grow: cuda pool[0] grew by 2.0 MiB to 126.0 MiB
+0.31.192.308 W grow: cuda pool[0] grew by 2.0 MiB to 128.0 MiB
+0.31.805.153 W grow: cuda pool[0] grew by 2.0 MiB to 130.0 MiB
+0.32.319.307 W grow: cuda pool[0] grew by 2.0 MiB to 132.0 MiB
+0.32.837.607 W grow: cuda pool[0] grew by 2.0 MiB to 134.0 MiB
+0.33.359.762 W grow: cuda pool[0] grew by 8.0 MiB to 142.0 MiB
+1.51.413.780 W grow: cuda pool[0] grew by 2.0 MiB to 144.0 MiB
+1.52.205.368 W grow: cuda pool[0] grew by 2.0 MiB to 146.0 MiB
+1.53.005.304 W grow: cuda pool[0] grew by 2.0 MiB to 148.0 MiB
+1.53.807.467 W grow: cuda pool[0] grew by 2.0 MiB to 150.0 MiB
+1.54.682.549 W grow: cuda pool[0] grew by 4.0 MiB to 154.0 MiB
+1.55.486.494 W grow: cuda pool[0] grew by 2.0 MiB to 156.0 MiB
+1.56.296.773 W grow: cuda pool[0] grew by 2.0 MiB to 158.0 MiB
+1.57.107.808 W grow: cuda pool[0] grew by 2.0 MiB to 160.0 MiB
+1.57.993.543 W grow: cuda pool[0] grew by 2.0 MiB to 162.0 MiB
+1.57.993.701 W grow: cuda pool[0] grew by 2.0 MiB to 164.0 MiB
+1.58.809.275 W grow: cuda pool[0] grew by 2.0 MiB to 166.0 MiB
+1.59.629.488 W grow: cuda pool[0] grew by 2.0 MiB to 168.0 MiB
+2.00.451.883 W grow: cuda pool[0] grew by 2.0 MiB to 170.0 MiB
+15:51:37 largest 'to X MiB' per pool index:
+pool[0] 170.0 MiB
+15:51:37 === pool peak done
