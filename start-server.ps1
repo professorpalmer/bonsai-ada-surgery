@@ -110,7 +110,8 @@ $Ctx = if ($env:BONSAI_CTX) { [int]$env:BONSAI_CTX } elseif ($Small) { if ($Smal
 # 12 GB band (total VRAM up to 14 GB): q4_0 since D29 (docs/research/depth-20261010): 18,432 B per position puts ~99 % of
 # the 262k window in VRAM
 # (RTX 4070: line 129,024 -> 260,352 at margin 1000, 242,176 at margin 1300 with the display on the card); decode
-# 192k 26.7 -> 64.2 and 245k 15.4 -> 61.0 tok/s; 245k copies 20/20, needles 24/24 (q8_0 23/24); perplexity -c 2048
+# 192k 26.7 -> 64.2 and 245k 15.4 -> 61.0 tok/s (display on the card: 242,176 cells, 192k 62.5, 245k 45.7, D29b);
+# 245k copies 20/20, needles 24/24 (q8_0 23/24); perplexity -c 2048
 # 8.0733 -> 8.0900 (+0.21 %); HumanEval 158/164. BONSAI_CTK=q8_0 keeps the previous 12 GB default. Larger cards keep
 # q8_0: there most or all of the q8_0 window fits in VRAM, so q4_0 would cost precision for little or nothing.
 $Band12 = -not $Small -and $TotalMiB -le 14336
