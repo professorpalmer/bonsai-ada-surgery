@@ -388,7 +388,10 @@ if ($Tier) {
         $CalibPath = Join-Path $CalibDir 'sparse-calib.txt'
         $Driver = ''; try { $Driver = (& nvidia-smi --query-gpu=driver_version --format=csv,noheader | Select-Object -First 1).Trim() } catch { }
         $CudaStamp = ''; try { $ci = Get-Item (Join-Path $Bin 'ggml-cuda.dll'); $CudaStamp = "$($ci.Length)-$($ci.LastWriteTimeUtc.Ticks)" } catch { }
-        $CalibKey = ("{0}|{1}|{2}|line {3}/{4}|{5}|ctx {6}|{7}|frac {8}" -f $GpuName, $Driver, $CudaStamp, $TierCellsDense, $TierCellsSparse, $Ctk, $Ctx, $env:GGML_CUDA_FA_SPARSE, $env:GGML_CUDA_FA_SPARSE_FRAC) -replace '\s+', '_'
+        # the lines rounded to 4k cells: free VRAM moves the exact line by a few hundred cells between launches, which must not
+        # throw the timings away (P146: the 2060's line moved 512 cells and every band was timed again)
+        $LineKey = "{0}/{1}" -f ([int][math]::Round($TierCellsDense / 4096) * 4096), ([int][math]::Round($TierCellsSparse / 4096) * 4096)
+        $CalibKey = ("{0}|{1}|{2}|line ~{3}|{4}|ctx {5}|{6}|frac {7}" -f $GpuName, $Driver, $CudaStamp, $LineKey, $Ctk, $Ctx, $env:GGML_CUDA_FA_SPARSE, $env:GGML_CUDA_FA_SPARSE_FRAC) -replace '\s+', '_'
         $env:GGML_CUDA_FA_SPARSE_CALIB = $CalibPath
         $env:GGML_CUDA_FA_SPARSE_CALIB_KEY = $CalibKey
         $CalibNote = 'new (each 16k band past the engage point is timed once, on first use)'
