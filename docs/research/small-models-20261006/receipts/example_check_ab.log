@@ -1,0 +1,6 @@
+08:55 === G1b example check A/B, 2B, through the layer: health=1 layer  on: clients use :8080; llama-server on 127.0.0.1:18080
+layer: pass@1 52.44%  (86/164)  arm=medium effort=- temp=0.0 max_tokens=24576  1184.8s
+layerec: pass@1 54.88%  (90/164)  arm=medium effort=- temp=0.0 max_tokens=24576  3045.8s
+A layer 86/164, B layer+example check 90/164, B-A +4; recovered 4 ['HumanEval/14', 'HumanEval/51', 'HumanEval/54', 'HumanEval/61']; broke 0 []
+rule (Plan G1b): adopt for the 2B if B-A >= +3 and broke <= 1 -> ADOPT
+10:06 === G1b done

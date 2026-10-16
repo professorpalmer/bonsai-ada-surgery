@@ -1,0 +1,15 @@
+01:24 2B er0: health=1; layer  on: clients use :8080; llama-server on 127.0.0.1:18080; example check on
+2B er0: n=120 edit calls=105 exact+unique=51 (applied exactly as asked 9, comment in place 13) rejected=54 [content 52, whitespace 0, not unique 2] rejected/calls=51% no call=15 errors=0
+01:29 2B er1: health=1; layer  on: clients use :8080; llama-server on 127.0.0.1:18080; example check on; edit repair on
+2B er1: n=120 edit calls=105 exact+unique=68 (applied exactly as asked 9, comment in place 13) rejected=37 [content 35, whitespace 0, not unique 2] rejected/calls=35% no call=15 errors=0
+2B offline on er0: results/2B/exact_copy_layer_er0: edit calls 105; rejected 54 (51%) -> 37 (35%); repaired 17; broke 0; comment in place 13 -> 13
+2B offline on er0:    before {'exact_unique': 51, 'content_mismatch': 52, 'exact_not_unique': 2}
+2B offline on er0:    after  {'exact_unique': 68, 'content_mismatch': 35, 'exact_not_unique': 2}
+01:34 4B er0: health=1; layer  on: clients use :8080; llama-server on 127.0.0.1:18080
+4B er0: n=120 edit calls=94 exact+unique=71 (applied exactly as asked 43, comment in place 49) rejected=23 [content 9, whitespace 0, not unique 14] rejected/calls=24% no call=26 errors=0
+01:51 4B er1: health=1; layer  on: clients use :8080; llama-server on 127.0.0.1:18080; edit repair on
+4B er1: n=120 edit calls=94 exact+unique=73 (applied exactly as asked 43, comment in place 49) rejected=21 [content 7, whitespace 0, not unique 14] rejected/calls=22% no call=26 errors=0
+4B offline on er0: results/4B/exact_copy_layer_er0: edit calls 94; rejected 23 (24%) -> 21 (22%); repaired 2; broke 0; comment in place 49 -> 49
+4B offline on er0:    before {'exact_unique': 71, 'content_mismatch': 9, 'exact_not_unique': 14}
+4B offline on er0:    after  {'exact_unique': 73, 'content_mismatch': 7, 'exact_not_unique': 14}
+02:07 === exact-copy er done

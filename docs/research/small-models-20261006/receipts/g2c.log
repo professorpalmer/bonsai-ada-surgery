@@ -1,0 +1,11 @@
+02:56 === G2c start; sizes 4B; layer check_note default off; plan bench/plans/computation_c.json
+02:56 4B: serve health=1, check layer health=1
+| computation | digits | 4/6 | 6/6 | 2 / 0 |
+| computation | knapsack | 6/6 | 6/6 | 0 / 0 |
+| computation | lcs | 4/6 | 2/6 | 0 / 2 |
+| computation | sales | 3/6 | 3/6 | 2 / 2 |
+| computation | weblog | 2/6 | 4/6 | 3 / 1 |
+| **total** | | **19/30** | **21/30** | **7 / 5** |
+
+completion tokens: layer 422,533, layer_check 752,644
+05:02 === G2c done

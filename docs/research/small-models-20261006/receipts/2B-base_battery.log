@@ -1,0 +1,31 @@
+22:17 === battery 2B-base Q4_K_M start; engine version: 0.2.0-dev (build 10783, commit 8a6d2ea12)
+22:17 arm raw: health=1 inner=http://127.0.0.1:8080 listen 0.0.0.0:8080  think=True effort=medium budget=-1 harness-proofing=False backend-sampling=True presence=
+pass@1 50.0%  (82/164)  arm=off effort=- temp=0.0 max_tokens=1024  178.8s
+   loops (finish=length): 4/164
+pass@1 52.5%  (21/40)  arm=medium effort=- temp=0.0 max_tokens=24576  1490.6s
+   loops (finish=length): 15/40
+22:45 arm serve: health=1 inner=http://127.0.0.1:18080 listen 0.0.0.0:8080  think=True effort=medium budget=20480 harness-proofing=True backend-sampling=True presenc
+pass@1 50.0%  (82/164)  arm=off effort=- temp=0.0 max_tokens=1024  169.8s
+   loops (finish=length): 4/164
+pass@1 70.0%  (28/40)  arm=medium effort=- temp=0.0 max_tokens=24576  1279.8s
+   loops (finish=length): 3/40
+23:09 tool-call stress (serve, inner):
+== summary ==
+A_native_grammar   n=9 parsed=5 payload_ok=2 cut_by_max_tokens=3 median_payload_chars=23116 mean_tps=258.0
+B_json_in_content  n=9 parsed=1 payload_ok=0 cut_by_max_tokens=5 median_payload_chars=- mean_tps=261.0
+23:15 suite: raw (inner) vs layer (:8080), frozen plan, same seeds
+| coding | xfer-zip-01 | 0/4 | 0/4 | 0 / 0 |
+| computation | digits | 0/3 | 1/3 | 1 / 0 |
+| computation | knapsack | 1/3 | 1/3 | 0 / 0 |
+| computation | lcs | 0/3 | 0/3 | 0 / 0 |
+| computation | sales | 0/3 | 0/3 | 0 / 0 |
+| computation | weblog | 0/3 | 0/3 | 0 / 0 |
+| workspace | chain | 2/2 | 2/2 | 0 / 0 |
+| workspace | copy | 2/2 | 2/2 | 0 / 0 |
+| workspace | dedupeH | 0/2 | 0/2 | 0 / 0 |
+| workspace | invoiceH | 0/2 | 0/2 | 0 / 0 |
+| workspace | ledgerH | 0/2 | 0/2 | 0 / 0 |
+| **total** | | **5/37** | **6/37** | **1 / 0** |
+
+completion tokens: raw 960,602, layer 805,427
+01:22 === battery 2B-base done; serve arm left running (layer :8080, inner :18080)

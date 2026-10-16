@@ -1,0 +1,49 @@
+17:26 === T1 start; sizes 9B 4B 2B; layer test_first default off; plan bench/plans/coding.json
+17:27 9B: serve health=1, test-first layer health=1
+| family | task | layer | layer_testfirst | rescues / losses (B vs A) |
+| --- | --- | ---: | ---: | --- |
+| coding | suite-tar-01 | 0/4 | 0/4 | 0 / 0 |
+| coding | xfer-mime-01 | 0/4 | 0/4 | 0 / 0 |
+| coding | xfer-zip-01 | 0/4 | 0/4 | 0 / 0 |
+| **total** | | **0/12** | **0/12** | **0 / 0** |
+
+completion tokens: layer 139,837, layer_testfirst 148,406
+18:02 4B: serve health=1, test-first layer health=1
+| family | task | layer | layer_testfirst | rescues / losses (B vs A) |
+| --- | --- | ---: | ---: | --- |
+| coding | suite-tar-01 | 0/4 | 0/4 | 0 / 0 |
+| coding | xfer-mime-01 | 0/4 | 0/4 | 0 / 0 |
+| coding | xfer-zip-01 | 0/4 | 0/4 | 0 / 0 |
+| **total** | | **0/12** | **0/12** | **0 / 0** |
+
+completion tokens: layer 174,832, layer_testfirst 133,559
+18:28 2B: serve health=1, test-first layer health=1
+| family | task | layer | layer_testfirst | rescues / losses (B vs A) |
+| --- | --- | ---: | ---: | --- |
+| coding | suite-tar-01 | 0/4 | 0/4 | 0 / 0 |
+| coding | xfer-mime-01 | 0/4 | 0/4 | 0 / 0 |
+| coding | xfer-zip-01 | 0/4 | 0/4 | 0 / 0 |
+| **total** | | **0/12** | **0/12** | **0 / 0** |
+
+completion tokens: layer 92,200, layer_testfirst 122,538
+18:39 === T1 done
+01:22 === T1 start; sizes 9B 4B 2B; layer test_first default off; plan bench/plans/coding.json
+01:22 9B: serve health=1, test-first layer health=1
+| family | task | layer | layer_testfirst | rescues / losses (B vs A) |
+| --- | --- | ---: | ---: | --- |
+| coding | suite-tar-01 | 0/4 | 0/4 | 0 / 0 |
+| coding | xfer-mime-01 | 0/4 | 0/4 | 0 / 0 |
+| coding | xfer-zip-01 | 0/4 | 0/4 | 0 / 0 |
+| **total** | | **0/12** | **0/12** | **0 / 0** |
+
+completion tokens: layer 139,837, layer_testfirst 148,406
+01:22 4B: serve health=1, test-first layer health=1
+| family | task | layer | layer_testfirst | rescues / losses (B vs A) |
+| --- | --- | ---: | ---: | --- |
+| coding | suite-tar-01 | 0/4 | 0/4 | 0 / 0 |
+| coding | xfer-mime-01 | 0/4 | 0/4 | 0 / 0 |
+| coding | xfer-zip-01 | 0/4 | 0/4 | 0 / 0 |
+| **total** | | **0/12** | **0/12** | **0 / 0** |
+
+completion tokens: layer 174,832, layer_testfirst 133,559
+01:25 VOID: this 01:22 start came from a stale waiter (T1 was decided on 2026-10-07 18:45); stopped by PID after under a minute, no T1 results written.

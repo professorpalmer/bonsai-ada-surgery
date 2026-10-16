@@ -1,0 +1,252 @@
+2026-10-14 12:10 NOTE: drafter job started from session bca9d779 at the stock memory clock (OC profile not applied since the 00:31 reboot), driver 610.88, product bin = bundle-20261013 (0054)
+12:10 === drafter A/B: depths 4000 32000
+12:10 arm mtp2 (BONSAI_SPEC=2): health=1; spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI_LOOKUP=0 turns it o
+listen 0.0.0.0:8080  think=True effort=medium budget=20480  harness-proofing=True  backend-sampling=True
+mtp2 code   depth   4000 (evaluated 4048): prefill  1284.4 tok/s  ttft   3.15s  decode  104.1 tok/s (400 tok)
+mtp2 prose  depth   4000 (evaluated 512): prefill   976.4 tok/s  ttft   0.52s  decode   86.5 tok/s (400 tok)
+mtp2 bash   depth   4000 (evaluated 516): prefill  1006.1 tok/s  ttft   0.51s  decode   94.9 tok/s (400 tok)
+mtp2 mean decode 95.2 tok/s
+2026-10-14 12:11 NOTE: drafter job stopped after ~5 min for D26a (8 GB first); restarted after D26a, partial arm void
+2026-10-14 12:23 NOTE: drafter job restarted after D26a
+12:24 === drafter A/B: depths 4000 32000
+12:24 arm mtp2 (BONSAI_SPEC=2): health=1; spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI_LOOKUP=0 turns it o
+listen 0.0.0.0:8080  think=True effort=medium budget=20480  harness-proofing=True  backend-sampling=True
+mtp2 code   depth   4000 (evaluated 4048): prefill  1284.7 tok/s  ttft   3.15s  decode  103.8 tok/s (400 tok)
+mtp2 prose  depth   4000 (evaluated 512): prefill   981.0 tok/s  ttft   0.52s  decode   86.4 tok/s (400 tok)
+mtp2 bash   depth   4000 (evaluated 516): prefill  1001.5 tok/s  ttft   0.52s  decode   94.6 tok/s (400 tok)
+mtp2 mean decode 94.9 tok/s
+mtp2 code   depth  32000 (evaluated 28512): prefill  1084.2 tok/s  ttft  26.30s  decode  120.2 tok/s (400 tok)
+mtp2 prose  depth  32000 (evaluated 512): prefill   718.3 tok/s  ttft   0.71s  decode   77.9 tok/s (400 tok)
+mtp2 bash   depth  32000 (evaluated 516): prefill   721.8 tok/s  ttft   0.71s  decode  105.4 tok/s (400 tok)
+mtp2 mean decode 101.1 tok/s
+1.00.514.161 I slot print_timing: id  0 | task 655 | draft acceptance = 0.54657 (  223 accepted /   408 generated), mean len =  2.28
+1.05.042.242 I slot print_timing: id  0 | task 834 | draft acceptance = 0.75137 (  275 accepted /   366 generated), mean len =  3.24
+12:25 arm mtp1 (BONSAI_SPEC=1): health=1; spec   draft 1 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI_LOOKUP=0 turns it o
+listen 0.0.0.0:8080  think=True effort=medium budget=20480  harness-proofing=True  backend-sampling=True
+mtp1 code   depth   4000 (evaluated 4048): prefill  1286.3 tok/s  ttft   3.15s  decode   90.3 tok/s (400 tok)
+mtp1 prose  depth   4000 (evaluated 512): prefill   985.3 tok/s  ttft   0.52s  decode   82.3 tok/s (400 tok)
+mtp1 bash   depth   4000 (evaluated 516): prefill   995.1 tok/s  ttft   0.52s  decode   87.7 tok/s (400 tok)
+mtp1 mean decode 86.7 tok/s
+mtp1 code   depth  32000 (evaluated 28512): prefill  1083.9 tok/s  ttft  26.31s  decode  104.8 tok/s (400 tok)
+mtp1 prose  depth  32000 (evaluated 512): prefill   721.4 tok/s  ttft   0.71s  decode   85.2 tok/s (400 tok)
+mtp1 bash   depth  32000 (evaluated 516): prefill   726.2 tok/s  ttft   0.71s  decode   98.4 tok/s (400 tok)
+mtp1 mean decode 96.1 tok/s
+0.59.517.879 I slot print_timing: id  0 | task 862 | draft acceptance = 0.62291 (  223 accepted /   358 generated), mean len =  2.30
+1.04.307.583 I slot print_timing: id  0 | task 1041 | draft acceptance = 0.83158 (  237 accepted /   285 generated), mean len =  2.47
+12:27 arm mtp3 (BONSAI_SPEC=3): health=1; spec   draft 3 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI_LOOKUP=0 turns it o
+listen 0.0.0.0:8080  think=True effort=medium budget=20480  harness-proofing=True  backend-sampling=True
+mtp3 code   depth   4000 (evaluated 4048): prefill  1284.5 tok/s  ttft   3.15s  decode   98.0 tok/s (400 tok)
+mtp3 prose  depth   4000 (evaluated 512): prefill   977.5 tok/s  ttft   0.52s  decode   75.5 tok/s (400 tok)
+mtp3 bash   depth   4000 (evaluated 516): prefill   999.0 tok/s  ttft   0.52s  decode   89.6 tok/s (400 tok)
+mtp3 mean decode 87.7 tok/s
+mtp3 code   depth  32000 (evaluated 28512): prefill  1083.4 tok/s  ttft  26.32s  decode  117.6 tok/s (400 tok)
+mtp3 prose  depth  32000 (evaluated 512): prefill   716.8 tok/s  ttft   0.71s  decode   75.1 tok/s (400 tok)
+mtp3 bash   depth  32000 (evaluated 516): prefill   724.7 tok/s  ttft   0.71s  decode  105.4 tok/s (400 tok)
+mtp3 mean decode 99.3 tok/s
+0.59.755.252 I slot print_timing: id  0 | task 591 | draft acceptance = 0.46911 (  243 accepted /   518 generated), mean len =  2.58
+1.04.294.953 I slot print_timing: id  0 | task 750 | draft acceptance = 0.68298 (  293 accepted /   429 generated), mean len =  3.79
+2026-10-14 12:28 NOTE: drafter job stopped for D26c (8 GB first); partial arm void; restarted after D26c
+2026-10-14 12:52 NOTE: drafter job restarted after D26c
+12:52 === drafter A/B: depths 4000 32000
+12:52 arm mtp2 (BONSAI_SPEC=2): health=1; spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI_LOOKUP=0 turns it o
+listen 0.0.0.0:8080  think=True effort=medium budget=20480  harness-proofing=True  backend-sampling=True
+mtp2 code   depth   4000 (evaluated 4048): prefill  1288.0 tok/s  ttft   3.14s  decode  106.1 tok/s (400 tok)
+mtp2 prose  depth   4000 (evaluated 512): prefill   995.0 tok/s  ttft   0.51s  decode   86.7 tok/s (400 tok)
+mtp2 bash   depth   4000 (evaluated 516): prefill  1005.1 tok/s  ttft   0.51s  decode   94.1 tok/s (400 tok)
+mtp2 mean decode 95.6 tok/s
+mtp2 code   depth  32000 (evaluated 28512): prefill  1084.4 tok/s  ttft  26.29s  decode  119.6 tok/s (400 tok)
+mtp2 prose  depth  32000 (evaluated 512): prefill   719.1 tok/s  ttft   0.71s  decode   78.2 tok/s (400 tok)
+mtp2 bash   depth  32000 (evaluated 516): prefill   726.4 tok/s  ttft   0.71s  decode  105.9 tok/s (400 tok)
+mtp2 mean decode 101.2 tok/s
+0.58.172.528 I slot print_timing: id  0 | task 655 | draft acceptance = 0.54657 (  223 accepted /   408 generated), mean len =  2.28
+1.02.674.942 I slot print_timing: id  0 | task 834 | draft acceptance = 0.75137 (  275 accepted /   366 generated), mean len =  3.24
+12:54 arm mtp1 (BONSAI_SPEC=1): health=1; spec   draft 1 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI_LOOKUP=0 turns it o
+listen 0.0.0.0:8080  think=True effort=medium budget=20480  harness-proofing=True  backend-sampling=True
+mtp1 code   depth   4000 (evaluated 4048): prefill  1279.8 tok/s  ttft   3.16s  decode   89.1 tok/s (400 tok)
+mtp1 prose  depth   4000 (evaluated 512): prefill   973.8 tok/s  ttft   0.53s  decode   81.5 tok/s (400 tok)
+mtp1 bash   depth   4000 (evaluated 516): prefill   995.1 tok/s  ttft   0.52s  decode   86.4 tok/s (400 tok)
+mtp1 mean decode 85.7 tok/s
+mtp1 code   depth  32000 (evaluated 28512): prefill  1083.9 tok/s  ttft  26.31s  decode  105.8 tok/s (400 tok)
+mtp1 prose  depth  32000 (evaluated 512): prefill   724.0 tok/s  ttft   0.71s  decode   85.7 tok/s (400 tok)
+mtp1 bash   depth  32000 (evaluated 516): prefill   730.6 tok/s  ttft   0.71s  decode   97.7 tok/s (400 tok)
+mtp1 mean decode 96.4 tok/s
+1.01.808.520 I slot print_timing: id  0 | task 862 | draft acceptance = 0.62291 (  223 accepted /   358 generated), mean len =  2.30
+1.06.625.240 I slot print_timing: id  0 | task 1041 | draft acceptance = 0.83158 (  237 accepted /   285 generated), mean len =  2.47
+12:55 arm mtp3 (BONSAI_SPEC=3): health=1; spec   draft 3 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI_LOOKUP=0 turns it o
+listen 0.0.0.0:8080  think=True effort=medium budget=20480  harness-proofing=True  backend-sampling=True
+mtp3 code   depth   4000 (evaluated 4048): prefill  1279.1 tok/s  ttft   3.16s  decode   98.2 tok/s (400 tok)
+mtp3 prose  depth   4000 (evaluated 512): prefill   989.0 tok/s  ttft   0.52s  decode   75.8 tok/s (400 tok)
+mtp3 bash   depth   4000 (evaluated 516): prefill  1003.0 tok/s  ttft   0.51s  decode   90.1 tok/s (400 tok)
+mtp3 mean decode 88.0 tok/s
+mtp3 code   depth  32000 (evaluated 28512): prefill  1082.9 tok/s  ttft  26.33s  decode  116.5 tok/s (400 tok)
+mtp3 prose  depth  32000 (evaluated 512): prefill   724.3 tok/s  ttft   0.71s  decode   74.3 tok/s (400 tok)
+mtp3 bash   depth  32000 (evaluated 516): prefill   723.7 tok/s  ttft   0.71s  decode  104.6 tok/s (400 tok)
+mtp3 mean decode 98.5 tok/s
+0.59.757.951 I slot print_timing: id  0 | task 591 | draft acceptance = 0.46911 (  243 accepted /   518 generated), mean len =  2.58
+1.04.322.110 I slot print_timing: id  0 | task 750 | draft acceptance = 0.68298 (  293 accepted /   429 generated), mean len =  3.79
+2026-10-14 12:56 NOTE: drafter job stopped for D26e (8 GB first); restarted after it
+2026-10-14 13:17 NOTE: drafter job restarted from session f82461a3 after D26e; memory clock under load 11751 MHz (OC on)
+13:17 === drafter A/B: depths 4000 32000
+13:17 arm mtp2 (BONSAI_SPEC=2): health=1; spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI_LOOKUP=0 turns it o
+listen 0.0.0.0:8080  think=True effort=medium budget=20480  harness-proofing=True  backend-sampling=True
+mtp2 code   depth   4000 (evaluated 4048): prefill  1283.5 tok/s  ttft   3.15s  decode  103.7 tok/s (400 tok)
+mtp2 prose  depth   4000 (evaluated 512): prefill   980.8 tok/s  ttft   0.52s  decode   85.3 tok/s (400 tok)
+mtp2 bash   depth   4000 (evaluated 516): prefill   994.3 tok/s  ttft   0.52s  decode   93.3 tok/s (400 tok)
+mtp2 mean decode 94.1 tok/s
+mtp2 code   depth  32000 (evaluated 28512): prefill  1083.9 tok/s  ttft  26.31s  decode  120.9 tok/s (400 tok)
+mtp2 prose  depth  32000 (evaluated 512): prefill   722.9 tok/s  ttft   0.71s  decode   78.4 tok/s (400 tok)
+mtp2 bash   depth  32000 (evaluated 516): prefill   721.3 tok/s  ttft   0.72s  decode  106.1 tok/s (400 tok)
+mtp2 mean decode 101.8 tok/s
+1.00.467.698 I slot print_timing: id  0 | task 655 | draft acceptance = 0.54657 (  223 accepted /   408 generated), mean len =  2.28
+1.04.978.864 I slot print_timing: id  0 | task 834 | draft acceptance = 0.75137 (  275 accepted /   366 generated), mean len =  3.24
+13:18 arm mtp1 (BONSAI_SPEC=1): health=1; spec   draft 1 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI_LOOKUP=0 turns it o
+listen 0.0.0.0:8080  think=True effort=medium budget=20480  harness-proofing=True  backend-sampling=True
+mtp1 code   depth   4000 (evaluated 4048): prefill  1284.3 tok/s  ttft   3.15s  decode   90.3 tok/s (400 tok)
+mtp1 prose  depth   4000 (evaluated 512): prefill   984.2 tok/s  ttft   0.52s  decode   82.4 tok/s (400 tok)
+mtp1 bash   depth   4000 (evaluated 516): prefill   998.9 tok/s  ttft   0.52s  decode   87.7 tok/s (400 tok)
+mtp1 mean decode 86.8 tok/s
+mtp1 code   depth  32000 (evaluated 28512): prefill  1083.4 tok/s  ttft  26.32s  decode  104.7 tok/s (400 tok)
+mtp1 prose  depth  32000 (evaluated 512): prefill   711.3 tok/s  ttft   0.72s  decode   85.0 tok/s (400 tok)
+mtp1 bash   depth  32000 (evaluated 516): prefill   719.6 tok/s  ttft   0.72s  decode   98.0 tok/s (400 tok)
+mtp1 mean decode 95.9 tok/s
+1.01.838.240 I slot print_timing: id  0 | task 862 | draft acceptance = 0.62291 (  223 accepted /   358 generated), mean len =  2.30
+1.06.654.246 I slot print_timing: id  0 | task 1041 | draft acceptance = 0.83158 (  237 accepted /   285 generated), mean len =  2.47
+13:20 arm mtp3 (BONSAI_SPEC=3): health=1; spec   draft 3 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI_LOOKUP=0 turns it o
+listen 0.0.0.0:8080  think=True effort=medium budget=20480  harness-proofing=True  backend-sampling=True
+mtp3 code   depth   4000 (evaluated 4048): prefill  1283.1 tok/s  ttft   3.15s  decode   98.5 tok/s (400 tok)
+mtp3 prose  depth   4000 (evaluated 512): prefill   991.0 tok/s  ttft   0.52s  decode   75.6 tok/s (400 tok)
+mtp3 bash   depth   4000 (evaluated 516): prefill   995.5 tok/s  ttft   0.52s  decode   89.6 tok/s (400 tok)
+mtp3 mean decode 87.9 tok/s
+mtp3 code   depth  32000 (evaluated 28512): prefill  1083.3 tok/s  ttft  26.32s  decode  118.1 tok/s (400 tok)
+mtp3 prose  depth  32000 (evaluated 512): prefill   722.3 tok/s  ttft   0.71s  decode   75.5 tok/s (400 tok)
+mtp3 bash   depth  32000 (evaluated 516): prefill   729.6 tok/s  ttft   0.71s  decode  106.0 tok/s (400 tok)
+mtp3 mean decode 99.9 tok/s
+1.01.726.114 I slot print_timing: id  0 | task 591 | draft acceptance = 0.46911 (  243 accepted /   518 generated), mean len =  2.58
+1.06.223.251 I slot print_timing: id  0 | task 750 | draft acceptance = 0.68298 (  293 accepted /   429 generated), mean len =  3.79
+13:21 arm mtp4 (BONSAI_SPEC=4): health=1; spec   draft 4 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI_LOOKUP=0 turns it o
+listen 0.0.0.0:8080  think=True effort=medium budget=20480  harness-proofing=True  backend-sampling=True
+mtp4 code   depth   4000 (evaluated 4048): prefill  1280.8 tok/s  ttft   3.16s  decode   76.4 tok/s (400 tok)
+mtp4 prose  depth   4000 (evaluated 512): prefill   975.8 tok/s  ttft   0.52s  decode   54.5 tok/s (400 tok)
+mtp4 bash   depth   4000 (evaluated 516): prefill   992.9 tok/s  ttft   0.52s  decode   74.8 tok/s (400 tok)
+mtp4 mean decode 68.6 tok/s
+mtp4 code   depth  32000 (evaluated 28512): prefill  1083.3 tok/s  ttft  26.32s  decode   95.6 tok/s (400 tok)
+mtp4 prose  depth  32000 (evaluated 512): prefill   712.6 tok/s  ttft   0.72s  decode   60.0 tok/s (400 tok)
+mtp4 bash   depth  32000 (evaluated 516): prefill   720.9 tok/s  ttft   0.72s  decode   83.0 tok/s (400 tok)
+mtp4 mean decode 79.5 tok/s
+1.08.239.688 I slot print_timing: id  0 | task 532 | draft acceptance = 0.40154 (  261 accepted /   650 generated), mean len =  2.93
+1.13.788.359 I slot print_timing: id  0 | task 673 | draft acceptance = 0.58835 (  303 accepted /   515 generated), mean len =  4.22
+13:22 arm mtp8p85 (BONSAI_SPEC=8 BONSAI_SPEC_ARGS=--spec-draft-p-min 0.85): health=1; spec   draft 8 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI_LOOKUP=0 turns it o
+listen 0.0.0.0:8080  think=True effort=medium budget=20480  harness-proofing=True  backend-sampling=True
+mtp8p85 code   depth   4000 (evaluated 4048): prefill   429.4 tok/s  ttft   9.43s  decode   34.1 tok/s (400 tok)
+mtp8p85 prose  depth   4000 (evaluated 512): prefill   376.0 tok/s  ttft   1.36s  decode   33.5 tok/s (400 tok)
+mtp8p85 bash   depth   4000 (evaluated 516): prefill   380.7 tok/s  ttft   1.36s  decode   33.4 tok/s (400 tok)
+mtp8p85 mean decode 33.7 tok/s
+mtp8p85 code   depth  32000 (evaluated 28512): prefill   377.3 tok/s  ttft  75.56s  decode   40.4 tok/s (400 tok)
+mtp8p85 prose  depth  32000 (evaluated 512): prefill   313.9 tok/s  ttft   1.63s  decode   36.0 tok/s (400 tok)
+mtp8p85 bash   depth  32000 (evaluated 516): prefill   315.6 tok/s  ttft   1.63s  decode   39.1 tok/s (400 tok)
+mtp8p85 mean decode 38.5 tok/s
+2.34.607.544 I slot print_timing: id  0 | task 727 | draft acceptance = 0.73462 (  191 accepted /   260 generated), mean len =  3.45
+2.46.500.158 I slot print_timing: id  0 | task 938 | draft acceptance = 0.87460 (  272 accepted /   311 generated), mean len =  4.83
+13:25 arm draft2b (BONSAI_SPEC=6 BONSAI_VRAM_MARGIN=1800 BONSAI_SPEC_TYPE=ngram-mod,draft-simple BONSAI_SPEC_ARGS=-md C:\Users\<user>\models\bonsai2-small\2B\Ternary-Bonsai-2-2B-PTQ1_0.gguf -ngld 99 --spec-lookup-n-max 32): health=1; spec   draft 6 (4 past the VRAM line), draft window 16384 (MTP on); types ngram-mod,draft-simple -md C:\Users\<user>\mode
+listen 0.0.0.0:8080  think=True effort=medium budget=20480  harness-proofing=True  backend-sampling=True
+draft2b code   depth   4000 (evaluated 4048): prefill   589.4 tok/s  ttft   6.87s  decode   23.5 tok/s (400 tok)
+draft2b prose  depth   4000 (evaluated 512): prefill   515.1 tok/s  ttft   0.99s  decode   20.4 tok/s (400 tok)
+draft2b bash   depth   4000 (evaluated 516): prefill   525.7 tok/s  ttft   0.98s  decode   19.8 tok/s (400 tok)
+draft2b mean decode 21.2 tok/s
+draft2b code   depth  32000 (evaluated 28512): prefill   552.0 tok/s  ttft  51.65s  decode   33.8 tok/s (400 tok)
+draft2b prose  depth  32000 (evaluated 512): prefill   447.7 tok/s  ttft   1.14s  decode   19.8 tok/s (400 tok)
+draft2b bash   depth  32000 (evaluated 516): prefill   450.4 tok/s  ttft   1.15s  decode   24.1 tok/s (400 tok)
+draft2b mean decode 25.9 tok/s
+2.38.725.570 I slot print_timing: id  0 | task 888 | draft acceptance = 0.11657 (  166 accepted /  1424 generated), mean len =  1.72
+2.56.481.255 I slot print_timing: id  0 | task 1124 | draft acceptance = 0.17115 (  210 accepted /  1227 generated), mean len =  2.12
+13:29 arm draft4b (BONSAI_SPEC=6 BONSAI_VRAM_MARGIN=2400 BONSAI_SPEC_TYPE=ngram-mod,draft-simple BONSAI_SPEC_ARGS=-md C:\Users\<user>\models\bonsai2-small\4B\Ternary-Bonsai-2-4B-PTQ1_0.gguf -ngld 99 --spec-lookup-n-max 32): health=1; spec   draft 6 (4 past the VRAM line), draft window 16384 (MTP on); types ngram-mod,draft-simple -md C:\Users\<user>\mode
+listen 0.0.0.0:8080  think=True effort=medium budget=20480  harness-proofing=True  backend-sampling=True
+draft4b Traceback (most recent call last):
+draft4b   File "C:\Users\<user>\Projects\bonsai-2-27b-serve\bench\quick_tps.py", line 90, in <module>
+draft4b     main()
+draft4b   File "C:\Users\<user>\Projects\bonsai-2-27b-serve\bench\quick_tps.py", line 76, in main
+draft4b     go(a.base, key, "Say hi.", 8)
+draft4b   File "C:\Users\<user>\Projects\bonsai-2-27b-serve\bench\quick_tps.py", line 64, in go
+draft4b     r = json.loads(urllib.request.urlopen(req, timeout=int(os.environ.get("QTPS_TIMEOUT", "1800"))).read())
+draft4b                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+draft4b   File "C:\Users\<user>\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 215, in urlopen
+draft4b     return opener.open(url, data, timeout)
+draft4b            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+draft4b   File "C:\Users\<user>\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 515, in open
+draft4b     response = self._open(req, data)
+draft4b                ^^^^^^^^^^^^^^^^^^^^^
+draft4b   File "C:\Users\<user>\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 532, in _open
+draft4b     result = self._call_chain(self.handle_open, protocol, protocol +
+draft4b              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+draft4b   File "C:\Users\<user>\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 492, in _call_chain
+draft4b     result = func(*args)
+draft4b              ^^^^^^^^^^^
+draft4b   File "C:\Users\<user>\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 1373, in http_open
+draft4b     return self.do_open(http.client.HTTPConnection, req)
+draft4b            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+draft4b   File "C:\Users\<user>\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 1348, in do_open
+draft4b     r = h.getresponse()
+draft4b         ^^^^^^^^^^^^^^^
+draft4b   File "C:\Users\<user>\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1430, in getresponse
+draft4b     response.begin()
+draft4b   File "C:\Users\<user>\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 331, in begin
+draft4b     version, status, reason = self._read_status()
+draft4b                               ^^^^^^^^^^^^^^^^^^^
+draft4b   File "C:\Users\<user>\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 292, in _read_status
+draft4b     line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+draft4b                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+draft4b   File "C:\Users\<user>\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 720, in readinto
+draft4b     return self._sock.recv_into(b)
+draft4b            ^^^^^^^^^^^^^^^^^^^^^^^
+draft4b ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+draft4b Traceback (most recent call last):
+draft4b   File "C:\Users\<user>\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 1344, in do_open
+draft4b     h.request(req.get_method(), req.selector, req.data, headers,
+draft4b   File "C:\Users\<user>\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1338, in request
+draft4b     self._send_request(method, url, body, headers, encode_chunked)
+draft4b   File "C:\Users\<user>\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1384, in _send_request
+draft4b     self.endheaders(body, encode_chunked=encode_chunked)
+draft4b   File "C:\Users\<user>\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1333, in endheaders
+draft4b     self._send_output(message_body, encode_chunked=encode_chunked)
+draft4b   File "C:\Users\<user>\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1093, in _send_output
+draft4b     self.send(msg)
+draft4b   File "C:\Users\<user>\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1037, in send
+draft4b     self.connect()
+draft4b   File "C:\Users\<user>\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1003, in connect
+draft4b     self.sock = self._create_connection(
+draft4b                 ^^^^^^^^^^^^^^^^^^^^^^^^
+draft4b   File "C:\Users\<user>\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 865, in create_connection
+draft4b     raise exceptions[0]
+draft4b   File "C:\Users\<user>\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 850, in create_connection
+draft4b     sock.connect(sa)
+draft4b ConnectionRefusedError: [WinError 10061] No connection could be made because the target machine actively refused it
+draft4b 
+draft4b During handling of the above exception, another exception occurred:
+draft4b 
+draft4b Traceback (most recent call last):
+draft4b   File "C:\Users\<user>\Projects\bonsai-2-27b-serve\bench\quick_tps.py", line 90, in <module>
+draft4b     main()
+draft4b   File "C:\Users\<user>\Projects\bonsai-2-27b-serve\bench\quick_tps.py", line 76, in main
+draft4b     go(a.base, key, "Say hi.", 8)
+draft4b   File "C:\Users\<user>\Projects\bonsai-2-27b-serve\bench\quick_tps.py", line 64, in go
+draft4b     r = json.loads(urllib.request.urlopen(req, timeout=int(os.environ.get("QTPS_TIMEOUT", "1800"))).read())
+draft4b                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+draft4b   File "C:\Users\<user>\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 215, in urlopen
+draft4b     return opener.open(url, data, timeout)
+draft4b            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+draft4b   File "C:\Users\<user>\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 515, in open
+draft4b     response = self._open(req, data)
+draft4b                ^^^^^^^^^^^^^^^^^^^^^
+draft4b   File "C:\Users\<user>\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 532, in _open
+draft4b     result = self._call_chain(self.handle_open, protocol, protocol +
+draft4b              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+draft4b   File "C:\Users\<user>\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 492, in _call_chain
+draft4b     result = func(*args)
+draft4b              ^^^^^^^^^^^
+draft4b   File "C:\Users\<user>\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 1373, in http_open
+draft4b     return self.do_open(http.client.HTTPConnection, req)
+draft4b            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+draft4b   File "C:\Users\<user>\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 1347, in do_open
+draft4b     raise URLError(err)
+draft4b urllib.error.URLError: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+13:29 === done

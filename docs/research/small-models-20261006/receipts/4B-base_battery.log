@@ -1,0 +1,37 @@
+16:41 === battery 4B-base Q4_K_M start; engine version: 0.2.0-dev (build 10783, commit 8a6d2ea12)
+16:41 arm raw: health=1 inner=http://127.0.0.1:8080 listen 0.0.0.0:8080  think=True effort=medium budget=-1 harness-proofing=False backend-sampling=True presence=
+pass@1 0.0%  (0/40)  arm=medium effort=- temp=0.0 max_tokens=24576  16.9s
+   loops (finish=length): 0/40
+16:44 === battery 4B-base Q4_K_M start; engine version: 0.2.0-dev (build 10783, commit 8a6d2ea12)
+16:44 arm raw: health=1 inner=http://127.0.0.1:8080 listen 0.0.0.0:8080  think=True effort=medium budget=-1 harness-proofing=False backend-sampling=True presence=
+16:47 === battery 4B-base Q4_K_M start; engine version: 0.2.0-dev (build 10783, commit 8a6d2ea12)
+16:47 arm raw: health=1 inner=http://127.0.0.1:8080 listen 0.0.0.0:8080  think=True effort=medium budget=-1 harness-proofing=False backend-sampling=True presence=
+pass@1 79.88%  (131/164)  arm=off effort=- temp=0.0 max_tokens=1024  286.9s
+   loops (finish=length): 1/164
+pass@1 85.0%  (34/40)  arm=medium effort=- temp=0.0 max_tokens=24576  933.9s
+   loops (finish=length): 4/40
+17:07 arm serve: health=1 inner=http://127.0.0.1:18080 listen 0.0.0.0:8080  think=True effort=medium budget=20480 harness-proofing=True backend-sampling=True presenc
+pass@1 79.88%  (131/164)  arm=off effort=- temp=0.0 max_tokens=1024  278.3s
+   loops (finish=length): 1/164
+pass@1 95.0%  (38/40)  arm=medium effort=- temp=0.0 max_tokens=24576  811.1s
+   loops (finish=length): 0/40
+17:25 tool-call stress (serve, inner):
+== summary ==
+A_native_grammar   n=9 parsed=6 payload_ok=3 cut_by_max_tokens=3 median_payload_chars=28018 mean_tps=137.6
+B_json_in_content  n=9 parsed=2 payload_ok=0 cut_by_max_tokens=2 median_payload_chars=20601 mean_tps=139.2
+17:37 suite: raw (inner) vs layer (:8080), frozen plan, same seeds
+| coding | xfer-zip-01 | 0/4 | 0/4 | 0 / 0 |
+| computation | digits | 0/3 | 3/3 | 3 / 0 |
+| computation | knapsack | 3/3 | 3/3 | 0 / 0 |
+| computation | lcs | 0/3 | 2/3 | 2 / 0 |
+| computation | sales | 1/3 | 2/3 | 2 / 1 |
+| computation | weblog | 3/3 | 3/3 | 0 / 0 |
+| workspace | chain | 2/2 | 2/2 | 0 / 0 |
+| workspace | copy | 1/2 | 1/2 | 0 / 0 |
+| workspace | dedupeH | 1/2 | 1/2 | 0 / 0 |
+| workspace | invoiceH | 0/2 | 0/2 | 0 / 0 |
+| workspace | ledgerH | 1/2 | 1/2 | 0 / 0 |
+| **total** | | **12/37** | **18/37** | **7 / 1** |
+
+completion tokens: raw 915,747, layer 660,264
+21:10 === battery 4B-base done; serve arm left running (layer :8080, inner :18080)

@@ -1,0 +1,76 @@
+14:47 === battery 9B-base Q4_K_M start; engine version: 0.2.0-dev (build 10775, commit 2cb7a4ed6)
+14:47 arm raw: health=1 inner=http://127.0.0.1:8080 listen 0.0.0.0:8080  think=True effort=medium budget=-1 harness-proofing=False backend-sampling=True presence=
+15:49 === battery 9B-base Q4_K_M start; engine version: 0.2.0-dev (build 10775, commit 2cb7a4ed6)
+15:49 arm raw: health=1 inner=http://127.0.0.1:8080 listen 0.0.0.0:8080  think=True effort=medium budget=-1 harness-proofing=False backend-sampling=True presence=
+pass@1 83.54%  (137/164)  arm=off effort=- temp=0.0 max_tokens=1024  470.4s
+   loops (finish=length): 0/164
+16:56 === battery 9B-base Q4_K_M start; engine version: 0.2.0-dev (build 10776, commit 8a7d9fdeb)
+16:56 arm raw: health=1 inner=http://127.0.0.1:8080 listen 0.0.0.0:8080  think=True effort=medium budget=-1 harness-proofing=False backend-sampling=True presence=
+pass@1 83.54%  (137/164)  arm=off effort=- temp=0.0 max_tokens=1024  470.3s
+   loops (finish=length): 4/164
+18:39 === battery 9B-base Q4_K_M start; engine version: 0.2.0-dev (build 10776, commit 8a7d9fdeb)
+18:39 arm raw: health=1 inner=http://127.0.0.1:8080 listen 0.0.0.0:8080  think=True effort=medium budget=-1 harness-proofing=False backend-sampling=True presence=
+pass@1 83.54%  (137/164)  arm=off effort=- temp=0.0 max_tokens=1024  469.3s
+   loops (finish=length): 4/164
+08:20 === battery 9B-base Q4_K_M start; engine version: 0.2.0-dev (build 10782, commit 9f2b0feac)
+08:55 === battery 9B-base Q4_K_M start; engine version: 0.2.0-dev (build 10782, commit 9f2b0feac)
+10:06 === battery 9B-base Q4_K_M start; engine version: 0.2.0-dev (build 10782, commit 9f2b0feac)
+10:21 === battery 9B-base Q4_K_M start; engine version: 0.2.0-dev (build 10782, commit 9f2b0feac)
+10:22 arm raw: health=1 inner=http://127.0.0.1:8080 listen 0.0.0.0:8080  think=True effort=medium budget=-1 harness-proofing=False backend-sampling=True presence=
+10:33 === battery 9B-base Q4_K_M start; engine version: 0.2.0-dev (build 10782, commit 9f2b0feac)
+10:34 arm raw: health=1 inner=http://127.0.0.1:8080 listen 0.0.0.0:8080  think=True effort=medium budget=-1 harness-proofing=False backend-sampling=True presence=
+pass@1 83.54%  (137/164)  arm=off effort=- temp=0.0 max_tokens=1024  473.7s
+   loops (finish=length): 4/164
+12:09 === battery 9B-base Q4_K_M start; engine version: 0.2.0-dev (build 10783, commit 8a6d2ea12)
+12:09 arm raw: health=1 inner=http://127.0.0.1:8080 listen 0.0.0.0:8080  think=True effort=medium budget=-1 harness-proofing=False backend-sampling=True presence=
+pass@1 83.54%  (137/164)  arm=off effort=- temp=0.0 max_tokens=1024  470.0s
+   loops (finish=length): 4/164
+pass@1 52.5%  (21/40)  arm=medium effort=- temp=0.0 max_tokens=24576  6030.8s
+   loops (finish=length): 18/40
+13:58 arm serve: health=1 inner=http://127.0.0.1:18080 listen 0.0.0.0:8080  think=True effort=medium budget=20480 harness-proofing=True backend-sampling=True presenc
+pass@1 83.54%  (137/164)  arm=off effort=- temp=0.0 max_tokens=1024  462.6s
+   loops (finish=length): 4/164
+pass@1 97.5%  (39/40)  arm=medium effort=- temp=0.0 max_tokens=24576  5241.3s
+   loops (finish=length): 0/40
+15:33 tool-call stress (serve, inner):
+== summary ==
+A_native_grammar   n=9 parsed=8 payload_ok=3 cut_by_max_tokens=1 median_payload_chars=21816 mean_tps=85.1
+B_json_in_content  n=9 parsed=3 payload_ok=0 cut_by_max_tokens=0 median_payload_chars=30473 mean_tps=86.1
+15:49 suite: raw (inner) vs layer (:8080), frozen plan, same seeds
+01:22 === suite only, 9B-base (re-queued)
+01:22 arm serve: health=1 inner=http://127.0.0.1:18080 listen 0.0.0.0:8080  think=True effort=medium budget=20480 harness-proofing=True backend-sampling=True presenc
+01:22 suite: raw (inner) vs layer (:8080), frozen plan, same seeds
+| coding | xfer-zip-01 | 0/4 | 0/4 | 0 / 0 |
+| computation | digits | 0/3 | 0/3 | 0 / 0 |
+| computation | knapsack | 0/3 | 0/3 | 0 / 0 |
+| computation | lcs | 0/3 | 0/3 | 0 / 0 |
+| computation | sales | 0/3 | 0/3 | 0 / 0 |
+| computation | weblog | 0/3 | 0/3 | 0 / 0 |
+| workspace | chain | 0/2 | 0/2 | 0 / 0 |
+| workspace | copy | 0/2 | 0/2 | 0 / 0 |
+| workspace | dedupeH | 0/2 | 0/2 | 0 / 0 |
+| workspace | invoiceH | 0/2 | 0/2 | 0 / 0 |
+| workspace | ledgerH | 0/2 | 0/2 | 0 / 0 |
+| **total** | | **0/37** | **0/37** | **0 / 0** |
+
+completion tokens: raw 0, layer 0
+01:22 === suite only, 9B-base done
+01:25 VOID: the 01:22 suite run above had 0 tokens (infra_error in all 74 runs): an old T1 waiter (after_queue_t1.sh, 2026-10-07) also fired on 'queue done' and replaced this server. Results removed; the suite runs again later.
+03:21 === suite only, 9B-base (re-queued)
+03:21 arm serve: health=1 inner=http://127.0.0.1:18080 listen 0.0.0.0:8080  think=True effort=medium budget=20480 harness-proofing=True backend-sampling=True presenc
+03:21 suite: raw (inner) vs layer (:8080), frozen plan, same seeds
+| coding | xfer-zip-01 | 0/4 | 3/4 | 3 / 0 |
+| computation | digits | 0/3 | 2/3 | 2 / 0 |
+| computation | knapsack | 3/3 | 2/3 | 0 / 1 |
+| computation | lcs | 0/3 | 3/3 | 3 / 0 |
+| computation | sales | 3/3 | 3/3 | 0 / 0 |
+| computation | weblog | 3/3 | 3/3 | 0 / 0 |
+| workspace | chain | 2/2 | 2/2 | 0 / 0 |
+| workspace | copy | 2/2 | 2/2 | 0 / 0 |
+| workspace | dedupeH | 1/2 | 1/2 | 0 / 0 |
+| workspace | invoiceH | 1/2 | 1/2 | 0 / 0 |
+| workspace | ledgerH | 1/2 | 1/2 | 0 / 0 |
+| **total** | | **16/37** | **23/37** | **8 / 1** |
+
+completion tokens: raw 788,961, layer 550,339
+08:02 === suite only, 9B-base done

@@ -1,0 +1,11 @@
+09:38 === G2 start; sizes 9B; layer check_note default off; plan bench/plans/computation.json
+09:38 9B: serve health=1, check layer health=1
+| computation | digits | 1/3 | 3/3 | 2 / 0 |
+| computation | knapsack | 3/3 | 3/3 | 0 / 0 |
+| computation | lcs | 0/3 | 1/3 | 1 / 0 |
+| computation | sales | 0/3 | 0/3 | 0 / 0 |
+| computation | weblog | 3/3 | 3/3 | 0 / 0 |
+| **total** | | **7/15** | **10/15** | **3 / 0** |
+
+completion tokens: layer 169,762, layer_check 269,052
+10:34 === G2 done

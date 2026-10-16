@@ -661,6 +661,7 @@ python bench\mtp_identity.py                   # greedy draft-on vs draft-off
 | `docs/DEPTH.md` | decode and prefill past the VRAM line: tier graphs, sparse host-tail reads, chunked delta-net prefill, what did not help |
 | `bench/` | receipts, KL sweeps, tool-call stress, HumanEval runner and Killy replays |
 | `surgery/` | the kernel investigation: write-up, CUPTI injection profiler, clock sweeps, dead ends |
+| `docs/research/` | every study with its plan, decisions and receipts; `small-models-20261006/` has the Bonsai 2 2B / 4B / 9B early-access tests |
 
 ## Credits
 

@@ -1,0 +1,132 @@
+11:43 4B suite resume start
+12:22 queue PAUSED for issue #4 vision test (4B suite at 58/74)
+12:31 queue RESUMED after the #4 vision fix (4B suite at 58/74)
+12:31 4B suite resume start
+12:56 4B exit 0
+12:56 2B battery start
+14:47 2B exit 0
+14:47 9B-base battery start
+15:49 queue PAUSED 14:47 for issue #7 (2B battery complete, 9B-base not started); resumed with queue_20261007b.sh
+15:49 9B-base battery start
+16:50 queue PAUSED for the bundle-0035 27B smoke test; 9B-base raw medium was at 14/164 (restarts from scratch)
+16:56 product bin -> bundle-20261007-budget (8a7d9fdeb, greedy identical); queue resumed with queue_20261007b.sh (9B-base from the start)
+16:56 9B-base battery start
+17:26 queue STOPPED (9B-base raw medium at 6/164, ~6 min per problem); order changed: T1 first, then teachers (queue_20261007c.sh)
+17:26 T1 start
+18:39 T1 exit 0
+18:39 9B-base battery start
+19:06 queue STOPPED: teacher raw-medium hits the cap on 3 of 5 (24,576 tok at 86 tok/s, ~5 min each); plan S2b (40-problem medium subset + exact-copy probe)
+19:19 exact-copy probe start
+20:14 queue STOPPED by request: small-model tests paused for the HyperQwen tests (2B probe was in progress; resumes from results.jsonl)
+03:57 queue resumed after the 27B tier work (queue_20261008f.sh)
+03:57 exact-copy probe resume (2B, 2B-base) start
+04:09 exact-copy resume exit 0
+04:09 27B lookup record at 250k start
+05:52 27B lookup record at 250k exit 0
+05:52 issue7 121k repro start
+06:02 issue7 121k repro exit 0
+06:02 probe presence 1.5 start
+06:37 probe presence 1.5 exit 0
+06:37 dose ladder start
+08:20 dose ladder exit 0
+08:20 9B-base battery start
+stopped 24728 bash.exe
+stopped 4236 bash.exe
+stopped 8164 bash.exe
+stopped 9016 bash.exe
+stopped 1264 bash.exe
+08:20 queue g: presence inside the thinking only, probe (9B 4B 2B) start
+08:55 presence thinking-only probe exit 0
+08:55 9B-base battery start
+stopped 23464 bash.exe
+stopped 23980 bash.exe
+stopped 7900 bash.exe
+stopped 27704 bash.exe
+stopped 28164 bash.exe
+08:55 queue h: G1b example check A/B (2B, through the layer) start
+10:06 G1b exit 0
+10:06 9B-base battery start (queue h)
+stopped 21952 bash.exe
+stopped 18484 bash.exe
+stopped 15700 bash.exe
+stopped 28140 bash.exe
+10:06 issue #7: lookup on/off in an agent session (60k, 30 tools) start
+10:13 issue #7 lookup A/B exit 0
+10:13 queue i: 27B edit-call identity (PR #9 hash fix, local only) start
+12 GB edit calls, MTP only vs lookup 32, hash without the call id: 4/4 identical; {'textwrap.py': {'e12-mtp': ('66aaf31775d1', 116.6), 'e12-mod+mtp-L32': ('66aaf31775d1', 135.2)}, 'shlex.py': {'e12-mtp': ('eed762da2c87', 113.4), 'e12-mod+mtp-L32': ('eed762da2c87', 126.8)}, 'fnmatch.py': {'e12-mtp': ('1d0a873adaf6', 112.8), 'e12-mod+mtp-L32': ('1d0a873adaf6', 113.3)}, 'csv.py': {'e12-mtp': ('34626552c9d9', 117.7), 'e12-mod+mtp-L32': ('34626552c9d9', 126.7)}}
+10:14 PrismML #330 Ada data start
+10:21 PrismML #330 Ada data exit 0
+10:21 9B-base battery start (queue i)
+10:23 queue i stopped by hand before its batteries: PrismML #330 Ada data first (the 12 GB tiered arm crashed with the switch on)
+10:33 teacher batteries restart (after the #330 Ada data)
+10:33 9B-base battery start (restart)
+10:46 queue paused for issue #7 (Milor's lookup-off data and capture): 9B teacher battery stopped by PID; issue7_tools_ab.sh (107 tools) start
+11:01 issue #7 107-tool A/B done; replay A/B on real agent requests start
+11:38 replay A/B exit 0
+11:38 issue #7 engine-fix A/B (grammar copy fix, lookup gate) start
+11:54 issue #7 engine-fix A/B done; release smoke 0042 start
+11:55 release smoke 0042 exit 0
+11:55 #330 minimum-query A/B (64k all-VRAM: switch off / min-Q 64 / min-Q 9 = the old rule) start
+12:09 (other GPU job, not part of this study)
+12:09 9B-base battery start (after issue #7)
+15:49 (other GPU job, not part of this study)
+stopped 17940 bash.exe
+stopped 23568 bash.exe
+stopped 22656 python.exe
+15:49 9B-base battery finished (exit code not captured: its chain was replaced)
+15:50 (other GPU job, not part of this study)
+16:28 (other GPU job, not part of this study)
+16:28 1-token repro (8 GB bug: full 8 GB preset, then without the shared pool, without f16 prefill, and f16 only) start
+16:41 1-token repro exit 0
+16:41 PrismML #320 two-slot check start
+16:41 PrismML #320 two-slot check exit 1
+16:41 4B-base battery start (after issue #7)
+stopped 8856
+stopped 28564
+stopped 7580
+16:42 PrismML #320 two-slot check exit (done line seen)
+16:42 (other GPU job, not part of this study)
+16:44 (other GPU job, not part of this study)
+16:44 4B-base battery start (after issue #7)
+16:46 4B-base battery stopped after 8 min (PrismML #320 check first; its first run had no CUDA runtime DLLs next to the binary)
+16:46 PrismML #320 two-slot check start (second run)
+16:47 PrismML #320 two-slot check (second run) exit 0
+16:47 4B-base battery start (after issue #7)
+21:11 4B-base battery done (its own done line)
+21:11 (other GPU job, not part of this study)
+21:56 (other GPU job, not part of this study)
+21:56 (other GPU job, not part of this study)
+22:08 (other GPU job, not part of this study)
+22:08 Bonsai 0045 release smoke start
+22:09 Bonsai release smoke 0045 exit 0
+22:09 Bonsai 0045 8 GB preset check exit 0
+22:09 issue #7 long-session repro (pinned 16k line, session to 45k vs fresh) start
+22:12 issue #7 long-session repro: done line seen
+22:12 Bonsai 0045 8 GB preset check (second run, with the API key) start
+22:16 Bonsai 0045 8 GB preset check (second run) exit 0
+22:16 (other GPU job, not part of this study)
+22:17 (other GPU job, not part of this study)
+22:17 2B-base battery start (after issue #7)
+01:22 2B-base exit 0
+01:22 queue done
+01:22 9B-base suite (re-queued) start
+01:22 9B-base suite exit 0
+01:24 S3a-live (edit repair through the layer, 2B 4B) start
+02:07 S3a-live exit 0
+02:07 Bonsai product bin: commit 142d5105d
+02:07 er chain done
+02:07 PR #11 checkpoint-every-nt 12 GB A/B start
+03:21 PR #11 checkpoint-every-nt 12 GB A/B exit 0
+03:21 ckpt chain done
+03:21 9B-base suite (second try) start
+08:02 9B-base suite (second try) exit 0
+08:02 9b suite chain done
+08:03 Bonsai 0046 release smoke start
+08:04 Bonsai release smoke 0046 exit 0
+08:04 Bonsai 0046 8 GB preset check start
+08:07 Bonsai 0046 8 GB preset check exit 0
+08:07 release46 chain done
+08:08 issue #7 cache reuse repro start
+08:23 issue #7 cache reuse repro exit 0
+08:23 cache chain done
+08:23 Bonsai product bin: commit 5251968b01

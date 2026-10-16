@@ -1,0 +1,75 @@
+05:51 === battery 4B PTQ1_0 start; engine version: 0.2.0-dev (build 10768, commit 8ecc788d5)
+05:51 arm raw: health=1 inner=http://127.0.0.1:8080 listen 0.0.0.0:8080  think=True effort=medium budget=-1 harness-proofing=False backend-sampling=True presence=
+pass@1 71.34%  (117/164)  arm=off effort=- temp=0.0 max_tokens=1024  156.9s
+   loops (finish=length): 0/164
+pass@1 90.24%  (148/164)  arm=medium effort=- temp=0.0 max_tokens=24576  2472.9s
+   loops (finish=length): 0/164
+06:35 arm rawpp: health=1 inner=http://127.0.0.1:8080 listen 0.0.0.0:8080  think=True effort=medium budget=-1 harness-proofing=False backend-sampling=True presence=
+pass@1 76.22%  (125/164)  arm=off effort=- temp=0.0 max_tokens=1024  144.0s
+   loops (finish=length): 0/164
+pass@1 89.02%  (146/164)  arm=medium effort=- temp=0.0 max_tokens=24576  1885.0s
+   loops (finish=length): 0/164
+07:09 arm servepp: health=1 inner=http://127.0.0.1:18080 listen 0.0.0.0:8080  think=True effort=medium budget=20480 harness-proofing=True backend-sampling=True presenc
+pass@1 76.22%  (125/164)  arm=off effort=- temp=0.0 max_tokens=1024  145.2s
+   loops (finish=length): 0/164
+pass@1 89.02%  (146/164)  arm=medium effort=- temp=0.0 max_tokens=24576  2167.8s
+   loops (finish=length): 0/164
+07:47 arm serve: health=1 inner=http://127.0.0.1:18080 listen 0.0.0.0:8080  think=True effort=medium budget=20480 harness-proofing=True backend-sampling=True presenc
+pass@1 71.34%  (117/164)  arm=off effort=- temp=0.0 max_tokens=1024  146.3s
+   loops (finish=length): 0/164
+pass@1 92.68%  (152/164)  arm=medium effort=- temp=0.0 max_tokens=24576  2455.1s
+   loops (finish=length): 0/164
+08:31 tool-call stress (serve, inner):
+== summary ==
+A_native_grammar   n=9 parsed=8 payload_ok=3 cut_by_max_tokens=1 median_payload_chars=21402 mean_tps=229.0
+B_json_in_content  n=9 parsed=1 payload_ok=0 cut_by_max_tokens=3 median_payload_chars=- mean_tps=231.7
+08:37 suite: raw (inner) vs layer (:8080), frozen plan, same seeds
+{"family": "computation", "name": "digits", "seed": 1, "arm": "raw", "ok": false, "tokens": 49152, "wall_s": 269.9, "detail": "answer None truth 54305"}
+{"family": "computation", "name": "digits", "seed": 2, "arm": "raw", "ok": false, "tokens": 49152, "wall_s": 270.5, "detail": "answer None truth 35671"}
+{"family": "computation", "name": "digits", "seed": 2, "arm": "layer", "ok": true, "tokens": 1049, "wall_s": 7.7, "detail": "answer 35671 truth 35671"}
+{"family": "computation", "name": "digits", "seed": 3, "arm": "layer", "ok": false, "tokens": 7286, "wall_s": 40.1, "detail": "answer 137821 truth 159976"}
+{"family": "computation", "name": "digits", "seed": 3, "arm": "raw", "ok": false, "tokens": 48325, "wall_s": 266.4, "detail": "answer 1026441 truth 159976"}
+{"family": "computation", "name": "lcs", "seed": 1, "arm": "raw", "ok": false, "tokens": 49152, "wall_s": 272.8, "detail": "answer None truth 17012"}
+{"family": "computation", "name": "lcs", "seed": 1, "arm": "layer", "ok": false, "tokens": 48423, "wall_s": 274.4, "detail": "answer 17001 truth 17012"}
+{"family": "computation", "name": "lcs", "seed": 2, "arm": "layer", "ok": false, "tokens": 20325, "wall_s": 106.0, "detail": "answer 16000 truth 16006"}
+{"family": "computation", "name": "lcs", "seed": 2, "arm": "raw", "ok": false, "tokens": 42758, "wall_s": 228.3, "detail": "answer 12001 truth 16006"}
+{"family": "computation", "name": "lcs", "seed": 3, "arm": "raw", "ok": false, "tokens": 49152, "wall_s": 272.0, "detail": "answer None truth 14009"}
+{"family": "computation", "name": "lcs", "seed": 3, "arm": "layer", "ok": false, "tokens": 6968, "wall_s": 32.1, "detail": "answer 14001 truth 14009"}
+{"family": "computation", "name": "sales", "seed": 1, "arm": "layer", "ok": true, "tokens": 20084, "wall_s": 102.2, "detail": "answer 3002244 truth 3002244"}
+{"family": "computation", "name": "sales", "seed": 1, "arm": "raw", "ok": false, "tokens": 19516, "wall_s": 97.7, "detail": "answer 2236262 truth 3002244"}
+{"family": "computation", "name": "sales", "seed": 2, "arm": "raw", "ok": false, "tokens": 13546, "wall_s": 65.4, "detail": "answer 16 truth 10"}
+09:51 === PAUSED for issue testing (suite at run 45/74; HumanEval + tool calls complete); resume with a fresh suite run
+11:43 === suite-only resume 4B PTQ1_0 start (results.jsonl resumes; done runs are skipped)
+11:44 arm serve: health=1 inner=http://127.0.0.1:18080 listen 0.0.0.0:8080  think=True effort=medium budget=20480 harness-proofing=True backend-sampling=True presenc
+11:44 suite: raw (inner) vs layer (:8080), frozen plan, same seeds (resumed)
+{"family": "computation", "name": "sales", "seed": 2, "arm": "layer", "ok": false, "tokens": 28617, "wall_s": 153.5, "detail": "answer 9 truth 10"}
+{"family": "computation", "name": "sales", "seed": 3, "arm": "layer", "ok": true, "tokens": 26934, "wall_s": 142.0, "detail": "answer 1245458 truth 1245458"}
+{"family": "computation", "name": "sales", "seed": 3, "arm": "raw", "ok": true, "tokens": 15395, "wall_s": 75.8, "detail": "answer 1245458 truth 1245458"}
+{"family": "computation", "name": "weblog", "seed": 1, "arm": "raw", "ok": false, "tokens": 17192, "wall_s": 90.8, "detail": "answer 63357 truth 1238271"}
+{"family": "computation", "name": "weblog", "seed": 1, "arm": "layer", "ok": true, "tokens": 51284, "wall_s": 322.1, "detail": "answer 1238271 truth 1238271"}
+{"family": "computation", "name": "weblog", "seed": 2, "arm": "layer", "ok": true, "tokens": 30455, "wall_s": 176.6, "detail": "answer 24 truth 24"}
+{"family": "computation", "name": "weblog", "seed": 2, "arm": "raw", "ok": false, "tokens": 20490, "wall_s": 112.8, "detail": "answer None truth 24"}
+{"family": "computation", "name": "weblog", "seed": 3, "arm": "raw", "ok": true, "tokens": 21080, "wall_s": 113.3, "detail": "answer 4 truth 4"}
+{"family": "computation", "name": "weblog", "seed": 3, "arm": "layer", "ok": false, "tokens": 66344, "wall_s": 472.7, "detail": "answer 6 truth 4"}
+{"family": "workspace", "name": "invoiceH", "seed": 1, "arm": "layer", "ok": false, "tokens": 11382, "wall_s": 51.7, "detail": "submitted; full_pass=False"}
+{"family": "workspace", "name": "invoiceH", "seed": 1, "arm": "raw", "ok": false, "tokens": 11382, "wall_s": 51.7, "detail": "submitted; full_pass=False"}
+{"family": "workspace", "name": "invoiceH", "seed": 2, "arm": "raw", "ok": false, "tokens": 35766, "wall_s": 167.8, "detail": "cap_responses; full_pass=False"}
+{"family": "workspace", "name": "invoiceH", "seed": 2, "arm": "layer", "ok": false, "tokens": 35766, "wall_s": 167.7, "detail": "cap_responses; full_pass=False"}
+12:31 === suite-only resume 4B PTQ1_0 start (results.jsonl resumes; done runs are skipped)
+12:31 arm serve: health=1 inner=http://127.0.0.1:18080 listen 0.0.0.0:8080  think=True effort=medium budget=20480 harness-proofing=True backend-sampling=True presenc
+12:31 suite: raw (inner) vs layer (:8080), frozen plan, same seeds (resumed)
+| coding | xfer-zip-01 | 0/4 | 0/4 | 0 / 0 |
+| computation | digits | 0/3 | 2/3 | 2 / 0 |
+| computation | knapsack | 2/3 | 3/3 | 1 / 0 |
+| computation | lcs | 0/3 | 0/3 | 0 / 0 |
+| computation | sales | 1/3 | 2/3 | 1 / 0 |
+| computation | weblog | 1/3 | 2/3 | 2 / 1 |
+| workspace | chain | 1/2 | 1/2 | 0 / 0 |
+| workspace | copy | 2/2 | 2/2 | 0 / 0 |
+| workspace | dedupeH | 0/2 | 0/2 | 0 / 0 |
+| workspace | invoiceH | 0/2 | 0/2 | 0 / 0 |
+| workspace | ledgerH | 0/2 | 0/2 | 0 / 0 |
+| **total** | | **7/37** | **12/37** | **6 / 1** |
+
+completion tokens: raw 820,167, layer 692,062
+12:56 === battery 4B done; serve arm left running (layer :8080, inner :18080)
