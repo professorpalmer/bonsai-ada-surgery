@@ -268,7 +268,7 @@ every `BONSAI_*`, `LLAMA_ARG_*` and `GGML_*` variable that is set, and it says w
 | Variable | Default | |
 | --- | --- | --- |
 | `BONSAI_CTX` | 262144 | context window |
-| `BONSAI_CTK` | q8_0 (12 GB), q3_0 (8 GB) | K/V cache type (q4_0: 12x the flipped tokens, see Quality; q3_0 is the 8 GB default from bundle-20261015, q4_0 before) |
+| `BONSAI_CTK` | q4_0 (12 GB), q3_0 (8 GB) | K/V cache type. q4_0 keeps ~99 % of the 262k window in VRAM on 12 GB; q3_0 is the 8 GB default from bundle-20261015. See [Quality](#quality-the-recipe-matters-as-much-as-the-kernels) |
 | `BONSAI_TIER` | 1 | 0 = all-VRAM cache (then 96k window) |
 | `BONSAI_KV_VRAM_CELLS` | auto | pin the VRAM line |
 | `BONSAI_VRAM_MARGIN` | 1000 (display on iGPU) / 1300 | MiB kept free below the demotion point |

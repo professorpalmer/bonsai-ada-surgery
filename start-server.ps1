@@ -14,6 +14,8 @@ function Select-CompleteGguf([string]$Path, [int64]$MinBytes) {
 # 8 GB cards (docs/8GB.md): q4_0 K/V, a 131k window, the Q4_0 MTP head with draft 1 / tail 1 when its file is present,
 # the shared CUDA pool and f16 prefill. Detected from total VRAM; BONSAI_8GB=1 forces it, BONSAI_8GB=0 turns it off.
 $TotalMiB = [int]((& nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits | Select-Object -First 1).Trim())
+# BONSAI_TOTAL_MIB: test hook, the card size the presets see (the VRAM line is still sized from the real free VRAM)
+if ($env:BONSAI_TOTAL_MIB) { $TotalMiB = [int]$env:BONSAI_TOTAL_MIB }
 $Small = if ($env:BONSAI_8GB) { $env:BONSAI_8GB -eq '1' } else { $TotalMiB -le 8704 }
 $Model = $null
 if ($env:BONSAI_MODEL) {
@@ -105,8 +107,17 @@ $Ctx = if ($env:BONSAI_CTX) { [int]$env:BONSAI_CTX } elseif ($Small) { if ($Smal
 # launcher, VRAM line 80,640 vs 61,696 positions (1.31x); decode 64k 41.0 vs 39.6 tok/s (+3.5 %), 128k +44 %, 192k +34 %;
 # perplexity +0.56 % at 16k; HumanEval 163/164; copies and needles at 160k equal to q4_0 (#21 P129-P131, rule in
 # docs/research/q3port-20261013). BONSAI_CTK=q4_0 keeps the previous default.
+# 12 GB band (total VRAM up to 14 GB): q4_0 since D29 (docs/research/depth-20261010): 18,432 B per position puts ~99 % of
+# the 262k window in VRAM
+# (RTX 4070: line 129,024 -> 260,352 at margin 1000, 242,176 at margin 1300 with the display on the card); decode
+# 192k 26.7 -> 64.2 and 245k 15.4 -> 61.0 tok/s (display on the card: 242,176 cells, 192k 62.5, 245k 45.7, D29b);
+# 245k copies 20/20, needles 24/24 (q8_0 23/24); perplexity -c 2048
+# 8.0733 -> 8.0900 (+0.21 %); HumanEval 158/164. BONSAI_CTK=q8_0 keeps the previous 12 GB default. Larger cards keep
+# q8_0: there most or all of the q8_0 window fits in VRAM, so q4_0 would cost precision for little or nothing.
+$Band12 = -not $Small -and $TotalMiB -le 14336
 $HasQ3 = $Help -match '\bq3_0\b'
-$Ctk = if ($env:BONSAI_CTK) { $env:BONSAI_CTK } elseif ($Small) { if ($HasQ3) { 'q3_0' } else { 'q4_0' } } else { 'q8_0' }
+$Ctk = if ($env:BONSAI_CTK) { $env:BONSAI_CTK } elseif ($Small) { if ($HasQ3) { 'q3_0' } else { 'q4_0' } } elseif ($Band12) { 'q4_0' } else { 'q8_0' }
+$CtkWhy = if ($env:BONSAI_CTK) { 'BONSAI_CTK' } elseif ($Small) { '8 GB default' } elseif ($Band12) { '12 GB default, BONSAI_CTK=q8_0 for the previous one' } else { 'q8_0: the card holds most of the window' }
 $Port = if ($env:BONSAI_PORT) { [int]$env:BONSAI_PORT } else { 8080 }
 
 # ---- Reasoning ------------------------------------------------------------------------------------------
@@ -265,16 +276,27 @@ if ($Spec -gt 0) {
 # 8 GB with an engine that has it. Below GGML_CUDA_FA_SPARSE_MIN_HOST host cells an op is the dense op, but the page-bound
 # tables take VRAM for the whole window (514 B per host cell at page 64 with int8 bounds, plus 36 MiB), counted in the line
 # below: the shorter line costs ~8 % decode at 64k on a 2060 SUPER (P127), so it stays off by default.
+# With an engine that has the self-timing engage rule (GGML_CUDA_FA_SPARSE_AUTO) and the late reserve, sparse is on by
+# default on 8 GB in auto mode: the dense VRAM line is kept, and per 16k band of context the engine times dense against
+# sparse once and keeps the faster (decisions in %LOCALAPPDATA%\bonsai\sparse-calib.txt). BONSAI_SPARSE=1 forces sparse
+# from MIN_HOST on, BONSAI_SPARSE=0 turns it off; for byte-reproducible output at a new depth use one of them.
 $SparsePage = 0
 $SparseAvail = $CudaDll.Contains('GGML_CUDA_FA_SPARSE_MIN_HOST')
-if ($Small -and $env:BONSAI_SPARSE -eq '1' -and -not $env:GGML_CUDA_FA_SPARSE -and $SparseAvail) {
+$SparseAutoAvail = $CudaDll.Contains('GGML_CUDA_FA_SPARSE_AUTO') -and $CudaDll.Contains('GGML_CUDA_KV_TIER_DEMOTE_FRAC')
+$SparseAuto = $Small -and $SparseAutoAvail -and -not $env:BONSAI_SPARSE -and -not $env:GGML_CUDA_FA_SPARSE
+if ($Small -and ($env:BONSAI_SPARSE -eq '1' -or $SparseAuto) -and -not $env:GGML_CUDA_FA_SPARSE -and $SparseAvail) {
     $env:GGML_CUDA_FA_SPARSE = '12288,64,1024'   # floor 12288; with FRAC below the op keeps max(floor, host tail x FRAC): 200k needed more than 10.4k (R04)
     if (-not $env:GGML_CUDA_FA_SPARSE_FAST) { $env:GGML_CUDA_FA_SPARSE_FAST = '1' }
     if (-not $env:GGML_CUDA_KV_TIER_STAGE_MIN_Q) { $env:GGML_CUDA_KV_TIER_STAGE_MIN_Q = '9' }
-    if (-not $env:GGML_CUDA_FA_SPARSE_MIN_HOST) { $env:GGML_CUDA_FA_SPARSE_MIN_HOST = '32768' }
+    if (-not $env:GGML_CUDA_FA_SPARSE_MIN_HOST) { $env:GGML_CUDA_FA_SPARSE_MIN_HOST = $(if ($SparseAuto) { '16384' } else { '32768' }) }
+    if ($SparseAuto) { $env:GGML_CUDA_FA_SPARSE_AUTO = '1' }
     # budget max(floor, host tail / 8). At 245k, / 16 lost needles that / 8 and dense keep (4070 R10 / R10b; 2060 R11:
     # / 8 = dense on all 44 items, / 16 one needle less). RTX 2060 SUPER, / 8: 1.59x dense at 160k, 1.76x at 245k (R11)
-    if (-not $env:GGML_CUDA_FA_SPARSE_FRAC) { $env:GGML_CUDA_FA_SPARSE_FRAC = '0.125' }
+    # per K type: a coarser K flattens attention over the tail, so the needed pages win by less and need a larger
+    # budget. q3_0: 1/4, the smallest FRAC equal to dense item by item at 245k on two needle sets (n 24, n 28) and the
+    # copy set (D26h-3 / 3b: 1/8 and 1/6 each lost a needle); others: 1/8 (R10b, R11)
+    $SparseFracByType = @{ 'q3_0' = '0.25' }
+    if (-not $env:GGML_CUDA_FA_SPARSE_FRAC) { $env:GGML_CUDA_FA_SPARSE_FRAC = $(if ($SparseFracByType.ContainsKey($Ctk)) { $SparseFracByType[$Ctk] } else { '0.125' }) }
 }
 if ($env:GGML_CUDA_FA_SPARSE) {
     $SparseParts = $env:GGML_CUDA_FA_SPARSE -split ','
@@ -349,6 +371,34 @@ if ($Tier) {
             $Budget = ($FreeMiB - $Margin - $FixedMiB) * 1MB - $Ctx * $CellBytes / 16 - $Ctx * $SparseCellBytes
             $TierCells = [int]([math]::Floor($Budget / ($CellBytes * 15 / 16 - $SparseCellBytes) / 256) * 256)
             if ($SparsePage) { $TierCellsDense = [int]([math]::Floor((($FreeMiB - $Margin - $FixedMiB + 64) * 1MB - $Ctx * $CellBytes / 16) / ($CellBytes * 15 / 16) / 256) * 256) }
+        }
+    }
+    # Late reserve (engine with GGML_CUDA_KV_TIER_DEMOTE_FRAC): keep the dense VRAM line. When sparse first engages,
+    # the engine moves the top (dense - sparse) cells of the line to system RAM and puts the page bounds in that VRAM,
+    # so contexts below that point run exactly as without sparse. BONSAI_SPARSE_LATE=0: reserve from the start.
+    $TierCellsSparse = 0
+    if ($SparsePage -and $TierCellsDense -gt $TierCells -and $CudaDll.Contains('GGML_CUDA_KV_TIER_DEMOTE_FRAC') -and $env:BONSAI_SPARSE_LATE -ne '0') {
+        $env:GGML_CUDA_KV_TIER_DEMOTE_FRAC = '{0:F6}' -f (($TierCellsDense - $TierCells) / $Ctx)
+        $TierCellsSparse = $TierCells
+        $TierCells = $TierCellsDense
+    }
+    if ($env:GGML_CUDA_FA_SPARSE_AUTO -eq '1' -and $TierCellsSparse -gt 0) {
+        $CalibDir = if ($env:LOCALAPPDATA) { Join-Path $env:LOCALAPPDATA 'bonsai' } else { Join-Path $Root 'artifacts' }
+        try { New-Item -ItemType Directory -Force $CalibDir | Out-Null } catch { $CalibDir = Join-Path $Root 'artifacts' }
+        $CalibPath = Join-Path $CalibDir 'sparse-calib.txt'
+        $Driver = ''; try { $Driver = (& nvidia-smi --query-gpu=driver_version --format=csv,noheader | Select-Object -First 1).Trim() } catch { }
+        $CudaStamp = ''; try { $ci = Get-Item (Join-Path $Bin 'ggml-cuda.dll'); $CudaStamp = "$($ci.Length)-$($ci.LastWriteTimeUtc.Ticks)" } catch { }
+        # the lines rounded to 4k cells: free VRAM moves the exact line by a few hundred cells between launches, which must not
+        # throw the timings away (P146: the 2060's line moved 512 cells and every band was timed again)
+        $LineKey = "{0}/{1}" -f ([int][math]::Round($TierCellsDense / 4096) * 4096), ([int][math]::Round($TierCellsSparse / 4096) * 4096)
+        $CalibKey = ("{0}|{1}|{2}|line ~{3}|{4}|ctx {5}|{6}|frac {7}" -f $GpuName, $Driver, $CudaStamp, $LineKey, $Ctk, $Ctx, $env:GGML_CUDA_FA_SPARSE, $env:GGML_CUDA_FA_SPARSE_FRAC) -replace '\s+', '_'
+        $env:GGML_CUDA_FA_SPARSE_CALIB = $CalibPath
+        $env:GGML_CUDA_FA_SPARSE_CALIB_KEY = $CalibKey
+        $CalibNote = 'new (each 16k band past the engage point is timed once, on first use)'
+        if (Test-Path $CalibPath) {
+            $cl = @(Get-Content $CalibPath -ErrorAction SilentlyContinue)
+            if ($cl.Count -gt 0 -and $cl[0] -eq "key $CalibKey") { $CalibNote = "used ($(@($cl | Where-Object { $_ -like 'band *' }).Count) bands)" }
+            else { $CalibNote = 'ignored (key mismatch: GPU, driver, engine, line, K type or window changed); timing again' }
         }
     }
     if ($TierCells -ge $Ctx) {
@@ -429,11 +479,15 @@ if ($env:BONSAI_RAM_BUDGET -ne '0' -and $Help -match '--cache-ram' -and $Help -m
 
 if ($Small) { Write-Host "8gb    preset on ($TotalMiB MiB card; BONSAI_8GB=0 turns it off): ub $Ubatch, f16 prefill to $($env:GGML_CUDA_FA_PREFILL_F16) cells$(if ($env:GGML_CUDA_FA_CHUNK -and $env:GGML_CUDA_FA_CHUNK -ne '0') { ", deeper in chunks of $($env:GGML_CUDA_FA_CHUNK)" })" }
 Write-Host "model  $(Split-Path $Model -Leaf)"
-Write-Host "window $Ctx / $Ctk  (trained max 262144)"
+Write-Host "window $Ctx / $Ctk  ($CtkWhy; trained max 262144)"
 if ($TierCells -gt 0) { Write-Host "kv     tiered: cells 0..$TierCells in VRAM, $TierCells..$Ctx in system RAM$(if ($Margin) { " (VRAM margin $Margin MiB)" })$(if ($PoolMiB) { "; shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off)" })$(if ($MaskSavedMiB) { "; packed KQ mask ($MaskSavedMiB MiB saved)" })" }
-if ($SparsePage -and $TierCells -gt 0) {
-    Write-Host "kv     sparse host-tail reads: $($env:GGML_CUDA_FA_SPARSE) (B,P,R), budget max(B, host tail x $(if ($env:GGML_CUDA_FA_SPARSE_FRAC) { $env:GGML_CUDA_FA_SPARSE_FRAC } else { '0.0625' })), from $(if ($env:GGML_CUDA_FA_SPARSE_MIN_HOST) { $env:GGML_CUDA_FA_SPARSE_MIN_HOST } else { 0 }) host cells on; $([int](($Ctx - $TierCells) * $SparseCellBytes / 1MB) + 64) MiB of page bounds counted$(if ($TierCellsDense -gt $TierCells) { ": VRAM line $TierCellsDense -> $TierCells cells" })"
-    if ($Small) { Write-Host "       8 GB, 262k: ~1.6x decode at 160k, ~1.8x at 245k; ~8 % slower below ~100k (shorter VRAM line). BONSAI_SPARSE=0 or unset: off." }
+if ($SparsePage -and $TierCells -gt 0 -and $env:GGML_CUDA_FA_SPARSE_AUTO -eq '1') {
+    Write-Host "kv     sparse host-tail reads: auto (dense line $TierCells; past it the engine times dense vs sparse per 16k band and keeps the faster; BONSAI_SPARSE=0 off, =1 forced)"
+    if ($CalibPath) { Write-Host "kv     sparse calib: $CalibPath $CalibNote" }
+} elseif ($SparsePage -and $TierCells -gt 0) {
+    Write-Host "kv     sparse host-tail reads: $($env:GGML_CUDA_FA_SPARSE) (B,P,R), budget max(B, host tail x $(if ($env:GGML_CUDA_FA_SPARSE_FRAC) { $env:GGML_CUDA_FA_SPARSE_FRAC } else { '0.0625' })), from $(if ($env:GGML_CUDA_FA_SPARSE_MIN_HOST) { $env:GGML_CUDA_FA_SPARSE_MIN_HOST } else { 0 }) host cells on; $([int](($Ctx - $TierCells) * $SparseCellBytes / 1MB) + 64) MiB of page bounds counted$(if ($TierCellsSparse -gt 0) { ": VRAM line $TierCells, $TierCellsSparse once sparse engages (late reserve)" } elseif ($TierCellsDense -gt $TierCells) { ": VRAM line $TierCellsDense -> $TierCells cells" })"
+    if ($Small -and $TierCellsSparse -gt 0) { Write-Host "       8 GB, 262k: ~1.6x decode at 160k, ~1.8x at 245k; below the engage point the dense line is kept. BONSAI_SPARSE=0 or unset: off." }
+    elseif ($Small) { Write-Host "       8 GB, 262k: ~1.6x decode at 160k, ~1.8x at 245k; ~8 % slower below ~100k (shorter VRAM line). BONSAI_SPARSE=0 or unset: off." }
 } elseif ($Small -and $SparseAvail -and $TierCells -gt 0) {
     Write-Host "kv     deep sessions (160k+): BONSAI_SPARSE=1 reads only the relevant pages of the system-RAM tail: ~1.6x decode at 160k, ~1.8x at 245k, ~8 % slower below ~100k"
 }
