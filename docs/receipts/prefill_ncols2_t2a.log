@@ -1,0 +1,64 @@
+04:08 === T2a start: t2-prefill 2724a8349 (0059 + GGML_CUDA_FA_PREFILL_NCOLS2, sm_89, build-q3fast), driver 610.88
+04:11 op test (default):  3115/3115 tests passed
+04:14 op test (NCOLS2=2):  3115/3115 tests passed 0 FAIL lines
+04:14 r1 nc8: health=1 (); mem clock 11751 MHz
+nc8 hash 8ae434b2d6a99c5a 740
+nc8 hash 7e6aadac8bfe022a 710
+nc8 hash edb700ca5697ec31 130
+nc8 hash all a090a7f00152d5ef
+r1 nc8 code   depth  32000 (evaluated 32044): prefill  1143.9 tok/s  ttft  28.01s  decode   96.8 tok/s (400 tok)
+r1 nc8 prose  depth  32000 (evaluated 512): prefill   755.3 tok/s  ttft   0.68s  decode   74.9 tok/s (400 tok)
+r1 nc8 bash   depth  32000 (evaluated 516): prefill   771.5 tok/s  ttft   0.67s  decode   91.2 tok/s (400 tok)
+r1 nc8 mean decode 87.6 tok/s
+r1 nc8 code   depth  64000 (evaluated 32481): prefill   857.4 tok/s  ttft  37.88s  decode   90.0 tok/s (400 tok)
+r1 nc8 prose  depth  64000 (evaluated 512): prefill   619.9 tok/s  ttft   0.83s  decode   73.0 tok/s (400 tok)
+r1 nc8 bash   depth  64000 (evaluated 516): prefill   629.3 tok/s  ttft   0.82s  decode   94.1 tok/s (400 tok)
+r1 nc8 mean decode 85.7 tok/s
+r1 nc8 code   depth 128000 (evaluated 63847): prefill   618.3 tok/s  ttft 103.26s  decode   50.2 tok/s (400 tok)
+r1 nc8 prose  depth 128000 (evaluated 512): prefill   442.6 tok/s  ttft   1.16s  decode   42.0 tok/s (400 tok)
+r1 nc8 bash   depth 128000 (evaluated 516): prefill   448.4 tok/s  ttft   1.15s  decode   54.5 tok/s (400 tok)
+r1 nc8 mean decode 48.9 tok/s
+04:19 r1 nc2: health=1 (GGML_CUDA_FA_PREFILL_NCOLS2=2); mem clock 11751 MHz
+nc2 hash 8ae434b2d6a99c5a 740
+nc2 hash 47eb97d56d108251 592
+nc2 hash a51a083f827ba3c4 130
+nc2 hash all 12f715ce99771238
+r1 nc2 code   depth  32000 (evaluated 32044): prefill  1169.7 tok/s  ttft  27.39s  decode   91.5 tok/s (400 tok)
+r1 nc2 prose  depth  32000 (evaluated 512): prefill   796.1 tok/s  ttft   0.64s  decode   78.5 tok/s (400 tok)
+r1 nc2 bash   depth  32000 (evaluated 516): prefill   809.0 tok/s  ttft   0.64s  decode   87.3 tok/s (400 tok)
+r1 nc2 mean decode 85.8 tok/s
+r1 nc2 code   depth  64000 (evaluated 32481): prefill   892.6 tok/s  ttft  36.39s  decode   87.0 tok/s (400 tok)
+r1 nc2 prose  depth  64000 (evaluated 512): prefill   648.1 tok/s  ttft   0.79s  decode   71.8 tok/s (400 tok)
+r1 nc2 bash   depth  64000 (evaluated 516): prefill   658.6 tok/s  ttft   0.78s  decode   85.6 tok/s (400 tok)
+r1 nc2 mean decode 81.5 tok/s
+r1 nc2 code   depth 128000 (evaluated 63847): prefill   652.7 tok/s  ttft  97.82s  decode   52.6 tok/s (400 tok)
+r1 nc2 prose  depth 128000 (evaluated 512): prefill   467.0 tok/s  ttft   1.10s  decode   37.1 tok/s (400 tok)
+r1 nc2 bash   depth 128000 (evaluated 516): prefill   473.5 tok/s  ttft   1.09s  decode   52.1 tok/s (400 tok)
+r1 nc2 mean decode 47.3 tok/s
+04:23 r2 nc8: health=1 (); mem clock 11751 MHz
+r2 nc8 code   depth  32000 (evaluated 32044): prefill  1139.1 tok/s  ttft  28.13s  decode   98.1 tok/s (400 tok)
+r2 nc8 prose  depth  32000 (evaluated 512): prefill   773.5 tok/s  ttft   0.66s  decode   75.6 tok/s (400 tok)
+r2 nc8 bash   depth  32000 (evaluated 516): prefill   783.8 tok/s  ttft   0.66s  decode   92.3 tok/s (400 tok)
+r2 nc8 mean decode 88.7 tok/s
+r2 nc8 code   depth  64000 (evaluated 32481): prefill   856.0 tok/s  ttft  37.94s  decode   90.0 tok/s (400 tok)
+r2 nc8 prose  depth  64000 (evaluated 512): prefill   623.2 tok/s  ttft   0.82s  decode   73.7 tok/s (400 tok)
+r2 nc8 bash   depth  64000 (evaluated 516): prefill   639.5 tok/s  ttft   0.81s  decode   94.9 tok/s (400 tok)
+r2 nc8 mean decode 86.2 tok/s
+r2 nc8 code   depth 128000 (evaluated 63847): prefill   617.8 tok/s  ttft 103.34s  decode   50.2 tok/s (400 tok)
+r2 nc8 prose  depth 128000 (evaluated 512): prefill   446.4 tok/s  ttft   1.15s  decode   41.4 tok/s (400 tok)
+r2 nc8 bash   depth 128000 (evaluated 516): prefill   449.5 tok/s  ttft   1.15s  decode   54.1 tok/s (400 tok)
+r2 nc8 mean decode 48.6 tok/s
+04:27 r2 nc2: health=1 (GGML_CUDA_FA_PREFILL_NCOLS2=2); mem clock 11751 MHz
+r2 nc2 code   depth  32000 (evaluated 32044): prefill  1171.7 tok/s  ttft  27.35s  decode   91.9 tok/s (400 tok)
+r2 nc2 prose  depth  32000 (evaluated 512): prefill   797.2 tok/s  ttft   0.64s  decode   78.3 tok/s (400 tok)
+r2 nc2 bash   depth  32000 (evaluated 516): prefill   814.9 tok/s  ttft   0.63s  decode   87.3 tok/s (400 tok)
+r2 nc2 mean decode 85.8 tok/s
+r2 nc2 code   depth  64000 (evaluated 32481): prefill   891.9 tok/s  ttft  36.42s  decode   87.7 tok/s (400 tok)
+r2 nc2 prose  depth  64000 (evaluated 512): prefill   655.0 tok/s  ttft   0.78s  decode   72.2 tok/s (400 tok)
+r2 nc2 bash   depth  64000 (evaluated 516): prefill   661.9 tok/s  ttft   0.78s  decode   85.8 tok/s (400 tok)
+r2 nc2 mean decode 81.9 tok/s
+r2 nc2 code   depth 128000 (evaluated 63847): prefill   652.5 tok/s  ttft  97.85s  decode   52.4 tok/s (400 tok)
+r2 nc2 prose  depth 128000 (evaluated 512): prefill   468.7 tok/s  ttft   1.09s  decode   37.1 tok/s (400 tok)
+r2 nc2 bash   depth 128000 (evaluated 516): prefill   474.2 tok/s  ttft   1.09s  decode   52.5 tok/s (400 tok)
+r2 nc2 mean decode 47.3 tok/s
+04:31 === T2a done
