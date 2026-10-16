@@ -1,0 +1,37 @@
+14:01 === release-0060 R3/R4 start: new commit 1bee9252ac, old commit ab94810051, driver 610.88
+14:01 R3 ADD: 99/99 tests passed; FAIL lines 0
+14:01 R3 RMS_NORM: 51/51 tests passed; FAIL lines 0
+14:01 R3 GET_ROWS: 123/123 tests passed; FAIL lines 0
+14:01 R3 SET_ROWS: 177/177 tests passed; FAIL lines 0
+14:01 R3 CPY: 259/259 tests passed; FAIL lines 0
+14:05 R3 FLASH_ATTN_EXT: 3115/3115 tests passed; FAIL lines 0
+14:05 R3 GATED_DELTA_NET: 55/55 tests passed; FAIL lines 0
+14:05 server d12_new: health=1; window 262144 / q4_0  (12 GB default, BONSAI_CTK=q8_0 for the previous one; trained max 26
+R4 d12_new hash 4c6b9a6dd9696680 742
+R4 d12_new hash db8523959cf84229 645
+R4 d12_new hash c5c7dd705f5d0769 131
+R4 d12_new hash all edf0b1fbd89000ba
+14:05 server d12_old: health=1; window 262144 / q4_0  (12 GB default, BONSAI_CTK=q8_0 for the previous one; trained max 26
+R4 d12_old hash 4c6b9a6dd9696680 742
+R4 d12_old hash db8523959cf84229 645
+R4 d12_old hash c5c7dd705f5d0769 131
+R4 d12_old hash all edf0b1fbd89000ba
+14:06 server d8_new: health=1; window 262144 / q3_0  (8 GB default; trained max 262144)
+R4 d8_new hash 46b54edbc2c98f51 742
+R4 d8_new hash a74075688a72a22b 651
+R4 d8_new hash be7a32213f2a9fac 130
+R4 d8_new hash all 1370fc25030ce635
+14:06 server d8_old: health=1; window 262144 / q3_0  (8 GB default; trained max 262144)
+R4 d8_old hash 46b54edbc2c98f51 742
+R4 d8_old hash a74075688a72a22b 651
+R4 d8_old hash be7a32213f2a9fac 130
+R4 d8_old hash all 1370fc25030ce635
+14:06 server cold_new: health=1; window 262144 / q3_0  (8 GB default; trained max 262144)
+R4 cold128k new code   depth 128000 (evaluated 127340): prefill   758.7 tok/s  ttft 167.83s  decode   66.6 tok/s (400 tok)
+14:10 server cold_old: health=1; window 262144 / q3_0  (8 GB default; trained max 262144)
+R4 cold128k old code   depth 128000 (evaluated 127340): prefill   757.7 tok/s  ttft 168.06s  decode   67.3 tok/s (400 tok)
+14:13 server cold_new: health=1; window 262144 / q3_0  (8 GB default; trained max 262144)
+R4 cold128k new code   depth 128000 (evaluated 127340): prefill   757.6 tok/s  ttft 168.09s  decode   67.1 tok/s (400 tok)
+14:17 server cold_old: health=1; window 262144 / q3_0  (8 GB default; trained max 262144)
+R4 cold128k old code   depth 128000 (evaluated 127340): prefill   757.7 tok/s  ttft 168.06s  decode   67.6 tok/s (400 tok)
+14:20 === release-0060 R3/R4 done

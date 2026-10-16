@@ -1,0 +1,10 @@
+14:59:43 === T1-i start: old commit 7c7b47e156, new commit 7c7b47e156
+15:00:13 ballast pid 23180 holds 4786 MiB; VRAM now 4947 MiB, 7064 MiB
+15:00:26 server i_prime ( ): health=1; kv     tiered: cells 0..28928 in VRAM, 28928..262144 in system RAM (VRAM margin ; VRAM 11982 MiB, 29 MiB
+{"depth": 65536, "phase": "prime", "file": "t1i_old.bin", "answer_a": "vault 1: 8411\nvault 2: 8629\nvault 3: 8402\nvault 4: 9320\nvault 5: 4111\nvault 6: 4025\nvault 7: 9387\nvault 8: 8794", "a_prompt_n": 65732, "a_prompt_ms": 1277476.638, "save_wall_s": 0.9, "save": {"id_slot": 0, "filename": "t1i
+15:24:45 server i_prime: health after {"status":"ok"}; CUDA errors 0; pool lines 1
+15:25:03 server i_restore ( ): health=1; kv     tiered: cells 0..28928 in VRAM, 28928..262144 in system RAM (VRAM margin ; VRAM 11982 MiB, 29 MiB
+{"depth": 65536, "phase": "restore", "file": "t1i_old.bin", "restore_wall_s": 0.55, "restore": {"id_slot": 0, "filename": "t1i_old.bin", "n_restored": 65811, "n_read": 1101940744, "timings": {"restore_ms": 551.028}}, "answer": "vault 4: 9320", "prompt_n": 5478, "prompt_ms": 219675.729, "request_wall
+15:28:44 server i_restore: health after {"status":"ok"}; CUDA errors 0; pool lines 1
+15:29:01 server ii_prime ( GGML_CUDA_POOL_LOG=1): health=1; kv     tiered: cells 0..28928 in VRAM, 28928..262144 in system RAM (VRAM margin ; VRAM 11982 MiB, 29 MiB
+15:47:36 T1-i STOPPED by hand after arm (i) (kernel session): with sysmem fallback the squeezed 4070 spills instead of failing the VMM map, so (ii)/(iii) cannot test the fix here; the real test is the 2060 (P158c).
