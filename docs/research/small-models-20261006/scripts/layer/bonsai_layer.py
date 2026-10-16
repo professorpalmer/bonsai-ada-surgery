@@ -1,0 +1,737 @@
+"""Built-in code interpreter for the Bonsai server: an OpenAI-compatible proxy in front of llama-server.
+
+  client --> layer (public port) --> llama-server (127.0.0.1, inner port)
+
+For /v1/chat/completions requests the proxy offers the model a `run_python` tool. When the model calls it,
+the proxy runs the code in CPython-on-WASI (layer/wasi-python/sandbox.py: no host files, no network, no
+processes, memory and time capped), appends the result, and asks the model again, until the model answers or
+calls one of the client's own tools. The client sees one ordinary response.
+
+  - default: on for requests WITHOUT client tools, off (pure passthrough) for requests that bring their own tools
+    (E4: with client tools the model retypes paginated tool data into code and transcription errors cost tasks)
+  - per request: "code_interpreter": true / false overrides the default
+  - with the interpreter on and client tools present, client tool calls are returned as usual
+  - the model's reasoning is kept on the internal turns (the server's template renders it)
+  - the internal transcript is attached as "interpreter_trace" (runs, exit codes) for auditing
+  - streaming requests get the same loop: reasoning and answer tokens are relayed as they arrive, the
+    run_python calls are withheld and executed, and the stream continues with the next round
+Everything else (other paths, auth header) is forwarded verbatim.
+"""
+import argparse
+import hmac
+import http.server
+import json
+import os
+import queue
+import re
+import sys
+import threading
+import urllib.error
+import urllib.request
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import sandbox_path  # noqa: E402,F401
+import sandbox  # noqa: E402
+import apicards_v2 as apicards  # noqa: E402  (E9b: v2 docstring cards adopted)
+import apilint  # noqa: E402
+import example_check  # noqa: E402
+import edit_repair  # noqa: E402
+
+TOOL_NAME = "run_python"
+TOOL = {"type": "function", "function": {
+    "name": TOOL_NAME,
+    "description": "Run a Python 3.12 program in an isolated sandbox (standard library only, no network, no "
+                   "files outside its working directory, 10 second limit). Use it for exact computation, "
+                   "counting, search or checking a result. Returns exit code, stdout and stderr.",
+    "parameters": {"type": "object", "properties": {
+        "code": {"type": "string", "description": "the complete program; print the results"},
+        "stdin": {"type": "string", "description": "optional standard input"}}, "required": ["code"]}}}
+INPUT_FILE = "input.txt"
+INPUT_NOTE = (" The full text of the user's messages in this conversation is in the file " + INPUT_FILE +
+              " in the working directory: read the data from there instead of retyping it.")
+
+
+def tool_spec(with_input):
+    if not with_input:
+        return TOOL
+    t = json.loads(json.dumps(TOOL))
+    t["function"]["description"] += INPUT_NOTE
+    return t
+
+
+def client_runs_code(msgs):
+    """A conversation that already carries fenced code blocks and offers no tools is a client that executes code
+    itself (ReAct-style code agents, notebooks, IDE loops). Measured (AW1, AppWorld): offering run_python to such a
+    client made the model run its code in OUR sandbox, where the client's objects do not exist, and the agent's
+    success rate fell from 65% to 20%. Such requests pass through untouched."""
+    for m in msgs:
+        c = m.get("content")
+        if isinstance(c, list):
+            c = " ".join(x.get("text", "") for x in c if isinstance(x, dict))
+        if isinstance(c, str) and "```" in c:
+            return True
+    return False
+
+
+def user_text(msgs):
+    """The user's own words (string contents of user messages), for the sandbox input file."""
+    parts = []
+    for m in msgs:
+        if m.get("role") == "user":
+            c = m.get("content")
+            if isinstance(c, str):
+                parts.append(c)
+            elif isinstance(c, list):
+                parts.extend(x.get("text", "") for x in c if isinstance(x, dict) and x.get("type") == "text")
+    return (chr(10) + chr(10)).join(parts)
+
+
+FINAL_REASON = ("The code tool is no longer available. The numeric exploration above did not settle the problem, so set "
+                "it aside: reason the problem through from first principles, check the result against anything above "
+                "that is reliable, and then give your final answer in the format the original request asked for.")
+FINAL_NUDGE = ("The code tool is no longer available. Using the results you already have, give your final answer "
+               "now, in the format the original request asked for.")
+
+
+def run_tool(args_json, timeout, extra_files=None):
+    try:
+        args = json.loads(args_json) if isinstance(args_json, str) else args_json
+        files = dict(extra_files or {})
+        files["main.py"] = args.get("code", "")
+        r = sandbox.run(files, ["/work/main.py"], stdin=(args.get("stdin") or "").encode("utf-8"), timeout=timeout)
+        return {"exit_code": r["exit_code"], "timed_out": r["timed_out"], "code_chars": len(args.get("code", "") or ""),
+                "code": (args.get("code", "") or "")[:20000],   # kept in the trace so a response is auditable on its own
+                "stdout": r["stdout"][:12000].decode("utf-8", "replace"),
+                "stderr": r["stderr"][-4000:].decode("utf-8", "replace")}
+    except Exception as e:  # malformed arguments are reported to the model, never raised
+        return {"error": f"tool call rejected: {e!r}"[:500]}
+
+
+
+def apply_lint(msgs):
+    """Check Python code in the model's earlier tool calls against the real runtime and append any findings to the
+    matching tool result. Deterministic for a given history, so the rendered prefix stays stable across turns."""
+    findings = {}
+    for m in msgs:
+        if m.get("role") != "assistant":
+            continue
+        for c in m.get("tool_calls") or []:
+            try:
+                args = json.loads(c["function"]["arguments"]) if isinstance(c["function"]["arguments"], str)                     else c["function"]["arguments"]
+            except (ValueError, KeyError, TypeError):
+                continue
+            if not isinstance(args, dict):
+                continue
+            name = next((v for k, v in args.items() if k in ("path", "file", "filename", "file_path") and isinstance(v, str)), "")
+            for k, v in args.items():
+                if apilint.looks_like_python(name if k != "path" else "", v) and k not in ("path", "file", "filename", "file_path"):
+                    w = apilint.lint(v)
+                    if w:
+                        findings[c.get("id", "")] = apilint.format_warnings(w)
+    if not findings:
+        return msgs, 0
+    out, n = [], 0
+    for m in msgs:
+        if m.get("role") == "tool" and m.get("tool_call_id") in findings and isinstance(m.get("content"), str)                 and "[API check by the server" not in m["content"]:
+            m = dict(m, content=m["content"] + chr(10) + findings[m["tool_call_id"]])
+            n += 1
+        out.append(m)
+    return out, n
+
+
+PREFER = ("Use the library functions listed above instead of implementing these formats or algorithms by hand; "
+          "they already implement them correctly.")
+
+
+REPAIR_NOTE = ("[Server note: this run failed. Before your next tool call, reason step by step about the exact cause "
+               "shown above and check that your change fixes it.]")
+
+
+def tool_failed(content):
+    """A run_python / run-style tool result that reports failure (exit code, timeout or a traceback)."""
+    try:
+        o = json.loads(content)
+    except (TypeError, ValueError):
+        return False
+    if not isinstance(o, dict):
+        return False
+    if o.get("timed_out") or (isinstance(o.get("exit_code"), int) and o["exit_code"] != 0):
+        return True
+    return "Traceback (most recent call last)" in str(o.get("stderr") or "")
+
+
+def apply_repair_note(msgs):
+    """E14: append one fixed sentence to every failing tool result. Measured problem: after a failing test the model
+    reasons a median of ~300 characters before its next step (bundle traces). Deterministic for a given history."""
+    out, n = [], 0
+    for m in msgs:
+        if (m.get("role") == "tool" and isinstance(m.get("content"), str) and REPAIR_NOTE not in m["content"]
+                and tool_failed(m["content"])):
+            m = dict(m, content=m["content"] + chr(10) + REPAIR_NOTE)
+            n += 1
+        out.append(m)
+    return out, n
+
+
+# A request that asks for code: a fenced block, a function definition, a .py file name, or a verb like write/fix/create
+# near a noun like program/function/module/solution. Matches every suite coding prompt; not chat turns about code.
+CODE_TASK_RE = re.compile(r"```|\bdef \w+\(|\w\.py\b|\b(write|implement|fix|debug|refactor|complete|build|create)\b"
+                          r"[^.\n]{0,80}?\b(code|program|function|script|module|solution|class|tests?|parser|library|cli|tool|app)\b", re.I)
+FINISH_NOTE = ("Before your final answer, run the program you wrote on the example given in the task and compare its "
+               "output with the expected result; fix it if they differ.")
+
+
+def _is_our_call_delta(line, our_idx):
+    """True for an SSE line whose tool_call deltas all belong to the layer's own run_python call indices."""
+    try:
+        ev = json.loads(line[len(b"data: "):]) if line.startswith(b"data: ") else None
+        tcs = ((ev or {}).get("choices") or [{}])[0].get("delta", {}).get("tool_calls") or []
+        return bool(tcs) and all(tc.get("index", 0) in our_idx for tc in tcs)
+    except Exception:
+        return False
+
+
+TEST_FIRST_NOTE = ("Before you implement anything, write a small test file that encodes the requirements above, including "
+                   "every example given, and run it to see it fail. Then implement until those tests pass, and run them "
+                   "again before your final answer.")
+
+
+def apply_test_first_note(body, msgs):
+    """T1 (opt-in): the test-first sentence at the end of the first user message of a coding request that offers a run
+    tool and asks for code. The small models fix code when a failing test is in front of them; this asks them to
+    make that test from the spec first."""
+    tools = body.get("tools") or []
+    if not any(apicards.CODING_TOOL_RE.search(t.get("function", {}).get("name", "")) for t in tools):
+        return msgs, 0
+    # decided from the first user message only, so a later message cannot change the first one mid-conversation
+    for i, m in enumerate(msgs):
+        if m.get("role") == "user" and isinstance(m.get("content"), str):
+            if TEST_FIRST_NOTE in m["content"] or not CODE_TASK_RE.search(m["content"]):
+                return msgs, 0
+            return msgs[:i] + [dict(m, content=m["content"] + chr(10) + chr(10) + TEST_FIRST_NOTE)] + msgs[i + 1:], 1
+    return msgs, 0
+
+
+CHECK_NOTE = ("Before your final answer, check the result with a second, independent method in run_python (for example "
+              "brute force on a small case, or a direct count), and fix the first method if the two disagree.")
+
+
+def apply_check_note(body, msgs):
+    """G2 (opt-in): the check sentence at the end of the first user message of a request without client tools (the
+    layer offers run_python). Measured problem (9B suite, computation family): right magnitude, wrong detail (distinct
+    LCS count, off-by-one, rounding), and the teacher gets them right."""
+    if body.get("tools"):
+        return msgs, 0
+    for i, m in enumerate(msgs):
+        if m.get("role") == "user" and isinstance(m.get("content"), str):
+            if CHECK_NOTE in m["content"]:
+                return msgs, 0
+            return msgs[:i] + [dict(m, content=m["content"] + chr(10) + chr(10) + CHECK_NOTE)] + msgs[i + 1:], 1
+    return msgs, 0
+
+
+def apply_finish_note(body, msgs):
+    """E15: one fixed sentence at the end of the first user message of a coding request that offers a run tool.
+    Measured problem (E11): solutions that reject even the disclosed example, and the model ends its turn anyway."""
+    tools = body.get("tools") or []
+    if not any(apicards.CODING_TOOL_RE.search(t.get("function", {}).get("name", "")) for t in tools):
+        return msgs, 0
+    # Only when the user asks for code. Measured on coding tasks that offer a run tool, including clients' own tools
+    # (E15; E21 on the suite's coding family: 7/12 with it vs 4/12 without). Agents that offer run tools on every turn
+    # (Hermes, Cline) would otherwise get it on turns with no program, and the model writes one (2026-10-07).
+    # decided from the first user message only, so a later message cannot change the first one mid-conversation
+    for i, m in enumerate(msgs):
+        if m.get("role") == "user" and isinstance(m.get("content"), str):
+            if FINISH_NOTE in m["content"] or not CODE_TASK_RE.search(m["content"]):
+                return msgs, 0
+            return msgs[:i] + [dict(m, content=m["content"] + chr(10) + chr(10) + FINISH_NOTE)] + msgs[i + 1:], 1
+    return msgs, 0
+
+
+def apply_cards(body, msgs):
+    """Append API cards for the modules a coding request involves to the END of the first user message, followed by
+    one generic sentence. Measured (E9/E9b): the same cards in the system message did not help (2/6); at the end of
+    the user message with the sentence they matched hand-written notes (6/6). The first user message is used so the
+    rendered prefix stays stable across the turns of a tool loop."""
+    for i, m in enumerate(msgs):
+        if m.get("role") == "user" and isinstance(m.get("content"), str):
+            if "Reference: exact APIs of the Python modules" in m["content"]:
+                return msgs, 0
+            # cards depend only on the request up to the first user message, so they are identical on every turn
+            text = apicards.cards_for_request(dict(body, messages=msgs[:i + 1]))
+            if not text:
+                return msgs, 0
+            add = chr(10) + chr(10) + text + chr(10) + chr(10) + PREFER
+            return msgs[:i] + [dict(m, content=m["content"] + add)] + msgs[i + 1:], len(add)
+    return msgs, 0
+
+
+class Proxy(http.server.BaseHTTPRequestHandler):
+    upstream = "http://127.0.0.1:8080"
+    # SSE comment sent while the server is silent, every this many seconds (0 = off). A prefill of 100k+ tokens
+    # takes minutes with no bytes; clients, proxies and tunnels (Cloudflare: 100 s) close an idle connection.
+    keepalive = 15.0
+    max_rounds = 12       # E16: 12 rounds lost no cell that 8 won and fixed the cap-then-nudge problem in 2 of 3 seeds
+    cards = True
+    lint = True
+    exec_timeout = 10.0
+    api_key = None        # when set, chat requests are checked here before any work is done
+    check_note = False    # G2: second-method check sentence for requests without client tools (opt-in until measured)
+    test_first = False    # T1: test-first sentence for build-from-spec coding requests (opt-in until measured)
+    finish_note = True    # default for "finish_note": run-on-the-example sentence for coding requests (E15: adopted)
+    repair_note = False   # default for "repair_note": a fixed sentence on failing tool results (E14 pending)
+    input_file = True     # default for "input_file": the user's text as input.txt for run_python (E12: adopted)
+    example_check = False # G1: run the request's docstring examples on the answer; on failure one follow-up turn
+    repair_edits = False  # S3a: make edit calls apply when their old text differs from the file only in indentation
+    protocol_version = "HTTP/1.1"
+
+    def log_message(self, fmt, *a):
+        sys.stderr.write("[proxy] " + (fmt % a) + "\n")
+
+    def _forward(self, method, body=None):
+        headers = {k: v for k, v in self.headers.items() if k.lower() in ("authorization", "content-type")}
+        req = urllib.request.Request(self.upstream + self.path, data=body, method=method, headers=headers)
+        try:
+            with urllib.request.urlopen(req, timeout=7200) as r:
+                return r.status, r.headers.get("Content-Type", "application/json"), r.read()
+        except urllib.error.HTTPError as e:
+            return e.code, e.headers.get("Content-Type", "application/json"), e.read()
+
+    def _stream(self, method, body):
+        """Relay a streamed (SSE) response as it arrives."""
+        headers = {k: v for k, v in self.headers.items() if k.lower() in ("authorization", "content-type")}
+        req = urllib.request.Request(self.upstream + self.path, data=body, method=method, headers=headers)
+        try:
+            r = urllib.request.urlopen(req, timeout=7200)
+        except urllib.error.HTTPError as e:
+            return self._reply(e.code, e.headers.get("Content-Type", "application/json"), e.read())
+        self.send_response(r.status)
+        self.send_header("Content-Type", r.headers.get("Content-Type", "text/event-stream"))
+        self.send_header("Cache-Control", "no-cache")
+        self.send_header("Connection", "close")
+        self.end_headers()
+        self.close_connection = True
+        try:
+            at_boundary = True                     # a comment may only go between two SSE events
+            for chunk in self._keepalive_chunks(r):
+                if chunk is None:
+                    if at_boundary:
+                        self.wfile.write(b": keep-alive\n\n")
+                        self.wfile.flush()
+                    continue
+                self.wfile.write(chunk)
+                self.wfile.flush()
+                at_boundary = chunk.endswith(b"\n\n") or chunk.endswith(b"\r\n\r\n")
+        except (BrokenPipeError, ConnectionResetError):
+            pass
+        finally:
+            r.close()
+
+    def _repair_reply(self, fwd, sources):
+        """Edit-call repair on a non-streamed response (status, content type, data) -> the same triple."""
+        status, ctype, data = fwd
+        if status != 200:
+            return fwd
+        try:
+            resp = json.loads(data)
+            infos = []
+            for ch in resp.get("choices") or []:
+                for c in (ch.get("message") or {}).get("tool_calls") or []:
+                    x = edit_repair.repair_tool_call(c, sources)
+                    if x:
+                        infos.append(x)
+            if infos:
+                resp["layer"] = dict(resp.get("layer") or {}, edit_repair=infos)
+            return status, ctype, json.dumps(resp, ensure_ascii=False).encode()
+        except Exception as e:   # the repair must never break a response
+            self.log_message("edit repair failed: %r", e)
+            return fwd
+
+    def _stream_repair(self, body, sources):
+        """Relay a streamed response line by line through edit_repair.StreamRepair: tool calls arrive as one chunk each,
+        repaired, before the chunk that finishes the choice; everything else streams as it arrives."""
+        headers = {k: v for k, v in self.headers.items() if k.lower() in ("authorization", "content-type")}
+        req = urllib.request.Request(self.upstream + self.path, data=body, method="POST", headers=headers)
+        try:
+            r = urllib.request.urlopen(req, timeout=7200)
+        except urllib.error.HTTPError as e:
+            return self._reply(e.code, e.headers.get("Content-Type", "application/json"), e.read())
+        self.send_response(r.status)
+        self.send_header("Content-Type", r.headers.get("Content-Type", "text/event-stream"))
+        self.send_header("Cache-Control", "no-cache")
+        self.send_header("Connection", "close")
+        self.end_headers()
+        self.close_connection = True
+        sr = edit_repair.StreamRepair(sources)
+        try:
+            at_boundary = True
+            for raw in self._keepalive_chunks(r, lines=True):
+                if raw is None:
+                    if at_boundary:
+                        self.wfile.write(b": keep-alive\n\n")
+                        self.wfile.flush()
+                    continue
+                line = raw.decode("utf-8", "replace").rstrip("\r\n")
+                try:
+                    out = sr.feed(line)
+                except Exception as e:   # the repair must never break a stream
+                    self.log_message("edit repair (stream) failed: %r", e)
+                    out = [line]
+                for o in out:
+                    self.wfile.write(o.encode("utf-8") + b"\n")
+                    at_boundary = (o == "")
+                self.wfile.flush()
+        except (BrokenPipeError, ConnectionResetError):
+            pass
+        finally:
+            r.close()
+
+    def _keepalive_chunks(self, r, lines=False):
+        """Yield what the server sends (chunks, or lines when lines=True), and None after each keepalive seconds of
+        silence. The read runs in a thread so that the wait can time out."""
+        if self.keepalive <= 0:
+            if lines:
+                yield from r
+            else:
+                while True:
+                    c = r.read1(65536)
+                    if not c:
+                        return
+                    yield c
+            return
+        q = queue.Queue()
+
+        def pump():
+            try:
+                if lines:
+                    for line in r:
+                        q.put(line)
+                else:
+                    while True:
+                        c = r.read1(65536)
+                        if not c:
+                            break
+                        q.put(c)
+            except Exception:
+                pass
+            q.put(StopIteration)
+
+        threading.Thread(target=pump, daemon=True).start()
+        while True:
+            try:
+                item = q.get(timeout=self.keepalive)
+            except queue.Empty:
+                yield None
+                continue
+            if item is StopIteration:
+                return
+            yield item
+
+    def _open_stream(self, body):
+        headers = {k: v for k, v in self.headers.items() if k.lower() in ("authorization", "content-type")}
+        req = urllib.request.Request(self.upstream + self.path, data=json.dumps(body).encode(), method="POST", headers=headers)
+        return urllib.request.urlopen(req, timeout=7200)
+
+    def _stream_interpreter(self, body, client_tools, with_input=False, extra=None):
+        """The interpreter loop for a streamed request. Everything the model streams is relayed as it arrives except
+        run_python tool-call deltas, which are collected, executed in the sandbox, and followed by the next round on
+        the same client connection. Only used for requests without client tools."""
+        msgs = list(body["messages"])
+        body["tools"] = [tool_spec(with_input)]
+        started = False
+        # usage: ask the server for it on every round, sum the rounds, and emit one usage chunk at the end
+        # when the client asked for one (stream_options.include_usage); otherwise none, as the client expects.
+        client_usage = bool((body.get("stream_options") or {}).get("include_usage"))
+        body["stream_options"] = dict(body.get("stream_options") or {}, include_usage=True)
+        total = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+
+        def send(line):
+            self.wfile.write(line + b"\n\n")
+            self.wfile.flush()
+
+        try:
+            for rnd in range(self.max_rounds + 1):
+                body["messages"] = msgs
+                if rnd == self.max_rounds:            # last round: no more code, answer now
+                    body.pop("tools", None)
+                    body.pop("tool_choice", None)
+                    body["messages"] = msgs + [{"role": "user", "content": FINAL_NUDGE}]
+                try:
+                    r = self._open_stream(body)
+                except urllib.error.HTTPError as e:
+                    if not started:
+                        return self._reply(e.code, e.headers.get("Content-Type", "application/json"), e.read())
+                    return
+                if not started:
+                    self.send_response(200)
+                    self.send_header("Content-Type", r.headers.get("Content-Type", "text/event-stream"))
+                    self.send_header("Cache-Control", "no-cache")
+                    self.send_header("Connection", "close")
+                    self.end_headers()
+                    self.close_connection = True
+                    started = True
+                calls, held, content, reasoning, template = {}, [], [], [], None
+                truncated = False
+                with r:
+                    for line in self._keepalive_chunks(r, lines=True):
+                        if line is None:
+                            send(b": keep-alive")
+                            continue
+                        line = line.rstrip(b"\r\n")
+                        if not line.startswith(b"data:"):
+                            continue
+                        payload = line[5:].strip()
+                        if payload == b"[DONE]":
+                            held.append(line)
+                            break
+                        try:
+                            ev = json.loads(payload)
+                        except ValueError:
+                            send(line)
+                            continue
+                        ch = (ev.get("choices") or [{}])[0]
+                        delta = ch.get("delta") or {}
+                        if template is None and ev.get("id"):
+                            template = {k: ev[k] for k in ("id", "model", "created", "object", "system_fingerprint") if k in ev}
+                        if ev.get("usage") and not ev.get("choices"):
+                            for k in total:
+                                total[k] += ev["usage"].get(k, 0) or 0
+                            continue                   # replaced by one summed usage chunk at the end
+                        if delta.get("tool_calls"):
+                            for tc in delta["tool_calls"]:
+                                c = calls.setdefault(tc.get("index", 0), {"id": "", "type": "function", "function": {"name": "", "arguments": ""}})
+                                c["id"] = tc.get("id") or c["id"]
+                                f = tc.get("function") or {}
+                                c["function"]["name"] += f.get("name") or ""
+                                c["function"]["arguments"] += f.get("arguments") or ""
+                            held.append(line)
+                            continue
+                        if ch.get("finish_reason") == "length":
+                            truncated = True       # cut by max_tokens: any held call is half-written
+                        if ch.get("finish_reason") == "tool_calls" or (calls and not ev.get("choices")):
+                            held.append(line)      # the finish chunk (and a trailing usage chunk) of a tool round
+                            continue
+                        if isinstance(delta.get("content"), str):
+                            content.append(delta["content"])
+                        if isinstance(delta.get("reasoning_content"), str):
+                            reasoning.append(delta["reasoning_content"])
+                        send(line)
+                ordered = [calls[i] for i in sorted(calls)]
+                ours = [c for c in ordered if c["function"]["name"] == TOOL_NAME]
+                if truncated or not ours or len(ours) != len(ordered) or rnd == self.max_rounds:
+                    done = [l for l in held if l.strip() == b"data: [DONE]"]
+                    our_idx = {i for i, c in calls.items() if c["function"]["name"] == TOOL_NAME}
+                    for line in held:               # final answer (or a call that is not ours): hand everything back
+                        if line.strip() == b"data: [DONE]":
+                            continue
+                        if truncated and our_idx and _is_our_call_delta(line, our_idx):
+                            continue               # our half-written run_python call: never shown, never run
+                        send(line)
+                    if client_usage:
+                        ev = dict(template or {"object": "chat.completion.chunk"}, choices=[], usage=total)
+                        send(b"data: " + json.dumps(ev).encode())
+                    for line in done:
+                        send(line)
+                    return
+                am = {"role": "assistant", "content": "".join(content), "tool_calls": ordered}
+                if reasoning:
+                    am["reasoning_content"] = "".join(reasoning)
+                msgs.append(am)
+                for c in ours:
+                    out = run_tool(c["function"]["arguments"], self.exec_timeout, extra)
+                    msgs.append({"role": "tool", "tool_call_id": c.get("id", ""), "name": TOOL_NAME,
+                                 "content": json.dumps({k: v for k, v in out.items() if k != "code"}, ensure_ascii=False)})
+                    note = "[run_python: " + ("timed out" if out.get("timed_out") else "exit " + str(out.get("exit_code", "rejected"))) + "]"
+                    ev = dict(template or {"object": "chat.completion.chunk"},
+                              choices=[{"index": 0, "delta": {"reasoning_content": chr(10) + note + chr(10)}, "finish_reason": None}])
+                    send(b"data: " + json.dumps(ev).encode())
+        except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+            return
+
+    def _reply(self, status, ctype, data):
+        self.send_response(status)
+        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def do_GET(self):
+        self._reply(*self._forward("GET"))
+
+    def do_POST(self):
+        raw = self.rfile.read(int(self.headers.get("Content-Length", 0)))
+        if not self.path.rstrip("/").endswith("/chat/completions"):
+            return self._reply(*self._forward("POST", raw))
+        try:
+            body = json.loads(raw)
+        except json.JSONDecodeError:
+            return self._reply(*self._forward("POST", raw))
+        if self.api_key:
+            given = self.headers.get("Authorization", "")
+            if not hmac.compare_digest(given.encode("utf-8", "replace"), ("Bearer " + self.api_key).encode()):
+                return self._reply(*self._forward("POST", raw))   # let the server produce its own 401; do no work here
+        # S3b-2: a presence penalty makes the small models change the code they copy into edit calls (exact-copy probe,
+        # presence 1.5 vs 0: 9B 34 vs 25% rejected, 4B 35 vs 23%). The thinking budget already stops runaway thinking,
+        # so a request that offers tools gets presence 0. "keep_presence": true keeps the client's value.
+        keep_presence = body.pop("keep_presence", False)
+        if (body.get("tools") or []) and not keep_presence:
+            try:
+                if float(body.get("presence_penalty") or 0) > 0:
+                    body["presence_penalty"] = 0.0
+            except (TypeError, ValueError):
+                pass
+        # a client that executes code blocks itself gets nothing changed (see client_runs_code)
+        if not (body.get("tools") or []) and client_runs_code(body.get("messages") or []) \
+                and body.get("code_interpreter") is not True:
+            for k in ("code_interpreter", "input_file", "repair_note", "finish_note", "api_cards", "api_lint"):
+                body.pop(k, None)
+            if body.get("stream"):
+                return self._stream("POST", json.dumps(body).encode())
+            return self._reply(*self._forward("POST", json.dumps(body).encode()))
+        # server-side preprocessing for every chat request (streamed or not, with or without client tools)
+        msgs0 = list(body.get("messages") or [])
+        info = {}
+        want_input = body.pop("input_file", None)
+        with_input = self.input_file if want_input is None else bool(want_input)
+        extra = {INPUT_FILE: user_text(msgs0)} if with_input else None
+        try:
+            if self.lint and body.pop("api_lint", True) is not False:
+                msgs0, info["lint_notes"] = apply_lint(msgs0)
+            if self.cards and body.pop("api_cards", True) is not False:
+                msgs0, info["card_chars"] = apply_cards(body, msgs0)
+            want_cn = body.pop("check_note", None)
+            if self.check_note if want_cn is None else bool(want_cn):
+                msgs0, info["check_note"] = apply_check_note(body, msgs0)
+            want_tf = body.pop("test_first", None)
+            if self.test_first if want_tf is None else bool(want_tf):
+                msgs0, info["test_first"] = apply_test_first_note(body, msgs0)
+            want_fin = body.pop("finish_note", None)
+            if self.finish_note if want_fin is None else bool(want_fin):
+                msgs0, info["finish_note"] = apply_finish_note(body, msgs0)
+            want_note = body.pop("repair_note", None)
+            if self.repair_note if want_note is None else bool(want_note):
+                msgs0, info["repair_notes"] = apply_repair_note(msgs0)
+        except Exception as e:   # preprocessing must never break a request
+            self.log_message("preprocess failed: %r", e)
+            msgs0 = list(body.get("messages") or [])
+        body["messages"] = msgs0
+        client_tools = body.get("tools") or []
+        want_er = body.pop("edit_repair", None)
+        er_on = bool(client_tools) and (self.repair_edits if want_er is None else bool(want_er))
+        er_sources = edit_repair.conversation_sources(msgs0) if er_on else []
+        # Default: offer the interpreter only to requests without client tools. Measured (E4): with client tools the
+        # data lives in paginated tool results, the model must retype it into code, and transcription errors cost
+        # 2 of 15 tasks (1 rescued). Clients with tools can opt in with "code_interpreter": true.
+        wanted = body.pop("code_interpreter", None)
+        enabled = (not client_tools) if wanted is None else bool(wanted)
+        ours_taken = any(t.get("function", {}).get("name") == TOOL_NAME for t in client_tools)
+        if body.get("stream"):
+            if enabled and not client_tools and not ours_taken:
+                return self._stream_interpreter(body, client_tools, with_input, extra)
+            if er_on:
+                return self._stream_repair(json.dumps(body).encode(), er_sources)
+            return self._stream("POST", json.dumps(body).encode())
+        if not enabled:
+            if er_on:
+                return self._reply(*self._repair_reply(self._forward("POST", json.dumps(body).encode()), er_sources))
+            return self._reply(*self._forward("POST", json.dumps(body).encode()))
+        if any(t.get("function", {}).get("name") == TOOL_NAME for t in client_tools):
+            return self._reply(*self._forward("POST", json.dumps(body).encode()))   # client owns that name
+        body["tools"] = client_tools + [tool_spec(with_input)]
+        msgs = list(body["messages"])
+        trace, usage_total = [], {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+        max_rounds = int(body.pop("interpreter_max_rounds", self.max_rounds) or self.max_rounds)   # E16 toggle
+        want_ec = body.pop("example_check", None)
+        ec_on = self.example_check if want_ec is None else bool(want_ec)
+        ec_task = example_check.task(user_text(msgs)) if ec_on else None
+        ec_done = False
+        final_msg = FINAL_REASON if body.pop("final_mode", None) == "reason" else FINAL_NUDGE    # E16 toggle
+        for rnd in range(max_rounds + 1):
+            body["messages"] = msgs
+            if rnd == max_rounds:                 # last round: no more code, answer now
+                body["tools"] = client_tools or None
+                if not client_tools:
+                    body.pop("tools", None)
+                    body.pop("tool_choice", None)
+                # E7 seed 411: with tools merely removed, the model can end without an answer. Say it plainly.
+                body["messages"] = msgs + [{"role": "user", "content": final_msg}]
+            status, ctype, data = self._forward("POST", json.dumps(body).encode())
+            if status != 200:
+                return self._reply(status, ctype, data)
+            resp = json.loads(data)
+            for k in usage_total:
+                usage_total[k] += (resp.get("usage") or {}).get(k, 0)
+            m = resp["choices"][0]["message"]
+            calls = m.get("tool_calls") or []
+            ours = [c for c in calls if c["function"]["name"] == TOOL_NAME]
+            truncated = resp["choices"][0].get("finish_reason") == "length"   # half-written calls: hand back, never run
+            if ec_task and not ec_done and not truncated and not calls:   # G1: check the final answer once
+                ec_done = True
+                code = example_check.answer_code(m.get("content") or "", ec_task[0])
+                if code:
+                    out = run_tool({"code": example_check.checker_program(code, ec_task[1], ec_task[2])}, self.exec_timeout)
+                    try:
+                        res = json.loads((out.get("stdout") or "").strip().splitlines()[-1])
+                    except Exception:
+                        res = {"error": "the code did not finish"} if out.get("timed_out") else {}
+                    hint = example_check.follow_up(res)
+                    info["example_check"] = {k: res.get(k) for k in ("n", "failed", "error")}
+                    info["example_check"]["follow_up"] = hint is not None
+                    if hint and rnd < max_rounds:
+                        msgs.append({"role": "assistant", "content": m.get("content") or ""})
+                        msgs.append({"role": "user", "content": hint})
+                        continue
+            if truncated or not ours or len(ours) != len(calls):   # final answer, or a client tool call: hand back
+                if ours:                               # mixed: drop our calls, keep the client's
+                    m["tool_calls"] = [c for c in calls if c["function"]["name"] != TOOL_NAME]
+                resp["usage"] = usage_total
+                resp["interpreter_trace"] = trace
+                if er_on and m.get("tool_calls"):
+                    info["edit_repair"] = [x for x in (edit_repair.repair_tool_call(c, er_sources) for c in m["tool_calls"]) if x]
+                resp["layer"] = info
+                return self._reply(200, "application/json", json.dumps(resp).encode())
+            am = {"role": "assistant", "content": m.get("content") or "", "tool_calls": calls}
+            if m.get("reasoning_content"):
+                am["reasoning_content"] = m["reasoning_content"]
+            msgs.append(am)
+            for c in ours:
+                out = run_tool(c["function"]["arguments"], self.exec_timeout, extra)
+                trace.append({"round": rnd, "exit_code": out.get("exit_code"), "timed_out": out.get("timed_out"),
+                              "code_chars": out.get("code_chars"), "code": out.get("code"),
+                              "stdout_head": (out.get("stdout") or "")[:200]})
+                msgs.append({"role": "tool", "tool_call_id": c.get("id", ""), "name": TOOL_NAME,
+                             "content": json.dumps({k: v for k, v in out.items() if k != "code"}, ensure_ascii=False)})
+        return self._reply(500, "application/json", b'{"error":"interpreter loop ended without an answer"}')
+
+
+if __name__ == "__main__":
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--port", type=int, default=8081)
+    ap.add_argument("--host", default="127.0.0.1")
+    ap.add_argument("--upstream", default="http://127.0.0.1:8080")
+    ap.add_argument("--max-rounds", type=int, default=12)
+    ap.add_argument("--keepalive", type=float, default=15.0, help="seconds of server silence before an SSE comment (0 = off)")
+    ap.add_argument("--no-cards", action="store_true")
+    ap.add_argument("--no-lint", action="store_true")
+    ap.add_argument("--no-finish-note", action="store_true", help="do not append the run-on-the-example sentence to coding requests")
+    ap.add_argument("--check-note", action="store_true", help="G2: ask requests without client tools to check the result with a second method")
+    ap.add_argument("--test-first", action="store_true", help="T1: ask build-from-spec coding requests to write a failing test first")
+    ap.add_argument("--repair-note", action="store_true", help="append a fixed sentence to failing tool results by default")
+    ap.add_argument("--no-input-file", action="store_true", help="do not give run_python the user's text as input.txt")
+    ap.add_argument("--edit-repair", action="store_true", help="S3a: repair edit calls whose old text differs from the file only in indentation")
+    ap.add_argument("--example-check", action="store_true", help="G1: run a coding request's docstring examples on the answer; one follow-up on failure")
+    a = ap.parse_args()
+    Proxy.api_key = os.environ.get("BONSAI_LAYER_KEY") or None
+    Proxy.upstream, Proxy.max_rounds = a.upstream, a.max_rounds
+    Proxy.keepalive = a.keepalive
+    Proxy.cards, Proxy.lint = not a.no_cards, not a.no_lint
+    Proxy.input_file = not a.no_input_file
+    Proxy.repair_note = a.repair_note
+    Proxy.finish_note = not a.no_finish_note
+    Proxy.test_first = a.test_first
+    Proxy.check_note = a.check_note
+    Proxy.example_check = a.example_check
+    Proxy.repair_edits = a.edit_repair
+    srv = http.server.ThreadingHTTPServer((a.host, a.port), Proxy)
+    print(f"bonsai layer on {a.host}:{a.port} -> {a.upstream}", flush=True)
+    srv.serve_forever()

@@ -1,0 +1,28 @@
+19:11 2B: health=0
+19:11 === exact-copy done
+19:17 2B: health=0
+19:17 === exact-copy done
+19:17 2B: health=1
+2B: n=3 edit calls=3 exact+unique=3 (applied as asked 0) rejected=0 [content 0, whitespace 0, not unique 0] rejected/calls=0% no call=0 errors=0
+19:17 === exact-copy done
+19:18 2B: health=1
+2B: n=3 edit calls=3 exact+unique=3 (applied as asked 0) rejected=0 [content 0, whitespace 0, not unique 0] rejected/calls=0% no call=0 errors=0
+19:18 === exact-copy done
+19:18 2B: health=1
+2B: n=3 edit calls=3 exact+unique=3 (applied exactly as asked 0, comment in place 1) rejected=0 [content 0, whitespace 0, not unique 0] rejected/calls=0% no call=0 errors=0
+19:18 === exact-copy done
+19:19 9B: health=1
+9B: n=120 edit calls=112 exact+unique=84 (applied exactly as asked 57, comment in place 57) rejected=28 [content 13, whitespace 0, not unique 15] rejected/calls=25% no call=8 errors=0
+19:36 9B-base: health=1
+9B-base: n=120 edit calls=93 exact+unique=87 (applied exactly as asked 70, comment in place 71) rejected=6 [content 4, whitespace 0, not unique 2] rejected/calls=6% no call=27 errors=0
+19:48 4B: health=1
+4B: n=120 edit calls=102 exact+unique=79 (applied exactly as asked 32, comment in place 40) rejected=23 [content 11, whitespace 0, not unique 12] rejected/calls=23% no call=18 errors=0
+20:02 4B-base: health=1
+4B-base: n=120 edit calls=94 exact+unique=69 (applied exactly as asked 50, comment in place 52) rejected=25 [content 17, whitespace 0, not unique 8] rejected/calls=27% no call=26 errors=0
+20:13 2B: health=1
+2B:  52/120 argparse.py:_parse_known_args2:1916#s1       exact_unique
+03:57 2B: health=1
+2B: n=120 edit calls=108 exact+unique=56 (applied exactly as asked 10, comment in place 12) rejected=52 [content 49, whitespace 0, not unique 3] rejected/calls=48% no call=12 errors=0
+04:00 2B-base: health=1
+2B-base: n=120 edit calls=73 exact+unique=38 (applied exactly as asked 12, comment in place 15) rejected=35 [content 25, whitespace 0, not unique 10] rejected/calls=48% no call=47 errors=0
+04:09 === exact-copy done

@@ -1,0 +1,10 @@
+06:37 9B: health=1 listen 0.0.0.0:8080  think=True effort=medium budget=20480 harness-proofing=True backend-sampling=Tr
+9B: failed 13; no answer (cap) 0; continued 13
+9B: recovered: R0 8/13  R1 2/13  R2 6/13  R3 6/13   (failed 13, no answer 0, continued 13)
+07:28 4B: health=1 listen 0.0.0.0:8080  think=True effort=medium budget=20480 harness-proofing=True backend-sampling=Tr
+4B: failed 12; no answer (cap) 0; continued 12
+4B: recovered: R0 4/12  R1 4/12  R2 5/12  R3 4/12   (failed 12, no answer 0, continued 12)
+07:57 2B: health=1 listen 0.0.0.0:8080  think=True effort=medium budget=20480 harness-proofing=True backend-sampling=Tr
+2B: failed 76; no answer (cap) 0; continued 30
+2B: recovered: R0 2/30  R1 2/30  R2 5/30  R3 7/30   (failed 76, no answer 0, continued 30)
+08:20 === dose ladder done

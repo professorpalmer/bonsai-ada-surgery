@@ -1,0 +1,7 @@
+06:02 9B: health=1
+9B: n=120 edit calls=107 exact+unique=71 (applied exactly as asked 45, comment in place 49) rejected=36 [content 27, whitespace 0, not unique 9] rejected/calls=34% no call=13 errors=0
+06:19 4B: health=1
+4B: n=120 edit calls=102 exact+unique=66 (applied exactly as asked 34, comment in place 41) rejected=36 [content 22, whitespace 1, not unique 13] rejected/calls=35% no call=18 errors=0
+06:32 2B: health=1
+2B: n=120 edit calls=99 exact+unique=45 (applied exactly as asked 7, comment in place 9) rejected=54 [content 52, whitespace 0, not unique 2] rejected/calls=55% no call=21 errors=0
+06:37 === exact-copy done
