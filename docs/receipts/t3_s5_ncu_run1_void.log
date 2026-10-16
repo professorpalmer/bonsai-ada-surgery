@@ -1,0 +1,6 @@
+11:59 === T3-S5 start: t3-prefill 0f7a8e0ce (T3 + VIS_STAT + CHUNK_STAT, sm_89, build-q3fast)
+11:59 vis: 0 launches, kernel time sum 0 (units as in the csv), mean 0
+11:59 vis: full profile -> C:\Users\<user>\Projects\bonsai-2-27b-serve\artifacts\eval\t3s5\vis_full.ncu-rep (MISSING)
+11:59 novis: 0 launches, kernel time sum 0 (units as in the csv), mean 0
+11:59 novis: full profile -> C:\Users\<user>\Projects\bonsai-2-27b-serve\artifacts\eval\t3s5\novis_full.ncu-rep (MISSING)
+11:59 === T3-S5 done

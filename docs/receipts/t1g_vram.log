@@ -1,0 +1,16 @@
+10:27:25 === T1-g start: root C:\Users\<user>\AppData\Local\Temp\root-t1, commit ab94810051
+10:27:35 server a_free: VRAM before start: 0 MiB, 12010 MiB
+10:27:43 server a_free: health=1; VRAM after load: 7835 MiB
+{"depth": 131072, "phase": "prime", "file": "t1g_free.bin", "answer_a": "vault 1: 8411\nvault 2: 8629\nvault 3: 8402\nvault 4: 9320\nvault 5: 4111\nvault 6: 4025\nvault 7: 9387\nvault 8: 8794", "a_prompt_n": 130608, "a_prompt_ms": 174355.701, "save_wall_s": 1.81, "save": {"id_slot": 0, "filename": "t1g_free.bin", "n_saved": 130687, "n_written": 2033560104, "timings": {"save_ms": 1803.777}}, "file_
+10:30:54 server a_free: VRAM peak 8049 MiB over 301 samples; at end 8049 MiB; health {"status":"ok"}; CUDA errors 0
+10:30:54 server a_free: shared GPU memory max 2604 MiB, dedicated max 8054 MiB (63 samples); batch-retry warnings: 0
+10:31:04 server b_free: VRAM before start: 0 MiB, 12010 MiB
+10:31:12 server b_free: health=1; VRAM after load: 7835 MiB
+{"depth": 131072, "phase": "restore", "file": "t1g_free.bin", "restore_wall_s": 0.95, "restore": {"id_slot": 0, "filename": "t1g_free.bin", "n_restored": 130687, "n_read": 2033560104, "timings": {"restore_ms": 949.749}}, "answer": "vault 4: 9320", "prompt_n": 5478, "prompt_ms": 11161.587, "request_wall_s": 11.5}
+10:31:26 server b_free: VRAM peak 8019 MiB over 32 samples; at end 8019 MiB; health {"status":"ok"}; CUDA errors 0
+10:31:26 server b_free: shared GPU memory max 2604 MiB, dedicated max 8024 MiB (4 samples); batch-retry warnings: 0
+10:31:36 ballast: free before 12010 MiB -> ballast 4786 MiB (target free 7,224 MiB)
+10:31:56 ballast pid 1568; VRAM now: 4947 MiB, 7064 MiB
+10:32:01 server a_ballast: VRAM before start: 4947 MiB, 7064 MiB
+10:32:09 server a_ballast: health=1; VRAM after load: 11986 MiB
+11:04:20 T1-g part 2 STOPPED by hand at 11:04: under the ballast (7,064 MiB free at start) arm a's own cold read crawled at ~40 tok/s (71,801 of 130,608 tokens after 1,807 s; dense without ballast 757 tok/s), GPU 100 %, shared GPU memory 3,554 MiB (+950 over the 2,604 baseline), dedicated 7,048 MiB, 0 batch-retry warnings. So the pressure arm spills in a plain read too: no restore-specific comparison is possible this way; P157b had already found the restore cause (the MTP draft context). Ballast released (VRAM back to the product server's load).
