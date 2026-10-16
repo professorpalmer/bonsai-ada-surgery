@@ -2,8 +2,8 @@
 
 We tested the Bonsai 2 small models before their public release, in the early-access channel. These are the
 documents from that work, published after the release. Each plan was written before its result
-([DECISIONS.md](DECISIONS.md)). One early-access tester is named "tester A" here. Killy (@net_termina) is credited by name, as in the main
-README.
+([DECISIONS.md](DECISIONS.md)). Early-access testers credited here: Dogukan (the PatchEval agent traces and the loop finding) and Killy
+(@net_termina, the HumanEval plates and agent tasks).
 
 Setup: RTX 4070 12 GB, Windows, the same engine as the 27B bundle of that week, one slot, the full 262,144 window
 at q8_0 K/V in VRAM, all layers on the GPU, no draft head (the small files have none). Greedy unless stated.

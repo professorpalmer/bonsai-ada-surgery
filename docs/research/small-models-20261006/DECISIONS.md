@@ -21,7 +21,7 @@ indexer) can be offered as a PR.
 ## 2026-10-06 19:40 - Plan S1: the battery, per size, 9B first
 Arms on this card (RTX 4070 12 GB; the 27B serve is down during runs), one slot, 262k window at q8_0 all in VRAM:
 - **raw**: the model's own template and `generation_config` defaults, presence 0, no budget, no harness flags.
-- **raw+pp**: presence penalty 1.5 (tester A's finding on the 9B).
+- **raw+pp**: presence penalty 1.5 (Dogukan's finding on the 9B).
 - **serve**: our recipe: medium effort, reasoning budget 20480 with forced close, harness-proofing, backend
   sampling, presence 0.
 - **serve+pp**: the same with presence 1.5.
@@ -29,7 +29,7 @@ Arms on this card (RTX 4070 12 GB; the 27B serve is down during runs), one slot,
 Measurements: (a) HumanEval 164 sandbox-scored at thinking off and medium (loop rate = runs that hit the cap
 without an answer); (b) the 37-task long exact-work suite, raw vs layer, same seeds as ML2; (c) tool calls 9
 requests (`bench/toolcall_stress.py`); (d) the effort-high and 4096-cap replays (harness-proofing on vs off);
-(e) decode by depth at 0 / 16k / 64k / 128k / 200k and prefill on a 16k prompt, PTQ1_0 vs PQ2_0 (tester A: PQ2_0 is
+(e) decode by depth at 0 / 16k / 64k / 128k / 200k and prefill on a 16k prompt, PTQ1_0 vs PQ2_0 (Dogukan: PQ2_0 is
 faster on CUDA for the 2B); (f) VRAM at load and over the window.
 Gates / reading rules: a change is reported as a win only when the paired delta exceeds the 4-seed noise band
 (1-2 items on a 12-item family; the 27B determinism probe), and loops are counted from the samples, not inferred.
@@ -85,7 +85,7 @@ JSON-schema converter only; no effect on these requests).
 ## 2026-10-07 14:15 - Plan T1: a test-first note for build-from-spec coding (from Killy's plates 050/051)
 Evidence from three harnesses: the small Bonsai 2 models fix bugs when a failing test points at them (Killy, 58
 mutants: 4B 55, 9B 57) and fail when they must build from a spec with no test (Killy: 0 / 2 / 4 of 24 for 2B / 4B /
-9B; tester A's PatchEval: 9B 1 of 20, false "verified" endings; ours: coding family 0/12 for 4B and 9B). The 9B also
+9B; Dogukan's PatchEval: 9B 1 of 20, false "verified" endings; ours: coding family 0/12 for 4B and 9B). The 9B also
 declares victory early (Killy: 19 of 35 failures say DONE). Hypothesis: if the model writes the failing test from the
 spec first, the task turns into the case it handles.
 Treatment: TEST_FIRST_NOTE appended to the first user message of coding requests that offer a run tool and ask for
@@ -114,7 +114,7 @@ The battery's loop counter read `finish` from samples.jsonl, which has no such f
 (finish=length): 0/164" line was a constant, not a measurement. The `finish` field is in each arm's summary.json.
 Real cap hits at medium (24,576): 9B raw 16, raw+pp 1, serve 0, serve+pp 0; 4B raw 6, others 0; 2B raw 9, raw+pp 2,
 serve 1, serve+pp 1. Thinking off (cap 1,024): 3-6 per arm. Consequence: the medium gains from presence 1.5 and
-from the budget + forced close are mostly runaway thinking stopped, which agrees with tester A's loop finding; the
+from the budget + forced close are mostly runaway thinking stopped, which agrees with Dogukan's loop finding; the
 earlier statements "no cap hits" and "nothing here was a cap-break" are withdrawn (REPORT-20261007.md corrected).
 Fix: battery.sh, battery_teacher.sh and suite_only.sh read summary.json. The 9B-base raw-off line (4/164 real, 0
 printed) is the only teacher number affected so far.
@@ -142,7 +142,7 @@ Why: the 9B teacher (Qwen3.5-9B Q4_K_M) ran to the 24,576 cap on 3 of its first 
 (~5 min each at 86 tok/s), so one full arm costs ~16 h and the three teachers several days.
 Change 1: the teachers' thinking-on HumanEval arms (raw and serve) run on the first 40 problems (MED_LIMIT=40).
 Thinking off stays at 164. The ternary files are compared on the same 40 problems from their existing rows.
-Change 2 (new measurement): bench/exact_copy_probe.py. Tester A's PatchEval traces show the 9B's edit calls fail
+Change 2 (new measurement): bench/exact_copy_probe.py. Dogukan's PatchEval traces show the 9B's edit calls fail
 34% of the time because oldText is not an exact copy of the file; they asked whether a 4-bit model does the same.
 40 items (4 functions in each of 10 CPython stdlib files, a ~200-line window given as a read tool result), one
 edit call asked for (insert a comment above a named line), 3 fixed seeds, sampler as in their runs (temperature 1.0,
@@ -152,7 +152,7 @@ Reading rule: a ternary-vs-teacher difference counts if the 95% intervals of the
 Order: exact-copy probe (all six, ~1 h), then the teacher batteries 9B, 4B, 2B.
 
 ## 2026-10-07 19:55 - Plan S3: serve-side fixes for the small-model breakdowns (written before any result)
-Evidence: tester A's PatchEval traces (34% of the 9B's edit calls rejected; misspelled identifiers with presence
+Evidence: Dogukan's PatchEval traces (34% of the 9B's edit calls rejected; misspelled identifiers with presence
 1.5), Killy's plates and T1 (build-from-spec fails; the model's own tests carry its misreading), our cap-hit counts
 (runaway thinking at medium, stopped by presence 1.5 or by the budget + forced close).
 
@@ -184,7 +184,7 @@ in the layer. R3 - R0 >= 3 but R2 - R0 < 3 -> hints work, the server cannot make
 hints do not help at this size. Also report R2 on the subset where the examples fail.
 
 ## 2026-10-08 04:10 - S2b result: the exact-copy edit probe, six models (results/<model>/exact_copy/, receipts/exact_copy.log)
-120 items per model (40 items x 3 seeds), sampler as in tester A's runs, layer off. Rejected = the edit call's old
+120 items per model (40 items x 3 seeds), sampler as in Dogukan's runs, layer off. Rejected = the edit call's old
 text is not in the file, or is in it more than once. 95% Wilson intervals.
 
 | Model | Rejected / edit calls | Not an exact copy | Exact but not unique | No edit call | Comment placed as asked |
@@ -199,7 +199,7 @@ text is not in the file, or is in it more than once. 95% Wilson intervals.
 Reading (rule of Plan S2b): only the 9B differs. The ternary 9B's edit calls fail about 4 times as often as its
 teacher's (the intervals do not overlap), in both ways: changed text and old text that is too short to be unique.
 At 4B and 2B the ternary files copy as well as their teachers. The teachers skip the edit call more often (27, 26,
-47 of 120 against 8, 18, 12). So tester A's 34% on the 9B is mostly a property of the ternary 9B, not of small size.
+47 of 120 against 8, 18, 12). So Dogukan's 34% on the 9B is mostly a property of the ternary 9B, not of small size.
 The 2B (either file) changes or leaves out text in about half of its calls.
 
 ## 2026-10-08 04:10 - S3a result: edit-call repair, offline gate (bench/edit_repair_eval.py)
@@ -229,7 +229,7 @@ Same 120 items and seeds as S2b, presence 1.5 instead of 0. Rejected share of ed
 
 Reading (rule of Plan S3): the 4B rises by 10 points or more, so the rule is met. All three sizes move the same
 way, and the rise comes from changed text (not an exact copy), as the misspelling hypothesis says. The 9B at
-presence 1.5 (33.6%) is the same as tester A's 34% in their PatchEval traces, which used presence 1.5.
+presence 1.5 (33.6%) is the same as Dogukan's 34% in their PatchEval traces, which used presence 1.5.
 Decision: build "presence penalty inside the thinking only" in the engine (the answer and its tool calls copy
 freely), then measure it on HumanEval medium (cap hits, the reason for presence 1.5) and on this probe.
 S3a on these runs (edit repair, bench/edit_repair_eval.py, no exact call broken): 9B 34% -> 25%, 4B 35% -> 27%,
@@ -290,7 +290,7 @@ Decision:
 1. The serve default stays presence 0 on all sizes (start-small.ps1 already).
 2. Build in the layer: a request that offers tools and sends a presence penalty above 0 gets 0 (harness-proofing, as
    for effort words; the request field "keep_presence": true opts out). Measured effect for agents whose client sends
-   1.5 (as tester A's client did): edit-call rejections 9B 34 -> 25%, 4B 35 -> 23%, 2B 55 -> 48%.
+   1.5 (as Dogukan's did): edit-call rejections 9B 34 -> 25%, 4B 35 -> 23%, 2B 55 -> 48%.
 3. The 2B without tools: presence 1.5 adds 7 HumanEval tasks (88 -> 95). Candidate per-size default for plain requests;
    decide with the G1b result (the example check also targets the 2B's plain coding).
 
