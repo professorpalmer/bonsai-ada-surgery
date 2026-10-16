@@ -117,13 +117,13 @@ the tiered-KV runtime are detected and get the previous 96k all-VRAM recipe.
 
 ### Upgrading from an older bundle
 
-`bundle-20261016b` makes **cold reads faster on RTX 20-series (Turing) cards** (patches 0060 / 0061): prefill
-attention packs 2 query heads per column group by default on sm_75 (no padding columns, fewer K/V tile loads). RTX 2060
-SUPER, cold prompts: 64k 1.067x, 128k 1.110x, **245k 1,707 -> 1,489 s (1.147x)**; perplexity +0.02 %, KL 0, and at 245k
+`bundle-20261016b` makes **cold reads faster on Turing (sm_75) cards** (patches 0060 / 0061): prefill attention
+packs 2 query heads per column group by default on sm_75 (no padding columns, fewer K/V tile loads). Measured on an
+RTX 2060 SUPER, cold prompts: 64k 1.067x, 128k 1.110x, **245k 1,707 -> 1,489 s (1.147x)**; perplexity +0.02 %, KL 0, and at 245k
 the copy and needle items equal the previous default. Other cards are unchanged (byte-identical answers on an RTX 4070).
 `GGML_CUDA_FA_PREFILL_NCOLS2=8` turns it off. The launcher in this bundle also has `BONSAI_SLOT_SAVE_PATH` (saved
-conversations, see [the knobs table](#knobs-environment-variables); on 8 GB cards with MTP on, the first long turn after a restore is
-slow, `BONSAI_SPEC=0` avoids it).
+conversations, see [the knobs table](#knobs-environment-variables)): on 8 GB cards with MTP on, the first long turn after a restore
+is slow and can stop with a CUDA error; set `BONSAI_SHARED_POOL=0` (or `BONSAI_SPEC=0`) when you use saved conversations.
 
 `bundle-20261016` gives **12 GB cards the whole window at speed** and makes **sparse reads automatic on 8 GB** (patch
 0059 and the launcher).
@@ -310,7 +310,7 @@ every `BONSAI_*`, `LLAMA_ARG_*` and `GGML_*` variable that is set, and it says w
 | `BONSAI_HARNESS_PROOF` | 1 | 0 = pass effort words and output caps through unchanged |
 | `BONSAI_EFFORT_ALLOWED` | medium | effort words the template sees; others become medium |
 | `BONSAI_PORT`, `BONSAI_MODEL` | 8080, auto | |
-| `BONSAI_SLOT_SAVE_PATH` | off | a folder for slot files: `POST /slots/0?action=save` / `action=restore` with `{"filename": "name.bin"}`. A restored conversation that continues reads only the new turn (245k: ~2 s on the 4070, file ~3.5 GB at q3_0; [coldread-20261016](docs/research/coldread-20261016/EXPERIMENTS.md) T1-b). The same request again re-reads the whole prompt. Files are not removed automatically; at 245k a file is ~3.5 GB at q3_0, ~4.5 GB at q4_0, ~8.5 GB at q8_0 (scaled by bytes per cell). The slot routes use the API key like the others, so a client with the key can fill the disk. **Limit on 8 GB / Turing cards (RTX 2060-class):** with the MTP draft on (the default), the first long turn after a restore into a fresh server is slow (~24 tok/s at 64k instead of ~210); `BONSAI_SPEC=0` avoids it. A fix is in test (#138) |
+| `BONSAI_SLOT_SAVE_PATH` | off | a folder for slot files: `POST /slots/0?action=save` / `action=restore` with `{"filename": "name.bin"}`. A restored conversation that continues reads only the new turn (245k: ~2 s on the 4070, file ~3.5 GB at q3_0; [coldread-20261016](docs/research/coldread-20261016/EXPERIMENTS.md) T1-b). The same request again re-reads the whole prompt. Files are not removed automatically; at 245k a file is ~3.5 GB at q3_0, ~4.5 GB at q4_0, ~8.5 GB at q8_0 (scaled by bytes per cell). The slot routes use the API key like the others, so a client with the key can fill the disk. **Limit on 8 GB cards:** with MTP on (the default), the first long turn after a restore is slow and can stop with a CUDA error; set `BONSAI_SHARED_POOL=0` (or `BONSAI_SPEC=0`) when you use saved conversations (#138) |
 | `BONSAI_MMPROJ` / `BONSAI_MMPROJ_GPU` | none / 0 | vision projector (`Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf` from prism-ml, in `models\`; `LLAMA_ARG_MMPROJ` is picked up too). Default: the image encoder runs on the CPU, no VRAM and no speed cost, ~0.3 s more per image. `BONSAI_MMPROJ_GPU=1`: on the card, and the VRAM line gives up its size (`docs/receipts/vision_probe.log`). A projector the sizing does not know about can over-commit the card and collapse prefill (issue #4, found by @Milor123) |
 
 ### Getting more positions into VRAM
@@ -517,7 +517,7 @@ Hadamard-embedding fix of sudoingX's #217 landed through #205. #285 was split at
 | 0057 | K/V tile dequant in the MMA flash-attention loader as packed halves for q4_0, q8_0 and q3_0 (1024 + q in the mantissa bits, minus the offset, times d): bit-identical to the float path, no int/float conversions. RTX 4070, 64k, answers byte-identical: q3_0 +1.7 %, q4_0 +0.6 %, q8_0 +0.8 % decode (D27, D28) | this repo |
 | 0058 | Responses API (`/v1/responses`): a tool result (`function_call_output`) may hold an `input_image`, sent on as an `image_url` part (with `BONSAI_MMPROJ`). It was rejected with HTTP 400 ("Output of tool call should be 'Input text'"), and a client that keeps the item in its history then failed on every later request. Cherry-pick of ggml-org/llama.cpp `4098fdc922` | [ggml-org #22575](https://github.com/ggml-org/llama.cpp/pull/22575) |
 | 0059 | Sparse attention without a shallow-depth cost: **late reserve** (`GGML_CUDA_KV_TIER_DEMOTE_FRAC`): the dense VRAM line is kept until sparse first engages; then the top of each VRAM head moves to system RAM at the same address and its VRAM holds the page bounds. **Self-timing engage** (`GGML_CUDA_FA_SPARSE_AUTO`): per 16k band of context the engine times dense against sparse once and keeps the faster (sparse only when > 3 % faster), stored in a calibration file so a depth runs the same mode on every request and after a restart. The 8 GB launcher uses both by default (`BONSAI_SPARSE=0` off, `=1` forced). Not in a bundle yet | this repo |
-| 0060 | `GGML_CUDA_FA_PREFILL_NCOLS2=2`: prefill-sized MMA flash attention with a GQA ratio that 8 does not divide (Bonsai: 24 Q / 4 KV heads) packs 2 Q heads per column group instead of 8 (no padding columns, each K/V tile loaded for more tokens). PPL-equal, not byte-identical (the stream-k split changes with the number of Q tiles) | this repo |
+| 0060 | `GGML_CUDA_FA_PREFILL_NCOLS2=2`: prefill-sized MMA flash attention with a GQA ratio that 8 does not divide (Bonsai: 24 Q / 4 KV heads) packs 2 Q heads per column group instead of 8 (no padding columns, each K/V tile loaded for more tokens). PPL-equal; not guaranteed byte-identical (the K/V split can change with the number of Q tiles) | this repo |
 | 0061 | NCOLS2=2 **by default on Turing** (sm_75) only; `GGML_CUDA_FA_PREFILL_NCOLS2=8` turns it off, `=2` turns it on elsewhere. RTX 2060 SUPER: cold 245k 1.147x, 128k 1.110x; PPL +0.02 %, KL 0, 245k copies / needles = default (`docs/research/coldread-20261016/`, `docs/research/release-0060/`) | this repo |
 
 How each cut was found (CUPTI traces, L1 wavefront counts, what did not work):
