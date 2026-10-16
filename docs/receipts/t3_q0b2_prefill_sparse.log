@@ -1,0 +1,8 @@
+08:40 === T3-Q0b part 2 start: t3-prefill bc2977b68 (0059 + T2 switches + T3 emulation MINQ/QTILE + engage log, sm_89, build-q3fast)
+08:40 server t3q0b_tile64_f050_n28: health=1 (GGML_CUDA_FA_SPARSE_QTILE=64 GGML_CUDA_FA_SPARSE_FRAC=0.5); kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; sh
+{"tag": "t3q0b_tile64_f050_n28", "depth": 245000, "correct": 27, "of": 28}
+08:54 t3q0b_tile64_f050_n28: clock 11751 MHz; sparse ops: 5121 ops; this op 512 queries, host tail 243456 cells, keeps 1902 of 3804 pages + recent
+08:54 server t3q0b_tile64_f050_copies: health=1 (GGML_CUDA_FA_SPARSE_QTILE=64 GGML_CUDA_FA_SPARSE_FRAC=0.5); kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; sh
+{"tag": "t3q0b_tile64_f050_copies", "depth": 245000, "correct": 19, "correct_lead": 20, "of": 20}
+09:09 t3q0b_tile64_f050_copies: clock 11751 MHz; sparse ops: 5121 ops; this op 512 queries, host tail 226048 cells, keeps 1766 of 3532 pages + recent
+09:09 === T3-Q0b part 2 done

@@ -1,0 +1,11 @@
+11:37 === T1-h start: root C:\Users\<user>\AppData\Local\Temp\root-slotdraft, engine commit 7c7b47e156, free disk 350G
+11:37 server p131072: health=1; kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; shared CUDA pool on (B
+{"depth": 131072, "phase": "prime", "file": "t1h_131072.bin", "answer_a": "vault 1: 8411\nvault 2: 8629\nvault 3: 8402\nvault 4: 9320\nvault 5: 4111\nvault 6: 4025\nvault 7: 9387\nvault 8: 8794", "a_prompt_n": 130608, "a_prompt_ms": 174212.085, "save_wall_s": 2.0, "save": {"id_slot": 0, "filename": "t1h_131072.bin", "n_saved": 130687, "n_written": 2033560104, "timings": {"save_ms": 1996.923}}, "fi
+11:41 files: 2033560104 t1h_131072.bin 15007796 t1h_131072.bin.draft 134 t1h_state.json 
+11:41 server r131072: health=1; kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; shared CUDA pool on (B
+{"depth": 131072, "phase": "restore", "file": "t1h_131072.bin", "restore_wall_s": 0.98, "restore": {"id_slot": 0, "filename": "t1h_131072.bin", "n_restored": 130687, "n_read": 2033560104, "timings": {"restore_ms": 976.665}}, "answer": "vault 4: 9320", "prompt_n": 5478, "prompt_ms": 11153.777, "request_wall_s": 11.48}
+11:41 server r131072: restore lines: 1 (0.06.052.767 I srv  process_sing: slot 0: draft context state restored (12 bytes)); CUDA errors 0
+11:41 server n131072: health=1; kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; shared CUDA pool on (B
+{"depth": 131072, "phase": "restore", "file": "t1h_131072.bin", "restore_wall_s": 1.01, "restore": {"id_slot": 0, "filename": "t1h_131072.bin", "n_restored": 130687, "n_read": 2033560104, "timings": {"restore_ms": 989.976}}, "answer": "vault 4: 9320", "prompt_n": 5478, "prompt_ms": 11148.365, "request_wall_s": 11.47}
+11:42 server n131072 (no .draft): warning lines: 6 (0.03.465.509 I common_speculative_init_result: draft context sized to 20736 tokens (spec-draft-window 16384, target 262144)); CUDA errors 0
+11:42 === T1-h done

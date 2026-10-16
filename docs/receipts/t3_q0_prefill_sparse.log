@@ -1,0 +1,7 @@
+07:45 === T3-Q0 start: t3-prefill bc2977b68 (0059 + T2 switches + T3 emulation MINQ/QTILE + engage log, sm_89, build-q3fast)
+07:45 server t3q0_tile64_n24: health=1 (GGML_CUDA_FA_SPARSE_QTILE=64); kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; sh
+{"tag": "t3q0_tile64_n24", "depth": 245000, "correct": 23, "of": 24}
+07:57 t3q0_tile64_n24: clock 11751 MHz; T3 engage lines: 0, last: 
+07:58 server t3q0_tile64_n28: health=1 (GGML_CUDA_FA_SPARSE_QTILE=64); kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; sh
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+08:02 Q0 STOPPED by the kernel session's decision after n24 (gate already failed: vault 15 lost; n28 / copies not run, the n28 server was cut mid-set and its partial output is void). 'T3 engage lines: 0' = the T3 line is INFO and filtered here; the sparse op counter shows 5,121 prefill-only ops (MINQ=65 active).

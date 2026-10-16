@@ -1,0 +1,14 @@
+11:49 === T3-S4 start: t3-prefill 0f7a8e0ce (T3 + VIS_STAT + CHUNK_STAT, sm_89, build-q3fast)
+11:49 server s4_t3_vis_128k: health=1 (GGML_CUDA_FA_PREFILL_SPARSE=0.5 GGML_CUDA_FA_PREFILL_SPARSE_QTILE=64 GGML_CUDA_FA_CHUNK_STAT=1 GGML_CUDA_FA_VIS_STAT=1); 8gb    preset on (12282 MiB card; BONSAI_8GB=0 turns it off): ub 512, f16 prefill to 32768 cells, deeper in ch
+P2 s4_t3_vis_128k code   depth 128000 (evaluated 127340): prefill   810.4 tok/s  ttft 157.13s  decode   48.0 tok/s (400 tok)
+P2 s4_t3_vis_128k prose  depth 128000 (evaluated 512): prefill   512.1 tok/s  ttft   1.00s  decode   44.3 tok/s (400 tok)
+P2 s4_t3_vis_128k bash   depth 128000 (evaluated 516): prefill   522.1 tok/s  ttft   0.99s  decode   49.5 tok/s (400 tok)
+P2 s4_t3_vis_128k mean decode 47.3 tok/s
+11:53 P2 s4_t3_vis_128k: clock 11751 MHz; T3: ; CHUNK_STAT: op 2049 (98560 cells, 512 queries, T3): per op 16.93 ms, attention launches 15.86 ms, the rest 1.07 ms; VIS: launch 5121: ncols1 8, 64 query tiles x 512 cell groups, visible 0.948 (mean 0.667); CUDA errors 0
+11:53 server s4_t3_novis_128k: health=1 (GGML_CUDA_FA_PREFILL_SPARSE=0.5 GGML_CUDA_FA_PREFILL_SPARSE_QTILE=64 GGML_CUDA_FA_CHUNK_STAT=1 GGML_CUDA_FA_PREFILL_SPARSE_VIS=0); 8gb    preset on (12282 MiB card; BONSAI_8GB=0 turns it off): ub 512, f16 prefill to 32768 cells, deeper in ch
+P2 s4_t3_novis_128k code   depth 128000 (evaluated 127340): prefill   765.6 tok/s  ttft 166.32s  decode   48.1 tok/s (400 tok)
+P2 s4_t3_novis_128k prose  depth 128000 (evaluated 512): prefill   453.8 tok/s  ttft   1.13s  decode   44.4 tok/s (400 tok)
+P2 s4_t3_novis_128k bash   depth 128000 (evaluated 516): prefill   459.5 tok/s  ttft   1.12s  decode   49.6 tok/s (400 tok)
+P2 s4_t3_novis_128k mean decode 47.4 tok/s
+11:56 P2 s4_t3_novis_128k: clock 11751 MHz; T3: ; CHUNK_STAT: op 2049 (98560 cells, 512 queries, T3): per op 18.17 ms, attention launches 17.10 ms, the rest 1.07 ms; VIS: ; CUDA errors 0
+11:56 === T3-S4 done

@@ -1,0 +1,32 @@
+11:04 === T3-S3 start: t3-prefill f4f27b675 (T3 v1 + tile map + tiled scores + STAT + CHUNK_STAT, sm_89, build-q3fast)
+11:05 server s3_dense_cstat_128k: health=1 (GGML_CUDA_FA_CHUNK_STAT=1); 8gb    preset on (12282 MiB card; BONSAI_8GB=0 turns it off): ub 512, f16 prefill to 32768 cells, deeper in ch
+P2 s3_dense_cstat_128k code   depth 128000 (evaluated 127340): prefill   759.5 tok/s  ttft 167.67s  decode   46.1 tok/s (400 tok)
+P2 s3_dense_cstat_128k prose  depth 128000 (evaluated 512): prefill   443.1 tok/s  ttft   1.16s  decode   45.5 tok/s (400 tok)
+P2 s3_dense_cstat_128k bash   depth 128000 (evaluated 516): prefill   451.8 tok/s  ttft   1.14s  decode   49.4 tok/s (400 tok)
+P2 s3_dense_cstat_128k mean decode 47.0 tok/s
+11:08 P2 s3_dense_cstat_128k: clock 11751 MHz; T3: ; CHUNK_STAT: op 2049 (98560 cells, 512 queries, dense): per op 19.13 ms, attention launches 18.13 ms, the rest 1.00 ms; CUDA errors 0
+11:08 server s3_t3_cstat_128k: health=1 (GGML_CUDA_FA_PREFILL_SPARSE=0.5 GGML_CUDA_FA_PREFILL_SPARSE_QTILE=64 GGML_CUDA_FA_CHUNK_STAT=1 GGML_CUDA_FA_PREFILL_SPARSE_STAT=1); 8gb    preset on (12282 MiB card; BONSAI_8GB=0 turns it off): ub 512, f16 prefill to 32768 cells, deeper in ch
+P2 s3_t3_cstat_128k code   depth 128000 (evaluated 127340): prefill   810.1 tok/s  ttft 157.19s  decode   47.9 tok/s (400 tok)
+P2 s3_t3_cstat_128k prose  depth 128000 (evaluated 512): prefill   502.1 tok/s  ttft   1.02s  decode   44.4 tok/s (400 tok)
+P2 s3_t3_cstat_128k bash   depth 128000 (evaluated 516): prefill   517.0 tok/s  ttft   1.00s  decode   49.6 tok/s (400 tok)
+P2 s3_t3_cstat_128k mean decode 47.3 tok/s
+11:11 P2 s3_t3_cstat_128k: clock 11751 MHz; T3: op 1025: 512 queries, 117504 cells, keep 910 pages + sinks + window, union 1503 of 1836 pages (this op 0.819, mean 0.788); per op so far: bounds 1.53 ms, scores 2.67 ms, select 0.14 ms, rest of op 18.24 ms; CHUNK_STAT: op 2049 (98560 cells, 512 queries, T3): per op 16.92 ms, attention launches 15.86 ms, the rest 1.07 ms; CUDA errors 0
+11:12 server s3_dense_245k: health=1 (); 8gb    preset on (12282 MiB card; BONSAI_8GB=0 turns it off): ub 512, f16 prefill to 32768 cells, deeper in ch
+P2 s3_dense_245k code   depth 245000 (evaluated 243896): prefill   526.0 tok/s  ttft 463.70s  decode   16.8 tok/s (400 tok)
+P2 s3_dense_245k prose  depth 245000 (evaluated 512): prefill   272.3 tok/s  ttft   1.88s  decode   17.2 tok/s (400 tok)
+P2 s3_dense_245k bash   depth 245000 (evaluated 516): prefill   279.5 tok/s  ttft   1.85s  decode   18.3 tok/s (400 tok)
+P2 s3_dense_245k mean decode 17.4 tok/s
+11:20 P2 s3_dense_245k: clock 11751 MHz; T3: ; CHUNK_STAT: ; CUDA errors 0
+11:21 server s3_t3_245k: health=1 (GGML_CUDA_FA_PREFILL_SPARSE=0.5 GGML_CUDA_FA_PREFILL_SPARSE_QTILE=64); 8gb    preset on (12282 MiB card; BONSAI_8GB=0 turns it off): ub 512, f16 prefill to 32768 cells, deeper in ch
+P2 s3_t3_245k code   depth 245000 (evaluated 243896): prefill   609.8 tok/s  ttft 399.98s  decode   17.3 tok/s (400 tok)
+P2 s3_t3_245k prose  depth 245000 (evaluated 512): prefill   328.9 tok/s  ttft   1.56s  decode   17.5 tok/s (400 tok)
+P2 s3_t3_245k bash   depth 245000 (evaluated 516): prefill   332.9 tok/s  ttft   1.55s  decode   17.9 tok/s (400 tok)
+P2 s3_t3_245k mean decode 17.6 tok/s
+11:29 P2 s3_t3_245k: clock 11751 MHz; T3: ; CHUNK_STAT: ; CUDA errors 0
+11:29 server s3_t3_cstat_245k: health=1 (GGML_CUDA_FA_PREFILL_SPARSE=0.5 GGML_CUDA_FA_PREFILL_SPARSE_QTILE=64 GGML_CUDA_FA_CHUNK_STAT=1 GGML_CUDA_FA_PREFILL_SPARSE_STAT=1); 8gb    preset on (12282 MiB card; BONSAI_8GB=0 turns it off): ub 512, f16 prefill to 32768 cells, deeper in ch
+P2 s3_t3_cstat_245k code   depth 245000 (evaluated 243896): prefill   609.4 tok/s  ttft 400.23s  decode   17.3 tok/s (400 tok)
+P2 s3_t3_cstat_245k prose  depth 245000 (evaluated 512): prefill   327.4 tok/s  ttft   1.56s  decode   17.4 tok/s (400 tok)
+P2 s3_t3_cstat_245k bash   depth 245000 (evaluated 516): prefill   334.1 tok/s  ttft   1.54s  decode   17.9 tok/s (400 tok)
+P2 s3_t3_cstat_245k mean decode 17.5 tok/s
+11:37 P2 s3_t3_cstat_245k: clock 11751 MHz; T3: op 4097: 512 queries, 215808 cells, keep 1678 pages + sinks + window, union 2618 of 3372 pages (this op 0.776, mean 0.779); per op so far: bounds 3.05 ms, scores 3.86 ms, select 0.18 ms, rest of op 27.80 ms; CHUNK_STAT: op 6145 (229632 cells, 512 queries, T3): per op 25.97 ms, attention launches 21.64 ms, the rest 4.33 ms; CUDA errors 0
+11:37 === T3-S3 done

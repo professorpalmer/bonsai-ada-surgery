@@ -1,0 +1,41 @@
+10:04 === T3-S2 start: t3-prefill 5bc813c50 (T3 v1 + tile map + tiled scores + STAT stage times, sm_89, build-q3fast)
+10:05 P1 B_tiled: chunk PPL ln(PPL(Q)/PPL(base)) KL Divergence Δp RMS Same top p Mean KLD: 0.002740 ± 0.000162 Maximum KLD: 0.489198 Same top p: 97.778 ± 0.230 %  | 0.10.151.997 I kl_divergence: 7.14 seconds per pass - ETA 0.12 minutes | T3 lines 1
+10:05 P1 B_rows: chunk PPL ln(PPL(Q)/PPL(base)) KL Divergence Δp RMS Same top p Mean KLD: 0.002740 ± 0.000162 Maximum KLD: 0.489198 Same top p: 97.778 ± 0.230 %  | 0.10.502.057 I kl_divergence: 7.48 seconds per pass - ETA 0.12 minutes | T3 lines 1
+10:05 P1 KLD tiled 0.002740 vs rows 0.002740: within 2e-4
+10:05 server s2_dense_128k_r1: health=1 (); 8gb    preset on (12282 MiB card; BONSAI_8GB=0 turns it off): ub 512, f16 prefill to 32768 cells, deeper in ch
+P2 s2_dense_128k_r1 code   depth 128000 (evaluated 127340): prefill   758.7 tok/s  ttft 167.84s  decode   45.7 tok/s (400 tok)
+P2 s2_dense_128k_r1 prose  depth 128000 (evaluated 512): prefill   446.8 tok/s  ttft   1.15s  decode   45.3 tok/s (400 tok)
+P2 s2_dense_128k_r1 bash   depth 128000 (evaluated 516): prefill   452.0 tok/s  ttft   1.14s  decode   49.2 tok/s (400 tok)
+P2 s2_dense_128k_r1 mean decode 46.7 tok/s
+10:09 P2 s2_dense_128k_r1: clock 11751 MHz; T3: ; CUDA errors 0
+10:09 server s2_t3_128k_r1: health=1 (GGML_CUDA_FA_PREFILL_SPARSE=0.5 GGML_CUDA_FA_PREFILL_SPARSE_QTILE=64); 8gb    preset on (12282 MiB card; BONSAI_8GB=0 turns it off): ub 512, f16 prefill to 32768 cells, deeper in ch
+P2 s2_t3_128k_r1 code   depth 128000 (evaluated 127340): prefill   811.1 tok/s  ttft 157.00s  decode   48.2 tok/s (400 tok)
+P2 s2_t3_128k_r1 prose  depth 128000 (evaluated 512): prefill   516.4 tok/s  ttft   0.99s  decode   44.5 tok/s (400 tok)
+P2 s2_t3_128k_r1 bash   depth 128000 (evaluated 516): prefill   524.2 tok/s  ttft   0.98s  decode   49.5 tok/s (400 tok)
+P2 s2_t3_128k_r1 mean decode 47.4 tok/s
+10:12 P2 s2_t3_128k_r1: clock 11751 MHz; T3: ; CUDA errors 0
+10:12 server s2_dense_128k_r2: health=1 (); 8gb    preset on (12282 MiB card; BONSAI_8GB=0 turns it off): ub 512, f16 prefill to 32768 cells, deeper in ch
+P2 s2_dense_128k_r2 code   depth 128000 (evaluated 127340): prefill   757.7 tok/s  ttft 168.06s  decode   45.9 tok/s (400 tok)
+P2 s2_dense_128k_r2 prose  depth 128000 (evaluated 512): prefill   443.4 tok/s  ttft   1.15s  decode   45.3 tok/s (400 tok)
+P2 s2_dense_128k_r2 bash   depth 128000 (evaluated 516): prefill   452.3 tok/s  ttft   1.14s  decode   49.5 tok/s (400 tok)
+P2 s2_dense_128k_r2 mean decode 46.9 tok/s
+10:15 P2 s2_dense_128k_r2: clock 11751 MHz; T3: ; CUDA errors 0
+10:16 server s2_t3_128k_r2: health=1 (GGML_CUDA_FA_PREFILL_SPARSE=0.5 GGML_CUDA_FA_PREFILL_SPARSE_QTILE=64); 8gb    preset on (12282 MiB card; BONSAI_8GB=0 turns it off): ub 512, f16 prefill to 32768 cells, deeper in ch
+P2 s2_t3_128k_r2 code   depth 128000 (evaluated 127340): prefill   811.3 tok/s  ttft 156.96s  decode   47.6 tok/s (400 tok)
+P2 s2_t3_128k_r2 prose  depth 128000 (evaluated 512): prefill   517.4 tok/s  ttft   0.99s  decode   43.8 tok/s (400 tok)
+P2 s2_t3_128k_r2 bash   depth 128000 (evaluated 516): prefill   520.8 tok/s  ttft   0.99s  decode   48.8 tok/s (400 tok)
+P2 s2_t3_128k_r2 mean decode 46.7 tok/s
+10:19 P2 s2_t3_128k_r2: clock 11751 MHz; T3: ; CUDA errors 0
+10:19 server s2_t3stat_128k: health=1 (GGML_CUDA_FA_PREFILL_SPARSE=0.5 GGML_CUDA_FA_PREFILL_SPARSE_QTILE=64 GGML_CUDA_FA_PREFILL_SPARSE_STAT=1); 8gb    preset on (12282 MiB card; BONSAI_8GB=0 turns it off): ub 512, f16 prefill to 32768 cells, deeper in ch
+P2 s2_t3stat_128k code   depth 128000 (evaluated 127340): prefill   810.8 tok/s  ttft 157.06s  decode   48.0 tok/s (400 tok)
+P2 s2_t3stat_128k prose  depth 128000 (evaluated 512): prefill   515.9 tok/s  ttft   0.99s  decode   44.4 tok/s (400 tok)
+P2 s2_t3stat_128k bash   depth 128000 (evaluated 516): prefill   520.4 tok/s  ttft   0.99s  decode   49.6 tok/s (400 tok)
+P2 s2_t3stat_128k mean decode 47.3 tok/s
+10:22 P2 s2_t3stat_128k: clock 11751 MHz; T3: op 1025: 512 queries, 117504 cells, keep 910 pages + sinks + window, union 1503 of 1836 pages (this op 0.819, mean 0.788); per op so far: bounds 1.51 ; CUDA errors 0
+10:22 server s2_t3rowstat_128k: health=1 (GGML_CUDA_FA_PREFILL_SPARSE=0.5 GGML_CUDA_FA_PREFILL_SPARSE_QTILE=64 GGML_CUDA_FA_PREFILL_SPARSE_STAT=1 GGML_CUDA_FA_PREFILL_SPARSE_ROWSCORES=1); 8gb    preset on (12282 MiB card; BONSAI_8GB=0 turns it off): ub 512, f16 prefill to 32768 cells, deeper in ch
+P2 s2_t3rowstat_128k code   depth 128000 (evaluated 127340): prefill   596.6 tok/s  ttft 213.45s  decode   48.2 tok/s (400 tok)
+P2 s2_t3rowstat_128k prose  depth 128000 (evaluated 512): prefill   287.3 tok/s  ttft   1.78s  decode   44.6 tok/s (400 tok)
+P2 s2_t3rowstat_128k bash   depth 128000 (evaluated 516): prefill   288.7 tok/s  ttft   1.79s  decode   48.8 tok/s (400 tok)
+P2 s2_t3rowstat_128k mean decode 47.2 tok/s
+10:27 P2 s2_t3rowstat_128k: clock 11751 MHz; T3: op 1025: 512 queries, 117504 cells, keep 910 pages + sinks + window, union 1503 of 1836 pages (this op 0.819, mean 0.788); per op so far: bounds 1.52 ; CUDA errors 0
+10:27 === T3-S2 done
