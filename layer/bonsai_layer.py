@@ -34,6 +34,7 @@ import sandbox_path  # noqa: E402,F401
 import sandbox  # noqa: E402
 import apicards_v2 as apicards  # noqa: E402  (E9b: v2 docstring cards adopted)
 import apilint  # noqa: E402
+import slot_cache  # noqa: E402  (#138 T1-c: saved conversations on disk)
 
 TOOL_NAME = "run_python"
 TOOL = {"type": "function", "function": {
@@ -241,12 +242,27 @@ class Proxy(http.server.BaseHTTPRequestHandler):
     finish_note = True    # default for "finish_note": run-on-the-example sentence for coding requests (E15: adopted)
     repair_note = False   # default for "repair_note": a fixed sentence on failing tool results (E14 pending)
     input_file = True     # default for "input_file": the user's text as input.txt for run_python (E12: adopted)
+    slots = None          # slot_cache.SlotCache when BONSAI_SLOT_SAVE_PATH is set (saved conversations on disk)
     protocol_version = "HTTP/1.1"
 
     def log_message(self, fmt, *a):
         sys.stderr.write("[proxy] " + (fmt % a) + "\n")
 
+    def _slots_check(self, body):
+        """Saved-conversation check right before a chat body goes to the server (after every change the layer makes to
+        it, so the tokens match what the server reads). Runs inside _with_slots, which holds the cache lock."""
+        if self.slots is None or not self.path.rstrip("/").endswith("/chat/completions") or not body:
+            return
+        try:
+            got = self.slots.before(json.loads(body) if isinstance(body, (bytes, str)) else body,
+                                    self.headers.get("Authorization", ""))
+            if getattr(self, "_slot_info", None) is not None:
+                self._slot_info.update(got)
+        except Exception as e:   # the cache must never break a request
+            self.log_message("slot cache failed: %r", e)
+
     def _forward(self, method, body=None):
+        self._slots_check(body)
         headers = {k: v for k, v in self.headers.items() if k.lower() in ("authorization", "content-type")}
         req = urllib.request.Request(self.upstream + self.path, data=body, method=method, headers=headers)
         try:
@@ -257,6 +273,7 @@ class Proxy(http.server.BaseHTTPRequestHandler):
 
     def _stream(self, method, body):
         """Relay a streamed (SSE) response as it arrives."""
+        self._slots_check(body)
         headers = {k: v for k, v in self.headers.items() if k.lower() in ("authorization", "content-type")}
         req = urllib.request.Request(self.upstream + self.path, data=body, method=method, headers=headers)
         try:
@@ -327,6 +344,7 @@ class Proxy(http.server.BaseHTTPRequestHandler):
             yield item
 
     def _open_stream(self, body):
+        self._slots_check(body)
         headers = {k: v for k, v in self.headers.items() if k.lower() in ("authorization", "content-type")}
         req = urllib.request.Request(self.upstream + self.path, data=json.dumps(body).encode(), method="POST", headers=headers)
         return urllib.request.urlopen(req, timeout=7200)
@@ -457,6 +475,16 @@ class Proxy(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         self._reply(*self._forward("GET"))
 
+    def _with_slots(self, body, fn, info=None):
+        """Run fn (which sends body to the server) with the saved-conversation cache lock held: one request at a time
+        when the cache is on. The check itself (restore the longest saved prefix, save the end of a long prompt) runs in
+        _slots_check at each send, so it sees the final body (cards, notes, the run_python tool)."""
+        if self.slots is None:
+            return fn()
+        with self.slots.lock:
+            self._slot_info = info
+            return fn()
+
     def do_POST(self):
         raw = self.rfile.read(int(self.headers.get("Content-Length", 0)))
         if not self.path.rstrip("/").endswith("/chat/completions"):
@@ -475,8 +503,8 @@ class Proxy(http.server.BaseHTTPRequestHandler):
             for k in ("code_interpreter", "input_file", "repair_note", "finish_note", "api_cards", "api_lint"):
                 body.pop(k, None)
             if body.get("stream"):
-                return self._stream("POST", json.dumps(body).encode())
-            return self._reply(*self._forward("POST", json.dumps(body).encode()))
+                return self._with_slots(body, lambda: self._stream("POST", json.dumps(body).encode()))
+            return self._with_slots(body, lambda: self._reply(*self._forward("POST", json.dumps(body).encode())))
         # server-side preprocessing for every chat request (streamed or not, with or without client tools)
         msgs0 = list(body.get("messages") or [])
         info = {}
@@ -498,6 +526,9 @@ class Proxy(http.server.BaseHTTPRequestHandler):
             self.log_message("preprocess failed: %r", e)
             msgs0 = list(body.get("messages") or [])
         body["messages"] = msgs0
+        return self._with_slots(body, lambda: self._chat(body, info, with_input, extra), info)
+
+    def _chat(self, body, info, with_input, extra):
         client_tools = body.get("tools") or []
         # Default: offer the interpreter only to requests without client tools. Measured (E4): with client tools the
         # data lives in paginated tool results, the model must retype it into code, and transcription errors cost
@@ -578,6 +609,9 @@ if __name__ == "__main__":
     Proxy.input_file = not a.no_input_file
     Proxy.repair_note = a.repair_note
     Proxy.finish_note = not a.no_finish_note
+    Proxy.slots = slot_cache.SlotCache.from_env(a.upstream)
+    if Proxy.slots:
+        print(f"bonsai layer: saved conversations in {Proxy.slots.folder} ({len(Proxy.slots.index)} on disk)", flush=True)
     srv = http.server.ThreadingHTTPServer((a.host, a.port), Proxy)
     print(f"bonsai layer on {a.host}:{a.port} -> {a.upstream}", flush=True)
     srv.serve_forever()
