@@ -668,7 +668,8 @@ python bench\mtp_identity.py                   # greedy draft-on vs draft-off
 PrismML for the model and the fork. sudoingX for the planar-transposed layout, the batch-invariant mode, the
 Hadamard-inverse fix and the MTP graft tools. ProCreations for the on-policy MTP head (Apache 2.0; independent
 of PrismML). Killy (@net_termina) for the failure census and the HumanEval plates that turned "quality is worse"
-into fixable buckets. MIT for everything here; weights are PrismML's (Apache 2.0). Not affiliated with PrismML.
+into fixable buckets. Dogukan for the PatchEval agent traces and the loop finding on the Bonsai 2 small models
+(`docs/research/small-models-20261006/`). MIT for everything here; weights are PrismML's (Apache 2.0). Not affiliated with PrismML.
 
 ### Hopper/Blackwell PDL fix
 

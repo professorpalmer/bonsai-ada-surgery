@@ -1,11 +1,11 @@
-"""Exact-copy edit probe (tester A's PatchEval finding: the 9B's `edit` calls fail 34% of the time because oldText is
+"""Exact-copy edit probe (Dogukan's PatchEval finding: the 9B's `edit` calls fail 34% of the time because oldText is
 not an exact copy of the file). Does a 4-bit model of the same size do the same?
 
 Each item: the conversation already holds a `read` tool call and its result (a ~200-line window of a real CPython
 stdlib file). The user asks for one small edit inside a named function. The model must answer with an `edit` call
 whose oldText is copied exactly from the window and occurs there once (Pi's edit tool rejects anything else).
 
-Sampler as in tester A's runs: temperature 1.0, top-p 0.95, top-k 20, presence 0, thinking on with a 4096-token
+Sampler as in Dogukan's runs: temperature 1.0, top-p 0.95, top-k 20, presence 0, thinking on with a 4096-token
 per-request budget. Three fixed seeds per item (120 edits per model).
 
   python bench/exact_copy_probe.py --base http://127.0.0.1:8080 --key-file artifacts/api_key.txt --out results/<model>/exact_copy
