@@ -1,4 +1,4 @@
-"""Exact-copy edit probe (Tester A's PatchEval finding: the 9B's `edit` calls fail 34% of the time because oldText is
+"""Exact-copy edit probe (tester A's PatchEval finding: the 9B's `edit` calls fail 34% of the time because oldText is
 not an exact copy of the file). Does a 4-bit model of the same size do the same?
 
 Each item: the conversation already holds a `read` tool call and its result (a ~200-line window of a real CPython

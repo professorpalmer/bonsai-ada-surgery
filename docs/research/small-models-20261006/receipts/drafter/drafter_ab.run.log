@@ -1,4 +1,4 @@
-2026-10-14 12:10 NOTE: drafter job started from session bca9d779 at the stock memory clock (OC profile not applied since the 00:31 reboot), driver 610.88, product bin = bundle-20261013 (0054)
+2026-10-14 12:10 NOTE: drafter job started from session 1 at the stock memory clock (OC profile not applied since the 00:31 reboot), driver 610.88, product bin = bundle-20261013 (0054)
 12:10 === drafter A/B: depths 4000 32000
 12:10 arm mtp2 (BONSAI_SPEC=2): health=1; spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI_LOOKUP=0 turns it o
 listen 0.0.0.0:8080  think=True effort=medium budget=20480  harness-proofing=True  backend-sampling=True
@@ -85,7 +85,7 @@ mtp3 mean decode 98.5 tok/s
 0.59.757.951 I slot print_timing: id  0 | task 591 | draft acceptance = 0.46911 (  243 accepted /   518 generated), mean len =  2.58
 1.04.322.110 I slot print_timing: id  0 | task 750 | draft acceptance = 0.68298 (  293 accepted /   429 generated), mean len =  3.79
 2026-10-14 12:56 NOTE: drafter job stopped for D26e (8 GB first); restarted after it
-2026-10-14 13:17 NOTE: drafter job restarted from session f82461a3 after D26e; memory clock under load 11751 MHz (OC on)
+2026-10-14 13:17 NOTE: drafter job restarted from session 2 after D26e; memory clock under load 11751 MHz (OC on)
 13:17 === drafter A/B: depths 4000 32000
 13:17 arm mtp2 (BONSAI_SPEC=2): health=1; spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI_LOOKUP=0 turns it o
 listen 0.0.0.0:8080  think=True effort=medium budget=20480  harness-proofing=True  backend-sampling=True

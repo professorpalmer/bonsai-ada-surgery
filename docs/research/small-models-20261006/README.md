@@ -14,11 +14,11 @@ at q8_0 K/V in VRAM, all layers on the GPU, no draft head (the small files have 
 | --- | --- |
 | [REPORT-20261008.md](REPORT-20261008.md) | The full report: HumanEval per size and arm, cap hits, tool calls, the exact-work suite, the edit-call probe, the hint ladder, the example check, the teachers (control), which model for 8 GB |
 | [REPORT-20261007.md](REPORT-20261007.md) | The first report (9B, 4B, 2B batteries), with its correction of the cap-hit count |
-| [DECISIONS.md](DECISIONS.md) | Every plan and result in order: loader bug, S1/S2 batteries, T1 test-first, S2b exact-copy probe, S3 edit repair and presence, G1 hint ladder, G1b example check, G2/G2b/G2c check note |
+| [DECISIONS.md](DECISIONS.md) | Every plan and result in order: loader bug, S1 batteries, the S2 teacher plan (teacher results: REPORT-20261008.md section 5), T1 test-first, S2b exact-copy probe, S3 edit repair and presence, G1 hint ladder, G1b example check, G2/G2b/G2c check note |
 | [DRAFTER-AB.md](DRAFTER-AB.md) | 2026-10-14: the 2B and 4B as standalone draft models for the 27B, against the 27B's own MTP head |
 | `receipts/` | Run logs per battery and probe; `receipts/drafter/` for the drafter A/B |
 | `results/` | `summary.json` per HumanEval arm (pass count, cap hits) and the tool-call results |
-| `results-raw.zip` | All per-sample files: HumanEval samples, suite traces, exact-copy calls, hint-ladder runs |
+| `results-raw.zip` | All per-sample files (the `samples.jsonl`, `suite/` and `exact_copy` paths that the reports name): HumanEval samples, suite traces, exact-copy calls, hint-ladder runs |
 | `scripts/` | The launcher (`start-small.ps1`), the bench scripts, the suite and the layer as used for these runs |
 
 ## Main results
@@ -42,13 +42,13 @@ HumanEval 164, pass@1, thinking off / thinking on at medium (cap 24,576 tokens):
   fail: HumanEval 86 -> 90, nothing broken.
 - **Not adopted:** a "write the test first" sentence (0 of 12 at every size), hints after a failure for the 9B and
   4B (a plain "try again" does as well), presence inside the thinking only, the check note for computation
-  (G2: 7 -> 10 on the 9B, did not hold on new seeds in G2b and G2c), edit repair as a default (an opt-in for the 2B).
+  (G2: 7 -> 10 on the 9B, did not hold on new seeds in G2b; G2c on the 4B did not meet its rule either), edit repair as a default (an opt-in for the 2B).
 - **Speed (9B, 4070):** 166.6 / 143.1 / 100.9 / 72.3 tok/s at 0 / 16k / 64k / 128k, 7.1 GB at load with the
   whole 262k window in VRAM.
 - **Small models as drafters for the 27B:** the 27B's own MTP head (draft 2) gives 94.1 / 101.8 tok/s; the 2B as a
   standalone draft model 21.2 / 25.9. The shipped MTP setting stays.
-- **8 GB:** on the RTX 2060 SUPER the 27B scores 157-159 on HumanEval and 28 on the suite, against 152 and 12 for
-  the 4B. Our pick for an 8 GB card is the 27B; the 4B is the fast option for short chat and code.
+- **8 GB:** on the RTX 2060 SUPER the 27B scores 157-159 on HumanEval (152 for the 4B on the 4070). On the 4070 the
+  27B scores 28 on the exact-work suite behind the layer, the 4B 12. Our pick for an 8 GB card is the 27B; the 4B is the fast option for short chat and code.
 
 Loader note (DECISIONS, 2026-10-06): the 2B files abort at load when any layer stays on the CPU
 (`GGML_ASSERT(ggml_is_padded_1d(a))`), also on the unpatched base. Full GPU offload (`-ngl 99`) does not use that

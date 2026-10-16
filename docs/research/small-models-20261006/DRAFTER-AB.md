@@ -16,4 +16,4 @@ per arm, bench/quick_tps.py at two depths (mean decode, code / prose / bash, gre
 Verdict: the shipped MTP draft 2 stays. Standalone small-model drafters lose 4x; no case for them on this card.
 The 4B arm hit a shared-CUDA-pool ordering assert with a second (draft) model context: a generic engine bug for
 -md draft models with the shared pool on.
-Earlier partial runs (stopped for D26a / D26c / D26e) are void.
+Earlier partial runs (stopped for other GPU jobs) are void.

@@ -2,7 +2,7 @@
 
 Agent edit tools (Pi `edit`, Claude-style `str_replace`, Cline `replace_in_file` and others) take an old text and a
 new text and reject the call unless the old text occurs in the file exactly once. Small models copy the lines they
-want to change correctly but shift their indentation (Tester A's PatchEval traces: 34% of the 9B's edit calls fail;
+want to change correctly but shift their indentation (tester A's PatchEval traces: 34% of the 9B's edit calls fail;
 our exact-copy probe shows the same shape). The file text is usually already in the conversation, as the result of
 a read call. This module finds the one place in that text whose lines equal the model's old lines once leading and
 trailing whitespace is ignored, replaces the old text with the exact lines from the file, and moves the new text by

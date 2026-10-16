@@ -21,7 +21,7 @@ indexer) can be offered as a PR.
 ## 2026-10-06 19:40 - Plan S1: the battery, per size, 9B first
 Arms on this card (RTX 4070 12 GB; the 27B serve is down during runs), one slot, 262k window at q8_0 all in VRAM:
 - **raw**: the model's own template and `generation_config` defaults, presence 0, no budget, no harness flags.
-- **raw+pp**: presence penalty 1.5 (Tester A's finding on the 9B).
+- **raw+pp**: presence penalty 1.5 (tester A's finding on the 9B).
 - **serve**: our recipe: medium effort, reasoning budget 20480 with forced close, harness-proofing, backend
   sampling, presence 0.
 - **serve+pp**: the same with presence 1.5.
@@ -29,7 +29,7 @@ Arms on this card (RTX 4070 12 GB; the 27B serve is down during runs), one slot,
 Measurements: (a) HumanEval 164 sandbox-scored at thinking off and medium (loop rate = runs that hit the cap
 without an answer); (b) the 37-task long exact-work suite, raw vs layer, same seeds as ML2; (c) tool calls 9
 requests (`bench/toolcall_stress.py`); (d) the effort-high and 4096-cap replays (harness-proofing on vs off);
-(e) decode by depth at 0 / 16k / 64k / 128k / 200k and prefill on a 16k prompt, PTQ1_0 vs PQ2_0 (Tester A: PQ2_0 is
+(e) decode by depth at 0 / 16k / 64k / 128k / 200k and prefill on a 16k prompt, PTQ1_0 vs PQ2_0 (tester A: PQ2_0 is
 faster on CUDA for the 2B); (f) VRAM at load and over the window.
 Gates / reading rules: a change is reported as a win only when the paired delta exceeds the 4-seed noise band
 (1-2 items on a 12-item family; the 27B determinism probe), and loops are counted from the samples, not inferred.
@@ -115,7 +115,7 @@ The battery's loop counter read `finish` from samples.jsonl, which has no such f
 Real cap hits at medium (24,576): 9B raw 16, raw+pp 1, serve 0, serve+pp 0; 4B raw 6, others 0; 2B raw 9, raw+pp 2,
 serve 1, serve+pp 1. Thinking off (cap 1,024): 3-6 per arm. Consequence: the medium gains from presence 1.5 and
 from the budget + forced close are mostly runaway thinking stopped, which agrees with tester A's loop finding; the
-earlier statements "no cap hits" and "nothing here was a cap-break" are withdrawn (CHANNEL-REPORT corrected).
+earlier statements "no cap hits" and "nothing here was a cap-break" are withdrawn (REPORT-20261007.md corrected).
 Fix: battery.sh, battery_teacher.sh and suite_only.sh read summary.json. The 9B-base raw-off line (4/164 real, 0
 printed) is the only teacher number affected so far.
 
@@ -355,7 +355,7 @@ Same arms on new computation instances: the five tasks at seeds 4, 5, 6 (15 item
 B - A >= 2 and losses <= 1 here too; otherwise the check note goes back to opt-in. Also run the 4B (same plan) to see
 whether it transfers; the 4B gets no decision from this run.
 
-(other GPU job, not part of this study)
+## 2026-10-09 11:05 - G2b paused (other GPU work first)
 Stopped at 9 of 30 runs (9B), the 4B not run. Partial results in results/9B/g2b_computation/ are kept but not read
 against the rule; G2b runs again from the start when the small-model work resumes. Until then the check note stays opt-in.
 

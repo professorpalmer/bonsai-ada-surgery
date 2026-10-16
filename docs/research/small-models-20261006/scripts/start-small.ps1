@@ -9,7 +9,7 @@
 #   BONSAI_CTX            262144      BONSAI_CTK q8_0      BONSAI_UBATCH 1024
 #   BONSAI_EFFORT         medium      BONSAI_EFFORT_ALLOWED medium     BONSAI_THINK 1    BONSAI_THINK_BUDGET 20480
 #   BONSAI_HARNESS_PROOF  1           BONSAI_BS 1 (backend sampling)   BONSAI_LAYER 1
-#   BONSAI_PRESENCE       0.0         presence penalty (Tester A's loop finding: 1.5 on the 9B)
+#   BONSAI_PRESENCE       0.0         presence penalty (tester A's loop finding: 1.5 on the 9B)
 #   BONSAI_TEMPLATE       path        chat template file (default: the GGUF's embedded template)
 #   BONSAI_LOG_FILE       path        server log; BONSAI_STDERR_FILE path keeps raw stderr (asserts)
 $ErrorActionPreference = 'Stop'
