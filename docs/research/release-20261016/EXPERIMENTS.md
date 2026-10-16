@@ -50,7 +50,31 @@ with the release bins (`LLAMA_COMMIT ab94810051`, sm 75 / 86 / 89 + PTX) and mai
 - Default launcher (q4_0): **158/164**, fails 36, 47, 93, 116, 132, 145: the same six as D29's q4_0 run on the 15c bins,
   so patch 0059 does not change the 12 GB output. 0 test-process failures. **Pass.**
 
-## Status
+## U06 RTX 2060 SUPER (P146, P148, by the 8 GB tester)
 
-- 4070 gates done (U01, U02, U03, U04b, U05 pass; U04 failed as declared, explained by U04b). U06: P146 PASS; P148
-  running on the 2060. Then U07 (publish).
+- **P146 (D26h gates):** <= 128k worst -1.5 % vs sparse off (the line step is gone), 160k +2.6 %, 245k +10.1 %; the same
+  128k answer byte for byte on two fresh servers; 0 one-token; minimum free >= 71 MiB. Bands: dense to 128k, sparse at
+  144-160k and 224-240k. **Pass.**
+- **P148 (245k quality, auto vs dense, fresh server per test):** copies 20/20 = 20/20; needles n 24 23/24 = 23/24
+  (vault 14 in both); n 28 27/28 = 27/28 (vault 15 in both). The auto arm ran sparse (`keeps 668 of 2675 pages`).
+  **Pass.**
+- Not blocking: P149 (forced FRAC 1/8 on the same sets) for the budget question.
+
+## Launcher addition before the release commit: #134
+
+- From #16 (howdya): under Windows PowerShell 5.1 a launcher started with redirected output died on the server's first
+  stderr line. #134 sets `$ErrorActionPreference = 'Continue'` before the server runs and exits with the server's exit
+  code. Tested: the old launcher piped through `Out-File` never reached health, the fixed one did; a server that fails
+  to load exits the launcher with 1. **U02 re-run on the final zip:** the three paths, each started piped
+  (`2>&1 | Out-File`), reach health and answer.
+
+## U07 Publish (2026-10-16 03:00-03:10)
+
+- Release commit `fed8ae2d` (#135, README note; the KV precision row and bullet reworded for the 12 GB q4_0 default).
+  Zip: the bundle-20261015c layout (66 entries), 9 changed (README, launcher, 7 engine files), engine bins identical to
+  the gated staged root (16 / 16, `LLAMA_COMMIT ab94810051`), 616,653,192 bytes, SHA-256
+  `24343fd9964ec42c2e2f016bbec940ba4225a9e8e516cc8e9b38f211a0aa66dc`.
+- GitHub release `bundle-20261016` (digest matches; 15c notes say superseded); Hugging Face zip `3fe66fd` + card
+  `5558057` (#136; 59 patches, the 12 GB q4_0 rows), LFS oid matches. Product `bin/` installed (`ab94810051`; 15c kept in
+  `bin-20261015c/`).
+- **Verdict.** Published. The 2060's post-zip check follows on #105.
