@@ -136,6 +136,8 @@ the tiered-KV runtime are detected and get the previous 96k all-VRAM recipe.
 - The launcher now survives starts with redirected output (hidden window, scheduled task: #16) and exits with the
   server's exit code.
 
+![8 GB card: on an RTX 2060 SUPER with bundle-20261016, 128k now decodes faster than the old 64k recipe did at its limit: 54.0 / 41.1 / 22.3 / 16.7 / 9.8 tok/s at 4k / 64k / 128k / 160k / 245k (release check P150), against 17.5 tok/s at 60k for the 64k community recipe and 6.0 at 64k for our stock record of 2026-10-06; at 245k automatic sparse equals dense item for item; cold read-in is not faster yet (60k ~3.5 min, 128k ~10 min, 245k ~28 min)](docs/img/card-8gb-week.png)
+
 `bundle-20261015c` fixes **agent tools that return images through the Responses API** (patch 0058, a cherry-pick of
 ggml-org/llama.cpp `4098fdc922`). A harness on `/v1/responses` whose tool returned a screenshot got HTTP 400 ("Output
 of tool call should be 'Input text'"), and every later request in that session failed too (#112). Now an
