@@ -589,9 +589,10 @@ try {
 # edited history, still reads the whole prompt (the GDN state cannot roll back past the saved end). Off by default.
 [string[]]$SlotArgs = @()
 if ($env:BONSAI_SLOT_SAVE_PATH) {
-    New-Item -ItemType Directory -Force -Path $env:BONSAI_SLOT_SAVE_PATH | Out-Null
-    $SlotArgs = @('--slot-save-path', $env:BONSAI_SLOT_SAVE_PATH)
-    Write-Host "slots  save / restore folder: $($env:BONSAI_SLOT_SAVE_PATH) (POST /slots/0?action=save|restore)"
+    # Absolute path: the server starts in $Bin below and would read a relative folder from there.
+    $SlotDir = (New-Item -ItemType Directory -Force -Path $env:BONSAI_SLOT_SAVE_PATH).FullName
+    $SlotArgs = @('--slot-save-path', $SlotDir)
+    Write-Host "slots  save / restore folder: $SlotDir (POST /slots/0?action=save|restore; files are not removed automatically)"
 }
 # The launcher sizes the GPU memory itself (the VRAM line above). The engine's own automatic fit has nothing to adjust
 # with every layer set, and it only printed "failed to fit params to free device memory ... abort". Turn it off.
