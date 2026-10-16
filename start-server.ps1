@@ -582,6 +582,18 @@ try {
         Write-Host "       close it or set it to the integrated GPU (Settings > System > Display > Graphics), then restart."
     }
 } catch { }
+# Slot files on disk (issue #138, track T1). BONSAI_SLOT_SAVE_PATH=<folder> passes --slot-save-path: a client can save
+# the conversation state with POST /slots/0?action=save {"filename": "name.bin"} and load it into a fresh server with
+# action=restore. A restored conversation that continues (the same history plus a new turn) reads only the new turn:
+# 245k in ~2 s on the 4070 instead of ~8 min (docs/research/coldread-20261016/, T1-b). The same request again, or an
+# edited history, still reads the whole prompt (the GDN state cannot roll back past the saved end). Off by default.
+[string[]]$SlotArgs = @()
+if ($env:BONSAI_SLOT_SAVE_PATH) {
+    # Absolute path: the server starts in $Bin below and would read a relative folder from there.
+    $SlotDir = (New-Item -ItemType Directory -Force -Path $env:BONSAI_SLOT_SAVE_PATH).FullName
+    $SlotArgs = @('--slot-save-path', $SlotDir)
+    Write-Host "slots  save / restore folder: $SlotDir (POST /slots/0?action=save|restore; files are not removed automatically)"
+}
 # The launcher sizes the GPU memory itself (the VRAM line above). The engine's own automatic fit has nothing to adjust
 # with every layer set, and it only printed "failed to fit params to free device memory ... abort". Turn it off.
 [string[]]$FitArgs = if ($Help -match '--fit ') { @('--fit', 'off') } else { @() }
@@ -591,7 +603,7 @@ try {
 $ErrorActionPreference = 'Continue'
 Set-Location $Bin
 try {
-& .\llama-server.exe @TierArgs @RamArgs @SpecArgs @BsArgs @BudgetMsgArgs @HarnessArgs @MmprojArgs @FitArgs `
+& .\llama-server.exe @SlotArgs @TierArgs @RamArgs @SpecArgs @BsArgs @BudgetMsgArgs @HarnessArgs @MmprojArgs @FitArgs `
     --reasoning-budget $ThinkBudget `
     -n $NPredict `
     -m $Model `
