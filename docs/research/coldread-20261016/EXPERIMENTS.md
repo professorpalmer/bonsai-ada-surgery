@@ -23,7 +23,7 @@ line at 80,640 cells with q3_0 K/V (the 2060 line), so a deep prompt sits mostly
 ## T2b-1: MMQ column-tile cap for the PTQ1_0 prefill matmuls, 4070 control (04:31-04:47)
 
 - **Plan** (kernel session, script header, before the run): `-Xptxas -v` shows the PTQ1_0 MMQ instance spills on sm_75
-  at J >= 80 (255 registers, 112-136 B) and does not spill on sm_89. Engine `t2-prefill` 5bb256bb4 adds
+  at J >= 64 (255 registers; J 128: 112-136 B, J 64: 24-72 B; none at J <= 48) and does not spill on sm_89. Engine `t2-prefill` 5bb256bb4 adds
   `GGML_CUDA_MMQ_MAX_J` and 12 PTQ1_0 prefill perf cases. The 4070 run is the control (no gain expected). Gates: G1 op
   tests 0 FAIL per J; G2 per-op perf sum >= 3 % better in both repeats; G3 prefill at 4k / 16k / 32k, same rule.
   Script: `scripts/t2b_maxj.sh` (the version as run; see the parse note).
@@ -34,7 +34,7 @@ line at 80,640 cells with q3_0 K/V (the 2060 line), so a deep prompt sits mostly
   log on stderr split each timing line. Recomputed from the saved logs over all 13 cases (kernel session, #138
   comment 6212813590): J128 20,412 / 20,459 us, J64 24,328 / 24,329 (+19 %), J48 27,580 / 27,617 (+35 %). The script was
   fixed for the 2060 run.
-- **Reading:** a control as expected. The test that counts is the 2060 (sm_75), where the cap removes the spills.
+- **Reading:** a control as expected. The test that counts is the 2060 (sm_75), where J 48 removes the spills and J 64 reduces them.
 
 ## T1-a: slot save / restore, then the same request again (04:48-05:23)
 
