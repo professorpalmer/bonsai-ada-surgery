@@ -1,0 +1,33 @@
+22:28 === release-0062 S5/S6 start: zip sha256 723c12e68a029a5e, engine commit 96f6e49cdc
+22:28 control bytes in the zip's text files: 0 []
+22:29 server s6_default (BONSAI_LAYER=0): health=1; window 262144 / q4_0  (12 GB default, BONSAI_CTK=q8_0 for the previous one; trai
+    kv     tiered: cells 0..260352 in VRAM, 260352..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool on (BONSAI
+22:29 S6 default: answer: Red, blue, and yellow.
+22:29 server s6_8gb (BONSAI_LAYER=0 BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)
+    kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it o
+    kv     sparse host-tail reads: auto (dense line 80640; past it the engine times dense vs sparse per 16k band and keeps t
+22:29 S6 8gb: answer: Red, blue, and yellow.
+22:29 server s6_24gb (BONSAI_LAYER=0 BONSAI_TOTAL_MIB=24576): health=1; window 262144 / q8_0  (q8_0: the card holds most of the window; trained max 2621
+    kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool on (BONSAI
+22:29 S6 24gb: answer: Red, blue, and yellow.
+22:30 server s6_slots (BONSAI_LAYER=0 BONSAI_SLOT_SAVE_PATH=C:\Users\<user>\AppData\Local\Temp\s5_slots): health=1; window 262144 / q4_0  (12 GB default, BONSAI_CTK=q8_0 for the previous one; trai
+    kv     tiered: cells 0..260352 in VRAM, 260352..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool on (BONSAI
+    slots  save / restore folder: C:\Users\<user>\AppData\Local\Temp\s5_slots (POST /slots/0?action=save|restore; files are n
+22:30 S6 slots: answer: Red, blue, and yellow.
+22:30 server s5_a (BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640 BONSAI_SLOT_SAVE_PATH=C:\Users\<user>\AppData\Local\Temp\s5_slots): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)
+    kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it o
+    kv     sparse host-tail reads: auto (dense line 80640; past it the engine times dense vs sparse per 16k band and keeps t
+    slots  save / restore folder: C:\Users\<user>\AppData\Local\Temp\s5_slots (POST /slots/0?action=save|restore; files are n
+    layer  on: clients use :8080 (API cards, API check, sandboxed Python); llama-server on 127.0.0.1:18080
+{"phase": "turn1", "tag": "turn1", "answer": "vault 1: 8411\nvault 2: 8629\nvault 3: 8402\nvault 4: 9320\nvault 5: 4111\nvault 6: 4025\nvault 7: 9387\nvault 8: 8794", "prompt_n": 7, "prompt_s": 0.22, "wall_s": 70.92, "cache": {"slot_cache_tokens": 66098, "slot_cache_saved": 66091, "slot_cache_gen_prompt_tokens": 7, "slot_cache_prefill_s": 68.53, "slot_cache_save_s": 1.02, "slot_cache_s": 69.69}}
+{"phase": "turn2", "tag": "M2", "answer": "vault 4: 9320", "prompt_n": 34, "prompt_s": 0.3, "wall_s": 0.6, "cache": {"slot_cache_tokens": 66211, "slot_cache_s": 0.13}}
+22:31 slot folder after turn 1/2: lc-53513bd88b318c0dfc9e163bf1356f049d7823d7d4473edc05a3d63dda88ffbb.bin lc-53513bd88b318c0dfc9e163bf1356f049d7823d7d4473edc05a3d63dda88ffbb.bin.draft lc-53513bd88b318c0dfc9e163bf1356f049d7823d7d4473edc05a3d63dda88ffbb.tok lc-index.jsonl 
+22:31 server s5_b (BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640 BONSAI_SLOT_SAVE_PATH=C:\Users\<user>\AppData\Local\Temp\s5_slots): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)
+    kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it o
+    kv     sparse host-tail reads: auto (dense line 80640; past it the engine times dense vs sparse per 16k band and keeps t
+    slots  save / restore folder: C:\Users\<user>\AppData\Local\Temp\s5_slots (POST /slots/0?action=save|restore; files are n
+    layer  on: clients use :8080 (API cards, API check, sandboxed Python); llama-server on 127.0.0.1:18080
+{"phase": "turn2", "tag": "R2", "answer": "vault 4: 9320", "prompt_n": 120, "prompt_s": 0.49, "wall_s": 1.61, "cache": {"slot_cache_tokens": 66211, "slot_cache_restored": 66091, "slot_cache_restore_s": 0.61, "slot_cache_s": 0.86}}
+{"phase": "short", "tag": "short", "answer": "Red, blue, and yellow.", "prompt_n": 504, "prompt_s": 0.53, "wall_s": 1.09, "cache": {"slot_cache_tokens": 504}}
+22:31 server s5_b: CUDA errors 0; restore lines 1
+22:31 === release-0062 S5/S6 done

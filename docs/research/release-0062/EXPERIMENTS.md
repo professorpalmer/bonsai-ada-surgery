@@ -30,3 +30,22 @@ request body (effort and template fields), image requests skip the cache, a bad 
 stopping the layer, the cleanup touches only the cache's own `lc-` files, `--keepalive 0` streams take the lock. Left
 for later: an early keep-alive on the tool-less stream path (N2), a write timeout while the lock is held (N4), the
 `/v1/completions`, `/v1/responses` and `/slots/*` routes outside the lock (N7). `tests/test_slot_cache.py` 9/9.
+
+## S5 / S6 on the staged zip (2026-10-16 22:28-22:31): pass
+
+`bonsai-bundle-win-x64-20261017.zip` unzipped fresh, its own launcher; 0 control bytes in its text files.
+- **S6:** default -> q4_0 (260,352 cells in VRAM); `BONSAI_8GB=1` + line 80,640 -> q3_0, `kv tiered` + `sparse ... auto`;
+  `BONSAI_TOTAL_MIB=24576` -> q8_0; `BONSAI_SLOT_SAVE_PATH` -> the `slots` line; each answered one request.
+- **S5** (layer on; the WASI runtime copied from the product folder; `BONSAI_8GB=1`, line 80,640, `BONSAI_SLOT_SAVE_PATH`):
+  turn 1 (66,098-token request) saved 66,091 tokens (`lc-<sha>.bin`, `.bin.draft`, `.tok`, `lc-index.jsonl`); turn 2 in
+  memory read 34 tokens, answer "vault 4: 9320". After a server restart: the layer restored 66,091 tokens in 0.61 s, turn 2
+  read 120 tokens (1.6 s wall), the same answer; the server logged "draft context state restored"; a short request
+  (504 tokens) had no save / restore; 0 CUDA errors. Receipts `docs/receipts/release_0062_s5s6.log`, `release_0062_s5.jsonl`.
+
+## S7 publish (22:35-22:45)
+
+Release commit `2db3fa21` (PR #160, reviewed by the kernel session). Zip from the bundle-20261016b layout + bins from
+`96f6e49cdc` + the release commit's files (11 entries changed, `layer/slot_cache.py` new): 616,666,781 B, SHA-256
+`723c12e68a029a5e34f6a66307d8292c311f9a8a79ed6689973d1fd46718c253`, the same on GitHub (`bundle-20261017`) and Hugging
+Face (card PR #161). Bins installed in the 4070 product folder (backup `bin-9fae15924e`). The 2060 post-zip check
+(restores at 64k and 131k with defaults) asked on #105.
