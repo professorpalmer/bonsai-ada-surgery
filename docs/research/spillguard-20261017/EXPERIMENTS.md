@@ -67,3 +67,16 @@ Open: G3 again on the 4070 (needs a 3-min GPU gap), G4 on the 2060.
   unchanged (fake values); live: on the 4070 the dGPU adapter has only the server's committed memory (16,132 MiB,
   pinned host included), the other processes are on the iGPU adapter. A crash cannot be prevented by a warning, but
   with v4 the line should come first (15 s period). G3 (4070) and P167 (2060) to confirm.
+
+## Correction (2026-10-17, from the 2060 agent): P166 G4b, P166b and P167's ballast arms were VOID for the guard
+
+Their test launchers passed `BONSAI_BIN` with forward slashes; the guard matched the server with
+`Path.StartsWith($BinDir)` against a backslash path, never found it, and never sampled. So G4a's "0 lines" was
+trivially 0 too, and my P166b reading above (a paged-out ballast hidden in Dedicated Usage) is NOT supported by any
+data: v4 (Total Committed) stays because it is the safer sum, but its reason is unproven until P167b. What stands
+from those runs is the card's behavior: a ~180-200 MiB program halves a 16k read (198.7 / 230.3 tok/s), and a
+1,500 MiB program makes the next big batch fail with CUDA out of memory.
+
+Fix (product bug: users may also write `BONSAI_BIN` with forward slashes): both paths go through
+`[IO.Path]::GetFullPath` plus one trailing separator before the compare. Checked against the running server:
+forward slashes, a trailing slash and lower case all match; a partial folder name (`...\bi`) does not.

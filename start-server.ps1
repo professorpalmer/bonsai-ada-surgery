@@ -649,10 +649,14 @@ $SpillGuard = {
     }
     if ($FakeSamples) { foreach ($s in $FakeSamples) { $v = [double[]]($s -split ','); & $check $v[0] $v[1] $v[2] }; return }
     try {
+        # compare full paths: BONSAI_BIN may use forward slashes, the process path has backslashes (#138: the guard did
+        # not find the server and stayed silent)
+        $norm = { param([string]$x) [IO.Path]::GetFullPath($x).TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar }
+        $dir = & $norm $BinDir
         $srv = $null
         for ($i = 0; $i -lt 3600 -and -not $srv; $i++) {
             $srv = Get-Process llama-server -ErrorAction SilentlyContinue |
-                Where-Object { $_.Path -and $_.Path.StartsWith($BinDir, [StringComparison]::OrdinalIgnoreCase) } | Select-Object -First 1
+                Where-Object { $_.Path -and (& $norm (Split-Path -Parent $_.Path)).StartsWith($dir, [StringComparison]::OrdinalIgnoreCase) } | Select-Object -First 1
             if (-not $srv) { Start-Sleep -Seconds 1 }
         }
         if (-not $srv) { return }
