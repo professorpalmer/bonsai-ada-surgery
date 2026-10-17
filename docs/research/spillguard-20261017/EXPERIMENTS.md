@@ -151,3 +151,16 @@ the server starts). One should-fix and nits, taken in v6:
 G1 for v6: all earlier fake cases unchanged; new D2 (line at +191, free recovers with +173 left, then +379): 2 lines.
 The child-process query, from a runspace, finds a child process named llama-server.exe (a renamed ping.exe). Launcher
 parse 0 errors. Open: one real launcher start (G3 again) to check the child match end to end.
+
+## Corrections from the 2060 records review (#138, PR #165)
+
+- P166 and P167 are void for the guard in all arms, including G4a ("0 lines" there was trivial): only P167b and
+  P168 are valid guard tests on the 2060.
+- P167b, the 1,500 MiB arm: only P166b's server log has the "out of memory" text; the P167b crash was called out of
+  memory by analogy.
+- P168: the "~148 MiB free at the first /health" and "~170 MiB growth of the browser" figures were estimates, not
+  logged values. The line's "191 MiB" for an 18 MiB ballast is measured; it also fits the ballast process's own CUDA
+  context (a torch context is roughly 150-170 MiB), so the "drift" reading in the v6 notes above is not proven. The
+  v6 reset rule is safe either way (it only lowers the next threshold when free VRAM is back above the limit).
+- P168's 64k reads were 2.2-2.3 % faster than the reference (outside a two-sided 2 % band, on the fast side: no cost).
+  Its GPU trace reads 0 % between reads, so it does not measure the browser's load.
