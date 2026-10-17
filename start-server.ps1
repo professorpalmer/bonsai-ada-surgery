@@ -611,11 +611,12 @@ if ($env:BONSAI_SLOT_SAVE_PATH) {
 # Usage" ~950 MiB up); (2) another program takes the free VRAM (G3: a 4 GB ballast after /health, prompt reads at 79
 # tok/s instead of 757, no counter of the server moves). A watcher in this process takes base values at the first good
 # /health and prints one line when (1) the server's shared usage grows by > 256 MiB, or (2) the other programs on the
-# same GPU hold > 512 MiB more VRAM than at the base and < 512 MiB is free. BONSAI_SPILL_GUARD=0 turns it off. Without
-# the performance counters it does nothing.
+# same GPU hold >= 128 MiB more VRAM than at the base and the free VRAM is below min(512 MiB, 0.6 x the free VRAM at the
+# base). The 2060 (P166): 282 MiB free with the server up, and a 182 MiB program halved the prompt read. So rule (2)
+# scales with what was free. BONSAI_SPILL_GUARD=0 turns it off. Without the performance counters it does nothing.
 $SpillGuard = {
     param([string]$BinDir, [string]$HealthUrl, [int]$Every = 15, [string[]]$FakeSamples = $null)
-    $st = @{ sh = $null; ot = $null; nextSh = 256.0; nextOt = 512.0; hint = $true }
+    $st = @{ sh = $null; ot = $null; f0 = $null; nextSh = 256.0; nextOt = 128.0; hint = $true }
     $say = {
         param([string]$m)
         [Console]::Out.WriteLine($m)
@@ -630,6 +631,7 @@ $SpillGuard = {
         param([double]$shared, [double]$others, [double]$free)
         if ($null -eq $st.sh -or $shared -lt $st.sh) { $st.sh = $shared }
         if ($null -eq $st.ot -or $others -lt $st.ot) { $st.ot = $others }
+        if ($null -eq $st.f0 -and $free -ge 0) { $st.f0 = $free }
         $d = $shared - $st.sh
         if ($d -gt $st.nextSh) {
             & $say (("spill  VRAM spilled to system RAM (+{0:N0} MiB): the server is much slower now. Close other GPU " +
@@ -637,11 +639,12 @@ $SpillGuard = {
             $st.nextSh = $d + 512
         }
         $o = $others - $st.ot
-        if ($o -gt $st.nextOt -and $free -ge 0 -and $free -lt 512) {
+        $low = if ($null -eq $st.f0) { 512 } else { [Math]::Min(512, 0.6 * $st.f0) }
+        if ($o -ge $st.nextOt -and $free -ge 0 -and $free -lt $low) {
             & $say (("spill  other programs took {0:N0} MiB of VRAM after the start and the card is full ({1:N0} MiB free): " +
                 "the server can be about 10x slower now. Close them, or restart the server so that it sizes its VRAM line " +
                 "again.") -f $o, $free)
-            $st.nextOt = $o + 1024
+            $st.nextOt = $o + 512
         }
     }
     if ($FakeSamples) { foreach ($s in $FakeSamples) { $v = [double[]]($s -split ','); & $check $v[0] $v[1] $v[2] }; return }

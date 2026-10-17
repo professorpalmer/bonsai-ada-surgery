@@ -43,3 +43,16 @@ free 76-113, others flat): 0; F (free unknown): 0. 0 runspace errors. Launcher p
 Live values from the code on the product server (12 GB default recipe): shared 4,550, others 4, free 438 MiB
 (the 12 GB recipe runs with < 512 MiB free, so signal (2) depends on the others' growth, as designed).
 Open: G3 again on the 4070 (needs a 3-min GPU gap), G4 on the 2060.
+
+## G4 on the 2060 (P166, #138) and v3 of rule (2)
+
+- G4a PASS: defaults, cold 128k 530.77 s (P163 529.28 s, +0.3 %), decode 23.5; 0 spill lines; min free 85 MiB.
+- G4b not triggered, and it found a gap: with the server up the 2060 had only **282 MiB free**, so the ballast was
+  182 MiB (below the 512 MiB rule); 0 lines, but the cold 16k read after it ran at **198.7 tok/s, about half** of the
+  normal ~380-410. On 8 GB a small program already costs 2x.
+- v3 (rule (2) scales with the free VRAM at the base, F0): others >= base + 128 MiB AND free < min(512, 0.6 x F0);
+  again after each further 512 MiB. G1 again: P166 numbers (F0 282, others +182, free 87): 1 line; 4070 12 GB product
+  (F0 438, others +150, free 288): 0; a 2060 cold read (F0 282 -> free 85, others +20): 0; the G3 numbers: 1 line;
+  others +4,187 with 3,000 free: 0. Case A of v2 (others +200, free 300 of F0 4,000) now gives a line: under v3 that
+  is a true warning (another program took 200 MiB and 300 MiB is left), so its expectation changes; recorded here.
+- Open: G3 on the 4070 (3-min GPU gap), P166b on the 2060 (1,500 MiB ballast), and G4b again with v3.
