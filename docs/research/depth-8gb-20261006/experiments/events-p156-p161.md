@@ -20,6 +20,7 @@ or a GitHub time exists, this file gives it. The GitHub posts of all sessions us
 - [E64 PR #157: review, fixes, merge; release-0062 plan; T1-d and T4](#e64-pr-157-review-fixes-merge-release-0062-plan-t1-d-and-t4)
 - [E65 Corrections in this range](#e65-corrections-in-this-range)
 - [E66 Lessons recorded in this range](#e66-lessons-recorded-in-this-range)
+- Continued in [`events-p162-p168.md`](events-p162-p168.md) (E67-E75)
 
 ## E57 The P133-P155 records (PR #148) and launcher PR #147
 

@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# P167b (spill guard v4 02523b9, #138 08:01Z): rule (2) counts the other programs' Total Committed. One arm on the 2060: the
+# 1,500 MiB ballast after /health, wait 45 s, read the ballast's GPU counters (Dedicated / Shared / Total Committed), then a cold
+# 16k read. PASS (declared there): the "other programs took" line BEFORE the read. Report the counters and CUDA errors.
+export QTPS_TIMEOUT=7200
+cd /c/bonsai/8gb; R=receipts/p167b; mkdir -p $R
+BIN=$(cd "$(dirname "$(find release_1017/x -name llama-server.exe | head -1)")" && pwd -W)
+L='C:/bonsai/bonsai-ada-surgery/start-server-sg4test.ps1'; KEY=C:/bonsai/bonsai-ada-surgery/artifacts/api_key.txt
+V="BONSAI_BIN=$BIN;BONSAI_LAYER=0"
+powershell -NoProfile -ExecutionPolicy Bypass -File stop.ps1 >/dev/null 2>&1
+schtasks //run //tn BonsaiAB_P3 >/dev/null; sleep 4; schtasks //run //tn BonsaiAB_P5 >/dev/null; sleep 6
+powershell -NoProfile -ExecutionPolicy Bypass -File serve.ps1 -Tag p167b_big -Launcher "$L" -Vars "$V" >/dev/null 2>&1
+for i in $(seq 1 120); do curl -s localhost:8080/health | grep -q ok && break; sleep 5; done
+O=$(ls -t logs/*p167b_big*.out.log | head -1); E="${O%.out.log}.err.log"
+FREE=$(nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits | tr -d ' \r'); N=1500
+T0=$(date +%s); echo "$(date +%T) free $FREE MiB, ballast $N MiB" >> $R/big.txt
+python gpu_ballast.py $N $R/ballast_big.pid >> $R/big.txt 2>&1 &
+sleep 45
+echo "$(date +%T) after 45 s: free $(nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits) MiB" >> $R/big.txt
+BP=$(cat $R/ballast_big.pid 2>/dev/null); [ -n "$BP" ] && powershell -NoProfile -ExecutionPolicy Bypass -File C:/bonsai/8gb/gpu_counters.ps1 -ProcId $BP >> $R/big.txt 2>&1
+grep -n '^spill' "$O" >> $R/big.txt; echo "spill lines before the read: $(grep -c '^spill' "$O")" >> $R/big.txt; T1=$(date +%s)
+PYTHONUTF8=1 python /c/bonsai/bonsai-ada-surgery/bench/quick_tps.py --base http://127.0.0.1:8080 --key-file $KEY --depth 16000 2>&1 | grep -E "depth|mean decode|rror" >> $R/big.txt
+[ -f $R/ballast_big.pid ] && taskkill //PID $(cat $R/ballast_big.pid) //F >/dev/null 2>&1
+powershell -NoProfile -ExecutionPolicy Bypass -File stop.ps1 >/dev/null 2>&1
+{ echo "== G4b-v4 1500 MiB"; cat $R/big.txt; echo "spill lines (all): $(grep -c '^spill' "$O")"; grep '^spill' "$O"; echo "CUDA errors: $(grep -c 'CUDA error' "$E")"; } >> $R/summary.txt
+

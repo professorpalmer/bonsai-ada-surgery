@@ -3224,3 +3224,72 @@ selection, GemFilter-style; or a small scorer) posted on #138 for the kernel ses
 ## 2026-10-16 22:40 CDT bundle-20261017 published (03:32:59Z): saved conversations on every card (patches 0062-0066 + layer cache #157);
 zip 616,666,781 B sha 723c12e6...c253, engine 96f6e49cdc, launcher/layer 2db3fa21. P163 (S7 post-zip check + S1 restore on the zip
 bins) queued after P162. A 0x08 byte from a Python \b escape got into P163 (SW path) and was fixed before the run (byte scan).
+
+## 2026-10-16 22:55 CDT (clock time; some evening headings above run up to ~75 min ahead) CORRECTIONS from the records review
+1. P160 part A did NOT run on the shipped bins: serve() ignored its 2nd argument; it ran on bin-slotdraft + pool off. No receipt for
+   shipped bins + pool off. 2. P160 part B layer restores had no draft sidecar (B1 bug). 3. P157b: BONSAI_SPEC=0 also turned the shared
+   pool off (confound); the cause is the shared pool (P158c/P158b/P158d). 4. P156d code 20/20 both arms (summary key collision showed
+   19/19). 5. P156 queue names: try 2 = 69jeb5, Q2 = 69jea92/69jea94. The #138 posts for P160 and P157b now start with these corrections.
+P162 (read ahead): read-ahead 563.8 s, restart + ask 6.25 s (prompt_n 39). Cold control running.
+
+## 2026-10-16 22:45 CDT P162 result: read ahead PASS: 130,452 saved (+ .draft 15,011,460 B), restart + ask 6.25 s (restore 1.84 s,
+prompt_n 39) = cold control answer (560.7 s); 0 CUDA errors. Posted on #159 and #138. P163 started.
+
+## 2026-10-16 23:05 CDT PR #159 review (release session): 2 blocking (interpreter stream no early bytes; cache-off prefill_only generates) +
+route / status / churn: fixed in 410e497, tests 14/14 (fake template renders tool names). Posted on #159.
+
+## 2026-10-16 23:15 CDT PR #159 re-review: held after a restore-only read-ahead (blocking), 502 on server-gone (interpreter route),
+keepalive 0 no comments: fixed, tests 15/15. Posted.
+
+## 2026-10-16 23:15 CDT P163 result: bundle-20261017 PASS on the 2060 (S7): sha, 96f6e49cdc, op tests; q3_0 + auto; cold 128k 529.3 s;
+4k 53.4 / 64k 41.2; S1 restore on the zip bins: .draft written, 227.3 / 227.7 tok/s x2, answers equal, 0 CUDA errors. Posted on #105.
+
+## 2026-10-16 23:20 CDT Serve folder C:\bonsai\serve-1017 (bundle-20261017 zip + models junction + slots) and SERVE_FOR_MAC.md written for Cary
+(pause queue, BONSAI_SLOT_SAVE_PATH, LAN <lan-ip>:8080, key file path, firewall rule + layer runtime fetch are his one-time steps).
+
+## 2026-10-16 23:28 CDT PR #159 (read ahead) merged 04:25:49Z; serve-1017/layer updated from main (bonsai_layer.py, slot_cache.py);
+SERVE_FOR_MAC.md updated. Queue: empty (fillers).
+
+## 2026-10-17 01:40 CDT P164 queued + started: overnight soak of the served bundle (serve-1017: bundle-20261017 + #159 layer), a 30-turn
+session from ~131k to ~250k, restart every 3rd turn, layer cache on; gates in the script header.
+
+## 2026-10-17 02:20 CDT P164 result: overnight soak of the served bundle PASS: 30/30 turns (131k -> ~250k), 0 empty / one-token /
+CUDA errors, min free 99 MiB; non-restart turns 26.9 -> 44.0 s; restart turns 85-132 s (restore 2.4-3.4 s + re-read of up to 3 turns
+since the last save + a save); 20 GB budget evicts from ~226k. Posted on #138. P165 (demo clip) running.
+
+## 2026-10-17 02:35 CDT Spill guard G4 queued as P166 (after P165): launcher spill-guard 5edcfe7 test copy on the 1017 zip bins;
+G4a cold 128k (0 spill lines, within 2 % of 529.3 s), G4b torch ballast (free - 100 MiB) -> the "other programs took" line in 45 s.
+
+## 2026-10-17 02:40 CDT P165 result: the demo clip PASS on the shipped bundle (serve-1017): 199k read ahead 1,068.6 s (one time);
+restart + Q1 first token 5.3 s (wall 11.8 s); Q2 2.6 s; Q3 2.5 s; second restart + Q3 7.3 s; restores 2.9 s; 0 CUDA errors.
+Q2 answer wrong (thinking off; same as cold). Posted on #138. P166 (spill guard G4) started.
+
+## 2026-10-17 02:55 CDT P166 (spill guard G4): G4a PASS (cold 128k 530.77 s, 0 spill lines, min free 85); G4b not triggered: only 282 MiB
+free, ballast 182 MiB < 512 MiB rule; the 16k read still halved (198.7 tok/s). Threshold suggestion posted. P166b (1,500 MiB) queued.
+
+## 2026-10-17 03:00 CDT P166b: 1,500 MiB ballast -> no spill line; the next read crashed: CUDA out of memory (2 error lines). On the
+2060: small hog = 2x slower, large hog = OOM crash, neither warned. Suggestion (free < margin after /health) posted on #138.
+
+## 2026-10-17 03:05 CDT Spill guard v3 (c345b33: rule 2 = others +128 MiB AND free < min(512, 0.6 x F0)) queued as P167: small ballast,
+1,500 MiB ballast, cold 128k.
+
+## 2026-10-17 03:15 CDT CORRECTION: P166 G4b / P166b / P167 ballast arms invalid: forward-slash BONSAI_BIN made the guard's
+StartsWith($BinDir) miss the server process, so the guard never ran. P167b (valid: cygpath -w path, +20 s base wait, all 3 arms on
+02523b9) running. Product note posted: normalize the paths.
+
+## 2026-10-17 03:40 CDT P167b result (spill guard v4, valid): small ballast 206 MiB -> line (379 MiB / 133 free) before the read, read
+70.1 tok/s; 1,500 MiB -> line (1,673 MiB / 119 free) before the read, then CUDA OOM; cold 128k 529.21 s, 0 lines. All gates PASS.
+My gpu_counters.ps1 split regex failed (no independent counters). Posted on #138.
+
+## 2026-10-17 04:00 CDT P168 queued: spill guard v5 7e4ac46 G5 soak (1 h, Edge playing a local VP8 clip + WebGL on the 2060, cold
+128k + 3 x cold 64k + shorts, then a small ballast). Display on the 2060.
+
+## 2026-10-17 05:00 CDT P168 result: spill guard v5 G5 soak PASS: 1 h with Edge video + WebGL on the 2060 (display on): cold 128k 239.2
+tok/s, cold 64k x3 309.3-309.6 tok/s, 0 spill lines; the 18 MiB end ballast (free 118 -> 86) -> the line; 0 CUDA errors. Note: VRAM
+line 86,784 with this launcher (usual 80,640). Posted on #138. Edge test profile closed.
+
+## 2026-10-17 05:04 CDT VRAM line 86,784 vs 80,640: explained (no fix)
+The line follows free VRAM at start. Other programs at start were 423 MiB until 02:50, then 332-339 MiB from 02:57 (an unknown
+process freed ~90 MiB). 87,296 - 80,640 = 6,656 cells for 91 MiB (~80k cells/GiB, as the launcher says). The fillers moved by
+the same step (61,440 -> 66,304/67,072). Margin 225 MiB in all runs (400 for the 131k long filler). In P168 the browser used
+~3 MiB at server start; its load came later. Table posted on #138 in reply to the release session.

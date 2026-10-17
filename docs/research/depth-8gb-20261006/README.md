@@ -24,6 +24,13 @@ cache PR #157) are in [`experiments/index-p156-p161.md`](experiments/index-p156-
 [`experiments/events-p156-p161.md`](experiments/events-p156-p161.md), E57-E66. The P155 / P155b results were added to
 [`experiments/P155.md`](experiments/P155.md). `REPORT.md` is not updated for this range yet.
 
+P162 to P168 (2026-10-16 to 2026-10-17: read ahead (T1-d) on the 2060, the post-zip check of bundle-20261017
+(release-0062: saved conversations on every card), a 30-turn soak and the demo clip on the served bundle, the spill
+guard G4 / G5 tests with the forward-slash fault that made three runs void, the VRAM line 86,784) are in
+[`experiments/index-p162-p168.md`](experiments/index-p162-p168.md) and
+[`experiments/events-p162-p168.md`](experiments/events-p162-p168.md), E67-E75. `REPORT.md` is not updated for this
+range yet.
+
 | Path | What |
 | --- | --- |
 | `REPORT.md` | Bottom line, what shipped, what was rejected, results by day, open items |
@@ -31,7 +38,8 @@ cache PR #157) are in [`experiments/index-p156-p161.md`](experiments/index-p156-
 | `experiments/P###.md` | One record per experiment: setup, frozen gate, method, every number, deviations, verdict, later corrections, what it changed |
 | `experiments/index-*.md` | One row per experiment |
 | [`experiments/index-p133-p155.md`](experiments/index-p133-p155.md) | P133-P155b (events: [`experiments/events-p133-p155.md`](experiments/events-p133-p155.md), E38-E56) |
-| [`experiments/index-p156-p161.md`](experiments/index-p156-p161.md) | The latest range: P156-P161 (events: [`experiments/events-p156-p161.md`](experiments/events-p156-p161.md), E57-E66) |
+| [`experiments/index-p156-p161.md`](experiments/index-p156-p161.md) | P156-P161 (events: [`experiments/events-p156-p161.md`](experiments/events-p156-p161.md), E57-E66) |
+| [`experiments/index-p162-p168.md`](experiments/index-p162-p168.md) | The latest range: P162-P168 (events: [`experiments/events-p162-p168.md`](experiments/events-p162-p168.md), E67-E75) |
 | `runs.jsonl` | One JSON line per experiment: id, date, card, engine commit, script, env, metrics, verdict, receipts (same fields as `../depth-20261010/runs.jsonl`, for comparing future models and engines) |
 | `experiments/events-*.md` | Entries that are not experiments: incidents, rig baseline changes, releases, PRs, coordination, decisions |
 | `NOTEBOOK.md` | The full lab notebook, in time order, unchanged (plans, results, corrections, incidents) |
