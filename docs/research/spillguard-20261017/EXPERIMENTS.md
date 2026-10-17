@@ -87,3 +87,15 @@ forward slashes, a trailing slash and lower case all match; a partial folder nam
 The line `spill  other programs took 4,313 MiB of VRAM after the start and the card is full (53 MiB free)` + the
 NVIDIA hint came **12 s** after the ballast started (gate: 45 s). The ballast's counters: dedicated 4,187, shared 126,
 total committed 4,313 (resident here, so this run does not test the paged-out case; P167b on the 2060 does).
+
+## G4 on the 2060, valid run (P167b, #138; launcher v4 `02523b9`, `BONSAI_BIN` in Windows form): PASS
+
+| arm | free before -> after | spill line before the read | the read after it | CUDA errors |
+| --- | --- | --- | --- | --- |
+| ballast 206 MiB (free - 100) | 306 -> 133 MiB | yes: "other programs took 379 MiB ... (133 MiB free)" | cold 16k 70.1 tok/s, decode 7.0 | 0 |
+| ballast 1,500 MiB | 306 -> 119 MiB | yes: "... took 1,673 MiB ... (119 MiB free)" | CUDA out of memory (the guard cannot prevent it) | 1 (the OOM) |
+| no ballast, cold 128k | min 109 MiB | 0 lines | 529.21 s (P166 530.8 s), decode 25.1 | 0 |
+
+So on 8 GB: a ~200 MiB program after the start takes the read from ~400 to 70 tok/s and decode from ~24 to 7, and the
+guard now says so before the next request. The 1,673 MiB in the line (the ballast plus its CUDA context) fits the
+Total Committed sum. All gates G1-G4 pass; review next, then merge and ship with the next bundle.
