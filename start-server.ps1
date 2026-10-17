@@ -605,33 +605,46 @@ if ($env:BONSAI_SLOT_SAVE_PATH) {
 # From here only the server runs. Under $ErrorActionPreference = 'Stop', Windows PowerShell 5.1 turns each stderr line of a
 # native program into an error record when the launcher's output is redirected (hidden window, scheduled task, 2>&1), and
 # the first one stops the launcher (issue #16, howdya). The server's own exit code still reaches the caller.
-# Spill guard (docs/research/spillguard-20261017). On Windows the NVIDIA driver moves GPU memory to system RAM when the
-# card is full ("sysmem fallback"): the server does not fail, it becomes 10-20x slower with no message (a cold read at
-# ~40 tok/s instead of 757 on the 8 GB preset). A watcher in this process takes the server's "GPU Process Memory \
-# Shared Usage" at the first good /health as the base (the pinned host part of the tiered cache is in it) and prints one
-# line when it grows by more than 256 MiB (again after each further 512 MiB). BONSAI_SPILL_GUARD=0 turns it off.
-# Without the performance counters it does nothing.
+# Spill guard (docs/research/spillguard-20261017). When the card becomes full after the start, the server does not fail:
+# it becomes about 10x slower with no message. Two measured cases: (1) the NVIDIA driver's sysmem fallback moves
+# server memory to system RAM (T1-g: a cold read at ~40 tok/s instead of 757; the server's "GPU Process Memory \ Shared
+# Usage" ~950 MiB up); (2) another program takes the free VRAM (G3: a 4 GB ballast after /health, prompt reads at 79
+# tok/s instead of 757, no counter of the server moves). A watcher in this process takes base values at the first good
+# /health and prints one line when (1) the server's shared usage grows by > 256 MiB, or (2) the other programs on the
+# same GPU hold > 512 MiB more VRAM than at the base and < 512 MiB is free. BONSAI_SPILL_GUARD=0 turns it off. Without
+# the performance counters it does nothing.
 $SpillGuard = {
-    param([string]$BinDir, [string]$HealthUrl, [int]$StepMiB = 256, [int]$AgainMiB = 512, [int]$Every = 15,
-          [double[]]$FakeSamples = $null)
-    $st = @{ base = $null; next = [double]$StepMiB; hint = $true }
+    param([string]$BinDir, [string]$HealthUrl, [int]$Every = 15, [string[]]$FakeSamples = $null)
+    $st = @{ sh = $null; ot = $null; nextSh = 256.0; nextOt = 512.0; hint = $true }
+    $say = {
+        param([string]$m)
+        [Console]::Out.WriteLine($m)
+        if ($st.hint) {
+            [Console]::Out.WriteLine("       (NVIDIA Control Panel > Manage 3D settings > CUDA - Sysmem Fallback Policy: " +
+                "Prefer No Sysmem Fallback makes the server stop instead of running slowly.)")
+            $st.hint = $false
+        }
+        [Console]::Out.Flush()
+    }
     $check = {
-        param([double]$cur)
-        if ($null -eq $st.base -or $cur -lt $st.base) { $st.base = $cur; return }
-        $d = $cur - $st.base
-        if ($d -gt $st.next) {
-            [Console]::Out.WriteLine(("spill  VRAM spilled to system RAM (+{0:N0} MiB): the server is much slower now. " +
-                "Close other GPU programs, or set BONSAI_KV_VRAM_CELLS lower, then restart.") -f $d)
-            if ($st.hint) {
-                [Console]::Out.WriteLine("       (NVIDIA Control Panel > Manage 3D settings > CUDA - Sysmem Fallback Policy: " +
-                    "Prefer No Sysmem Fallback makes the server stop at start instead of running slowly.)")
-                $st.hint = $false
-            }
-            [Console]::Out.Flush()
-            $st.next = $d + $AgainMiB
+        param([double]$shared, [double]$others, [double]$free)
+        if ($null -eq $st.sh -or $shared -lt $st.sh) { $st.sh = $shared }
+        if ($null -eq $st.ot -or $others -lt $st.ot) { $st.ot = $others }
+        $d = $shared - $st.sh
+        if ($d -gt $st.nextSh) {
+            & $say (("spill  VRAM spilled to system RAM (+{0:N0} MiB): the server is much slower now. Close other GPU " +
+                "programs, or set BONSAI_KV_VRAM_CELLS lower, then restart.") -f $d)
+            $st.nextSh = $d + 512
+        }
+        $o = $others - $st.ot
+        if ($o -gt $st.nextOt -and $free -ge 0 -and $free -lt 512) {
+            & $say (("spill  other programs took {0:N0} MiB of VRAM after the start and the card is full ({1:N0} MiB free): " +
+                "the server can be about 10x slower now. Close them, or restart the server so that it sizes its VRAM line " +
+                "again.") -f $o, $free)
+            $st.nextOt = $o + 1024
         }
     }
-    if ($FakeSamples) { foreach ($s in $FakeSamples) { & $check $s }; return }
+    if ($FakeSamples) { foreach ($s in $FakeSamples) { $v = [double[]]($s -split ','); & $check $v[0] $v[1] $v[2] }; return }
     try {
         $srv = $null
         for ($i = 0; $i -lt 3600 -and -not $srv; $i++) {
@@ -645,11 +658,18 @@ $SpillGuard = {
             try { if ($wc.DownloadString($HealthUrl) -match '"ok"') { break } } catch { }
             Start-Sleep -Seconds 2
         }
-        $ctr = "\GPU Process Memory(pid_$($srv.Id)*)\Shared Usage"
+        $pre = "pid_$($srv.Id)_"
         while (-not $srv.HasExited) {
-            $s = Get-Counter -Counter $ctr -ErrorAction Stop
-            if (@($s.CounterSamples).Count -gt 0) {   # no sample (no match yet) is not a base of 0
-                & $check ((($s.CounterSamples | Measure-Object CookedValue -Sum).Sum) / 1MB)
+            $all = (Get-Counter -Counter '\GPU Process Memory(*)\Dedicated Usage', '\GPU Process Memory(*)\Shared Usage' -ErrorAction Stop).CounterSamples
+            $mine = @($all | Where-Object { $_.InstanceName.StartsWith($pre) })
+            if ($mine.Count -gt 0) {   # no sample (no match yet) is not a base of 0
+                $luid = ($mine[0].InstanceName -replace '^pid_\d+_(luid_[^_]+_[^_]+)_.*$', '$1')
+                $shared = ($mine | Where-Object { $_.Path -like '*\shared usage' } | Measure-Object CookedValue -Sum).Sum / 1MB
+                $others = ($all | Where-Object { $_.Path -like '*\dedicated usage' -and -not $_.InstanceName.StartsWith($pre) -and
+                    $_.InstanceName -like "*$luid*" } | Measure-Object CookedValue -Sum).Sum / 1MB
+                $free = -1.0
+                try { $free = [double]((& nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits | Select-Object -First 1).Trim()) } catch { }
+                & $check $shared $others $free
             }
             Start-Sleep -Seconds $Every
         }

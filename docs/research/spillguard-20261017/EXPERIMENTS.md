@@ -32,3 +32,14 @@ Next: a second signal for "the card became full after the start": the other proc
 adapter grew by > 512 MiB since the base AND the adapter has < 512 MiB free. (G3 here: +4,187 MiB, 19-53 MiB free.)
 New gates before it ships: G1 again (fake samples), G3 again (the line within 30 s of the ballast), G4 on the 2060
 (defaults: no line during a cold 128k read, where the free VRAM falls to ~76 MiB but no other process grows).
+
+## v2: two signals (2026-10-17 02:40), G1 again: PASS
+
+The watcher now also reads the other processes' dedicated VRAM on the server's adapter (same luid) and the free VRAM
+(nvidia-smi). Line (2): others > base + 512 MiB AND free < 512 MiB (again after each further 1024 MiB).
+Fake samples (shared, others, free MiB): A (+200, +200, 300): 0 lines; B (shared +296 / +900): 2 lines + hint;
+C (the G3 numbers: others +4,187, free 19): 1 line + hint; D (others +4,187, free 3,000): 0; E (the 2060 normal case:
+free 76-113, others flat): 0; F (free unknown): 0. 0 runspace errors. Launcher parse 0 errors.
+Live values from the code on the product server (12 GB default recipe): shared 4,550, others 4, free 438 MiB
+(the 12 GB recipe runs with < 512 MiB free, so signal (2) depends on the others' growth, as designed).
+Open: G3 again on the 4070 (needs a 3-min GPU gap), G4 on the 2060.
