@@ -48,3 +48,54 @@ little, but the selector stays far from dense: early-layer attention (block 3 or
 the asked fact well, and a deeper probe (block 15) was worse in the diagnostics. Decision: T4-A stays an experiment,
 off, not for a release. Ideas not tried: a probe at the mid layers where retrieval heads usually are (costs a larger
 share of a full read), a text-match pre-filter (the question's rare tokens), and the small-model scorer (plan B).
+
+## Rounds 3-8 and the paraphrase gate (kernel session, 2026-10-17 08:58-12:25)
+
+Plans on #138 before each run (comments 6234762718, 6235260230, 6235935791, 6236412504, 6236641256, 6237281393).
+Code: llama.cpp fork branch `t4-fastread` (on `t4-fastread-b`): e492769e9 (qrows, head max), 7668f32cb (`lex`,
+`lexonly`, `lexnb`), df34e3ae4 (`lexdf`), 4017549b5 (neighbors best lexical score first), e8c090661 (`lexmin`).
+Same recipe as rounds 1-2 (4070, `BONSAI_8GB=1`, q3_0, line 80,640, layer off), 245k, n24 dense 24/24 (467.8 s cold),
+copies n20 dense 19/20. Scripts `t4_r3.sh` ... `t4_r8.sh`, `t4_para.sh`, `t4_req.py`; receipts `t4_round3..8.*`,
+`t4_paraphrase.*`. Answers split into correct / wrong code / miss. 0 CUDA errors in every round.
+
+**The lexical selector** (server, `LLAMA_FAST_READ`): every token n-gram of the question window (the 48 tokens before
+the last `<|im_end|>`) that also occurs earlier in the prompt marks its tokens with `log((n+1)/(df+1))` (df = its
+count before the question); `lexdf` drops n-grams found more often than that; `lexmin..lexn` sets the n-gram lengths;
+`lexnb` keeps that many 32-token blocks on each side of a hit, best lexical score first; `lexonly` skips the scoring
+pass (the selection then costs ~0.1 s on the CPU).
+
+| round | selection | TTFT 245k | n24 | copies n20 |
+| --- | --- | --- | --- | --- |
+| 3 | attention: question rows + head max + bmax, keep 32k | 92.9 s | 12/24 (**5 wrong**) | - |
+| 4 A | lexical only, n=3, `lexnb=1`, keep 16k | 16.4 s | 2/24 | 3/20 |
+| 4 B | attention (bmax) + lexical, keep 16k | ~76 s | 2/24 | - |
+| 5 | lexical only, `lexdf=32`, `lexnb=16` | 16.5 s | 6/24 | 7/20 |
+| 6 | + neighbors by score, `lexdf=8` | 16.4 s | 14/24 | 7/20 |
+| **7** | + n-grams of length 1-4 (`lexmin=1,lexn=4`), keep 16k | **16.4 s (28x)** | **24/24, 0 wrong** | **11/20** |
+| 8 | round 7 with `lexdf=32`, keep 32k | 32.6 s | 24/24 | 12/20 |
+
+What each round showed:
+- Round 3: attention-only selection is closed. Its wrong answers repeat a KEPT needle's code (4657 for four vaults).
+- Round 4: 36,264 hits; the question window also held filler text, whose common n-grams drowned the rare ones.
+- Round 6: digits are separate tokens, so the 3-gram after "vault" for vaults 10-19 is shared by 11 needles (df > 8);
+  only the 4-gram `[ vault][ ][1][5]` is specific. Round 7 fixed this with lengths 1-4.
+- Copies: the lost functions' names occur in many places of the stdlib text, so their n-grams pass the df cap only
+  rarely; a larger budget (round 8) adds one.
+
+**Paraphrase gate** (`bench/needle_paraphrase.py`, new): 24 facts ("The beekeeper keeps a safe whose combination is
+NNNN."), each asked in other words ("... the safe of the person who raises honey-making insects?"). The only shared
+words are in every fact, so word overlap cannot pick the fact.
+
+| arm | n24 at 245k | per question |
+| --- | --- | --- |
+| dense (one cold read, cached questions) | 10/24, 0 wrong `-+++++++--+----------+-+` | 22.0 s |
+| lexical, round 7 setting | 3/24, **2 wrong (another fact's code)** `+-----+-F------+-----F--` | 16.1 s |
+
+Reading (declared before the run): both are low (the full model gets 10/24 on these paraphrases at 245k with thinking
+off), so the set should be eased (e.g. 64k) for a sharper number; but the direction is clear. Lexical fast read finds
+facts the question names in the text's own words (needles 24/24 at 28x), not facts asked about in other words (3/24,
+with confident wrong codes), and it misses code whose names are common (copies 11/20).
+
+**Decision:** T4 fast read stays an experiment, off by default, not for a release. If it is ever offered, it is an
+opt-in "find this exact fact / name" mode with that limit stated, and only after a gate on real documents. The small
+model scorer (P171) and a sharper paraphrase set are the open items.

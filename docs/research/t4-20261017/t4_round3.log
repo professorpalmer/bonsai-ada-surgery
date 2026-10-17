@@ -1,0 +1,15 @@
+08:58 === T4 round 3 start: t4-fastread e492769e9 (product-0062 + T4 fast read + dumps/bmax + qrows/headmax, sm_89, build-q3fast)
+08:59 server t4r3_ttft: health=1 (LLAMA_FAST_READ=keep=32768,bmax=1,qrows=1 LLAMA_FAST_READ_HEADMAX=1); clock 11751 MHz
+t4req r3_245k depth 245000: wall    92.9 s, prompt_n 35072, prompt_ms    91.9 s, decode  78.3 tok/s (64 tok), answer 1ae93a32cabc11d0 | '```python\n"""\nlru_cache.py\n\nA 300-line Python module implementing an L'
+09:00   fast read lines: 1; last: fast read: 244017 -> 35072 tokens (sinks 256, window 2048, 1024 blocks of 32), scoring pass 58.0 s (8 blocks), scores 2.3 s
+09:00 server t4r3_n24: health=1 (LLAMA_FAST_READ=keep=32768,bmax=1,qrows=1 LLAMA_FAST_READ_HEADMAX=1); clock 11751 MHz
+{"tag": "t4r3_n24_245k", "depth": 245000, "correct": 12, "of": 24}
+09:38   fast read lines: 24; last: fast read: 244359 -> 35072 tokens (sinks 256, window 2048, 1024 blocks of 32), scoring pass 58.5 s (8 blocks), scores 2.3 s
+r3 n24 245k: correct 12/24, wrong code 5, miss 7; pattern -+W++W+++-W--W-W++++-+-+
+  WRONG vault 3 at 0.104: want 7468, got 'The access code for vault 3 is 8842.'
+  WRONG vault 6 at 0.229: want 9779, got 'The access code for vault 6 is **4657**.'
+  WRONG vault 11 at 0.438: want 4517, got 'The access code for vault 11 is **4657**'
+  WRONG vault 14 at 0.562: want 8104, got 'The access code for vault 14 is **4657**'
+  WRONG vault 16 at 0.646: want 2144, got 'The access code for vault 16 is **4657**'
+09:38 === T4 round 3 done
+09:38 product server restored: health=1

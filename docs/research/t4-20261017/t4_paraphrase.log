@@ -1,0 +1,11 @@
+12:09 === T4 paraphrase gate start: t4-fastread e8c090661 (product-0062 + T4 + lex options incl. lexmin, sm_89, build-q3fast)
+12:09 server t4p_dense: health=1 (); clock 11751 MHz
+{"tag": "t4p_dense_245k", "depth": 245000, "correct": 10, "wrong": 0, "miss": 14, "of": 24}
+12:18   fast read lines: 0; last: 
+t4p_dense_245k: -+++++++--+----------+-+  (+ ok, - miss, F code of another fact, W other digits); mean wall 22.0 s
+12:18 server t4p_lex: health=1 (LLAMA_FAST_READ=keep=16384,lex=100,lexonly=1,lexnb=16,lexdf=8,lexmin=1,lexn=4); clock 11751 MHz
+{"tag": "t4p_lex_245k", "depth": 245000, "correct": 3, "wrong": 2, "miss": 19, "of": 24}
+12:25   fast read lines: 24; last: fast read: 244368 -> 18688 tokens (sinks 256, window 2048, 512 blocks of 32), scoring pass 0.1 s (8 blocks), scores 0.1 s; lexical n-gram hits 16
+t4p_lex_245k: +-----+-F------+-----F--  (+ ok, - miss, F code of another fact, W other digits); mean wall 16.1 s
+12:25 === T4 paraphrase gate done
+12:25 product server restored: health=1

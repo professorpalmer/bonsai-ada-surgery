@@ -1,0 +1,13 @@
+11:28 === T4 round 7 start: t4-fastread e8c090661 (product-0062 + T4 + lex options incl. lexmin, sm_89, build-q3fast)
+11:28 server t4r7_A_ttft: health=1 (LLAMA_FAST_READ=keep=16384,lex=100,lexonly=1,lexnb=16,lexdf=8,lexmin=1,lexn=4); clock 11751 MHz
+t4req r7A_245k depth 245000: wall    16.4 s, prompt_n 18688, prompt_ms    15.4 s, decode  81.2 tok/s (64 tok), answer 54c2a48c5c12bfc8 | '```python\n"""\nlru_cache_module.py\n\nA 300-line Python module implementi'
+11:29   fast read lines: 1; last: fast read: 244017 -> 18688 tokens (sinks 256, window 2048, 512 blocks of 32), scoring pass 0.1 s (8 blocks), scores 0.1 s; lexical n-gram hits 15
+11:29 server t4r7_A_n24: health=1 (LLAMA_FAST_READ=keep=16384,lex=100,lexonly=1,lexnb=16,lexdf=8,lexmin=1,lexn=4); clock 11751 MHz
+{"tag": "t4r7_A_n24_245k", "depth": 245000, "correct": 24, "of": 24}
+11:35   fast read lines: 24; last: fast read: 244359 -> 18688 tokens (sinks 256, window 2048, 512 blocks of 32), scoring pass 0.1 s (8 blocks), scores 0.1 s; lexical n-gram hits 26
+t4r7_A_n24_245k: correct 24/24, wrong code 0, miss 0; pattern ++++++++++++++++++++++++
+11:36 server t4r7_A_copies: health=1 (LLAMA_FAST_READ=keep=16384,lex=100,lexonly=1,lexnb=16,lexdf=8,lexmin=1,lexn=4); clock 11751 MHz
+{"tag": "t4r7_A_copies_245k", "depth": 245000, "correct": 11, "correct_lead": 11, "of": 20}
+11:41   fast read lines: 20; last: fast read: 230645 -> 18688 tokens (sinks 256, window 2048, 512 blocks of 32), scoring pass 0.1 s (8 blocks), scores 0.1 s; lexical n-gram hits 188
+11:41 === T4 round 7 done
+11:42 product server restored: health=1
