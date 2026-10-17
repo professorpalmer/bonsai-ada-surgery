@@ -66,9 +66,9 @@ pass (the selection then costs ~0.1 s on the CPU).
 
 | round | selection | TTFT 245k | n24 | copies n20 |
 | --- | --- | --- | --- | --- |
-| 3 | attention: question rows + head max + bmax, keep 32k | 92.9 s | 12/24 (**5 wrong**) | - |
+| 3 | attention: question rows + head max + bmax, keep 32k | 92.9 s | 12/24 (**5 wrong**) | not run |
 | 4 A | lexical only, n=3, `lexnb=1`, keep 16k | 16.4 s | 2/24 | 3/20 |
-| 4 B | attention (bmax) + lexical, keep 16k | ~76 s | 2/24 | - |
+| 4 B | attention (bmax) + lexical, keep 16k | ~76 s | 2/24 | not run |
 | 5 | lexical only, `lexdf=32`, `lexnb=16` | 16.5 s | 6/24 | 7/20 |
 | 6 | + neighbors by score, `lexdf=8` | 16.4 s | 14/24 | 7/20 |
 | **7** | + n-grams of length 1-4 (`lexmin=1,lexn=4`), keep 16k | **16.4 s (28x)** | **24/24, 0 wrong** | **11/20** |
