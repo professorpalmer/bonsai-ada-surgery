@@ -80,3 +80,10 @@ from those runs is the card's behavior: a ~180-200 MiB program halves a 16k read
 Fix (product bug: users may also write `BONSAI_BIN` with forward slashes): both paths go through
 `[IO.Path]::GetFullPath` plus one trailing separator before the compare. Checked against the running server:
 forward slashes, a trailing slash and lower case all match; a partial folder name (`...\bi`) does not.
+
+## G3 again (4070, launcher 4d07577 = v4 + the path fix; `sg_g3v2.sh`, log `g3v2.log`): PASS
+
+8 GB preset, line 80,640, layer off. 20 s after `/health` a ballast took 4,076 MiB (VRAM 11,958 used, 53 MiB free).
+The line `spill  other programs took 4,313 MiB of VRAM after the start and the card is full (53 MiB free)` + the
+NVIDIA hint came **12 s** after the ballast started (gate: 45 s). The ballast's counters: dedicated 4,187, shared 126,
+total committed 4,313 (resident here, so this run does not test the paged-out case; P167b on the 2060 does).
