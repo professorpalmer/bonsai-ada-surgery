@@ -1,0 +1,27 @@
+04:17 === d7 (keep=16384,layers=8,probe=7): health=1
+{"tag": "t4d_d7", "depth": 245000, "vault": 2, "position_frac": 0.062, "want": "3471", "answer": "The provided text does not contain the a", "ok": false, "evaluated": 18688, "wall_s": 76.3}
+W slot fast_read_ma: id  0 | task 0 | fast read: 244358 -> 18688 tokens (sinks 256, window 2048, 512 blocks of 32), scoring pass 58.2 s (8 blocks), scores 2.3 s
+N 244358, heads 24, per-head mass [32.0, 32.0, 32.0, 32.0, 32.0, 32.0, 32.0, 32.0] ...
+needles found: 24 at frac [0.019, 0.056, 0.097, 0.137, 0.178, 0.218] ...
+A0 sum heads, block sum (the server)       target kept False  needles kept  7/24  missing at frac [0.056, 0.097, 0.178, 0.218, 0.259, 0.38, 0.42, 0.461, 0.501, 0.543, 0.586, 0.63]
+A1 sum heads, block max                    target kept True   needles kept  7/24  missing at frac [0.019, 0.097, 0.218, 0.259, 0.339, 0.38, 0.42, 0.461, 0.501, 0.543, 0.586, 0.63]
+A2 head-normalized (middle mass), sum      target kept False  needles kept  7/24  missing at frac [0.056, 0.097, 0.178, 0.218, 0.259, 0.38, 0.42, 0.461, 0.501, 0.543, 0.586, 0.63]
+A3 head-normalized, block max              target kept True   needles kept  7/24  missing at frac [0.019, 0.097, 0.218, 0.259, 0.339, 0.38, 0.42, 0.461, 0.501, 0.543, 0.586, 0.63]
+A4 max over heads, block max               target kept True   needles kept  9/24  missing at frac [0.097, 0.137, 0.218, 0.259, 0.339, 0.38, 0.42, 0.461, 0.543, 0.586, 0.63, 0.804]
+A5 best rank over heads                    target kept False  needles kept  3/24  missing at frac [0.019, 0.056, 0.097, 0.178, 0.218, 0.259, 0.299, 0.38, 0.42, 0.461, 0.501, 0.543]
+needle mass per head (top 8): [(23, np.float32(0.0042)), (17, np.float32(0.0025)), (21, np.float32(0.0023)), (12, np.float32(0.0022)), (14, np.float32(0.0022)), (16, np.float32(0.0022)), (13, np.float32(0.0019)), (15, np.float32(0.0019))]
+A6 top-4 needle heads [23, 17, 21, 12] (oracle) target kept True   needles kept 14/24  missing at frac [0.097, 0.218, 0.42, 0.461, 0.543, 0.63, 0.804, 0.847, 0.891, 0.935]
+04:18 === d15 (keep=16384,layers=16,probe=15): health=1
+{"tag": "t4d_d15", "depth": 245000, "vault": 2, "position_frac": 0.062, "want": "3471", "answer": "The access code for vault 2 is 6305.", "ok": false, "evaluated": 18688, "wall_s": 133.2}
+W slot fast_read_ma: id  0 | task 0 | fast read: 244358 -> 18688 tokens (sinks 256, window 2048, 512 blocks of 32), scoring pass 115.0 s (16 blocks), scores 2.3 s
+N 244358, heads 24, per-head mass [32.0, 32.0, 32.0, 32.0, 32.0, 32.0, 32.0, 32.0] ...
+needles found: 24 at frac [0.019, 0.056, 0.097, 0.137, 0.178, 0.218] ...
+A0 sum heads, block sum (the server)       target kept False  needles kept  7/24  missing at frac [0.019, 0.056, 0.097, 0.137, 0.178, 0.218, 0.299, 0.339, 0.461, 0.501, 0.543, 0.63]
+A1 sum heads, block max                    target kept False  needles kept  8/24  missing at frac [0.019, 0.056, 0.097, 0.218, 0.339, 0.42, 0.461, 0.501, 0.543, 0.63, 0.717, 0.76]
+A2 head-normalized (middle mass), sum      target kept False  needles kept  7/24  missing at frac [0.019, 0.056, 0.097, 0.137, 0.178, 0.218, 0.299, 0.339, 0.461, 0.501, 0.543, 0.63]
+A3 head-normalized, block max              target kept False  needles kept  8/24  missing at frac [0.019, 0.056, 0.097, 0.218, 0.339, 0.42, 0.461, 0.501, 0.543, 0.63, 0.717, 0.76]
+A4 max over heads, block max               target kept False  needles kept 10/24  missing at frac [0.019, 0.056, 0.218, 0.339, 0.42, 0.461, 0.501, 0.543, 0.63, 0.717, 0.804, 0.847]
+A5 best rank over heads                    target kept False  needles kept  6/24  missing at frac [0.019, 0.056, 0.137, 0.178, 0.218, 0.339, 0.38, 0.42, 0.461, 0.501, 0.543, 0.586]
+needle mass per head (top 8): [(14, np.float32(0.006)), (8, np.float32(0.0038)), (15, np.float32(0.0037)), (6, np.float32(0.0035)), (17, np.float32(0.0033)), (22, np.float32(0.0021)), (7, np.float32(0.0019)), (10, np.float32(0.0018))]
+A6 top-4 needle heads [14, 8, 15, 6] (oracle) target kept False  needles kept 11/24  missing at frac [0.019, 0.056, 0.218, 0.339, 0.38, 0.42, 0.461, 0.501, 0.543, 0.804, 0.847, 0.891]
+04:20 === T4 diag done
