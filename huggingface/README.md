@@ -110,7 +110,8 @@ Cards: 12 GB is the measured recipe: q4_0 K/V by default from bundle-20261016, 2
 16 GB and up: the whole q8_0 window fits, the tier switches itself off. 8 GB: the launcher detects the card and
 uses its 8 GB preset (q3_0 K/V since bundle-20261015b, q4_0 before; a 262k window with 24 GB of RAM, else 131k; a
 Q4_0 MTP head; from bundle-20261016b prefill attention packs 2 query heads per column group on Turing: cold 245k
-1.147x on an RTX 2060 SUPER, perplexity +0.02 %). Measured on an RTX 2060 SUPER that also draws the desktop: 51.2 / 43.1 tok/s at 4k / 32k (q4_0); with
+1.147x on an RTX 2060 SUPER, perplexity +0.02 %; from bundle-20261017 saved conversations
+(`BONSAI_SLOT_SAVE_PATH`, automatic with the layer) restore a 199k conversation ~6 s after a restart on this card). Measured on an RTX 2060 SUPER that also draws the desktop: 51.2 / 43.1 tok/s at 4k / 32k (q4_0); with
 q3_0, 80,640 positions in VRAM, 64k 41.0, 128k 22.8, 192k 12.3 tok/s, HumanEval medium 163 of 164 (repository
 `docs/8GB.md`, `docs/research/release-20261014b/`).
 
@@ -175,7 +176,7 @@ template with `--jinja`, so this file serves with that template; PrismML's origi
 | --- | --- |
 | `Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf` | `5f212d02ff57cb8eaad260fd7ff57bfaff87ae2bc9183a21dd2f127c27252505` |
 | PrismML's `Ternary-Bonsai-2-27B-PTQ1_0.gguf` (the base) | `53107f530aa52eb00912263ab1ee29bd199261c87cd7b4ad4ca1318c1fe33ee3` |
-| `bonsai-bundle-win-x64.zip` | `fe5a3845fe7bef2d813bd385e47c5e818628eacf0427332ab7b8275f9c843f6b` |
+| `bonsai-bundle-win-x64.zip` | `723c12e68a029a5e34f6a66307d8292c311f9a8a79ed6689973d1fd46718c253` |
 
 Every kernel in the stack is checked against the CPU reference, and the served output is checked greedy
 token-for-token against the unpatched fork before any speed number is recorded.
