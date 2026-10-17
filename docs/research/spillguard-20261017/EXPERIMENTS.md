@@ -99,3 +99,29 @@ total committed 4,313 (resident here, so this run does not test the paged-out ca
 So on 8 GB: a ~200 MiB program after the start takes the read from ~400 to 70 tok/s and decode from ~24 to 7, and the
 guard now says so before the next request. The 1,673 MiB in the line (the ballast plus its CUDA context) fits the
 Total Committed sum. All gates G1-G4 pass; review next, then merge and ship with the next bundle.
+
+## Review of PR #164 and v5 (2026-10-17)
+
+An independent review (read-only) found:
+- **B1 (blocker):** one invalid counter sample (a GPU process that exits during the read; ~1 in 80 reads on this PC)
+  threw out of the loop and stopped the guard for the session with no message (`-ErrorAction Stop` in one outer try).
+  The gates could not show it (runs of minutes). Fixed: each pass has its own try; only valid samples (`Status 0`)
+  are used; a pass without the server's own samples is skipped (never read as 0); the guard stops only after 40
+  failed passes in a row (10 minutes, e.g. counters missing on another OS language).
+- **S1:** rule (2) could give false lines on a desktop with the display on the NVIDIA card (a program that shrinks and
+  grows moved the min base). Fixed: the others' base is the first sample and goes down only while free VRAM is above
+  the limit; rule (2) needs two samples in a row; after a squeeze ends, the next one warns again from +128 MiB.
+- **S2:** the guard could watch another llama-server (a second instance, or the old process during a quick restart).
+  Fixed: only a process started after the launcher reached the guard, in exactly `$Bin` (full-path equality).
+- **S3:** the docs did not describe rule (2); and the launcher does not read `BONSAI_BIN` (the correction above names it:
+  that was the 2060 agent's test copies, which set the bin folder with forward slashes). The path compare still
+  normalizes both sides. README row rewritten.
+- Nits taken: the health check has a 2 s timeout and no proxy; the runspace start is in a try; the server's adapter is
+  the one where it has the most memory committed; no rule (2) when the adapter name does not parse.
+
+G1 for v5 (`g1v5.ps1`, fake samples shared/others/free): one bad sample: 0 lines; shared +296 / +900: 2 lines; the
+4070 G3 numbers (two samples): 1 line; the 2060 P167b small case (two samples): 1 line; a display program that
+shrinks during a cold read and grows back: 0; squeeze / over / squeeze: 2 lines; a normal 2060 read: 0; the 12 GB
+recipe with +150: 0; free unknown: 0. Live (the T4 test server, 20 s at 2 s): 0 lines, 0 errors; with StartAfter in
+the future the guard does not attach to the running server. Launcher parse 0 errors.
+Open: G3 again on the 4070 (after the T4 runs) and a 1 h soak on the 2060 with the display on that card.

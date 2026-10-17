@@ -10,6 +10,9 @@ that takes VRAM after the server starts puts an 8 GB card in this state.
 
 ## Change
 
+(v1 below; the code is now v5: two rules, two samples in a row for rule (2), see EXPERIMENTS.md "v5".)
+
+
 The launcher starts a small background watcher (a PowerShell runspace in the launcher process, so its message goes to
 the same console or log). It finds the llama-server process, waits for `/health`, takes the server's Shared Usage
 then as the base value (the pinned host part of the tiered cache is in it), and samples it every 15 s. When Shared

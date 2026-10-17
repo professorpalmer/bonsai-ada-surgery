@@ -606,17 +606,18 @@ if ($env:BONSAI_SLOT_SAVE_PATH) {
 # native program into an error record when the launcher's output is redirected (hidden window, scheduled task, 2>&1), and
 # the first one stops the launcher (issue #16, howdya). The server's own exit code still reaches the caller.
 # Spill guard (docs/research/spillguard-20261017). When the card becomes full after the start, the server does not fail:
-# it becomes about 10x slower with no message. Two measured cases: (1) the NVIDIA driver's sysmem fallback moves
-# server memory to system RAM (T1-g: a cold read at ~40 tok/s instead of 757; the server's "GPU Process Memory \ Shared
-# Usage" ~950 MiB up); (2) another program takes the free VRAM (G3: a 4 GB ballast after /health, prompt reads at 79
-# tok/s instead of 757, no counter of the server moves). A watcher in this process takes base values at the first good
-# /health and prints one line when (1) the server's shared usage grows by > 256 MiB, or (2) the other programs on the
-# same GPU have >= 128 MiB more GPU memory committed than at the base and the free VRAM is below min(512 MiB, 0.6 x the free VRAM at the
-# base). The 2060 (P166): 282 MiB free with the server up, and a 182 MiB program halved the prompt read. So rule (2)
-# scales with what was free. BONSAI_SPILL_GUARD=0 turns it off. Without the performance counters it does nothing.
+# it becomes much slower with no message, or a later big batch fails with "CUDA error: out of memory". Measured: (1) the
+# NVIDIA driver's sysmem fallback moves server memory to system RAM (T1-g: a cold read at ~40 tok/s instead of 757; the
+# server's "GPU Process Memory \ Shared Usage" ~950 MiB up); (2) another program takes the free VRAM (4070: a 4 GB
+# program, prompt reads 79 tok/s instead of 757; 2060: a 206 MiB program, reads 70 tok/s instead of ~400, decode 7
+# instead of 24). A watcher in this process takes base values at the first good /health and prints one line when (1)
+# the server's shared usage grows by > 256 MiB, or (2) the other programs on the server's GPU have >= 128 MiB more GPU
+# memory committed than at the base and the free VRAM is below min(512 MiB, 0.6 x the free VRAM at the base), in two
+# samples in a row. The line goes to this window (stdout). BONSAI_SPILL_GUARD=0 turns it off. Without the performance
+# counters (another OS language, no permission) it does nothing.
 $SpillGuard = {
-    param([string]$BinDir, [string]$HealthUrl, [int]$Every = 15, [string[]]$FakeSamples = $null)
-    $st = @{ sh = $null; ot = $null; f0 = $null; nextSh = 256.0; nextOt = 128.0; hint = $true }
+    param([string]$BinDir, [string]$HealthUrl, [datetime]$StartAfter, [int]$Every = 15, [string[]]$FakeSamples = $null)
+    $st = @{ sh = $null; ot = $null; f0 = $null; nextSh = 256.0; nextOt = 128.0; hits = 0; hint = $true }
     $say = {
         param([string]$m)
         [Console]::Out.WriteLine($m)
@@ -630,8 +631,11 @@ $SpillGuard = {
     $check = {
         param([double]$shared, [double]$others, [double]$free)
         if ($null -eq $st.sh -or $shared -lt $st.sh) { $st.sh = $shared }
-        if ($null -eq $st.ot -or $others -lt $st.ot) { $st.ot = $others }
         if ($null -eq $st.f0 -and $free -ge 0) { $st.f0 = $free }
+        $low = if ($null -eq $st.f0) { 512 } else { [Math]::Min(512, 0.6 * $st.f0) }
+        # the others' base: the first sample; it goes down only while the card is not short (a program that grows and
+        # shrinks during a squeeze must not move the base)
+        if ($null -eq $st.ot -or ($others -lt $st.ot -and ($free -lt 0 -or $free -ge $low))) { $st.ot = $others }
         $d = $shared - $st.sh
         if ($d -gt $st.nextSh) {
             & $say (("spill  VRAM spilled to system RAM (+{0:N0} MiB): the server is much slower now. Close other GPU " +
@@ -639,56 +643,76 @@ $SpillGuard = {
             $st.nextSh = $d + 512
         }
         $o = $others - $st.ot
-        $low = if ($null -eq $st.f0) { 512 } else { [Math]::Min(512, 0.6 * $st.f0) }
         if ($o -ge $st.nextOt -and $free -ge 0 -and $free -lt $low) {
-            & $say (("spill  other programs took {0:N0} MiB of VRAM after the start and the card is full ({1:N0} MiB free): " +
-                "the server can be about 10x slower now. Close them, or restart the server so that it sizes its VRAM line " +
-                "again.") -f $o, $free)
-            $st.nextOt = $o + 512
+            $st.hits++
+            if ($st.hits -ge 2) {
+                & $say (("spill  other programs took {0:N0} MiB of GPU memory after the start and the card is full ({1:N0} " +
+                    "MiB free): the server can be about 10x slower now, or fail on a long prompt. Close them, or restart " +
+                    "the server so that it sizes its VRAM line again.") -f $o, $free)
+                $st.nextOt = $o + 512; $st.hits = 0
+            }
+        } else {
+            $st.hits = 0
+            if ($o -lt 128 -and $free -ge $low) { $st.nextOt = 128.0 }   # the squeeze is over: warn again next time
         }
     }
     if ($FakeSamples) { foreach ($s in $FakeSamples) { $v = [double[]]($s -split ','); & $check $v[0] $v[1] $v[2] }; return }
     try {
-        # compare full paths: BONSAI_BIN may use forward slashes, the process path has backslashes (#138: the guard did
-        # not find the server and stayed silent)
-        $norm = { param([string]$x) [IO.Path]::GetFullPath($x).TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar }
+        # this run's server only: started after the launcher reached this point, in exactly $BinDir (full paths, so a
+        # root path with forward slashes or a trailing separator still matches)
+        $norm = { param([string]$x) [IO.Path]::GetFullPath($x).TrimEnd([IO.Path]::DirectorySeparatorChar) }
         $dir = & $norm $BinDir
         $srv = $null
         for ($i = 0; $i -lt 3600 -and -not $srv; $i++) {
-            $srv = Get-Process llama-server -ErrorAction SilentlyContinue |
-                Where-Object { $_.Path -and (& $norm (Split-Path -Parent $_.Path)).StartsWith($dir, [StringComparison]::OrdinalIgnoreCase) } | Select-Object -First 1
+            $srv = Get-Process llama-server -ErrorAction SilentlyContinue | Where-Object {
+                $_.Path -and $_.StartTime -ge $StartAfter -and (& $norm (Split-Path -Parent $_.Path)) -ieq $dir } | Select-Object -First 1
             if (-not $srv) { Start-Sleep -Seconds 1 }
         }
         if (-not $srv) { return }
-        $wc = New-Object System.Net.WebClient
         while (-not $srv.HasExited) {
-            try { if ($wc.DownloadString($HealthUrl) -match '"ok"') { break } } catch { }
+            try {
+                $req = [Net.WebRequest]::Create($HealthUrl); $req.Timeout = 2000; $req.Proxy = $null
+                $resp = $req.GetResponse(); $ok = [int]$resp.StatusCode -eq 200; $resp.Close()
+                if ($ok) { break }
+            } catch { }
             Start-Sleep -Seconds 2
         }
-        $pre = "pid_$($srv.Id)_"
-        while (-not $srv.HasExited) {
-            # others: Total Committed, not Dedicated Usage: a program that does not fit is paged out by WDDM and its dedicated
-            # usage stays small (P166b: a 1,500 MiB ballast on the 2060, no line, then CUDA out of memory)
-            $all = (Get-Counter -Counter '\GPU Process Memory(*)\Shared Usage', '\GPU Process Memory(*)\Total Committed' -ErrorAction Stop).CounterSamples
-            $mine = @($all | Where-Object { $_.InstanceName.StartsWith($pre) })
-            if ($mine.Count -gt 0) {   # no sample (no match yet) is not a base of 0
-                $luid = ($mine[0].InstanceName -replace '^pid_\d+_(luid_[^_]+_[^_]+)_.*$', '$1')
-                $shared = ($mine | Where-Object { $_.Path -like '*\shared usage' } | Measure-Object CookedValue -Sum).Sum / 1MB
-                $others = ($all | Where-Object { $_.Path -like '*\total committed' -and -not $_.InstanceName.StartsWith($pre) -and
-                    $_.InstanceName -like "*$luid*" } | Measure-Object CookedValue -Sum).Sum / 1MB
-                $free = -1.0
-                try { $free = [double]((& nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits | Select-Object -First 1).Trim()) } catch { }
-                & $check $shared $others $free
-            }
+        $pre = "pid_$($srv.Id)_"; $fails = 0
+        while (-not $srv.HasExited -and $fails -lt 40) {
+            try {
+                # a process that exits during the read makes one sample invalid: keep the valid ones, and skip a pass that
+                # lacks the server's own samples (one bad read must not stop the guard, and a missing value is not 0)
+                $all = @((Get-Counter -Counter '\GPU Process Memory(*)\Shared Usage', '\GPU Process Memory(*)\Total Committed' `
+                    -ErrorAction SilentlyContinue).CounterSamples | Where-Object { $_ -and $_.Status -eq 0 })
+                $mineSh = @($all | Where-Object { $_.InstanceName.StartsWith($pre) -and $_.Path -like '*\shared usage' })
+                $mineTc = @($all | Where-Object { $_.InstanceName.StartsWith($pre) -and $_.Path -like '*\total committed' } |
+                    Sort-Object CookedValue -Descending)
+                if ($mineSh.Count -eq 0 -or $mineTc.Count -eq 0) { $fails++ }
+                else {
+                    $fails = 0
+                    $shared = ($mineSh | Measure-Object CookedValue -Sum).Sum / 1MB
+                    # the server's GPU: the adapter where it has the most memory committed (an Optimus laptop has two)
+                    $luid = if ($mineTc[0].InstanceName -match '^pid_\d+_(luid_[^_]+_[^_]+)_') { $Matches[1] } else { $null }
+                    $others = 0.0; $free = -1.0
+                    if ($luid) {
+                        $others = ($all | Where-Object { $_.Path -like '*\total committed' -and -not $_.InstanceName.StartsWith($pre) -and
+                            $_.InstanceName.Contains($luid) } | Measure-Object CookedValue -Sum).Sum / 1MB
+                        try { $free = [double]((& nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits | Select-Object -First 1).Trim()) } catch { }
+                    }
+                    & $check $shared $others $free
+                }
+            } catch { $fails++ }
             Start-Sleep -Seconds $Every
         }
-    } catch { }   # no counters (other OS language, no permission) or the server stopped: say nothing
+    } catch { }   # no counters for 10 minutes (another OS language, no permission) or the server stopped: say nothing
 }
 [System.Management.Automation.PowerShell]$SpillPs = $null
 if ($env:BONSAI_SPILL_GUARD -ne '0') {
-    $SpillPs = [PowerShell]::Create()
-    [void]$SpillPs.AddScript($SpillGuard).AddParameter('BinDir', $Bin).AddParameter('HealthUrl', "http://127.0.0.1:$ListenPort/health")
-    [void]$SpillPs.BeginInvoke()
+    try {
+        $SpillPs = [PowerShell]::Create()
+        [void]$SpillPs.AddScript($SpillGuard).AddParameter('BinDir', $Bin).AddParameter('HealthUrl', "http://127.0.0.1:$ListenPort/health").AddParameter('StartAfter', (Get-Date).AddSeconds(-2))
+        [void]$SpillPs.BeginInvoke()
+    } catch { $SpillPs = $null }
 }
 $ErrorActionPreference = 'Continue'
 Set-Location $Bin
