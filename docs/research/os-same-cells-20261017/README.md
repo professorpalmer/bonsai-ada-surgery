@@ -3,6 +3,8 @@
 Source: issue #35 (comments of 2026-10-17 13:38Z and 14:07Z), measured and reported by **@kokuwhite**, cited here with
 permission. Card: RTX 3080 Ti 12 GB (sm_86), Ryzen 7 5800, 46 GiB RAM.
 
+Raw data (one JSONL row per request, all three runs): [fff569270fd2471b9cd60db03cea006e](https://gist.github.com/kokuwhite/fff569270fd2471b9cd60db03cea006e), posted by @kokuwhite on #35.
+
 **Build per column**
 - Linux: `build/build_linux.sh` from `16b67a7` (bundle-20261017b, 66 patches), `BONSAI_CUDA_ARCH=86`, Ubuntu 24.04.5
   headless, driver 595.91.07.
