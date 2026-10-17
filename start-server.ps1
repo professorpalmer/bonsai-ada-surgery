@@ -196,6 +196,19 @@ if ($PoolOn -and $Spec -gt 0) {
     if (-not $env:LLAMA_MTP_DRAFT_UBATCH) { $env:LLAMA_MTP_DRAFT_UBATCH = '256' }
     $PoolMiB = if ($env:BONSAI_POOL_MIB) { [int]$env:BONSAI_POOL_MIB } elseif ($Small) { 48 } else { 42 }
 }
+# 8 GB: reserve the compute pool at its first use. The pool otherwise grows in 2 MiB steps on the first long prompt (to
+# 170 MiB on this preset, the same at 131k and 245k). When another program fills the card after the start, each step
+# waits on Windows: a cold 16k read fell from 1,248 to 395 tok/s, and with the reserve it stayed at 1,219 (PR1, #138).
+# The pool never shrinks, so this takes the same memory as before, only earlier. 176 = the measured 8 GB prefill peak
+# (170 MiB, 2026-10-17; the 2060's growth after a restore: 142 MiB), rounded up to 16. If a later change raises the peak,
+# the pool grows past 176 as before (with the 0064 retry); only that part is not reserved. Only with the shared pool on
+# (one pool; with it off the draft context has its own). GGML_CUDA_POOL_RESERVE_MIB set by the user (0 = off) is kept.
+$PoolReserve = $null
+if ($Small -and $PoolOn -and $Spec -gt 0 -and -not $env:GGML_CUDA_POOL_RESERVE_MIB) {
+    $HasReserve = $false
+    try { $HasReserve = [Text.Encoding]::ASCII.GetString([IO.File]::ReadAllBytes((Join-Path $Bin 'ggml-cuda.dll'))).Contains('GGML_CUDA_POOL_RESERVE_MIB') } catch { }
+    if ($HasReserve) { $PoolReserve = 176; $env:GGML_CUDA_POOL_RESERVE_MIB = "$PoolReserve" }
+}
 # Packed (1-bit) KQ mask (patches 0048/0049): the f16 mask is Ctx x ubatch x 2 bytes (128 MiB at 131k, 256 MiB at 262k);
 # packed it is 1/16 of that. With MTP drafting at 32k and 64k: 22 of 22 texts identical to the f16 mask (RTX 2060
 # SUPER, P82; RTX 4070, docs/receipts/pr13_ada.log). On with an engine that has it: 8 GB cards in drafting mode, and the
@@ -477,7 +490,7 @@ if ($env:BONSAI_RAM_BUDGET -ne '0' -and $Help -match '--cache-ram' -and $Help -m
     } catch { $RamNote = ''; $RamArgs = @() }
 }
 
-if ($Small) { Write-Host "8gb    preset on ($TotalMiB MiB card; BONSAI_8GB=0 turns it off): ub $Ubatch, f16 prefill to $($env:GGML_CUDA_FA_PREFILL_F16) cells$(if ($env:GGML_CUDA_FA_CHUNK -and $env:GGML_CUDA_FA_CHUNK -ne '0') { ", deeper in chunks of $($env:GGML_CUDA_FA_CHUNK)" })" }
+if ($Small) { Write-Host "8gb    preset on ($TotalMiB MiB card; BONSAI_8GB=0 turns it off): ub $Ubatch, $(if ($PoolReserve) { "pool reserved $PoolReserve MiB, " })f16 prefill to $($env:GGML_CUDA_FA_PREFILL_F16) cells$(if ($env:GGML_CUDA_FA_CHUNK -and $env:GGML_CUDA_FA_CHUNK -ne '0') { ", deeper in chunks of $($env:GGML_CUDA_FA_CHUNK)" })" }
 Write-Host "model  $(Split-Path $Model -Leaf)"
 Write-Host "window $Ctx / $Ctk  ($CtkWhy; trained max 262144)"
 if ($TierCells -gt 0) { Write-Host "kv     tiered: cells 0..$TierCells in VRAM, $TierCells..$Ctx in system RAM$(if ($Margin) { " (VRAM margin $Margin MiB)" })$(if ($PoolMiB) { "; shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off)" })$(if ($MaskSavedMiB) { "; packed KQ mask ($MaskSavedMiB MiB saved)" })" }
@@ -522,7 +535,8 @@ if ($Spec -gt 0) {
 # older launcher can still hold them, so they are not listed as the user's settings either.
 $LauncherVars = @('BONSAI_LAYER_KEY', 'LLAMA_ARG_CHAT_TEMPLATE_KWARGS', 'GGML_CUDA_BATCH_INVARIANT',
                   'GGML_CUDA_SHARED_POOL', 'LLAMA_MTP_DRAFT_UBATCH', 'GGML_CUDA_FA_PREFILL_F16',
-                  'LLAMA_ARG_CHECKPOINT_EVERY_NT', 'LLAMA_ARG_KQ_MASK_PACKED', 'GGML_CUDA_KV_TIER_STAGING_FRAC', 'GGML_CUDA_FA_CHUNK')
+                  'LLAMA_ARG_CHECKPOINT_EVERY_NT', 'LLAMA_ARG_KQ_MASK_PACKED', 'GGML_CUDA_KV_TIER_STAGING_FRAC', 'GGML_CUDA_FA_CHUNK',
+                  'GGML_CUDA_POOL_RESERVE_MIB')
 $Listed = @($UserEnv | Where-Object { $_.Name -notin $LauncherVars -and $_.Value })
 if ($Listed.Count -gt 0) {
     Write-Host ("env    set in this window, these change the defaults: " + (($Listed | ForEach-Object { "$($_.Name)=$($_.Value)" }) -join '  '))
