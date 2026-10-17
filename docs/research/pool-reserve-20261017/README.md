@@ -25,3 +25,13 @@ tok/s, 0 CUDA errors. Receipts in the serve folder: `docs/receipts/pr1_pool.log`
 The 8 GB preset sets `GGML_CUDA_POOL_RESERVE_MIB=176` (the peak rounded up to 16) when the shared pool is on, MTP is on,
 the engine has the knob, and the user did not set it. 6 MiB over the peak, so the VRAM line does not change. Gates
 G1-G3 as declared in PR2; results below.
+
+## PR2-b results: G1 + G3 (4070, the branch launcher 7859cc9 on the bundle-20261017b zip bins; `pr2b_gates.log`)
+
+| check | result |
+| --- | --- |
+| G1 cold 128k, 8 GB preset, reserve on / off / on / off | 757.6 / 756.6 / 756.3 / 756.6 tok/s prefill (within 0.2 %), decode 45.2-45.8; with the reserve the pool grew once (176 MiB) and never again; without it 79 steps |
+| G1 squeeze (card full after `/health`, cold 16k), reserve on | **1,217.5 tok/s** (P0 1,247.8: -2.4 %; without the reserve 395.1); the spill line printed |
+| G3 12 GB default, 24 GB path | no reserve set (no 176 MiB growth) |
+
+0 CUDA errors in all runs. G1 and G3 PASS. G2 (the 2060) asked on #138.
