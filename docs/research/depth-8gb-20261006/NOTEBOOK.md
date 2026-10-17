@@ -3131,3 +3131,96 @@ adds run_python to the tools, so the tokens would not match: moved to the send p
 ## 2026-10-16 08:10 CDT T1-c v2 (4070 review: save before the generation prompt; n_saved): layer_v2 built, offline test pass; P155b queued.
 P156 = T2a-2 queued (Q1 PPL/KL 4k+16k, Q3 cold 245k pair, Q2 items). T1-d (read ahead: prefill_only request) design + T3 ask posted
 on #138. Note: a backspace byte got into a P155b comment line (C:<BS>onsai) from a Python escape; fixed with bytes; ctrl 0.
+
+## 2026-10-16 08:40 CDT Records P133-P155 merged (#148, docs only; agent-written, reviewed: no key / user name / ctrl bytes).
+My launcher PR #147 closed as a duplicate of the 4070 #145 (merged; absolute-path fix). layer-slot-cache rebased on main (drops my
+launcher commit). Open notes from the records agent: P150 160k gate wording (+4.4 % faster than the 3 % band), P140 11 vs 22 items,
+P119 / P120 results not in the notebook (P120 summary exists: 18 turns 133k-260k, 0 one-token).
+
+## 2026-10-16 08:35 CDT P155 result (T1-c v1): ENGINE CRASH after restore at 131k + ~4k new tokens (ggml-cuda.cu:109 CUDA error, host tail /
+prefetch pipeline on); P153 33-token continuations were fine. v1 thinking-on: no restore at all (save ended in <think>), as the 4070
+review said. R1 = M1, 4k unchanged. P157 repro queued (after P155b). Posted on #138.
+
+## 2026-10-16 09:50 CDT P155b result (T1-c v2): save point correct (n_saved = prefill - gen prompt: 130,480 / 65,604), restores found
+(also thinking on), answers = memory, E3 safe, 4k untouched. ENGINE: after a restore, multi-ubatch prompts crash (RT2 64k, R4 131k;
+ggml-cuda.cu:109) or read at 12.3 tok/s (R2/R3, 81 ms/token vs ~136 tok/s in memory). Guess: MTP draft context not in the slot file.
+P157b queued (spec / lookup off arms). Posted on #138.
+
+## 2026-10-16 10:20 CDT layer_v2: streamed requests with the cache on send headers at once + SSE keep-alives during restore / save /
+the server open (Marionette map: 90 s read timeout + 4 retries would resend a cold read). Offline test: first bytes 0.35 s with a 1.5 s
+prefill, stream intact. Marionette changes noted (local provider, stale-read elision, compaction 75 %, tool discovery, side requests)
+but parked by Cary ("cross that bridge when its time").
+
+## 2026-10-16 10:25 CDT P157 result: fresh-server restore + continuation at 131k reads new tokens at ~12 tok/s (3,968 in 325 s, x3 incl.
+sparse off); restore into the same process 30.1 s. No crash in 4 runs (intermittent). Posted on #138. P157b (spec / lookup off) running.
+
+## 2026-10-16 10:35 CDT P157b result: the restore slowdown is the MTP draft context: fresh-server restore + 3,969 tokens at 64k:
+defaults / lookup off 165 s (24 tok/s); BONSAI_SPEC=0 / both off 18.7 s (212 tok/s); answers equal. Ask posted on #138: save the draft
+context in the slot file (or empty it and skip drafting until refilled). Crash likely MTP-related (all crashes had MTP on).
+
+## 2026-10-16 10:40 CDT P156 try 1 (10:26) wrote no data: llama-perplexity runs in the bin folder and could not open the relative
+kl_base path. Requeued as 69jf0 (try 2, absolute path), after P152.
+
+## 2026-10-16 11:22 CDT P152 result: 262k window = 131k window within 1 % at 4k-128k (decode and prefill); line 80,128 vs ~83.2k.
+The full window is free up to 128k. Posted on #138. P156 try 2 started.
+
+## 2026-10-16 11:48 CDT P156 try 2: Q1 numbers PASS (4k KLD -0.000000 / top-1 99.997 % / PPL +0.023 %; 16k 0.000000 / 99.997 % / +0.018 %)
+but my parser read "-0.000000" as None and stopped at Q1. P156c queued (69jeb6, after P149b): same Q1 logs, fixed regex, then Q3 + Q2.
+
+## 2026-10-16 14:05 CDT P156c: Q3 PASS cold 245k 1,707.1 -> 1,488.6 s (1.147x); Q2 moved to P156d. P149b: FRAC 1/8 = dense on all three
+sets at 245k on the 2060 (copies 20/20, n24 23/24 miss 14, n28 27/28 miss 15): rigs disagree, 1/4 stays. Built bin-slotdraft
+(303f01131) + bin-t3 (0f7a8e0ce). Queue: P158 (slot restore + MTP sidecar), P159 (T3 speed probe), P156d. Posted on #138.
+
+## 2026-10-16 14:45 CDT P158 (R1) FAIL: product-slotdraft 303f01131 on sm_75: every MTP-on restore + ~4k continuation crashes (5/5:
+sidecar restored x4, sidecar absent x1); MTP off 213.7 tok/s ok; .draft files written (15,007,796 B). Debug build bin-t3dbg (0f7a8e0ce +
+fprintf in ggml_cuda_error, source reverted after the build) and P158b queued after P156d. Posted on #138.
+
+## 2026-10-16 15:00 CDT P158b result: crash text (all 3 arms) = "CUDA error: device not ready | ggml_cuda_pool_vmm::alloc
+(ggml-cuda.cu:654) | cuMemSetAccess(start_ptr, reserve_size, ...)": VMM pool growth after a restore fails on 8 GB (no headroom). Not draft
+logic. P158c queued (shared pool off / lower VRAM line / VRAM trace). Fix ideas posted on #138.
+
+## 2026-10-16 18:40 CDT P156d (R2) PASS: T2a = default item by item at 245k (code 19/19, n24 23/24, n28 27/28 both): 0060t clear from the 2060.
+P158c: restore + 4k with MTP on: defaults 24.2 tok/s, lower line 24.2, BONSAI_SHARED_POOL=0 206.9 tok/s (line 80,640 -> 77,056); no
+crash this run. Cause = the shared CUDA pool after a restore. Workaround for the demo: pool off. Posted on #138. P160 next after P159.
+
+## 2026-10-16 18:50 CDT bundle-20261016b published (23:43Z): patches 0060/0061 Turing prefill tiles default on sm_75; zip 616,655,338 B,
+sha fe5a3845...3f6b, engine 9fae15924e, launcher baa7275b; notes include BONSAI_SLOT_SAVE_PATH + the 8 GB limit (SHARED_POOL=0 / SPEC=0).
+P161 zip check queued (69jea955: before P160): cold 128k <= 0.95 x 589.1 s, sweep 4k/64k vs P150.
+
+## 2026-10-16 19:30 CDT P159 result (T3 speed probe, bin-t3 0f7a8e0ce): cold 128k 589.3 -> 537.9 s (1.095x), 245k 1,693.3 -> 1,384.8 s
+(1.223x; rule >= 1.15x MET); 0 CUDA errors. T3 goes to the full 2060 gates (proposal posted on #138). P161 started.
+
+## 2026-10-16 19:53 CDT P161 result: bundle-20261016b PASS on the 2060: sha match, 9fae15924e, op tests pass, q3_0 + auto, cold 128k
+536.8 s (1.098x vs 589.1), 4k 52.6 / 64k 40.6 (within 3 % of P150), 0 one-token, min free 68. Posted on #138. P160 started.
+
+## 2026-10-16 21:05 CDT Missed the kernel session 0060p asks (19:51Z-23:35Z; watcher showed only PR events). T3 gates dropped (G2 failed on the
+4070: n24 loses vaults 14/15; T3 stays opt-in). Building product-0060p 4fcd19004 -> bin-0060p during P160 (noted). P158d queued after P160.
+
+## 2026-10-16 21:10 CDT gh_since.sh added (lists all repo comments since the last read; gh_since.txt): the missed-ask fix.
+
+## 2026-10-16 21:35 CDT P160 result (T1, SHARED_POOL=0, MTP on): A shipped bins 206.0 tok/s after restore; B R==M except turn 4 (save turn:
+"4111 9387" vs "4111
+9387", whitespace), restore turns 32.8 / 61.7 / 35.6 s vs M ~30 s; thinking 3/3 equal; E3 safe; 0 CUDA errors.
+C demo clip: 199,107-token prime 1,210 s; fresh restore 3.05 s + short question 2.9 s (~6 s); +4k turn 43.8 s. Posted on #138.
+
+## 2026-10-16 21:50 CDT P158d result: product-0060p 4fcd19004, MTP + shared pool ON: PASS. 64k restore + 3,969 tokens 227.3-227.7
+tok/s x3 (reserve 192: 224.6-224.8 x2), 131k 157.5 tok/s x2; 0 CUDA errors over 7 restores; the first growth after a restore fails
+once (94 -> 142 MiB, device not ready, 0 MiB free) and succeeds on attempt 2. No launcher change needed. Posted on #138.
+
+## 2026-10-16 22:00 CDT PR #157 opened: layer automatic saved conversations (v2 + early keep-alive + tests + README row). For the 4070 to
+review / ship. Queue empty: fillers run.
+
+## 2026-10-16 22:45 CDT PR #157 review (release session): B1-B3 + N1-N11; fixed B1 B2 B3 N1 N3 N5 N6 N8 N9 N10 (+ N11 part) in f0a8475 with
+tests; N2 N4 N7 left for later. Posted on #157.
+
+## 2026-10-16 23:00 CDT PR #157 re-review: R1 (keepalive 0 skipped the lock) + R2 (cleanup could delete user slot files) fixed: lc- prefix, tests 9/9.
+
+## 2026-10-16 23:20 CDT T1-d read ahead built (branch layer-read-ahead 2d63d80, on #157; offline test pass). T4 plan (early-layer
+selection, GemFilter-style; or a small scorer) posted on #138 for the kernel session view.
+
+## 2026-10-16 23:35 CDT PR #157 merged; PR #159 opened (read ahead on main). P162 queued: read ahead on the 2060 (bin-0060p, layer_ra copy):
+131k read-ahead, restart, ask (<= 15 s, answer = cold control). Rule for harnesses: the question must be a NEW message.
+
+## 2026-10-16 22:40 CDT bundle-20261017 published (03:32:59Z): saved conversations on every card (patches 0062-0066 + layer cache #157);
+zip 616,666,781 B sha 723c12e6...c253, engine 96f6e49cdc, launcher/layer 2db3fa21. P163 (S7 post-zip check + S1 restore on the zip
+bins) queued after P162. A 0x08 byte from a Python \b escape got into P163 (SW path) and was fixed before the run (byte scan).

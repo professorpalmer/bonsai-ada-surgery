@@ -18,13 +18,20 @@ bundle-20261015 / 15b / 15c, automatic sparse in bundle-20261016 and the 8 GB ca
 [`experiments/events-p133-p155.md`](experiments/events-p133-p155.md). P149b, P152, P155 and P155b were open (pending
 or running) when that range was written. `REPORT.md` is not updated for this range yet.
 
+P156 to P161 (2026-10-16: T2a-2 and bundle-20261016b with the Turing prefill tiles, the saved-conversation restore
+crash on 8 GB and its cause in the shared CUDA pool, the 0060p pool fix, T3 kept opt-in, the 200k demo clip, the layer
+cache PR #157) are in [`experiments/index-p156-p161.md`](experiments/index-p156-p161.md) and
+[`experiments/events-p156-p161.md`](experiments/events-p156-p161.md), E57-E66. The P155 / P155b results were added to
+[`experiments/P155.md`](experiments/P155.md). `REPORT.md` is not updated for this range yet.
+
 | Path | What |
 | --- | --- |
 | `REPORT.md` | Bottom line, what shipped, what was rejected, results by day, open items |
 | `TOOLBOX.md` | Every lever, method and tool: how to turn it on, measured effect on 8 GB, status, model-specific or general |
 | `experiments/P###.md` | One record per experiment: setup, frozen gate, method, every number, deviations, verdict, later corrections, what it changed |
 | `experiments/index-*.md` | One row per experiment |
-| [`experiments/index-p133-p155.md`](experiments/index-p133-p155.md) | The latest range: P133-P155b (events: [`experiments/events-p133-p155.md`](experiments/events-p133-p155.md), E38-E56) |
+| [`experiments/index-p133-p155.md`](experiments/index-p133-p155.md) | P133-P155b (events: [`experiments/events-p133-p155.md`](experiments/events-p133-p155.md), E38-E56) |
+| [`experiments/index-p156-p161.md`](experiments/index-p156-p161.md) | The latest range: P156-P161 (events: [`experiments/events-p156-p161.md`](experiments/events-p156-p161.md), E57-E66) |
 | `runs.jsonl` | One JSON line per experiment: id, date, card, engine commit, script, env, metrics, verdict, receipts (same fields as `../depth-20261010/runs.jsonl`, for comparing future models and engines) |
 | `experiments/events-*.md` | Entries that are not experiments: incidents, rig baseline changes, releases, PRs, coordination, decisions |
 | `NOTEBOOK.md` | The full lab notebook, in time order, unchanged (plans, results, corrections, incidents) |

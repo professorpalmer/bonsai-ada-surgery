@@ -26,6 +26,7 @@ GitHub posts of both sessions use the same account; "4070" and "2060" name the s
 - [E54 T1: slot save / restore and the layer cache](#e54-t1-slot-save--restore-and-the-layer-cache)
 - [E55 Corrections in this range](#e55-corrections-in-this-range)
 - [E56 Lessons recorded in this range](#e56-lessons-recorded-in-this-range)
+- Continued in [`events-p156-p161.md`](events-p156-p161.md) (E57-E66)
 
 ## E38 Windows Update restart and NVIDIA driver 610.88
 
