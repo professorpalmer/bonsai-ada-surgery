@@ -1,0 +1,29 @@
+From b87e3aa7316aca4322eb33679430fc5cf47ab9f6 Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Fri, 16 Oct 2026 14:50:03 -0500
+Subject: [PATCH 65/66] cuda: GGML_CUDA_POOL_LOG=1 (debug) logs every VMM pool
+ growth
+
+---
+ ggml/src/ggml-cuda/ggml-cuda.cu | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/ggml/src/ggml-cuda/ggml-cuda.cu b/ggml/src/ggml-cuda/ggml-cuda.cu
+index 12cfbd922e..0adcb95baa 100644
+--- a/ggml/src/ggml-cuda/ggml-cuda.cu
++++ b/ggml/src/ggml-cuda/ggml-cuda.cu
+@@ -632,6 +632,11 @@ struct ggml_cuda_pool_vmm : public ggml_cuda_pool {
+                 if (attempt > 0) {
+                     GGML_LOG_WARN("%s: cuda pool[%d] grew by %.1f MiB on attempt %d\n", __func__, device, reserve_size/1048576.0, attempt + 1);
+                 }
++                // GGML_CUDA_POOL_LOG=1 (debug): every growth, to size GGML_CUDA_POOL_RESERVE_MIB
++                static const bool plog = [] { const char * e = getenv("GGML_CUDA_POOL_LOG"); return e && atoi(e) != 0; }();
++                if (plog) {
++                    GGML_LOG_WARN("%s: cuda pool[%d] grew by %.1f MiB to %.1f MiB\n", __func__, device, reserve_size/1048576.0, pool_size/1048576.0);
++                }
+                 return;
+             }
+             size_t free_b = 0, total_b = 0;
+-- 
+2.55.0.windows.3
+

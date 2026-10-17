@@ -74,7 +74,7 @@ How, and every receipt: [`docs/Q8_FULL_CONTEXT.md`](docs/Q8_FULL_CONTEXT.md). Sh
 | --- | --- | --- |
 | Windows, an NVIDIA card (RTX 20/30/40/50) | download the release zip, drop in the model, run `start-server.ps1` | [Quick start (Windows)](#quick-start-windows-nvidia) |
 | Hugging Face | the same bundle plus the ready-made MTP-grafted GGUF (`hf download`, no graft step) | [CaryPalmer/Ternary-Bonsai-2-27B-262k-GGUF](https://huggingface.co/CaryPalmer/Ternary-Bonsai-2-27B-262k-GGUF) |
-| Linux, NVIDIA driver + CUDA toolkit | `bash build/build_linux.sh` builds the pinned PrismML source with all 61 patches applied | [Quick start (Linux)](#quick-start-linux-nvidia) |
+| Linux, NVIDIA driver + CUDA toolkit | `bash build/build_linux.sh` builds the pinned PrismML source with all 66 patches applied | [Quick start (Linux)](#quick-start-linux-nvidia) |
 | your own llama.cpp workflow | build the fork branch `bonsai-q8-product`, or `git am` the series in `patches/` onto PrismML `adfffbe` | [The patch stack](#the-patch-stack) |
 | an older bundle of this repo | `git pull`, unzip the latest zip over it, run `layer\fetch_runtime.ps1` once | [Upgrading](#upgrading-from-an-older-bundle) |
 
@@ -117,13 +117,20 @@ the tiered-KV runtime are detected and get the previous 96k all-VRAM recipe.
 
 ### Upgrading from an older bundle
 
+`bundle-20261017` makes **saved conversations work on every card, and automatic with the layer** (patches 0062-0066,
+layer cache #157). With `BONSAI_SLOT_SAVE_PATH` set, a long conversation is saved to disk and comes back after a restart
+in seconds instead of a cold read: on an RTX 2060 SUPER a **199k-token conversation answers ~6 s after a server restart**
+(the cold read is 1,210 s); on an RTX 4070, 245k restores in ~2 s. With the layer on (the default), saving and restoring
+happen by themselves for requests of 16k tokens and more. Fixed for 8 GB cards: the MTP draft context is now saved
+with the conversation (`<file>.draft`), and the CUDA memory pool grows in small pieces with retries, so the first long
+turn after a restore no longer runs slow or stops with a CUDA error (2060: 227 tok/s at 64k, 157 tok/s at 131k after a
+restore; `BONSAI_SHARED_POOL=0` is no longer needed). Answers otherwise unchanged (byte-identical on an RTX 4070).
+
 `bundle-20261016b` makes **cold reads faster on Turing (sm_75) cards** (patches 0060 / 0061): prefill attention
 packs 2 query heads per column group by default on sm_75 (no padding columns, fewer K/V tile loads). Measured on an
 RTX 2060 SUPER, cold prompts: 64k 1.067x, 128k 1.110x, **245k 1,707 -> 1,489 s (1.147x)**; perplexity +0.02 %, KL 0, and at 245k
 the copy and needle items equal the previous default. Other cards are unchanged (byte-identical answers on an RTX 4070).
-`GGML_CUDA_FA_PREFILL_NCOLS2=8` turns it off. The launcher in this bundle also has `BONSAI_SLOT_SAVE_PATH` (saved
-conversations, see [the knobs table](#knobs-environment-variables)): on 8 GB cards with MTP on, the first long turn after a restore
-is slow and can stop with a CUDA error; set `BONSAI_SHARED_POOL=0` (or `BONSAI_SPEC=0`) when you use saved conversations.
+`GGML_CUDA_FA_PREFILL_NCOLS2=8` turns it off.
 
 `bundle-20261016` gives **12 GB cards the whole window at speed** and makes **sparse reads automatic on 8 GB** (patch
 0059 and the launcher).
@@ -310,7 +317,7 @@ every `BONSAI_*`, `LLAMA_ARG_*` and `GGML_*` variable that is set, and it says w
 | `BONSAI_HARNESS_PROOF` | 1 | 0 = pass effort words and output caps through unchanged |
 | `BONSAI_EFFORT_ALLOWED` | medium | effort words the template sees; others become medium |
 | `BONSAI_PORT`, `BONSAI_MODEL` | 8080, auto | |
-| `BONSAI_SLOT_SAVE_PATH` | off | a folder for slot files: `POST /slots/0?action=save` / `action=restore` with `{"filename": "name.bin"}`. A restored conversation that continues reads only the new turn (245k: ~2 s on the 4070, file ~3.5 GB at q3_0; [coldread-20261016](docs/research/coldread-20261016/EXPERIMENTS.md) T1-b). The same request again re-reads the whole prompt. Files are not removed automatically; at 245k a file is ~3.5 GB at q3_0, ~4.5 GB at q4_0, ~8.5 GB at q8_0 (scaled by bytes per cell). The slot routes use the API key like the others, so a client with the key can fill the disk. **Limit on 8 GB cards:** with MTP on (the default), the first long turn after a restore is slow and can stop with a CUDA error; set `BONSAI_SHARED_POOL=0` (or `BONSAI_SPEC=0`) when you use saved conversations (#138). With the layer on, saving and restoring is automatic (`layer/slot_cache.py`): for prompts of 16k tokens or more the layer saves the conversation at the end of its last message and, after a restart or when conversations alternate, restores the longest saved prefix before the request (RTX 2060 SUPER: a 199k conversation answers in ~6 s after a restart, P160). `BONSAI_SLOT_CACHE_MIN` / `_GROW` / `_GB` / `_GAIN` (16384 / 8192 / 20 / 2048) tune it. At a turn where the layer saves again, the new tokens are processed in other batch splits, so greedy output can differ by a token there (P160); restore-only turns are identical. Requests with images do not take part |
+| `BONSAI_SLOT_SAVE_PATH` | off | a folder for slot files: `POST /slots/0?action=save` / `action=restore` with `{"filename": "name.bin"}`. A restored conversation that continues reads only the new turn (245k: ~2 s on the 4070, file ~3.5 GB at q3_0; [coldread-20261016](docs/research/coldread-20261016/EXPERIMENTS.md) T1-b). The same request again re-reads the whole prompt. Files are not removed automatically; at 245k a file is ~3.5 GB at q3_0, ~4.5 GB at q4_0, ~8.5 GB at q8_0 (scaled by bytes per cell). The slot routes use the API key like the others, so a client with the key can fill the disk. On a tight card, `GGML_CUDA_POOL_RESERVE_MIB=192` grows the CUDA memory pool at start (not needed on the measured 8 GB card; #138). With the layer on, saving and restoring is automatic (`layer/slot_cache.py`): for prompts of 16k tokens or more the layer saves the conversation at the end of its last message and, after a restart or when conversations alternate, restores the longest saved prefix before the request (RTX 2060 SUPER: a 199k conversation answers in ~6 s after a restart, P160). `BONSAI_SLOT_CACHE_MIN` / `_GROW` / `_GB` / `_GAIN` (16384 / 8192 / 20 / 2048) tune it. At a turn where the layer saves again, the new tokens are processed in other batch splits, so greedy output can differ by a token there (P160); restore-only turns are identical. Requests with images do not take part |
 | `BONSAI_MMPROJ` / `BONSAI_MMPROJ_GPU` | none / 0 | vision projector (`Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf` from prism-ml, in `models\`; `LLAMA_ARG_MMPROJ` is picked up too). Default: the image encoder runs on the CPU, no VRAM and no speed cost, ~0.3 s more per image. `BONSAI_MMPROJ_GPU=1`: on the card, and the VRAM line gives up its size (`docs/receipts/vision_probe.log`). A projector the sizing does not know about can over-commit the card and collapse prefill (issue #4, found by @Milor123) |
 
 ### Getting more positions into VRAM
@@ -519,13 +526,18 @@ Hadamard-embedding fix of sudoingX's #217 landed through #205. #285 was split at
 | 0059 | Sparse attention without a shallow-depth cost: **late reserve** (`GGML_CUDA_KV_TIER_DEMOTE_FRAC`): the dense VRAM line is kept until sparse first engages; then the top of each VRAM head moves to system RAM at the same address and its VRAM holds the page bounds. **Self-timing engage** (`GGML_CUDA_FA_SPARSE_AUTO`): per 16k band of context the engine times dense against sparse once and keeps the faster (sparse only when > 3 % faster), stored in a calibration file so a depth runs the same mode on every request and after a restart. The 8 GB launcher uses both by default (`BONSAI_SPARSE=0` off, `=1` forced). Not in a bundle yet | this repo |
 | 0060 | `GGML_CUDA_FA_PREFILL_NCOLS2=2`: prefill-sized MMA flash attention with a GQA ratio that 8 does not divide (Bonsai: 24 Q / 4 KV heads) packs 2 Q heads per column group instead of 8 (no padding columns, each K/V tile loaded for more tokens). PPL-equal; not guaranteed byte-identical (the K/V split can change with the number of Q tiles) | this repo |
 | 0061 | NCOLS2=2 **by default on Turing** (sm_75) only; `GGML_CUDA_FA_PREFILL_NCOLS2=8` turns it off, `=2` turns it on elsewhere. RTX 2060 SUPER: cold 245k 1.147x, 128k 1.110x; PPL +0.02 %, KL 0, 245k copies / needles = default (`docs/research/coldread-20261016/`, `docs/research/release-0060/`) | this repo |
+| 0062 | server: slot save / restore also saves / restores the draft context (MTP or a draft model) in a `<file>.draft` sidecar; without one, the restore clears the draft sequence and warns | this repo |
+| 0063 | server: the restore loads the sidecar for real (a token buffer; with a null pointer the loader read only the 12-byte header) | this repo |
+| 0064 | cuda: VMM pool growth retries (sync + backoff, 4 tries) and says why before it aborts; `GGML_CUDA_POOL_RESERVE_MIB=n` grows each VMM pool to n MiB at first use. On an 8 GB card after a slot restore, the first long batch asked for the pool's whole deep-context size at once and `cuMemSetAccess` failed ("device not ready") | this repo |
+| 0065 | cuda: `GGML_CUDA_POOL_LOG=1` (debug) logs every VMM pool growth | this repo |
+| 0066 | cuda: VMM pool growth maps at most 16 MiB per piece (`GGML_CUDA_POOL_GROW_PIECE_MIB`); a retry asks only for the rest. RTX 2060 SUPER, MTP on, shared pool on: restore + ~4k new tokens at 227 tok/s (64k) and 157 tok/s (131k), 0 CUDA errors over 7 restores (`docs/research/release-0062/`) | this repo |
 
 How each cut was found (CUPTI traces, L1 wavefront counts, what did not work):
 [`surgery/ADA4070_PTQ1.md`](surgery/ADA4070_PTQ1.md) and [`docs/Q8_FULL_CONTEXT.md`](docs/Q8_FULL_CONTEXT.md).
 
 ## Quick start (Linux, NVIDIA)
 
-`build/build_linux.sh` fetches the pinned PrismML source (`adfffbe`) and applies **all 61 patches in `patches/`**,
+`build/build_linux.sh` fetches the pinned PrismML source (`adfffbe`) and applies **all 66 patches in `patches/`**,
 including the `common.cuh` header fix (0024) and the Hopper/Blackwell PDL dependency wait (0026). No manual patch
 application or Git author configuration is needed. There is no prebuilt Linux binary yet.
 
@@ -663,7 +675,7 @@ python bench\mtp_identity.py                   # greedy draft-on vs draft-off
 
 | Path | What |
 | --- | --- |
-| `patches/` | the 61-commit stack on PrismML `adfffbe`, `git am`-able |
+| `patches/` | the 66-commit stack on PrismML `adfffbe`, `git am`-able |
 | `start-server.ps1`, `start-remote.ps1` | the recipe (LAN / Cloudflare tunnel) |
 | `build/build_linux.sh`, `start-linux.sh` | Linux build from the pinned base + patches, first-run launcher |
 | `tests/`, `.github/workflows/` | Linux setup tests, Linux CUDA compile and PDL code-generation CI |

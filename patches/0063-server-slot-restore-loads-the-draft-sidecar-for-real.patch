@@ -1,0 +1,31 @@
+From 671003ff1e323a1d97d0b60b86980fd2f9b40c47 Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Fri, 16 Oct 2026 11:44:02 -0500
+Subject: [PATCH 63/66] server: slot restore loads the draft sidecar for real
+ (pass a token buffer; with nullptr the loader only reads the 12-byte header)
+
+---
+ tools/server/server-context.cpp | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/tools/server/server-context.cpp b/tools/server/server-context.cpp
+index 308f926605..39018b2cb5 100644
+--- a/tools/server/server-context.cpp
++++ b/tools/server/server-context.cpp
+@@ -2628,8 +2628,11 @@ private:
+                             size_t n_dft = 0;
+                             llama_memory_seq_rm(llama_get_memory(ctx_dft), slot->id, -1, -1);
+                             if (std::ifstream(path_dft).good()) {
+-                                size_t n_tok_dft = 0;
+-                                n_dft = llama_state_seq_load_file(ctx_dft, path_dft.c_str(), slot->id, nullptr, 0, &n_tok_dft);
++                                // a token buffer is required: with tokens_out == nullptr the call only reads the header
++                                // (12 bytes) and restores nothing. The sidecar is saved with no tokens.
++                                llama_token tok_dft  = 0;
++                                size_t      n_tok_dft = 0;
++                                n_dft = llama_state_seq_load_file(ctx_dft, path_dft.c_str(), slot->id, &tok_dft, 1, &n_tok_dft);
+                             }
+                             if (n_dft == 0) {
+                                 llama_memory_seq_rm(llama_get_memory(ctx_dft), slot->id, -1, -1);
+-- 
+2.55.0.windows.3
+
