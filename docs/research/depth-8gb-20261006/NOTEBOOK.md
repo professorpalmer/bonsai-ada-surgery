@@ -3293,3 +3293,198 @@ The line follows free VRAM at start. Other programs at start were 423 MiB until 
 process freed ~90 MiB). 87,296 - 80,640 = 6,656 cells for 91 MiB (~80k cells/GiB, as the launcher says). The fillers moved by
 the same step (61,440 -> 66,304/67,072). Margin 225 MiB in all runs (400 for the 131k long filler). In P168 the browser used
 ~3 MiB at server start; its load came later. Table posted on #138 in reply to the release session.
+
+## 2026-10-17 05:09 CDT P169 queued: T4-A fast read on the 2060 (before round 2 posts)
+bin-t4b = t4-fastread-b f7d988d88 (T4 diff + bmax), built for 75-real on the bundle-20261017 engine tree (96f6e49cd and
+4fcd19004 have no diff). 1017 launcher copy, layer off, line pinned 80,640. T4-0: det_answer 4k / 32k, zip bins vs bin-t4b with
+the env unset, equal sha256. T4-1: first n24 request wall at 245k. T4-2: n24 at 245k, keep=16384,bmax=1; 2060 dense ref P148
+23/24 (miss vault 14). No pass / fail for T4 itself. If round 2 says keep=32768, that arm follows. Records PR for P162-P168 is
+being written by an agent (worktree bas-rec3). Note: the launcher margin 1,300 / 1,000 is the all-VRAM path (line 278); the
+tiered path with MTP uses 225 (line 285), as in all 2060 logs.
+P169 started 05:09:18 (filler b stopped by hand).
+
+## 2026-10-17 05:17 CDT P169 T4-0 PASS (sm_75): mode off = product bins
+det_answer sha256, zip bins vs bin-t4b with LLAMA_FAST_READ unset: 4k d72631aab936fc4e both; 32k d77df25fc3f18819 both. Decode
+53.6 / 53.4 (4k), 47.1 / 47.4 (32k). 0 CUDA errors. Script bug: the runner's PATH has no sha256sum, so the script's own compare was
+empty vs empty; the PASS rests on det_answer's printed hashes and a Python recheck of the 4 answer files. k16b arm (n24 at 245k)
+started.
+
+## 2026-10-17 05:24 CDT Records PR #165 (P162-P168) merged (rebase, noreply author, f742ffa); corrections posted on #138
+Corrections: P163 restores both at 64k (no 131k); P164 restores 2.05-3.36 s, the turn-5 answer differed in form, the restart gate
+needs the save time left out; the P166 / P167 G4a "0 lines" are void too; OOM only in P166b's log; P168 64k reads 2.2-2.3 % faster
+(outside a two-sided 2 % band), GPU trace 0 % between reads, ~148 MiB / ~170 MiB not logged. Squash merge with the noreply
+author fails (GraphQL "Invalid email"); rebase merge keeps it.
+
+## 2026-10-17 05:53 CDT Cold read cost model posted; P170 (text match) and P171 (small scorer) queued after P169
+Fit on 2060 reads: a = 2.11 ms per token (not attention), b = 3.25e-8 s per token pair (attention), the same past the VRAM
+line. 245k = 516 s + 973 s. Exact-read floor 516 s (8.6 min); a 16,384-token kept read ~39 s. T4-A floor = its scoring pass
+(180.8 s on the 2060). Geometry from the GGUF: 64 blocks, full attention every 4th, 24 heads, 4 KV heads, 256.
+T4 round 2 (4070): bmax keep 16k 9/24, keep 32k 14/24 (dense 24/24): T4-A stays an experiment. Spill guard #164 merged.
+P170 sets (p170_build.py): prose 241,760 tokens (research notes + 24 facts, questions in other words), code 240,406 tokens
+(CUDA + src + 24 inserted constants; 12 named, 12 described). Dry run of the text match (BM25, 400-char chunks, keep 16,384):
+fact kept prose 6/24, code 13/24 (12/12 named). P171: Qwen2.5-1.5B-Instruct q4_k_m (found in the local HF cache, no download)
+rates every chunk, P(Yes); API format checked on CPU (CUDA hidden). Arms small and mix. Reference = P170 dense.
+
+## 2026-10-17 06:51 CDT P169 result: T4-A on the 2060 (sm_75), keep=16384,bmax=1, n24 at 245k: 5/24 (dense P148: 23/24)
+Kept read 18,688 of 244,237 tokens; scoring pass 180.8 s (8 blocks) + scores 7.7 s; 237.6-239.6 s per question vs dense cold
+~1,489 s (6.2x). Correct: vaults 1, 2, 8, 9, 21. 18 lost items say the text has no such code; vault 22 answered a wrong code
+(2778, want 4657): a wrong answer, not only a miss. 0 CUDA errors. The 4070 had 9/24 with the same settings (different hardware
+order of float sums can change which blocks are kept). T4-0 PASS (mode off = product bins). P170 started 06:51.
+
+## 2026-10-17 07:24 CDT P170 code set: text match 13/24 (named 12/12, described 1/12) vs dense 20/24 (named 12/12, described 8/12)
+Text match (BM25, keep 16,384): ok exactly when the fact chunk was kept (13 kept, 13 ok); prompts 2,415-16,276 tokens (only
+chunks with a word match are added), 6.1-42.2 s per question. Misses: mostly a guessed wrong number (11 / 0 / 1024 / 16 / 100
+/ 64 / 17), 2 "not found". Dense: cold 1,418.4 s (240,441 tokens), follow-ups 5.7-7.7 s (~510 tokens re-read); misses = 4
+described items (8 / 12 / 14 / 22), 3 wrong numbers + 1 "not found". 0 CUDA errors. Prose arms running.
+
+## 2026-10-17 07:25 CDT bundle-20261017b out (spill guard v6 + layer read ahead; bin = 1017); R4 queued as P172 (after P170, before P171)
+Gates (release session, #138 10:51Z): sha 6285cd5d...e79ce; the zip's own launcher, defaults: cold 64k within 2 % of P168
+(309.3-309.6 tok/s), 0 spill lines; ballast (free - 100) after the read: spill line within 45 s; 0 CUDA errors. Also: all bin/
+files compared to bundle-20261017 (sha256 in Python; the runner has no sha256sum). If it passes: a serve-1017b folder for Cary.
+
+## 2026-10-17 08:02 CDT P170 prose set: text match 4/24 (fact kept 6/24) vs dense 11/24; P172 (R4) started 08:01
+Prose (241,760 tokens, questions in other words than the facts): dense cold 1,431.4 s, follow-ups 6.3-9.1 s; right 4, 7, 9,
+12-16, 18, 22, 24. Wrong answers in dense: diesel (kerosene), herring (capelin), goatskin (seal), 12 (nine), grain (salt), fish
+(ginger): a full read at 245k with thinking off often does not find a fact that is asked in other words. Lex: right 6, 12, 14,
+18; kept but wrong 15 (tram), 23 (nine). Caveat: max_tokens 24 and the 60-char answer record: dense 3 / 19 and lex 15 may be
+cut before the keyword (not checkable from the record). The set stays as the hard reference for P171 (same settings).
+Total P170: code lex 13/24, dense 20/24; prose lex 4/24, dense 11/24. 0 CUDA errors in all 4 servers.
+
+## 2026-10-17 08:07 CDT P172 (R4, bundle-20261017b post-zip on the 2060): PASS
+sha match, 0 control bytes, 16/16 bin files = 1017; zip launcher defaults: cold 64k 308.6 tok/s (-0.2 % vs P168), 0 spill
+lines; ballast 58 MiB -> spill line after 28 s (231 MiB incl. the torch context, 70 MiB free); 0 CUDA errors. Line 87,808
+(other programs 325 MiB). Posted on #138. P171 started 08:06. Next: serve-1017b folder for Cary.
+
+## 2026-10-17 08:37 CDT P171 code-set scoring (Qwen2.5-1.5B, P(Yes) per 400-char chunk): no gain over the text match
+73.5-76.8 s per question (~2,000 chunks; 16 slots). Fact chunk rank (a 16,384-token keep holds ~120 chunks): named items
+1, 3, 5, 7, 9, 13, 17, 21, 23 in the top 58 (9/12; 11 / 15 / 19 at 214 / 579 / 688); described items: only 2 (rank 2) and 18
+(rank 11) (2/12; the text match kept 1/12, dense got 8/12). So the small scorer is worse than BM25 on named items and only a
+little better on described ones. Cary checked in 08:36 ("mic drop yet?"): status given, no mic drop on cold reads; serve-1017b
+ready. Prose scoring running; the Bonsai arms small / mix follow.
+
+## 2026-10-17 09:08 CDT Cold-read research (agent, web + GitHub) and T5 prefill window (mask emulation) built; P173 + P174 queued
+Cary: "keep grinding, think of anything else for cold read; research GitHub for recipe fixes". Research shortlist: (1) Star
+Attention / SWAA: sink + local window for context tokens, FULL attention for the query and decode (NIAH near dense on Llama;
+a naive window without dense query collapses); cost model: W 16k + S 1k cuts 245k 1,489 -> ~650 s, W 32k -> ~760 s; (2) keep
+2-4 of the 16 full-attention layers dense if needles drop; (3) XAttention antidiagonal block selection (Qwen3.5-27B full-attn
+layers need only 256-2048 tokens per query at 128k with an oracle selector, arXiv 2606.07703); (4) profile the weights part
+(MMQ int8 at ~22 % of the Turing int8 peak); (5) SpecPrefill (high risk, same class as T4). Not worth it: SwiftKV, KV
+prediction, LayerSkip, SeerAttention, MInference, FastKV / LazyLLM / PyramidInfer, CacheBlend / APE, DuoAttention, bitnet.cpp.
+Why T3 lost needles: it made the question's own prompt rows sparse too; Star / SWAA keep them dense.
+T5 = fork t5-window-emu c675d5c78 (on 96f6e49cd): LLAMA_PREFILL_WINDOW=window,sink,tail; mask rule in both KQ mask builders
+(packed + float; the row-reuse index list also holds the window-edge band); the server sets the dense tail from the prompt
+length. Mask only (same speed). P173 = MMQ PTQ1_0 perf on sm_75. P174 gates: T5-0 hashes = P169 zip; C0 a tiny window must
+change the 32k answer; C1 report 64k n8 with tail 0; T5-1 n24 245k vs P148 23/24; T5-2 P170 sets vs 20/24 and 11/24.
+
+## 2026-10-17 09:09 CDT P171 prose scoring: the small scorer ranks the fact inside the keep for 16/24 (text match kept 6/24)
+Ranks: 1:1 2:9 3:644 4:11 5:75 6:29 7:13 8:231 9:434 10:546 11:12 12:40 13:1 14:39 15:7 16:79 17:58 18:142 19:449 20:46 21:221
+22:1 23:610 24:1 (keep ~87 selected chunks after sinks + window). 73.3 s per question. So on paraphrased prose the scorer is
+much better than BM25; on the code set it was not. bin-t5 built 09:08 (c675d5c78). Bonsai arms of P171 running.
+
+## 2026-10-17 10:26 CDT P171 result: the small scorer beats dense on the paraphrased prose set (13 vs 11), not on code (11 vs 20)
+Answers (Bonsai, product bins, keep 16,384; vs P170 dense on the same items):
+- code: small 11/24 (named 9, described 2; 0 beyond dense, 9 lost), mix 13/24 (named 12, described 1; = the text match).
+- prose: small 13/24 (6 right where dense was wrong, 4 lost), mix 12/24. Fact kept: small 16, mix 17.
+- Bonsai read 40.4-65.4 s per question + scoring 73-77 s (Qwen2.5-1.5B, ~2,000 chunks, 16 slots). 0 CUDA errors.
+Reading: on described / paraphrased items no selector reaches dense on code; on hard prose a short well-chosen read can beat
+the full 245k read (the full read at 245k misses facts too). Total per question with a scorer: ~2-2.5 min vs ~24 min cold.
+Not a release item yet: the code-described loss (8 -> 1-2) is large. P173 running, P174 (T5) next.
+
+## 2026-10-17 10:28 CDT P173 result: PTQ1_0 prefill matmul on sm_75 = 28.3 TFLOPS (MMQ int8), ~25 % of the Turing int8 peak
+test-backend-ops perf MUL_MAT 4096 x 512 x 14336 (zip bins): f16 cuBLAS 39.4, ptq1_0 MMQ 28.3, ptq1_0 cuBLAS fallback
+(GGML_CUDA_PTQ1_0_MMQ_MAX_BATCH=256) 31.8 (+12 %; the fork keeps MMQ for accuracy), q8_0 28.0, q4_0 27.2, pq2_0 29.6, tq2_0
+21.2 TFLOPS. The whole-model weights part runs at ~25.5 TFLOP/s, so the matmul is ~90 % of the 516 s at 245k. Turing uses the
+Ampere MMQ table (256 threads, mmq_y 128) and emulates m16n8k32 int8 MMA with m8n8k16: a Turing tile table / kernel is a
+kernel-session lead (each +10 % on the matmul = ~-46 s at 245k, ~-12 s at 64k; it stacks with T5). P174 (T5) started.
+
+## 2026-10-17 10:34 CDT P174 stopped at T5-0 (hash change); P174a: not T5, not BONSAI_SPARSE: the rig's 4k / 32k greedy output moved since P169
+P174 (bin-t5, env unset, SPARSE=0): 4k 55d8056e05da9685, 32k 4d487e489a89d005 vs P169 zip d72631aab936fc4e / d77df25fc3f18819.
+P174a at 4k: zip + SPARSE=0 = 55d8056e05da9685 = bin-t5 without SPARSE: so the T5 code is not the cause, and neither is the
+SPARSE var. The answers part at char 233 (a near-tie: "doubly" vs "dictionary"), stable within each block of runs. No input
+file changed (launcher 10-16 22:42, models 10-06, template no date, calib 03:10, det_answer / quick_tps old). Cause open (a rig
+state that changed between 05:15 and 10:28). P174b requeued with T5-0 in-block (zip then t5, back to back, 4k + 32k) and C0
+against the in-block dense hash.
+
+## 2026-10-17 10:47 CDT P174b gates so far: T5-0 PASS in-block, C0 engaged, C1 2/8 (DeltaNet layers do not carry the facts)
+T5-0: zip = t5 at 4k (55d8056e05da9685) and 32k (4d487e489a89d005). C0: window 1024 / sink 64 / tail 0 at 32k -> 2e755618174f8478
+(differs: the mask engages; "prefill window on" logged once). C1: 64k n8, window 16k, tail 0 (question windowed): 2/8, only the
+two needles inside the window (0.81, 0.94); the others "not in the text". So the recurrent layers do not carry needle facts
+across 16k+; the dense question rows are needed (as Star / SWAA say). T5-1 (n24 at 245k, tail 1024) running.
+
+## 2026-10-17 11:14 CDT P174b T5-1: n24 at 245k with window 16k / sink 1k / tail 1k = 23/24 (dense P148 23/24): screen gate (>= 22) PASS
+Lost: vault 6 (answered 2144 = vault 16's code; position 0.229); vault 14 right (dense P148 missed it). Cold 1,452.2 s (mask
+only: the same speed as dense), follow-ups 6.2-7.9 s. 0 CUDA errors. T5-2 (code, prose) running.
+
+## 2026-10-17 11:19 CDT T5 speed path v0: an exact chunk skip (d048068ca, bin-t5s built 11:19); P175 queued after P174b
+On 8 GB, deep prefill attention runs in K/V chunks (GGML_CUDA_FA_CHUNK=32768 from the launcher: q3_0 -> f16 per chunk, then
+FA, online-softmax merge). New: fa_chunk_any reads the packed mask once per op (one small kernel + one sync) and the loop runs
+only the chunks that some row keeps; first / last flags follow the kept list. A fully masked chunk adds nothing to the
+softmax, so this is exact: dense ops never skip (the last chunk holds the rows' own cells); with the T5 window only the sink
+chunk and the window chunks run. GGML_CUDA_FA_CHUNK_SKIP=0 turns it off. P175 gates: S-0 identity in-block; S-1 n24 answers =
+P174b and the cold time; S-2 chunks of 8,192; S-3 cold 128k. Branch pushed.
+
+## 2026-10-17 12:08 CDT P174b T5-2: code 20/24 (= dense 20; lost 4, gained 1), prose 5/24 (dense 11; lost 7, 9, 13, 16, 18, 22): screen FAIL on prose
+Window 16k / sink 1k / tail 1k. Lost prose answers are wrong content, not cut off: "bird" (heron), "queen" (g7), "not
+mentioned" (Pepper, blue), "three" (13), "walnut" (spruce). Reading: exact-token retrieval (vault codes, named / described
+constants) survives the window; paraphrase retrieval in prose does not (deeper-layer keys of far tokens built from a local
+window lose the features a paraphrased question needs; a guess). Next knobs: window 32k (cost model 245k ~760 s), then keep
+some full-attention layers dense (needs a second mask in the graph). P175 (exact chunk skip speed) started 12:07.
+
+## 2026-10-17 12:33 CDT P175 S-0 PASS, S-1: the chunk skip cuts the 245k cold read 1,452 -> 991 s (1.47x) at 32k chunks; n24 22/24
+S-0 in-block: zip = t5s at 4k / 32k, and the hashes are P169's again (d72631aab936fc4e / d77df25fc3f18819): the rig drift
+flipped back (two numeric states; cause open). S-1 (window 16k / sink 1k / tail 1k, chunks 32,768): cold 991.0 s vs P174b's
+mask-only 1,452.2 s; n24 22/24; answers = P174b on 23 of 24; the one change is vault 15 (4943, the known borderline item that
+T3 / sparse 1/8 / DELTA 4 lose with the same code). P174b ran in the other drift state, so this does not test exactness.
+P176 queued: det_answer 128k back to back, skip off / on / off.
+
+## 2026-10-17 13:47 CDT P176 EXACT (the chunk skip changes no bit); P175 S-2 crashed (8k chunks); S-3 128k cold 484 s; dense-layer option built
+P176: window 16k at 128k, det_answer skip off / on / off back to back: f3123196105baddf all three. P175 S-2 (GGML_CUDA_FA_CHUNK=
+8192 + window): "ggml-cuda.cu:110: CUDA error" at ~20k tokens (message cut off by the abort); at that depth the window masks
+no whole 8k chunk, so the skip should not fire: P177 splits it (zip + 8k chunks / t5s skip off / skip on). S-3 (window, 32k
+chunks): cold 128k 484.1 s (264.8 tok/s) vs dense ~532 s: only 1.10x, the 32k chunk grain keeps too much at 128k. fd17c67db:
+LLAMA_PREFILL_WINDOW dense=il:il:... keeps listed layers on a second unwindowed mask (bin-t5d building). GPU ran fillers
+13:10-13:47 while I wrote code (my miss).
+
+## 2026-10-17 13:54 CDT P177: the 8k-chunk crash comes from the skip scan (zip 8k OK, t5s skip off OK, skip on: CUDA error); runs + guard built
+A zip + GGML_CUDA_FA_CHUNK=8192, det 32k: 0 errors (b3751716...). B t5s + 8k + window + skip off: 0 errors (061da545...).
+C t5s + 8k + window + skip on: "ggml-cuda.cu:110: CUDA error" during the prefill (the error text is lost: the async log dies
+with the abort). At ~20k depth no 8k chunk is fully masked, so the scan itself fails. Likely cause: with 8k chunks the MTP
+draft context (16k window) also takes the chunked path, and its small batches can run inside CUDA graph capture, where
+cudaMemcpyAsync to pageable memory + cudaStreamSynchronize are illegal (32k chunks: the draft never chunks, so P175 / P176
+were clean). Fix: cudaStreamIsCapturing guard (scan off while capturing) -> bin-t5r2 building. Also 80998aa79: the scan works
+on 256-cell blocks merged into runs of <= C cells (the sink run + the window run only; exact). P178 (runs, 32k chunks) running.
+
+## 2026-10-17 14:14 CDT P178 R-0 PASS; R-1: run-based skip, 245k cold 713.1 s (dense 1,452 s: 2.04x; fixed grid 991 s); n24 21/24 (lost 4, 6, 15)
+Runs change the chunk partition (the window run starts at a 256-cell boundary), so the online-softmax order and the f16
+chunk conversions differ from the fixed grid: exact in math, not in bits. The n24 result across numeric variants of the same
+window: 23 (P174b mask), 22 (P175 grid), 21 (P178 runs); dense 23 (P148). Lost items are the known borderline ones (6, 15) plus
+4. The 16k window sits at the noise edge of this set. R-2 (128k), R-3 (prose dense 4 layers), R-4 (prose window 32k) running.
+
+## 2026-10-17 14:56 CDT P178 R-2..R-4: 128k cold 371.3 s (dense ~532: 1.43x); prose window 32k 9/24 (dense 11; cold 807.8 s); dense=4 layers BROKEN
+R-2 (runs, window 16k): 127,349 tokens at 345.8 tok/s. R-4 (window 32k, no dense layers): 9/24, gained 1 and 6, lost 9, 13,
+18, 22; cold 807.8 s vs dense 1,431 s (1.77x). R-3 (window 16k + dense=15:31:47:63): every answer "////////": the second-mask
+path is broken (a bug, not a quality result). P180 queued to localize it at 4k (window alone / none / dense=15 / dense=15 +
+skip off). P179 (capture guard) running.
+
+## 2026-10-17 15:04 CDT P179 PASS (capture guard: 8k chunks + window, 32k and 64k, 0 CUDA errors); P180 PASS (dense-layer fix d1cc7a4bd)
+P180 at 4k (bin-t5r3): window alone / no window / window + dense=15 / + skip off: all d72631aab936fc4e (the window does nothing at
+4k, so the dense-mask path now matches). Root cause of P178 R-3: llm_graph_input_mem_hybrid::set_input fills only
+inp_attn->self_kq_mask; the dense mask stayed unset. P181 (prose: dense 4 even / last 4 / window 32k + 4 even) running.
+Posted the speed table on #138 (245k 1,452 -> 713 s, 128k ~532 -> 371 s).
+
+## 2026-10-17 16:01 CDT P181 prose (dense 11/24, cold 1,431 s): 16k+dense 15:31:47:63 9 (887 s), 16k+dense last 4 5 (887 s), 32k+dense 4 even 10 (962 s)
+With P178: window 16k 5, window 32k 9 (808 s). Late layers do not help; the even set (with layer 15) helps. Lost in every arm:
+7 (heron), 9 (g7), 22 (spruce). Best quality per second: window 32k (1.77x, -2 items on this hard set). P182 queued: window 32k
+on n24 and code; prose 16k + first 4 dense (3:7:11:15).
+
+## 2026-10-17 16:02 CDT Fillers now yield to queued jobs (preempt_lib.sh)
+The runner checks queue/pending only after a filler ends, so a job queued during a filler waited up to ~40 min (or I stopped
+the filler by hand, and missed it 13:10-13:47). Each filler_*.sh now sources preempt_lib.sh: a watcher checks every 20 s and,
+on a pending job, logs "filler X preempted by Y", stops the filler's children, the server (stop.ps1) and the filler. The runner
+itself is unchanged (it runs as a long loop; editing it in place is unsafe).
+
+## 2026-10-17 16:53 CDT P182: window 32k / sink 1k / tail 1k = n24 24/24 (814.3 s), code 19/24 (801.1 s), prose (P178) 9/24 (807.8 s)
+Dense: 23 / 20 / 11 at ~1,418-1,452 s. Window 32k: 52/72 vs dense 54/72 at 1.78x on each 245k-class cold read (cost model:
+516 s weights + 245k x 33k pairs x 3.25e-8 = ~779 s). Code lost 2 and 4, gained 22. Prose 16k + first 4 dense (3:7:11:15): 6/24
+(worse than the even set). Candidate: window 32k, no dense layers. P183 queued: dense prose again + window-32k prose again
+(noise floor), 128k cold read + n24 at 128k with window 32k. The preempt watcher started P183 within 20 s (check the log).

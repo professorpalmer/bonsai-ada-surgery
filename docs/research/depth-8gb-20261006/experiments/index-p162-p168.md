@@ -8,6 +8,7 @@ plan and the first 4070 numbers, the spill guard PR #164 from v2 to v5 and the f
 State at the time of writing: 2026-10-17 05:20 CDT by the rig clock (10:20Z). The last notebook entries in this range are "05:00
 CDT P168 result ..." and "05:04 CDT VRAM line 86,784 vs 80,640: explained (no fix)". The next entry, "05:09 CDT P169
 queued: T4-A fast read on the 2060", is outside this range (P169 started 05:09:18). PR #164 (the spill guard) is open.
+Next range: [`index-p169-p182.md`](index-p169-p182.md) ([P169](P169.md)).
 
 P166, P166b and P167 are void as tests of the spill guard: BONSAI_BIN had forward slashes and the guard never found the
 server (notebook correction 03:15 CDT). Their card data stands. P167b is the valid G4 run.

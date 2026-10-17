@@ -18,6 +18,7 @@ same account; "4070", "2060", "kernel session" and "release session" name the se
 - [E73 The VRAM line 86,784 vs 80,640](#e73-the-vram-line-86784-vs-80640)
 - [E74 Corrections in this range](#e74-corrections-in-this-range)
 - [E75 Lessons recorded in this range](#e75-lessons-recorded-in-this-range)
+- Continued in [`events-p169-p182.md`](events-p169-p182.md) (E76-E87)
 
 ## E67 The records-review corrections and the P156-P161 records (PR #163)
 

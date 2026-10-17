@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+source /c/bonsai/8gb/preempt_lib.sh   # yield the GPU to queued jobs
 # Default sweep B: lookup A/B repeat (variance), depth 0 and 64k, lookup 0 and 1.
 cd /c/bonsai/8gb; D=receipts/filler/lookup_$(date +%m%d_%H%M); mkdir -p $D
 L='C:/bonsai/bonsai-ada-surgery/start-server-262test.ps1'; KEY=C:/bonsai/bonsai-ada-surgery/artifacts/api_key.txt; B=$(cat receipts/newest_bin 2>/dev/null || echo bin-lookup)

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+source /c/bonsai/8gb/preempt_lib.sh   # yield the GPU to queued jobs
 # Default sweep A: the shipped 8 GB preset (newest engine, lookup as main sets it) at 4k..126k, both modes.
 cd /c/bonsai/8gb; D=receipts/filler/deep_$(date +%m%d_%H%M); mkdir -p $D
 L='C:/bonsai/bonsai-ada-surgery/start-server-262test.ps1'; B=$(cat receipts/newest_bin 2>/dev/null || echo bin-lookup)
