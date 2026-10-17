@@ -134,3 +134,20 @@ whole time. Cold 128k 239.2 tok/s (P167b 240.6, -0.6 %); cold 64k x3 309.3 / 309
 free 118 -> 86 MiB): **1 line** ("other programs took 191 MiB ... 86 MiB free"; the browser's committed memory had
 grown by ~170 MiB in the hour without changing the free VRAM, so the sum includes it). The guard was alive after an
 hour of normal desktop load. All gates G1-G5 pass.
+
+## Second review (v5) and v6
+
+A second read-only review of v5: no blockers; B1, S1-S3 and the nits fixed as intended (Get-Counter with
+SilentlyContinue returns the valid samples; `Status -eq 0` is the cmdlet's own test; the StartAfter time is set before
+the server starts). One should-fix and nits, taken in v6:
+- After a first line, the reset to +128 MiB waited for the others' memory to fall below 128 MiB over the base; their
+  committed memory drifts up without using VRAM (P168: +170 MiB in an hour), so a later squeeze could get no line.
+  v6: when free VRAM is back above the limit, the next line comes at 128 MiB above the present value.
+- The line now says "other programs on this GPU hold N MiB more GPU memory than at the start" (the number includes
+  that drift).
+- The server is found as the launcher's own child process (`Win32_Process`, ParentProcessId = the launcher's PID;
+  the same PID in the runspace), with the path + start-time match only as a fallback (8.3 names, subst drives).
+- Rule (2) is off when nvidia-smi lists more than one NVIDIA GPU (it reads GPU 0's free VRAM).
+G1 for v6: all earlier fake cases unchanged; new D2 (line at +191, free recovers with +173 left, then +379): 2 lines.
+The child-process query, from a runspace, finds a child process named llama-server.exe (a renamed ping.exe). Launcher
+parse 0 errors. Open: one real launcher start (G3 again) to check the child match end to end.

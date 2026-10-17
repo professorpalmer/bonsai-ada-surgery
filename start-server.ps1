@@ -646,29 +646,39 @@ $SpillGuard = {
         if ($o -ge $st.nextOt -and $free -ge 0 -and $free -lt $low) {
             $st.hits++
             if ($st.hits -ge 2) {
-                & $say (("spill  other programs took {0:N0} MiB of GPU memory after the start and the card is full ({1:N0} " +
-                    "MiB free): the server can be about 10x slower now, or fail on a long prompt. Close them, or restart " +
-                    "the server so that it sizes its VRAM line again.") -f $o, $free)
+                & $say (("spill  other programs on this GPU hold {0:N0} MiB more GPU memory than at the start and the card " +
+                    "is full ({1:N0} MiB free): the server can be about 10x slower now, or fail on a long prompt. Close " +
+                    "them, or restart the server so that it sizes its VRAM line again.") -f $o, $free)
                 $st.nextOt = $o + 512; $st.hits = 0
             }
         } else {
             $st.hits = 0
-            if ($o -lt 128 -and $free -ge $low) { $st.nextOt = 128.0 }   # the squeeze is over: warn again next time
+            # the squeeze is over: the next one warns again from 128 MiB above the present value (the others' committed
+            # memory can drift up without using VRAM, so do not wait for it to fall back)
+            if ($free -ge $low) { $st.nextOt = [Math]::Min($st.nextOt, [Math]::Max(128.0, $o + 128.0)) }
         }
     }
     if ($FakeSamples) { foreach ($s in $FakeSamples) { $v = [double[]]($s -split ','); & $check $v[0] $v[1] $v[2] }; return }
     try {
-        # this run's server only: started after the launcher reached this point, in exactly $BinDir (full paths, so a
-        # root path with forward slashes or a trailing separator still matches)
+        # this run's server only: the launcher's own child process ($PID is the launcher in this runspace too); if the
+        # process list cannot say, a llama-server started after this point in exactly $BinDir (full paths)
         $norm = { param([string]$x) [IO.Path]::GetFullPath($x).TrimEnd([IO.Path]::DirectorySeparatorChar) }
         $dir = & $norm $BinDir
         $srv = $null
         for ($i = 0; $i -lt 3600 -and -not $srv; $i++) {
-            $srv = Get-Process llama-server -ErrorAction SilentlyContinue | Where-Object {
-                $_.Path -and $_.StartTime -ge $StartAfter -and (& $norm (Split-Path -Parent $_.Path)) -ieq $dir } | Select-Object -First 1
+            $child = Get-CimInstance Win32_Process -Filter "Name='llama-server.exe' AND ParentProcessId=$PID" -ErrorAction SilentlyContinue |
+                Select-Object -First 1
+            if ($child) { $srv = Get-Process -Id $child.ProcessId -ErrorAction SilentlyContinue }
+            if (-not $srv) {
+                $srv = Get-Process llama-server -ErrorAction SilentlyContinue | Where-Object {
+                    $_.Path -and $_.StartTime -ge $StartAfter -and (& $norm (Split-Path -Parent $_.Path)) -ieq $dir } | Select-Object -First 1
+            }
             if (-not $srv) { Start-Sleep -Seconds 1 }
         }
         if (-not $srv) { return }
+        # rule (2) reads the free VRAM of the first NVIDIA GPU: with more than one, it could compare two cards, so it is off
+        $oneGpu = $true
+        try { $oneGpu = @(& nvidia-smi -L 2>$null | Where-Object { $_ -match '^GPU \d' }).Count -le 1 } catch { }
         while (-not $srv.HasExited) {
             try {
                 $req = [Net.WebRequest]::Create($HealthUrl); $req.Timeout = 2000; $req.Proxy = $null
@@ -694,7 +704,7 @@ $SpillGuard = {
                     # the server's GPU: the adapter where it has the most memory committed (an Optimus laptop has two)
                     $luid = if ($mineTc[0].InstanceName -match '^pid_\d+_(luid_[^_]+_[^_]+)_') { $Matches[1] } else { $null }
                     $others = 0.0; $free = -1.0
-                    if ($luid) {
+                    if ($luid -and $oneGpu) {
                         $others = ($all | Where-Object { $_.Path -like '*\total committed' -and -not $_.InstanceName.StartsWith($pre) -and
                             $_.InstanceName.Contains($luid) } | Measure-Object CookedValue -Sum).Sum / 1MB
                         try { $free = [double]((& nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits | Select-Object -First 1).Trim()) } catch { }
