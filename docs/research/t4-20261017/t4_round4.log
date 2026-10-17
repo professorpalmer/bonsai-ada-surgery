@@ -1,0 +1,17 @@
+09:55 === T4 round 4 start: t4-fastread 7668f32cb (product-0062 + T4 fast read + dumps/bmax + qrows/headmax + lex/lexonly/lexnb, sm_89, build-q3fast)
+09:55 server t4r4_A_ttft: health=1 (LLAMA_FAST_READ=keep=16384,lex=100,lexonly=1,lexnb=1); clock 11751 MHz
+t4req r4A_245k depth 245000: wall    16.4 s, prompt_n 18688, prompt_ms    15.5 s, decode  84.7 tok/s (64 tok), answer 4aa8da558f0633b3 | '```python\n"""\nlru_cache.py\n\nA 300-line Python module implementing an L'
+09:56   fast read lines: 1; last: fast read: 244017 -> 18688 tokens (sinks 256, window 2048, 512 blocks of 32), scoring pass 0.1 s (8 blocks), scores 0.1 s; lexical n-gram hits 35933
+09:56 server t4r4_A_n24: health=1 (LLAMA_FAST_READ=keep=16384,lex=100,lexonly=1,lexnb=1); clock 11751 MHz
+{"tag": "t4r4_A_n24_245k", "depth": 245000, "correct": 2, "of": 24}
+10:02   fast read lines: 24; last: fast read: 244359 -> 18688 tokens (sinks 256, window 2048, 512 blocks of 32), scoring pass 0.1 s (8 blocks), scores 0.1 s; lexical n-gram hits 36264
+t4r4_A_n24_245k: correct 2/24, wrong code 0, miss 22; pattern ++----------------------
+10:03 server t4r4_A_copies: health=1 (LLAMA_FAST_READ=keep=16384,lex=100,lexonly=1,lexnb=1); clock 11751 MHz
+{"tag": "t4r4_A_copies_245k", "depth": 245000, "correct": 3, "correct_lead": 3, "of": 20}
+10:08   fast read lines: 20; last: fast read: 230645 -> 18688 tokens (sinks 256, window 2048, 512 blocks of 32), scoring pass 0.1 s (8 blocks), scores 0.1 s; lexical n-gram hits 56
+10:09 server t4r4_B_n24: health=1 (LLAMA_FAST_READ=keep=16384,bmax=1,lex=100,lexnb=1); clock 11751 MHz
+{"tag": "t4r4_B_n24_245k", "depth": 245000, "correct": 2, "of": 24}
+10:40   fast read lines: 24; last: fast read: 244359 -> 18688 tokens (sinks 256, window 2048, 512 blocks of 32), scoring pass 58.5 s (8 blocks), scores 2.3 s; lexical n-gram hits 36264
+t4r4_B_n24_245k: correct 2/24, wrong code 0, miss 22; pattern ++----------------------
+10:40 === T4 round 4 done
+10:40 product server restored: health=1
