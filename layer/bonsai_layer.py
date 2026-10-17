@@ -34,6 +34,7 @@ import sandbox_path  # noqa: E402,F401
 import sandbox  # noqa: E402
 import apicards_v2 as apicards  # noqa: E402  (E9b: v2 docstring cards adopted)
 import apilint  # noqa: E402
+import slot_cache  # noqa: E402  (#138 T1-c: saved conversations on disk)
 
 TOOL_NAME = "run_python"
 TOOL = {"type": "function", "function": {
@@ -241,12 +242,39 @@ class Proxy(http.server.BaseHTTPRequestHandler):
     finish_note = True    # default for "finish_note": run-on-the-example sentence for coding requests (E15: adopted)
     repair_note = False   # default for "repair_note": a fixed sentence on failing tool results (E14 pending)
     input_file = True     # default for "input_file": the user's text as input.txt for run_python (E12: adopted)
+    slots = None          # slot_cache.SlotCache when BONSAI_SLOT_SAVE_PATH is set (saved conversations on disk)
     protocol_version = "HTTP/1.1"
 
     def log_message(self, fmt, *a):
         sys.stderr.write("[proxy] " + (fmt % a) + "\n")
 
+    def _slots_on(self, body):
+        """True when this send takes part in the saved-conversation cache: the cache is on, the request is a chat request
+        that passed the layer's key check (_with_slots sets _slots_ok), and it has a body."""
+        return (self.slots is not None and getattr(self, "_slots_ok", False) and bool(body)
+                and self.path.rstrip("/").endswith("/chat/completions"))
+
+    def _slots_check(self, body):
+        """Saved-conversation check right before a chat body goes to the server (after every change the layer makes to
+        it, so the tokens match what the server reads). The caller holds the cache lock."""
+        if not self._slots_on(body):
+            return
+        try:
+            got = self.slots.before(json.loads(body) if isinstance(body, (bytes, str)) else body,
+                                    self.headers.get("Authorization", ""))
+            if getattr(self, "_slot_info", None) is not None:
+                self._slot_info.update(got)
+        except Exception as e:   # the cache must never break a request
+            self.log_message("slot cache failed: %r", e)
+
     def _forward(self, method, body=None):
+        if self._slots_on(body):
+            with self.slots.lock:   # check + restore / save + the request itself, one at a time (one server slot)
+                self._slots_check(body)
+                return self._forward_raw(method, body)
+        return self._forward_raw(method, body)
+
+    def _forward_raw(self, method, body=None):
         headers = {k: v for k, v in self.headers.items() if k.lower() in ("authorization", "content-type")}
         req = urllib.request.Request(self.upstream + self.path, data=body, method=method, headers=headers)
         try:
@@ -257,6 +285,15 @@ class Proxy(http.server.BaseHTTPRequestHandler):
 
     def _stream(self, method, body):
         """Relay a streamed (SSE) response as it arrives."""
+        if self._slots_on(body):
+            if self.keepalive > 0:
+                return self._stream_early(method, body)
+            with self.slots.lock:   # --keepalive 0: no early headers, but the check and the slot lock still apply (review R1)
+                self._slots_check(body)
+                return self._stream_plain(method, body)
+        return self._stream_plain(method, body)
+
+    def _stream_plain(self, method, body):
         headers = {k: v for k, v in self.headers.items() if k.lower() in ("authorization", "content-type")}
         req = urllib.request.Request(self.upstream + self.path, data=body, method=method, headers=headers)
         try:
@@ -269,6 +306,71 @@ class Proxy(http.server.BaseHTTPRequestHandler):
         self.send_header("Connection", "close")
         self.end_headers()
         self.close_connection = True
+        self._relay(r)
+
+    @staticmethod
+    def _sse_error(code, raw):
+        """One SSE event with the server's own error object (its type, e.g. exceed_context_size_error, and code)."""
+        try:
+            err = json.loads(raw)
+            if not (isinstance(err, dict) and isinstance(err.get("error"), dict)):
+                err = {"error": {"code": code, "message": str(err)[:4000]}}
+        except Exception:
+            txt = raw.decode("utf-8", "replace") if isinstance(raw, bytes) else str(raw)
+            err = {"error": {"code": code, "message": txt[:4000]}}
+        err["error"].setdefault("code", code)
+        return b"data: " + json.dumps(err).encode() + b"\n\n"
+
+    def _stream_early(self, method, body):
+        """The streamed path when the saved-conversation cache is on: the headers go out at once, BEFORE the cache lock is
+        taken, and SSE comments keep the client connection alive while it waits for the lock (another long request),
+        while the cache restores or saves (a prefill-only call can take minutes) and until the server opens its stream.
+        A client with a short read timeout (e.g. 90 s) would otherwise give up and resend. A server error after this
+        point arrives as one SSE event with the server's error object (the HTTP status is already 200)."""
+        self.send_response(200)
+        self.send_header("Content-Type", "text/event-stream")
+        self.send_header("Cache-Control", "no-cache")
+        self.send_header("Connection", "close")
+        self.end_headers()
+        self.close_connection = True
+        done = threading.Event()
+
+        def beat():
+            while not done.wait(self.keepalive):
+                try:
+                    self.wfile.write(b": keep-alive\n\n")
+                    self.wfile.flush()
+                except Exception:
+                    return
+
+        t = threading.Thread(target=beat, daemon=True)
+        t.start()
+        with self.slots.lock:
+            try:
+                self._slots_check(body)
+                headers = {k: v for k, v in self.headers.items() if k.lower() in ("authorization", "content-type")}
+                req = urllib.request.Request(self.upstream + self.path, data=body, method=method, headers=headers)
+                try:
+                    r = urllib.request.urlopen(req, timeout=7200)
+                except urllib.error.HTTPError as e:
+                    raw = e.read()
+                    done.set()
+                    t.join()
+                    self.wfile.write(self._sse_error(e.code, raw))
+                    self.wfile.flush()
+                    return
+                except Exception as e:   # server gone (crash, restart): say so in the stream instead of a bare close
+                    done.set()
+                    t.join()
+                    self.wfile.write(self._sse_error(502, repr(e)))
+                    self.wfile.flush()
+                    return
+            finally:
+                done.set()
+                t.join()
+            self._relay(r)
+
+    def _relay(self, r):
         try:
             at_boundary = True                     # a comment may only go between two SSE events
             for chunk in self._keepalive_chunks(r):
@@ -327,6 +429,7 @@ class Proxy(http.server.BaseHTTPRequestHandler):
             yield item
 
     def _open_stream(self, body):
+        self._slots_check(body)   # the interpreter-stream path holds the cache lock (see _chat)
         headers = {k: v for k, v in self.headers.items() if k.lower() in ("authorization", "content-type")}
         req = urllib.request.Request(self.upstream + self.path, data=json.dumps(body).encode(), method="POST", headers=headers)
         return urllib.request.urlopen(req, timeout=7200)
@@ -457,7 +560,20 @@ class Proxy(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         self._reply(*self._forward("GET"))
 
+    def _with_slots(self, body, fn, info=None):
+        """Run fn (which sends body to the server) as a request that takes part in the saved-conversation cache: it passed
+        the layer's key check. The cache lock is taken at each send (_forward, _stream_early) and around the whole
+        interpreter-stream loop (_chat), so a streamed request can send its headers before it waits for the lock."""
+        if self.slots is None:
+            return fn()
+        self._slot_info, self._slots_ok = info, True
+        try:
+            return fn()
+        finally:
+            self._slot_info, self._slots_ok = None, False
+
     def do_POST(self):
+        self._slots_ok = False   # set by _with_slots only (after the key check); a keep-alive connection reuses the handler
         raw = self.rfile.read(int(self.headers.get("Content-Length", 0)))
         if not self.path.rstrip("/").endswith("/chat/completions"):
             return self._reply(*self._forward("POST", raw))
@@ -475,8 +591,8 @@ class Proxy(http.server.BaseHTTPRequestHandler):
             for k in ("code_interpreter", "input_file", "repair_note", "finish_note", "api_cards", "api_lint"):
                 body.pop(k, None)
             if body.get("stream"):
-                return self._stream("POST", json.dumps(body).encode())
-            return self._reply(*self._forward("POST", json.dumps(body).encode()))
+                return self._with_slots(body, lambda: self._stream("POST", json.dumps(body).encode()))
+            return self._with_slots(body, lambda: self._reply(*self._forward("POST", json.dumps(body).encode())))
         # server-side preprocessing for every chat request (streamed or not, with or without client tools)
         msgs0 = list(body.get("messages") or [])
         info = {}
@@ -498,6 +614,9 @@ class Proxy(http.server.BaseHTTPRequestHandler):
             self.log_message("preprocess failed: %r", e)
             msgs0 = list(body.get("messages") or [])
         body["messages"] = msgs0
+        return self._with_slots(body, lambda: self._chat(body, info, with_input, extra), info)
+
+    def _chat(self, body, info, with_input, extra):
         client_tools = body.get("tools") or []
         # Default: offer the interpreter only to requests without client tools. Measured (E4): with client tools the
         # data lives in paginated tool results, the model must retype it into code, and transcription errors cost
@@ -507,6 +626,9 @@ class Proxy(http.server.BaseHTTPRequestHandler):
         ours_taken = any(t.get("function", {}).get("name") == TOOL_NAME for t in client_tools)
         if body.get("stream"):
             if enabled and not client_tools and not ours_taken:
+                if self.slots is not None:
+                    with self.slots.lock:   # several rounds on one client connection: hold the slot for all of them
+                        return self._stream_interpreter(body, client_tools, with_input, extra)
                 return self._stream_interpreter(body, client_tools, with_input, extra)
             return self._stream("POST", json.dumps(body).encode())
         if not enabled:
@@ -578,6 +700,9 @@ if __name__ == "__main__":
     Proxy.input_file = not a.no_input_file
     Proxy.repair_note = a.repair_note
     Proxy.finish_note = not a.no_finish_note
+    Proxy.slots = slot_cache.SlotCache.from_env(a.upstream)
+    if Proxy.slots:
+        print(f"bonsai layer: saved conversations in {Proxy.slots.folder} ({len(Proxy.slots.index)} on disk)", flush=True)
     srv = http.server.ThreadingHTTPServer((a.host, a.port), Proxy)
     print(f"bonsai layer on {a.host}:{a.port} -> {a.upstream}", flush=True)
     srv.serve_forever()

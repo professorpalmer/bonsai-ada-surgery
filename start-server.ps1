@@ -539,6 +539,11 @@ if ($Mmproj) { Write-Host "vision $(Split-Path $Mmproj -Leaf) on the $(if ($Mmpr
 # sandboxed Python tool (CPython on WASI: no host files, network or processes). Clients need no changes.
 # Measured: docs/research/quality-20260929/REPORT.md. Needs Python 3 and layer\fetch_runtime.ps1 run once; without
 # them the plain server starts as before.
+# Saved conversations: resolve the folder once, before the layer starts, so the layer (its automatic cache, layer\slot_cache.py)
+# and the server use the same absolute folder (a relative or ~ value would differ: the server starts in $Bin).
+if ($env:BONSAI_SLOT_SAVE_PATH) {
+    $env:BONSAI_SLOT_SAVE_PATH = (New-Item -ItemType Directory -Force -Path $env:BONSAI_SLOT_SAVE_PATH).FullName
+}
 $LayerDir = Join-Path $Root 'layer'
 $Layer = $env:BONSAI_LAYER -ne '0'
 if ($Layer) {
