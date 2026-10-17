@@ -10,6 +10,7 @@ CDT PR #157 merged; PR #159 opened ... P162 queued" and "22:40 CDT bundle-202610
 queued after P162"; the headings from about 22:00 CDT to 23:35 CDT are later than the clock (PR #157 merged 03:20:06Z =
 22:20 CDT; events E65). P162 (T1-d read ahead on the 2060, queue 69jea98, running from 22:21:36), bundle-20261017
 (release-0062) and P163 (its post-zip check) are outside this range.
+Next range: [`index-p162-p168.md`](index-p162-p168.md) ([P162](P162.md)).
 
 P155 and P155b ran in this time span and their results are now in [`P155.md`](P155.md) (row updated in
 `index-p133-p155.md`). Results of other earlier-range runs that finished in this time span are in the notebook, not in
