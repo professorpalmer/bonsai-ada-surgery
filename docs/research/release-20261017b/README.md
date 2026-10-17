@@ -34,3 +34,11 @@ release commit, and README / release notes name it.
   answered ("Red, blue, and yellow."); 0 spill lines; 0 CUDA errors.
 - **R3 PASS:** `BONSAI_8GB=1`, line 80,640, a 4,076 MiB ballast after `/health`: the spill line after 27 s.
 - R4 (2060 post-zip) asked on #138 after publish.
+
+## R4 (2060 post-zip, P172 on #138): PASS
+
+The zip's own launcher, unmodified, defaults, the display on the 2060: sha256 match, 0 control bytes in the launcher,
+all 16 `bin/` files byte-identical to bundle-20261017; cold 64k **308.6 tok/s** (P168 309.3-309.6, -0.2 %), decode
+39.4, **0 spill lines**; a 58 MiB ballast after the read: the spill line after **28 s** ("other programs on this GPU
+hold 231 MiB more ... (70 MiB free)"; 231 = the ballast + its CUDA context); 0 CUDA errors. bundle-20261017b is
+checked on both cards.
