@@ -1,0 +1,48 @@
+{"tag": "t4r2_b16", "depth": 245000, "vault": 1, "position_frac": 0.021, "want": "6305", "answer": "The provided text does not contain the a", "ok": false, "evaluated": 18688, "wall_s": 76.1}
+{"tag": "t4r2_b16", "depth": 245000, "vault": 2, "position_frac": 0.062, "want": "3471", "answer": "3471", "ok": true, "evaluated": 18688, "wall_s": 76.5}
+{"tag": "t4r2_b16", "depth": 245000, "vault": 3, "position_frac": 0.104, "want": "7468", "answer": "The provided text does not contain the a", "ok": false, "evaluated": 18688, "wall_s": 76.7}
+{"tag": "t4r2_b16", "depth": 245000, "vault": 4, "position_frac": 0.146, "want": "1791", "answer": "1791", "ok": true, "evaluated": 18688, "wall_s": 76.6}
+{"tag": "t4r2_b16", "depth": 245000, "vault": 5, "position_frac": 0.188, "want": "2186", "answer": "2186", "ok": true, "evaluated": 18688, "wall_s": 76.6}
+{"tag": "t4r2_b16", "depth": 245000, "vault": 6, "position_frac": 0.229, "want": "9779", "answer": "The provided text does not contain the a", "ok": false, "evaluated": 18688, "wall_s": 76.7}
+{"tag": "t4r2_b16", "depth": 245000, "vault": 7, "position_frac": 0.271, "want": "2542", "answer": "The access code for vault 7 is not prese", "ok": false, "evaluated": 18688, "wall_s": 76.7}
+{"tag": "t4r2_b16", "depth": 245000, "vault": 8, "position_frac": 0.312, "want": "6991", "answer": "6991", "ok": true, "evaluated": 18688, "wall_s": 76.6}
+{"tag": "t4r2_b16", "depth": 245000, "vault": 9, "position_frac": 0.354, "want": "1950", "answer": "The access code for vault 9 is 1950.", "ok": true, "evaluated": 18688, "wall_s": 76.7}
+{"tag": "t4r2_b16", "depth": 245000, "vault": 10, "position_frac": 0.396, "want": "9313", "answer": "The provided text does not contain the a", "ok": false, "evaluated": 18688, "wall_s": 76.8}
+{"tag": "t4r2_b16", "depth": 245000, "vault": 11, "position_frac": 0.438, "want": "4517", "answer": "The provided text does not contain the a", "ok": false, "evaluated": 18688, "wall_s": 76.7}
+{"tag": "t4r2_b16", "depth": 245000, "vault": 12, "position_frac": 0.479, "want": "1614", "answer": "The provided text does not contain the a", "ok": false, "evaluated": 18688, "wall_s": 76.6}
+{"tag": "t4r2_b16", "depth": 245000, "vault": 13, "position_frac": 0.521, "want": "2408", "answer": "I need to find the access code for vault", "ok": false, "evaluated": 18688, "wall_s": 76.7}
+{"tag": "t4r2_b16", "depth": 245000, "vault": 14, "position_frac": 0.562, "want": "8104", "answer": "The access code for vault 14 is not pres", "ok": false, "evaluated": 18688, "wall_s": 76.7}
+{"tag": "t4r2_b16", "depth": 245000, "vault": 15, "position_frac": 0.604, "want": "7851", "answer": "The provided text does not contain the a", "ok": false, "evaluated": 18688, "wall_s": 76.7}
+{"tag": "t4r2_b16", "depth": 245000, "vault": 16, "position_frac": 0.646, "want": "2144", "answer": "The provided text does not contain the a", "ok": false, "evaluated": 18688, "wall_s": 76.8}
+{"tag": "t4r2_b16", "depth": 245000, "vault": 17, "position_frac": 0.688, "want": "4943", "answer": "4943", "ok": true, "evaluated": 18688, "wall_s": 76.7}
+{"tag": "t4r2_b16", "depth": 245000, "vault": 18, "position_frac": 0.729, "want": "2486", "answer": "The access code for vault 18 is **4657**", "ok": false, "evaluated": 18688, "wall_s": 76.8}
+{"tag": "t4r2_b16", "depth": 245000, "vault": 19, "position_frac": 0.771, "want": "7955", "answer": "7955", "ok": true, "evaluated": 18688, "wall_s": 76.7}
+{"tag": "t4r2_b16", "depth": 245000, "vault": 20, "position_frac": 0.812, "want": "1968", "answer": "I need to find the access code for vault", "ok": false, "evaluated": 18688, "wall_s": 76.7}
+{"tag": "t4r2_b16", "depth": 245000, "vault": 21, "position_frac": 0.854, "want": "3028", "answer": "The access code for vault 21 is **4657**", "ok": false, "evaluated": 18688, "wall_s": 76.7}
+{"tag": "t4r2_b16", "depth": 245000, "vault": 22, "position_frac": 0.896, "want": "4657", "answer": "4657", "ok": true, "evaluated": 18688, "wall_s": 76.6}
+{"tag": "t4r2_b16", "depth": 245000, "vault": 23, "position_frac": 0.938, "want": "2013", "answer": "The provided text does not contain the a", "ok": false, "evaluated": 18688, "wall_s": 76.7}
+{"tag": "t4r2_b16", "depth": 245000, "vault": 24, "position_frac": 0.979, "want": "7499", "answer": "7499", "ok": true, "evaluated": 18688, "wall_s": 76.7}
+{"tag": "t4r2_b32", "depth": 245000, "vault": 1, "position_frac": 0.021, "want": "6305", "answer": "6305", "ok": true, "evaluated": 35072, "wall_s": 93.0}
+{"tag": "t4r2_b32", "depth": 245000, "vault": 2, "position_frac": 0.062, "want": "3471", "answer": "3471", "ok": true, "evaluated": 35072, "wall_s": 93.1}
+{"tag": "t4r2_b32", "depth": 245000, "vault": 3, "position_frac": 0.104, "want": "7468", "answer": "The access code for vault 3 is not provi", "ok": false, "evaluated": 35072, "wall_s": 93.2}
+{"tag": "t4r2_b32", "depth": 245000, "vault": 4, "position_frac": 0.146, "want": "1791", "answer": "1791", "ok": true, "evaluated": 35072, "wall_s": 93.1}
+{"tag": "t4r2_b32", "depth": 245000, "vault": 5, "position_frac": 0.188, "want": "2186", "answer": "2186", "ok": true, "evaluated": 35072, "wall_s": 93.1}
+{"tag": "t4r2_b32", "depth": 245000, "vault": 6, "position_frac": 0.229, "want": "9779", "answer": "The provided text does not contain the a", "ok": false, "evaluated": 35072, "wall_s": 93.2}
+{"tag": "t4r2_b32", "depth": 245000, "vault": 7, "position_frac": 0.271, "want": "2542", "answer": "The access code for vault 7 is 4943.", "ok": false, "evaluated": 35072, "wall_s": 93.3}
+{"tag": "t4r2_b32", "depth": 245000, "vault": 8, "position_frac": 0.312, "want": "6991", "answer": "6991", "ok": true, "evaluated": 35072, "wall_s": 93.0}
+{"tag": "t4r2_b32", "depth": 245000, "vault": 9, "position_frac": 0.354, "want": "1950", "answer": "The access code for vault 9 is 1950.", "ok": true, "evaluated": 35072, "wall_s": 93.2}
+{"tag": "t4r2_b32", "depth": 245000, "vault": 10, "position_frac": 0.396, "want": "9313", "answer": "9313", "ok": true, "evaluated": 35072, "wall_s": 93.0}
+{"tag": "t4r2_b32", "depth": 245000, "vault": 11, "position_frac": 0.438, "want": "4517", "answer": "The access code for vault 11 is not pres", "ok": false, "evaluated": 35072, "wall_s": 93.3}
+{"tag": "t4r2_b32", "depth": 245000, "vault": 12, "position_frac": 0.479, "want": "1614", "answer": "I need to find the access code for vault", "ok": false, "evaluated": 35072, "wall_s": 93.2}
+{"tag": "t4r2_b32", "depth": 245000, "vault": 13, "position_frac": 0.521, "want": "2408", "answer": "The access code for vault 13 is not prov", "ok": false, "evaluated": 35072, "wall_s": 93.2}
+{"tag": "t4r2_b32", "depth": 245000, "vault": 14, "position_frac": 0.562, "want": "8104", "answer": "The access code for vault 14 is **4657**", "ok": false, "evaluated": 35072, "wall_s": 93.2}
+{"tag": "t4r2_b32", "depth": 245000, "vault": 15, "position_frac": 0.604, "want": "7851", "answer": "The access code for vault 15 is not prov", "ok": false, "evaluated": 35072, "wall_s": 93.2}
+{"tag": "t4r2_b32", "depth": 245000, "vault": 16, "position_frac": 0.646, "want": "2144", "answer": "The access code for vault 16 is not prov", "ok": false, "evaluated": 35072, "wall_s": 93.2}
+{"tag": "t4r2_b32", "depth": 245000, "vault": 17, "position_frac": 0.688, "want": "4943", "answer": "4943", "ok": true, "evaluated": 35072, "wall_s": 93.0}
+{"tag": "t4r2_b32", "depth": 245000, "vault": 18, "position_frac": 0.729, "want": "2486", "answer": "2486", "ok": true, "evaluated": 35072, "wall_s": 93.4}
+{"tag": "t4r2_b32", "depth": 245000, "vault": 19, "position_frac": 0.771, "want": "7955", "answer": "7955", "ok": true, "evaluated": 35072, "wall_s": 93.0}
+{"tag": "t4r2_b32", "depth": 245000, "vault": 20, "position_frac": 0.812, "want": "1968", "answer": "1968", "ok": true, "evaluated": 35072, "wall_s": 93.0}
+{"tag": "t4r2_b32", "depth": 245000, "vault": 21, "position_frac": 0.854, "want": "3028", "answer": "3028", "ok": true, "evaluated": 35072, "wall_s": 93.0}
+{"tag": "t4r2_b32", "depth": 245000, "vault": 22, "position_frac": 0.896, "want": "4657", "answer": "4657", "ok": true, "evaluated": 35072, "wall_s": 93.0}
+{"tag": "t4r2_b32", "depth": 245000, "vault": 23, "position_frac": 0.938, "want": "2013", "answer": "I need to find the access code for vault", "ok": false, "evaluated": 35072, "wall_s": 93.2}
+{"tag": "t4r2_b32", "depth": 245000, "vault": 24, "position_frac": 0.979, "want": "7499", "answer": "7499", "ok": true, "evaluated": 35072, "wall_s": 93.2}

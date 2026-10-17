@@ -1,0 +1,10 @@
+04:28 === T4 round 2 start: commit 96f6e49cdc, branch f7d988d882 T; clock 405 MHz
+04:29 server b16 (keep=16384,bmax=1): health=1
+{"tag": "t4r2_b16", "depth": 245000, "correct": 9, "of": 24}
+04:59 b16: clock 11751 MHz; CUDA errors 0
+W slot fast_read_ma: id  0 | task 0 | fast read: 244358 -> 18688 tokens (sinks 256, window 2048, 512 blocks of 32), scoring pass 58.2 s (8 blocks), scores 2.3 s
+05:00 server b32 (keep=32768,bmax=1): health=1
+{"tag": "t4r2_b32", "depth": 245000, "correct": 14, "of": 24}
+05:37 b32: clock 11751 MHz; CUDA errors 0
+W slot fast_read_ma: id  0 | task 0 | fast read: 244358 -> 35072 tokens (sinks 256, window 2048, 1024 blocks of 32), scoring pass 58.3 s (8 blocks), scores 2.6 s
+05:37 === T4 round 2 done

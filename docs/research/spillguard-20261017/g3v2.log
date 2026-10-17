@@ -5,3 +5,10 @@
 spill  other programs took 4,313 MiB of VRAM after the start and the card is full (53 MiB free): the server can be about 10x slower now. Close them, or restart the server so that it sizes its VRAM lin
        (NVIDIA Control Panel > Manage 3D settings > CUDA - Sysmem Fallback Policy: Prefer No Sysmem Fallback makes the server stop instead of running slowly.)
 03:17:26 === G3 v2 done
+05:38:19 === G3 v2: launcher 7a6449b spil; health=1
+05:38:39 ballast 4076 MiB (pid 11580)
+05:39:08 after 27 s: VRAM 11958 MiB, 53 MiB; spill lines 1
+05:39:09 ballast counters: dedicated usage 4,187 | shared usage 126 | total committed 4,313
+spill  other programs on this GPU hold 4,313 MiB more GPU memory than at the start and the card is full (53 MiB free): the server can be about 10x slower now, or fail on a long prompt. Close them, or 
+       (NVIDIA Control Panel > Manage 3D settings > CUDA - Sysmem Fallback Policy: Prefer No Sysmem Fallback makes the server stop instead of running slowly.)
+05:39:15 === G3 v2 done

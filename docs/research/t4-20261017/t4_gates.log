@@ -1,0 +1,21 @@
+03:44 === T4 gates start: ref commit 96f6e49cdc; t4 commit 96f6e49cdc, branch t4-fastread-b a269a922c9 + diff ; clock 405 MHz
+03:44 server h_t4ref (bonsai-t4ref ): health=1; kv     tiered: cells 0..80640 in VRAM, 80640..262144 in syst
+T4-0 t4ref hash 46b54edbc2c98f51 742
+T4-0 t4ref hash a74075688a72a22b 651
+T4-0 t4ref hash be7a32213f2a9fac 130
+T4-0 t4ref hash all 1370fc25030ce635
+03:44 h_t4ref: clock 11751 MHz; CUDA errors 0; fast read lines 0
+03:45 server h_t4 (bonsai-t4 ): health=1; kv     tiered: cells 0..80640 in VRAM, 80640..262144 in syst
+T4-0 t4 hash 46b54edbc2c98f51 742
+T4-0 t4 hash a74075688a72a22b 651
+T4-0 t4 hash be7a32213f2a9fac 130
+T4-0 t4 hash all 1370fc25030ce635
+03:45 h_t4: clock 11751 MHz; CUDA errors 0; fast read lines 0
+03:45 server k16_245 (bonsai-t4 LLAMA_FAST_READ=keep=16384): health=1; kv     tiered: cells 0..80640 in VRAM, 80640..262144 in syst
+{"tag": "t4_k16_245", "depth": 245000, "correct": 7, "of": 24}
+04:16 k16_245: clock 11751 MHz; CUDA errors 0; fast read lines 24
+W slot fast_read_ma: id  0 | task 0 | fast read: 244358 -> 18688 tokens (sinks 256, window 2048, 512 blocks of 32), scoring pass 58.2 s (8 blocks), scores 2.7 s
+W slot fast_read_ma: id  0 | task 16 | fast read: 244358 -> 18688 tokens (sinks 256, window 2048, 512 blocks of 32), scoring pass 58.4 s (8 blocks), scores 2.3 s
+W slot fast_read_ma: id  0 | task 37 | fast read: 244358 -> 18688 tokens (sinks 256, window 2048, 512 blocks of 32), scoring pass 58.5 s (8 blocks), scores 2.7 s
+04:16 server k16_128 (bonsai-t4 LLAMA_FAST_READ=keep=16384): health=1; kv     tiered: cells 0..80640 in VRAM, 80640..262144 in syst
+04:16 T4-3 (128k) stopped by hand at its start: the GPU goes to the diagnostics (t4_diag.log)
