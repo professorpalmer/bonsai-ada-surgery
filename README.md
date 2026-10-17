@@ -124,13 +124,17 @@ in seconds instead of a cold read: on an RTX 2060 SUPER a **199k-token conversat
 happen by themselves for requests of 16k tokens and more. Fixed for 8 GB cards: the MTP draft context is now saved
 with the conversation (`<file>.draft`), and the CUDA memory pool grows in small pieces with retries, so the first long
 turn after a restore no longer runs slow or stops with a CUDA error (2060: 227 tok/s at 64k, 157 tok/s at 131k after a
-restore; `BONSAI_SHARED_POOL=0` is no longer needed). Answers otherwise unchanged (byte-identical on an RTX 4070).
+restore; `BONSAI_SHARED_POOL=0` is no longer needed). The engine's answers are unchanged (byte-identical on an RTX
+4070). A turn served from a saved state can differ from an uninterrupted session in a rare token, because the prompt
+is cut into batches at other points (P160: one whitespace token in five turns).
 
 `bundle-20261016b` makes **cold reads faster on Turing (sm_75) cards** (patches 0060 / 0061): prefill attention
 packs 2 query heads per column group by default on sm_75 (no padding columns, fewer K/V tile loads). Measured on an
 RTX 2060 SUPER, cold prompts: 64k 1.067x, 128k 1.110x, **245k 1,707 -> 1,489 s (1.147x)**; perplexity +0.02 %, KL 0, and at 245k
 the copy and needle items equal the previous default. Other cards are unchanged (byte-identical answers on an RTX 4070).
-`GGML_CUDA_FA_PREFILL_NCOLS2=8` turns it off.
+`GGML_CUDA_FA_PREFILL_NCOLS2=8` turns it off. The launcher in this bundle also has `BONSAI_SLOT_SAVE_PATH`: on 8 GB cards
+with MTP on, the first long turn after a restore is slow and can stop with a CUDA error; set `BONSAI_SHARED_POOL=0` (or
+`BONSAI_SPEC=0`) when you use saved conversations (fixed in bundle-20261017).
 
 `bundle-20261016` gives **12 GB cards the whole window at speed** and makes **sparse reads automatic on 8 GB** (patch
 0059 and the launcher).
