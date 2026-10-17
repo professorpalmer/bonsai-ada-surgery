@@ -26,6 +26,7 @@ import queue
 import re
 import sys
 import threading
+import time
 import urllib.error
 import urllib.request
 
@@ -268,6 +269,14 @@ class Proxy(http.server.BaseHTTPRequestHandler):
             self.log_message("slot cache failed: %r", e)
 
     def _forward(self, method, body=None):
+        if self._slots_on(body) and getattr(self, "_prefill_only", False):
+            with self.slots.lock:
+                t0 = time.time()
+                info = self.slots.before(json.loads(body), self.headers.get("Authorization", ""), force_save=True)
+                out = {"object": "chat.completion", "choices": [{"index": 0, "finish_reason": "stop",
+                       "message": {"role": "assistant", "content": ""}}], "prefill_only": True,
+                       "slot_cache": info, "seconds": round(time.time() - t0, 2)}
+                return 200, "application/json", json.dumps(out).encode()
         if self._slots_on(body):
             with self.slots.lock:   # check + restore / save + the request itself, one at a time (one server slot)
                 self._slots_check(body)
@@ -574,6 +583,7 @@ class Proxy(http.server.BaseHTTPRequestHandler):
 
     def do_POST(self):
         self._slots_ok = False   # set by _with_slots only (after the key check); a keep-alive connection reuses the handler
+        self._prefill_only = False
         raw = self.rfile.read(int(self.headers.get("Content-Length", 0)))
         if not self.path.rstrip("/").endswith("/chat/completions"):
             return self._reply(*self._forward("POST", raw))
@@ -585,6 +595,14 @@ class Proxy(http.server.BaseHTTPRequestHandler):
             given = self.headers.get("Authorization", "")
             if not hmac.compare_digest(given.encode("utf-8", "replace"), ("Bearer " + self.api_key).encode()):
                 return self._reply(*self._forward("POST", raw))   # let the server produce its own 401; do no work here
+        # Read ahead (#138 T1-d): "prefill_only": true reads the prompt into the server and saves it (the saved-conversation
+        # cache), and answers with a short JSON object instead of generating. The request takes the normal path (cards,
+        # notes, tools), so the saved tokens are the ones the later real request will render. It answers when the read is
+        # done (minutes for a long cold prompt): a harness sends it in the background, e.g. when a large file is attached.
+        if body.pop("prefill_only", False) and self.slots is not None:
+            self._prefill_only = True
+            body["stream"] = False
+            body.pop("stream_options", None)
         # a client that executes code blocks itself gets nothing changed (see client_runs_code)
         if not (body.get("tools") or []) and client_runs_code(body.get("messages") or []) \
                 and body.get("code_interpreter") is not True:

@@ -20,6 +20,8 @@ Off unless BONSAI_SLOT_SAVE_PATH is set (the same folder as the server's --slot-
   BONSAI_SLOT_CACHE_GB    disk budget, oldest-used files removed first (20)
   BONSAI_SLOT_CACHE_GAIN  restore only when it saves at least this many tokens of reading (2048)
 Requests with images (any non-text content part) do not take part: /tokenize cannot reproduce the image chunks.
+Read ahead (T1-d): a chat request with "prefill_only": true reads and saves its prompt and returns no text; the later real
+request then restores it.
 Any failure here only logs and lets the request run as before.
 """
 import array
@@ -187,8 +189,9 @@ class SlotCache:
         return toks, base
 
     # ---- the hook ---------------------------------------------------------------------------------------------
-    def before(self, body, auth):
-        """Call with the lock held, right before the request goes to the server. Restores and / or saves as needed."""
+    def before(self, body, auth, force_save=False):
+        """Call with the lock held, right before the request goes to the server. Restores and / or saves as needed.
+        force_save (read ahead, T1-d): save whenever the prompt is longer than the best saved prefix."""
         t0 = time.time()
         if has_media(body):
             self.held = []
@@ -226,7 +229,7 @@ class SlotCache:
                 self.log("restored", best_sha[:12], best_n, "tokens in", info["slot_cache_restore_s"], "s")
             except Exception as e:
                 self.log("restore failed:", repr(e))
-        if len(base) < len(toks) and len(base) - max(best_n, 0) >= self.grow:
+        if len(base) < len(toks) and len(base) - max(best_n, 0) >= (1 if force_save else self.grow):
             tmp = PREFIX + "saving-%d.bin" % os.getpid()
             try:
                 for p in (tmp, tmp + ".draft"):   # a stale sidecar from a crashed save must not be renamed with this one

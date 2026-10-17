@@ -181,7 +181,8 @@ def test_n9_equal_length():
 def start_layer(api_key=None):
     P = bonsai_layer.Proxy
     P.upstream, P.keepalive, P.api_key = UP, 0.3, api_key
-    P.slots = slot_cache.SlotCache(UP, tempfile.mkdtemp(), min_tokens=100, grow=50, log=lambda *a: None, min_gain=10)
+    FOLDER[0] = tempfile.mkdtemp()   # the fake server writes its slot files here: the cache must use the same folder
+    P.slots = slot_cache.SlotCache(UP, FOLDER[0], min_tokens=100, grow=50, log=lambda *a: None, min_gain=10)
     lay = http.server.ThreadingHTTPServer(("127.0.0.1", 0), P)
     threading.Thread(target=lay.serve_forever, daemon=True).start()
     return f"http://127.0.0.1:{lay.server_address[1]}", P
@@ -210,7 +211,8 @@ def test_stream_keepalive_and_n3():
     assert first < 1.0 and data.count(b'"content"') == 2 and b"[DONE]" in data and b": keep-alive" in data
     # N3: a second streamed request while the first holds the lock gets its headers + keep-alive at once
     res = {}
-    P.slots = slot_cache.SlotCache(UP, tempfile.mkdtemp(), min_tokens=100, grow=50, log=lambda *a: None, min_gain=10)
+    FOLDER[0] = tempfile.mkdtemp()
+    P.slots = slot_cache.SlotCache(UP, FOLDER[0], min_tokens=100, grow=50, log=lambda *a: None, min_gain=10)
     th = threading.Thread(target=lambda: res.setdefault("a", stream(url, timeout=5.0)))
     th.start()
     time.sleep(0.2)
@@ -230,6 +232,26 @@ def test_r1_keepalive_zero():
     assert "/apply-template" in CALLS and "/completion" in CALLS, "R1: with --keepalive 0 the check still runs"
     assert CALLS.index("/completion") < CALLS.index("/v1/chat/completions"), CALLS
     print("R1 keepalive 0: ok")
+
+
+def test_t1d_read_ahead():
+    url, P = start_layer()
+    CALLS.clear()
+    body = {"messages": [{"role": "user", "content": "r" * 400}], "stream": True, "prefill_only": True,
+            "tools": [{"type": "function", "function": {"name": "x", "parameters": {}}}]}
+    rq = urllib.request.Request(url + "/v1/chat/completions", data=json.dumps(body).encode(), headers={"Content-Type": "application/json"})
+    out = json.loads(urllib.request.urlopen(rq, timeout=5).read())
+    assert out["prefill_only"] and out["slot_cache"].get("slot_cache_saved") == 400, out
+    assert "/v1/chat/completions" not in CALLS, "a read-ahead must not generate"
+    CALLS.clear()
+    P.slots = slot_cache.SlotCache(UP, P.slots.folder, min_tokens=100, grow=50, log=lambda *a: None, min_gain=10)   # restart
+    body2 = {"messages": [{"role": "user", "content": "r" * 400}, {"role": "assistant", "content": "A"},
+                          {"role": "user", "content": "q" * 30}], "stream": True,
+             "tools": [{"type": "function", "function": {"name": "x", "parameters": {}}}]}
+    rq = urllib.request.Request(url + "/v1/chat/completions", data=json.dumps(body2).encode(), headers={"Content-Type": "application/json"})
+    data = urllib.request.urlopen(rq, timeout=5).read()
+    assert b"[DONE]" in data and "/slots/0?action=restore" in CALLS, CALLS
+    print("T1-d read ahead: ok")
 
 
 def test_n6_unauthenticated():
@@ -252,5 +274,6 @@ if __name__ == "__main__":
     test_n9_equal_length()
     test_stream_keepalive_and_n3()
     test_r1_keepalive_zero()
+    test_t1d_read_ahead()
     test_n6_unauthenticated()
     print("ALL OK")
