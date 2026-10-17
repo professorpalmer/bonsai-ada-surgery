@@ -273,6 +273,8 @@ class Proxy(http.server.BaseHTTPRequestHandler):
 
     def _stream(self, method, body):
         """Relay a streamed (SSE) response as it arrives."""
+        if self.slots is not None and self.keepalive > 0 and self.path.rstrip("/").endswith("/chat/completions"):
+            return self._stream_early(method, body)
         self._slots_check(body)
         headers = {k: v for k, v in self.headers.items() if k.lower() in ("authorization", "content-type")}
         req = urllib.request.Request(self.upstream + self.path, data=body, method=method, headers=headers)
@@ -286,6 +288,56 @@ class Proxy(http.server.BaseHTTPRequestHandler):
         self.send_header("Connection", "close")
         self.end_headers()
         self.close_connection = True
+        self._relay(r)
+
+    def _stream_early(self, method, body):
+        """The streamed path when the saved-conversation cache is on: the headers go out at once, and SSE comments keep
+        the client connection alive while the cache restores or saves (a prefill-only call can take minutes) and until
+        the server opens its stream. A client with a short read timeout (e.g. 90 s) would otherwise give up and resend.
+        A server error after this point arrives as one SSE event with an "error" object (the status is already 200)."""
+        self.send_response(200)
+        self.send_header("Content-Type", "text/event-stream")
+        self.send_header("Cache-Control", "no-cache")
+        self.send_header("Connection", "close")
+        self.end_headers()
+        self.close_connection = True
+        done = threading.Event()
+
+        def beat():
+            while not done.wait(self.keepalive):
+                try:
+                    self.wfile.write(b": keep-alive\n\n")
+                    self.wfile.flush()
+                except Exception:
+                    return
+
+        t = threading.Thread(target=beat, daemon=True)
+        t.start()
+        try:
+            self._slots_check(body)
+            headers = {k: v for k, v in self.headers.items() if k.lower() in ("authorization", "content-type")}
+            req = urllib.request.Request(self.upstream + self.path, data=body, method=method, headers=headers)
+            try:
+                r = urllib.request.urlopen(req, timeout=7200)
+            except urllib.error.HTTPError as e:
+                err = {"error": {"code": e.code, "message": e.read().decode("utf-8", "replace")[:4000]}}
+                done.set()
+                t.join()
+                self.wfile.write(b"data: " + json.dumps(err).encode() + b"\n\n")
+                self.wfile.flush()
+                return
+            except Exception as e:   # server gone (crash, restart): say so in the stream instead of a bare close
+                done.set()
+                t.join()
+                self.wfile.write(b"data: " + json.dumps({"error": {"code": 502, "message": repr(e)[:500]}}).encode() + b"\n\n")
+                self.wfile.flush()
+                return
+        finally:
+            done.set()
+            t.join()
+        self._relay(r)
+
+    def _relay(self, r):
         try:
             at_boundary = True                     # a comment may only go between two SSE events
             for chunk in self._keepalive_chunks(r):

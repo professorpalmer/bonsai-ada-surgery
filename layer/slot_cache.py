@@ -5,8 +5,8 @@ read it back. A request whose tokens EXTEND the restored tokens then reads only 
 instead of 468 s, answers byte-identical). A request that diverges inside the restored tokens reads everything again: the
 48 GDN layers keep a recurrent state that cannot roll back without a checkpoint, and checkpoints are not in the file.
 
-So the save point is the END OF THE PROMPT: before a long request is answered, a prefill-only call (/completion with the
-exact prompt tokens, n_predict 0) fills the slot, the slot is saved, and then the real request runs and reads ~nothing.
+So the save point is the END OF THE LAST MESSAGE (before the generation prompt): before a long request is answered, a
+prefill-only call (/completion with those exact tokens, n_predict 0) fills the slot, the slot is saved, and then the real request runs and reads ~nothing.
 The next turn of the same conversation (prompt + rendered answer + new turn) always extends that saved state, also when
 the template drops the reasoning from the history. Before each request the layer restores the longest saved token prefix
 when it is longer than what the server holds now: after a restart, or when two or more long conversations alternate.
@@ -106,17 +106,28 @@ class SlotCache:
         with urllib.request.urlopen(req, timeout=timeout) as r:
             return json.loads(r.read() or b"{}")
 
-    def prompt_tokens(self, body, auth):
-        b = {k: body[k] for k in TEMPLATE_KEYS if k in body}
+    def _tokens(self, b, auth):
         prompt = self._post("/apply-template", b, auth)["prompt"]
         return self._post("/tokenize", {"content": prompt, "add_special": False, "parse_special": True}, auth)["tokens"]
+
+    def prompt_tokens(self, body, auth):
+        """(tokens of the full prompt, tokens up to the end of the last message). The second one stops before the
+        generation prompt (<|im_start|>assistant ... <think>): the next turn renders the previous answer from the history,
+        and with thinking on the template drops the reasoning, so the generation-prompt tokens can differ there (4070
+        review of T1-c). A state saved at the end of the last message is a prefix of every later turn."""
+        b = {k: body[k] for k in TEMPLATE_KEYS if k in body}
+        toks = self._tokens(b, auth)
+        base = self._tokens({**b, "add_generation_prompt": False}, auth)
+        if len(base) > len(toks) or toks[:len(base)] != base:
+            base = toks   # the template renders the last message differently without the generation prompt
+        return toks, base
 
     # ---- the two hooks ----------------------------------------------------------------------------------------
     def before(self, body, auth):
         """Call with the lock held, right before the request goes to the server. Restores and / or saves as needed."""
         t0 = time.time()
         try:
-            toks = self.prompt_tokens(body, auth)
+            toks, base = self.prompt_tokens(body, auth)
         except Exception as e:
             self.log("tokenize failed, cache skipped:", repr(e))
             self.held = []
@@ -147,22 +158,27 @@ class SlotCache:
                 self.log("restored", best_sha[:12], best_n, "tokens in", info["slot_cache_restore_s"], "s")
             except Exception as e:
                 self.log("restore failed:", repr(e))
-        if len(toks) - max(best_n, 0) >= self.grow:
+        if len(base) - max(best_n, 0) >= self.grow:
             try:
                 t1 = time.time()
-                self._post("/completion", {"prompt": toks, "n_predict": 0, "cache_prompt": True}, auth)
+                self._post("/completion", {"prompt": base, "n_predict": 0, "cache_prompt": True}, auth)
                 t2 = time.time()
-                sha = _sha(toks)
-                self._post("/slots/0?action=save", {"filename": sha + ".bin"}, auth)
+                tmp = "saving-%d.bin" % os.getpid()
+                r = self._post("/slots/0?action=save", {"filename": tmp}, auth)
+                n = int(r.get("n_saved") or len(base))
+                saved = base[:n] if n <= len(base) else base   # the server may hold back the last token
+                sha = _sha(saved)
+                os.replace(os.path.join(self.folder, tmp), self._bin(sha))
                 with open(self._tok(sha), "wb") as f:
-                    array.array("I", toks).tofile(f)
-                size = os.path.getsize(self._bin(sha)) if os.path.exists(self._bin(sha)) else 0
-                self.index[sha] = {"n": len(toks), "last": time.time(), "bytes": size + 4 * len(toks)}
+                    array.array("I", saved).tofile(f)
+                size = os.path.getsize(self._bin(sha))
+                self.index[sha] = {"n": len(saved), "last": time.time(), "bytes": size + 4 * len(saved)}
                 self._note({"sha": sha, **self.index[sha]})
-                info["slot_cache_saved"] = len(toks)
+                info["slot_cache_saved"] = len(saved)
+                info["slot_cache_gen_prompt_tokens"] = len(toks) - len(base)
                 info["slot_cache_prefill_s"] = round(t2 - t1, 2)
                 info["slot_cache_save_s"] = round(time.time() - t2, 2)
-                self.log("saved", sha[:12], len(toks), "tokens: prefill", info["slot_cache_prefill_s"], "s, save", info["slot_cache_save_s"], "s")
+                self.log("saved", sha[:12], len(saved), "tokens: prefill", info["slot_cache_prefill_s"], "s, save", info["slot_cache_save_s"], "s")
                 self._evict()
             except Exception as e:
                 self.log("save failed:", repr(e))
