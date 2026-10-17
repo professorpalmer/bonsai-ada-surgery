@@ -605,6 +605,62 @@ if ($env:BONSAI_SLOT_SAVE_PATH) {
 # From here only the server runs. Under $ErrorActionPreference = 'Stop', Windows PowerShell 5.1 turns each stderr line of a
 # native program into an error record when the launcher's output is redirected (hidden window, scheduled task, 2>&1), and
 # the first one stops the launcher (issue #16, howdya). The server's own exit code still reaches the caller.
+# Spill guard (docs/research/spillguard-20261017). On Windows the NVIDIA driver moves GPU memory to system RAM when the
+# card is full ("sysmem fallback"): the server does not fail, it becomes 10-20x slower with no message (a cold read at
+# ~40 tok/s instead of 757 on the 8 GB preset). A watcher in this process takes the server's "GPU Process Memory \
+# Shared Usage" at the first good /health as the base (the pinned host part of the tiered cache is in it) and prints one
+# line when it grows by more than 256 MiB (again after each further 512 MiB). BONSAI_SPILL_GUARD=0 turns it off.
+# Without the performance counters it does nothing.
+$SpillGuard = {
+    param([string]$BinDir, [string]$HealthUrl, [int]$StepMiB = 256, [int]$AgainMiB = 512, [int]$Every = 15,
+          [double[]]$FakeSamples = $null)
+    $st = @{ base = $null; next = [double]$StepMiB; hint = $true }
+    $check = {
+        param([double]$cur)
+        if ($null -eq $st.base -or $cur -lt $st.base) { $st.base = $cur; return }
+        $d = $cur - $st.base
+        if ($d -gt $st.next) {
+            [Console]::Out.WriteLine(("spill  VRAM spilled to system RAM (+{0:N0} MiB): the server is much slower now. " +
+                "Close other GPU programs, or set BONSAI_KV_VRAM_CELLS lower, then restart.") -f $d)
+            if ($st.hint) {
+                [Console]::Out.WriteLine("       (NVIDIA Control Panel > Manage 3D settings > CUDA - Sysmem Fallback Policy: " +
+                    "Prefer No Sysmem Fallback makes the server stop at start instead of running slowly.)")
+                $st.hint = $false
+            }
+            [Console]::Out.Flush()
+            $st.next = $d + $AgainMiB
+        }
+    }
+    if ($FakeSamples) { foreach ($s in $FakeSamples) { & $check $s }; return }
+    try {
+        $srv = $null
+        for ($i = 0; $i -lt 3600 -and -not $srv; $i++) {
+            $srv = Get-Process llama-server -ErrorAction SilentlyContinue |
+                Where-Object { $_.Path -and $_.Path.StartsWith($BinDir, [StringComparison]::OrdinalIgnoreCase) } | Select-Object -First 1
+            if (-not $srv) { Start-Sleep -Seconds 1 }
+        }
+        if (-not $srv) { return }
+        $wc = New-Object System.Net.WebClient
+        while (-not $srv.HasExited) {
+            try { if ($wc.DownloadString($HealthUrl) -match '"ok"') { break } } catch { }
+            Start-Sleep -Seconds 2
+        }
+        $ctr = "\GPU Process Memory(pid_$($srv.Id)*)\Shared Usage"
+        while (-not $srv.HasExited) {
+            $s = Get-Counter -Counter $ctr -ErrorAction Stop
+            if (@($s.CounterSamples).Count -gt 0) {   # no sample (no match yet) is not a base of 0
+                & $check ((($s.CounterSamples | Measure-Object CookedValue -Sum).Sum) / 1MB)
+            }
+            Start-Sleep -Seconds $Every
+        }
+    } catch { }   # no counters (other OS language, no permission) or the server stopped: say nothing
+}
+[System.Management.Automation.PowerShell]$SpillPs = $null
+if ($env:BONSAI_SPILL_GUARD -ne '0') {
+    $SpillPs = [PowerShell]::Create()
+    [void]$SpillPs.AddScript($SpillGuard).AddParameter('BinDir', $Bin).AddParameter('HealthUrl', "http://127.0.0.1:$ListenPort/health")
+    [void]$SpillPs.BeginInvoke()
+}
 $ErrorActionPreference = 'Continue'
 Set-Location $Bin
 try {
@@ -632,6 +688,7 @@ try {
     --top-p 0.95 `
     --top-k 20
 } finally {
+    if ($SpillPs) { try { $SpillPs.Stop(); $SpillPs.Dispose() } catch { } }
     if ($LayerProc -and -not $LayerProc.HasExited) { Stop-Process -Id $LayerProc.Id -Force -ErrorAction SilentlyContinue }
     # Remove the variables this run set, so that the next start in this window begins from the user's own settings
     # (the 8 GB preset only sets a switch when it is not already set; a value left from an earlier run would stay).
