@@ -9,7 +9,7 @@ at 128k. The plan, the scoreboard and the four tracks are on #138:
 | --- | --- | --- |
 | T1 avoid | persistent prefix cache on disk: save the KV + GDN / conv states, restore in seconds | **T1-b pass** (4070: 245k in 2.2 s instead of 468 s; 2060 P153: 5.2 s instead of 28 min); launcher switch `BONSAI_SLOT_SAVE_PATH` merged; MTP draft-context sidecar (product-slotdraft 303f01131) passes T1-h, P158 on the 2060 next |
 | T2 exact speed | FA prefill tiles, PTQ1_0 MMQ tuning, op fusion | T2a not exact as built (waits for P154 on the 2060); T2b is a control on the 4070, the real test is sm_75 |
-| T3 sparse prefill | block-sparse attention for prompt chunks from the page bounds | quality: keep 1/2 per 64-query tile passes n24 / n28 / copies at 245k (1/4 fails); speed: 1.16x at 245k on the 4070; 2060 speed probe next |
+| T3 sparse prefill | block-sparse attention for prompt chunks from the page bounds | closed as a default: 1.22x cold 245k on the 2060 (P159), but loses n24 vaults 14 / 15 against the product dense reference on the 4070 (G2); opt-in on the kernel fork |
 | T4 fewer tokens | token selection before the full pass | feasibility |
 
 Each plan was written before its run (the plan comments on #138 carry the times). Results: [EXPERIMENTS.md](EXPERIMENTS.md).

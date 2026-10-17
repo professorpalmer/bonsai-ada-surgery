@@ -144,3 +144,21 @@ path's own item gates are still open (2060). The "T3 engage lines: 0" in Q0 mean
 
 BONSAI_CTX 131,072 vs 262,144, alternated x2: decode within 1 % at 4k / 64k / 96k / 128k (52.6 / 40.5 / 35.2 / 22.4
 tok/s), prefill equal. Docs can say: the full 262k window costs nothing up to 128k; only filling it is slow.
+
+## T3 after S5: the 2060 probe and the gates (2026-10-16 evening)
+
+- **P159** (2060, t3-prefill 0f7a8e0ce, 8 GB preset defaults, T2 off): cold 128k 589.3 -> 537.9 s (1.095x), **cold
+  245k 1,693.3 -> 1,384.8 s (1.223x)**; the speed rule (>= 1.15x at 245k) met; 0 CUDA errors.
+- **Gates** (kernel session, #138, before the runs): G0 4k hashes T3 = dense on both rigs; G1 / G2 245k items on the
+  2060 / 4070 (copies n 20, needles n 24 / n 28), no lost item; G3 160k items; G4 speed. Bins: kernel fork
+  `product-t3` 0ef8c83d9 (= the bundle-20261016b engine + the T3 chain, off by default); T3 arm
+  `GGML_CUDA_FA_PREFILL_SPARSE=0.5`, `QTILE=64`, `STAT=1`; dense = the same bins, env unset; the launcher's product
+  env (`BONSAI_8GB=1`, q3_0, line 80,640).
+- **4070 (19:40-20:34):** G0 pass (dense = T3 = `1370fc25030ce635`). **G2 fail:** copies 19 / 20 both; n28 28/28 both;
+  **n24 dense 24/24, T3 22/24 (loses vault 14 and vault 15)**. T3 engaged on every T3 server; 0 CUDA errors. The
+  product-env dense reference (n24 24/24, n28 28/28) is better than the older pinned-dense reference (23/24, 25/28)
+  that Q0b was judged against; vaults 14 / 15 are the threshold items that fixed 1/8 decode and D30 DELTA 4 also lost.
+  Receipt `docs/receipts/t3_gates_4070.log` / `.jsonl`.
+- **Decision (kernel session):** T3 is **closed as a default**: 1.22x cold 245k on the 2060, but it loses n24 vaults
+  14 / 15 against the product dense reference on the 4070 (G2). It stays opt-in on the kernel fork, with no release
+  work; the 2060's G1 / G3 / G4 were dropped.
