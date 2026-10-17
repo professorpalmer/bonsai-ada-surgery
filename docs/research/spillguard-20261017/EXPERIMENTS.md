@@ -164,3 +164,14 @@ parse 0 errors. Open: one real launcher start (G3 again) to check the child matc
   v6 reset rule is safe either way (it only lowers the next threshold when free VRAM is back above the limit).
 - P168's 64k reads were 2.2-2.3 % faster than the reference (outside a two-sided 2 % band, on the fast side: no cost).
   Its GPU trace reads 0 % between reads, so it does not measure the browser's load.
+
+## G3 with v6 (4070, real launcher start, `28baf6e`+): PASS
+
+8 GB preset, line 80,640; 20 s after `/health` a 4,076 MiB ballast (53 MiB free). The guard found the server as the
+launcher's child process, and the line ("other programs on this GPU hold 4,313 MiB more GPU memory than at the start
+and the card is full (53 MiB free)") + the NVIDIA hint came **27 s** after the ballast (two samples at 15 s; gate 45 s).
+
+## Status
+
+G1-G5 PASS (G4 = P167b, G5 = P168 on the 2060, v5); two reviews (the second: no blockers); v6 takes the second review's
+should-fix and nits, checked by G1 and this G3 run. Ready to merge; ships with the next bundle.
