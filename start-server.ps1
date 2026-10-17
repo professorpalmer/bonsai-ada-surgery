@@ -209,6 +209,19 @@ if ($Small -and $PoolOn -and $Spec -gt 0 -and -not $env:GGML_CUDA_POOL_RESERVE_M
     try { $HasReserve = [Text.Encoding]::ASCII.GetString([IO.File]::ReadAllBytes((Join-Path $Bin 'ggml-cuda.dll'))).Contains('GGML_CUDA_POOL_RESERVE_MIB') } catch { }
     if ($HasReserve) { $PoolReserve = 176; $env:GGML_CUDA_POOL_RESERVE_MIB = "$PoolReserve" }
 }
+# BONSAI_FAST_READ=1 (opt-in, T5, #138): a long prompt is read with a window. While the prompt is read, each token
+# attends to the first 1,024 tokens and the last 32,768; the question at the end (the last 1,024 tokens) and every
+# answer token still attend to all of it. RTX 2060 SUPER, 245k: cold read 1,452 -> 814 s (1.78x); quality over three
+# 245k sets 52/72 against 54/72 for the full read (about 1 item in 24 lost on questions asked in other words). A
+# conversation read this way keeps that K/V (saved conversations and read ahead keep it too). LLAMA_PREFILL_WINDOW set by
+# the user is kept.
+$FastRead = $false
+if ($env:BONSAI_FAST_READ -eq '1' -and -not $env:LLAMA_PREFILL_WINDOW) {
+    $HasWindow = $false
+    try { $HasWindow = [Text.Encoding]::ASCII.GetString([IO.File]::ReadAllBytes((Join-Path $Bin 'llama.dll'))).Contains('LLAMA_PREFILL_WINDOW') } catch { }
+    if ($HasWindow) { $FastRead = $true; $env:LLAMA_PREFILL_WINDOW = 'window=32768,sink=1024,tail=1024' }
+    else { Write-Host "warn   BONSAI_FAST_READ=1: this engine does not have the prefill window (bundle with T5 or newer); the full read is used." }
+}
 # Packed (1-bit) KQ mask (patches 0048/0049): the f16 mask is Ctx x ubatch x 2 bytes (128 MiB at 131k, 256 MiB at 262k);
 # packed it is 1/16 of that. With MTP drafting at 32k and 64k: 22 of 22 texts identical to the f16 mask (RTX 2060
 # SUPER, P82; RTX 4070, docs/receipts/pr13_ada.log). On with an engine that has it: 8 GB cards in drafting mode, and the
@@ -491,6 +504,7 @@ if ($env:BONSAI_RAM_BUDGET -ne '0' -and $Help -match '--cache-ram' -and $Help -m
 }
 
 if ($Small) { Write-Host "8gb    preset on ($TotalMiB MiB card; BONSAI_8GB=0 turns it off): ub $Ubatch, $(if ($PoolReserve) { "pool reserved $PoolReserve MiB, " })f16 prefill to $($env:GGML_CUDA_FA_PREFILL_F16) cells$(if ($env:GGML_CUDA_FA_CHUNK -and $env:GGML_CUDA_FA_CHUNK -ne '0') { ", deeper in chunks of $($env:GGML_CUDA_FA_CHUNK)" })" }
+if ($FastRead) { Write-Host "fast   BONSAI_FAST_READ=1: long prompts are read with a 32k window (+ the first 1k; the question and the answer see all). About 1.8x faster cold reads at 245k; a little less exact on questions asked in other words." }
 Write-Host "model  $(Split-Path $Model -Leaf)"
 Write-Host "window $Ctx / $Ctk  ($CtkWhy; trained max 262144)"
 if ($TierCells -gt 0) { Write-Host "kv     tiered: cells 0..$TierCells in VRAM, $TierCells..$Ctx in system RAM$(if ($Margin) { " (VRAM margin $Margin MiB)" })$(if ($PoolMiB) { "; shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off)" })$(if ($MaskSavedMiB) { "; packed KQ mask ($MaskSavedMiB MiB saved)" })" }
@@ -536,7 +550,7 @@ if ($Spec -gt 0) {
 $LauncherVars = @('BONSAI_LAYER_KEY', 'LLAMA_ARG_CHAT_TEMPLATE_KWARGS', 'GGML_CUDA_BATCH_INVARIANT',
                   'GGML_CUDA_SHARED_POOL', 'LLAMA_MTP_DRAFT_UBATCH', 'GGML_CUDA_FA_PREFILL_F16',
                   'LLAMA_ARG_CHECKPOINT_EVERY_NT', 'LLAMA_ARG_KQ_MASK_PACKED', 'GGML_CUDA_KV_TIER_STAGING_FRAC', 'GGML_CUDA_FA_CHUNK',
-                  'GGML_CUDA_POOL_RESERVE_MIB')
+                  'GGML_CUDA_POOL_RESERVE_MIB', 'LLAMA_PREFILL_WINDOW')
 $Listed = @($UserEnv | Where-Object { $_.Name -notin $LauncherVars -and $_.Value })
 if ($Listed.Count -gt 0) {
     Write-Host ("env    set in this window, these change the defaults: " + (($Listed | ForEach-Object { "$($_.Name)=$($_.Value)" }) -join '  '))
