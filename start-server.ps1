@@ -605,6 +605,125 @@ if ($env:BONSAI_SLOT_SAVE_PATH) {
 # From here only the server runs. Under $ErrorActionPreference = 'Stop', Windows PowerShell 5.1 turns each stderr line of a
 # native program into an error record when the launcher's output is redirected (hidden window, scheduled task, 2>&1), and
 # the first one stops the launcher (issue #16, howdya). The server's own exit code still reaches the caller.
+# Spill guard (docs/research/spillguard-20261017). When the card becomes full after the start, the server does not fail:
+# it becomes much slower with no message, or a later big batch fails with "CUDA error: out of memory". Measured: (1) the
+# NVIDIA driver's sysmem fallback moves server memory to system RAM (T1-g: a cold read at ~40 tok/s instead of 757; the
+# server's "GPU Process Memory \ Shared Usage" ~950 MiB up); (2) another program takes the free VRAM (4070: a 4 GB
+# program, prompt reads 79 tok/s instead of 757; 2060: a 206 MiB program, reads 70 tok/s instead of ~400, decode 7
+# instead of 24). A watcher in this process takes base values at the first good /health and prints one line when (1)
+# the server's shared usage grows by > 256 MiB, or (2) the other programs on the server's GPU have >= 128 MiB more GPU
+# memory committed than at the base and the free VRAM is below min(512 MiB, 0.6 x the free VRAM at the base), in two
+# samples in a row. The line goes to this window (stdout). BONSAI_SPILL_GUARD=0 turns it off. Without the performance
+# counters (another OS language, no permission) it does nothing.
+$SpillGuard = {
+    param([string]$BinDir, [string]$HealthUrl, [datetime]$StartAfter, [int]$Every = 15, [string[]]$FakeSamples = $null)
+    $st = @{ sh = $null; ot = $null; f0 = $null; nextSh = 256.0; nextOt = 128.0; hits = 0; hint = $true }
+    $say = {
+        param([string]$m)
+        [Console]::Out.WriteLine($m)
+        if ($st.hint) {
+            [Console]::Out.WriteLine("       (NVIDIA Control Panel > Manage 3D settings > CUDA - Sysmem Fallback Policy: " +
+                "Prefer No Sysmem Fallback makes the server stop instead of running slowly.)")
+            $st.hint = $false
+        }
+        [Console]::Out.Flush()
+    }
+    $check = {
+        param([double]$shared, [double]$others, [double]$free)
+        if ($null -eq $st.sh -or $shared -lt $st.sh) { $st.sh = $shared }
+        if ($null -eq $st.f0 -and $free -ge 0) { $st.f0 = $free }
+        $low = if ($null -eq $st.f0) { 512 } else { [Math]::Min(512, 0.6 * $st.f0) }
+        # the others' base: the first sample; it goes down only while the card is not short (a program that grows and
+        # shrinks during a squeeze must not move the base)
+        if ($null -eq $st.ot -or ($others -lt $st.ot -and ($free -lt 0 -or $free -ge $low))) { $st.ot = $others }
+        $d = $shared - $st.sh
+        if ($d -gt $st.nextSh) {
+            & $say (("spill  VRAM spilled to system RAM (+{0:N0} MiB): the server is much slower now. Close other GPU " +
+                "programs, or set BONSAI_KV_VRAM_CELLS lower, then restart.") -f $d)
+            $st.nextSh = $d + 512
+        }
+        $o = $others - $st.ot
+        if ($o -ge $st.nextOt -and $free -ge 0 -and $free -lt $low) {
+            $st.hits++
+            if ($st.hits -ge 2) {
+                & $say (("spill  other programs on this GPU hold {0:N0} MiB more GPU memory than at the start and the card " +
+                    "is full ({1:N0} MiB free): the server can be about 10x slower now, or fail on a long prompt. Close " +
+                    "them, or restart the server so that it sizes its VRAM line again.") -f $o, $free)
+                $st.nextOt = $o + 512; $st.hits = 0
+            }
+        } else {
+            $st.hits = 0
+            # the squeeze is over: the next one warns again from 128 MiB above the present value (the others' committed
+            # memory can drift up without using VRAM, so do not wait for it to fall back)
+            if ($free -ge $low) { $st.nextOt = [Math]::Min($st.nextOt, [Math]::Max(128.0, $o + 128.0)) }
+        }
+    }
+    if ($FakeSamples) { foreach ($s in $FakeSamples) { $v = [double[]]($s -split ','); & $check $v[0] $v[1] $v[2] }; return }
+    try {
+        # this run's server only: the launcher's own child process ($PID is the launcher in this runspace too); if the
+        # process list cannot say, a llama-server started after this point in exactly $BinDir (full paths)
+        $norm = { param([string]$x) [IO.Path]::GetFullPath($x).TrimEnd([IO.Path]::DirectorySeparatorChar) }
+        $dir = & $norm $BinDir
+        $srv = $null
+        for ($i = 0; $i -lt 3600 -and -not $srv; $i++) {
+            $child = Get-CimInstance Win32_Process -Filter "Name='llama-server.exe' AND ParentProcessId=$PID" -ErrorAction SilentlyContinue |
+                Select-Object -First 1
+            if ($child) { $srv = Get-Process -Id $child.ProcessId -ErrorAction SilentlyContinue }
+            if (-not $srv) {
+                $srv = Get-Process llama-server -ErrorAction SilentlyContinue | Where-Object {
+                    $_.Path -and $_.StartTime -ge $StartAfter -and (& $norm (Split-Path -Parent $_.Path)) -ieq $dir } | Select-Object -First 1
+            }
+            if (-not $srv) { Start-Sleep -Seconds 1 }
+        }
+        if (-not $srv) { return }
+        # rule (2) reads the free VRAM of the first NVIDIA GPU: with more than one, it could compare two cards, so it is off
+        $oneGpu = $true
+        try { $oneGpu = @(& nvidia-smi -L 2>$null | Where-Object { $_ -match '^GPU \d' }).Count -le 1 } catch { }
+        while (-not $srv.HasExited) {
+            try {
+                $req = [Net.WebRequest]::Create($HealthUrl); $req.Timeout = 2000; $req.Proxy = $null
+                $resp = $req.GetResponse(); $ok = [int]$resp.StatusCode -eq 200; $resp.Close()
+                if ($ok) { break }
+            } catch { }
+            Start-Sleep -Seconds 2
+        }
+        $pre = "pid_$($srv.Id)_"; $fails = 0
+        while (-not $srv.HasExited -and $fails -lt 40) {
+            try {
+                # a process that exits during the read makes one sample invalid: keep the valid ones, and skip a pass that
+                # lacks the server's own samples (one bad read must not stop the guard, and a missing value is not 0)
+                $all = @((Get-Counter -Counter '\GPU Process Memory(*)\Shared Usage', '\GPU Process Memory(*)\Total Committed' `
+                    -ErrorAction SilentlyContinue).CounterSamples | Where-Object { $_ -and $_.Status -eq 0 })
+                $mineSh = @($all | Where-Object { $_.InstanceName.StartsWith($pre) -and $_.Path -like '*\shared usage' })
+                $mineTc = @($all | Where-Object { $_.InstanceName.StartsWith($pre) -and $_.Path -like '*\total committed' } |
+                    Sort-Object CookedValue -Descending)
+                if ($mineSh.Count -eq 0 -or $mineTc.Count -eq 0) { $fails++ }
+                else {
+                    $fails = 0
+                    $shared = ($mineSh | Measure-Object CookedValue -Sum).Sum / 1MB
+                    # the server's GPU: the adapter where it has the most memory committed (an Optimus laptop has two)
+                    $luid = if ($mineTc[0].InstanceName -match '^pid_\d+_(luid_[^_]+_[^_]+)_') { $Matches[1] } else { $null }
+                    $others = 0.0; $free = -1.0
+                    if ($luid -and $oneGpu) {
+                        $others = ($all | Where-Object { $_.Path -like '*\total committed' -and -not $_.InstanceName.StartsWith($pre) -and
+                            $_.InstanceName.Contains($luid) } | Measure-Object CookedValue -Sum).Sum / 1MB
+                        try { $free = [double]((& nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits | Select-Object -First 1).Trim()) } catch { }
+                    }
+                    & $check $shared $others $free
+                }
+            } catch { $fails++ }
+            Start-Sleep -Seconds $Every
+        }
+    } catch { }   # no counters for 10 minutes (another OS language, no permission) or the server stopped: say nothing
+}
+[System.Management.Automation.PowerShell]$SpillPs = $null
+if ($env:BONSAI_SPILL_GUARD -ne '0') {
+    try {
+        $SpillPs = [PowerShell]::Create()
+        [void]$SpillPs.AddScript($SpillGuard).AddParameter('BinDir', $Bin).AddParameter('HealthUrl', "http://127.0.0.1:$ListenPort/health").AddParameter('StartAfter', (Get-Date).AddSeconds(-2))
+        [void]$SpillPs.BeginInvoke()
+    } catch { $SpillPs = $null }
+}
 $ErrorActionPreference = 'Continue'
 Set-Location $Bin
 try {
@@ -632,6 +751,7 @@ try {
     --top-p 0.95 `
     --top-k 20
 } finally {
+    if ($SpillPs) { try { $SpillPs.Stop(); $SpillPs.Dispose() } catch { } }
     if ($LayerProc -and -not $LayerProc.HasExited) { Stop-Process -Id $LayerProc.Id -Force -ErrorAction SilentlyContinue }
     # Remove the variables this run set, so that the next start in this window begins from the user's own settings
     # (the 8 GB preset only sets a switch when it is not already set; a value left from an earlier run would stay).

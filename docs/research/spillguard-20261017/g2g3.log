@@ -1,0 +1,22 @@
+01:53 === spill guard G2/G3 start: branch b9a686c spillguard plan: load-time limit; engine commit 96f6e49cdc; clock 405 MHz
+01:53 server g2_on_9327 (BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640): health=1; kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; sh
+  G2 8gb guard-on code   depth 128000 (evaluated 127340): prefill   756.8 tok/s  ttft 168.26s  decode   45.2 tok/s (400 tok)
+01:57   g2_on_9327: spill lines 0; CUDA errors 0
+01:57 server g2_off_10275 (BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640 BONSAI_SPILL_GUARD=0): health=1; kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; sh
+  G2 8gb guard-off code   depth 128000 (evaluated 127340): prefill   756.0 tok/s  ttft 168.44s  decode   45.1 tok/s (400 tok)
+02:00   g2_off_10275: spill lines 0; CUDA errors 0
+02:01 server g2_on_1193 (BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640): health=1; kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; sh
+  G2 8gb guard-on code   depth 128000 (evaluated 127340): prefill   756.3 tok/s  ttft 168.37s  decode   45.5 tok/s (400 tok)
+02:04   g2_on_1193: spill lines 0; CUDA errors 0
+02:04 server g2_off_20943 (BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640 BONSAI_SPILL_GUARD=0): health=1; kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; sh
+  G2 8gb guard-off code   depth 128000 (evaluated 127340): prefill   756.4 tok/s  ttft 168.35s  decode   45.5 tok/s (400 tok)
+02:08   g2_off_20943: spill lines 0; CUDA errors 0
+02:08 server g2_12gb (): health=1; kv     tiered: cells 0..260352 in VRAM, 260352..262144 in system RAM (
+  G2 12gb guard-on code   depth 128000 (evaluated 127340): prefill   737.4 tok/s  ttft 172.69s  decode   77.4 tok/s (400 tok)
+02:11   g2_12gb: spill lines 0; CUDA errors 0
+02:11 server g3 (BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640): health=1; kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; sh
+02:12   G3 ballast 4076 MiB (pid 17596); VRAM 11958 MiB, 53 MiB
+  G3 8gb filled code   depth  64000 (evaluated 64009): prefill    78.9 tok/s  ttft 811.70s  decode   77.6 tok/s (400 tok)
+02:26   G3 read wall 853 s
+02:26   g3: spill lines 0; CUDA errors 0
+02:26 === spill guard G2/G3 done
