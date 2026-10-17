@@ -23,3 +23,14 @@ and `layer/slot_cache.py` change (a chat request with `"prefill_only": true` rea
 question). It is reviewed and was tested as served on the 2060 (P162 read ahead PASS, P164 overnight soak PASS, P165
 demo clip PASS). So it ships here. R1 now allows those two files too; added: `tests/test_slot_cache.py` ALL OK at the
 release commit, and README / release notes name it.
+
+## Results R1-R3 (4070, staged zip; receipt `docs/receipts/release_1017b.log` in the serve folder)
+
+- Zip `bonsai-bundle-win-x64-20261017b.zip`: 67 entries, 616,671,821 B, SHA-256
+  `6285cd5d6ef72e9e13ffadefb20b1ef91dd90afe80e53f3375bae268454e79ce`; release commit 8031a17 (this branch).
+- **R1 PASS:** every `bin/` file byte-identical to bundle-20261017; changed: README.md, start-server.ps1,
+  layer/bonsai_layer.py, layer/slot_cache.py (as declared); 0 control bytes; `tests/test_slot_cache.py` ALL OK.
+- **R2 PASS:** default -> q4_0, `BONSAI_8GB=1` -> q3_0, `BONSAI_TOTAL_MIB=24576` -> q8_0, `BONSAI_SPILL_GUARD=0`: each
+  answered ("Red, blue, and yellow."); 0 spill lines; 0 CUDA errors.
+- **R3 PASS:** `BONSAI_8GB=1`, line 80,640, a 4,076 MiB ballast after `/health`: the spill line after 27 s.
+- R4 (2060 post-zip) asked on #138 after publish.
