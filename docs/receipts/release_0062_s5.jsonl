@@ -1,0 +1,4 @@
+{"phase": "turn1", "tag": "turn1", "answer": "vault 1: 8411\nvault 2: 8629\nvault 3: 8402\nvault 4: 9320\nvault 5: 4111\nvault 6: 4025\nvault 7: 9387\nvault 8: 8794", "prompt_n": 7, "prompt_s": 0.22, "wall_s": 70.92, "cache": {"slot_cache_tokens": 66098, "slot_cache_saved": 66091, "slot_cache_gen_prompt_tokens": 7, "slot_cache_prefill_s": 68.53, "slot_cache_save_s": 1.02, "slot_cache_s": 69.69}}
+{"phase": "turn2", "tag": "M2", "answer": "vault 4: 9320", "prompt_n": 34, "prompt_s": 0.3, "wall_s": 0.6, "cache": {"slot_cache_tokens": 66211, "slot_cache_s": 0.13}}
+{"phase": "turn2", "tag": "R2", "answer": "vault 4: 9320", "prompt_n": 120, "prompt_s": 0.49, "wall_s": 1.61, "cache": {"slot_cache_tokens": 66211, "slot_cache_restored": 66091, "slot_cache_restore_s": 0.61, "slot_cache_s": 0.86}}
+{"phase": "short", "tag": "short", "answer": "Red, blue, and yellow.", "prompt_n": 504, "prompt_s": 0.53, "wall_s": 1.09, "cache": {"slot_cache_tokens": 504}}
