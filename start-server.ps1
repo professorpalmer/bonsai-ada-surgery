@@ -611,7 +611,7 @@ if ($env:BONSAI_SLOT_SAVE_PATH) {
 # Usage" ~950 MiB up); (2) another program takes the free VRAM (G3: a 4 GB ballast after /health, prompt reads at 79
 # tok/s instead of 757, no counter of the server moves). A watcher in this process takes base values at the first good
 # /health and prints one line when (1) the server's shared usage grows by > 256 MiB, or (2) the other programs on the
-# same GPU hold >= 128 MiB more VRAM than at the base and the free VRAM is below min(512 MiB, 0.6 x the free VRAM at the
+# same GPU have >= 128 MiB more GPU memory committed than at the base and the free VRAM is below min(512 MiB, 0.6 x the free VRAM at the
 # base). The 2060 (P166): 282 MiB free with the server up, and a 182 MiB program halved the prompt read. So rule (2)
 # scales with what was free. BONSAI_SPILL_GUARD=0 turns it off. Without the performance counters it does nothing.
 $SpillGuard = {
@@ -663,12 +663,14 @@ $SpillGuard = {
         }
         $pre = "pid_$($srv.Id)_"
         while (-not $srv.HasExited) {
-            $all = (Get-Counter -Counter '\GPU Process Memory(*)\Dedicated Usage', '\GPU Process Memory(*)\Shared Usage' -ErrorAction Stop).CounterSamples
+            # others: Total Committed, not Dedicated Usage: a program that does not fit is paged out by WDDM and its dedicated
+            # usage stays small (P166b: a 1,500 MiB ballast on the 2060, no line, then CUDA out of memory)
+            $all = (Get-Counter -Counter '\GPU Process Memory(*)\Shared Usage', '\GPU Process Memory(*)\Total Committed' -ErrorAction Stop).CounterSamples
             $mine = @($all | Where-Object { $_.InstanceName.StartsWith($pre) })
             if ($mine.Count -gt 0) {   # no sample (no match yet) is not a base of 0
                 $luid = ($mine[0].InstanceName -replace '^pid_\d+_(luid_[^_]+_[^_]+)_.*$', '$1')
                 $shared = ($mine | Where-Object { $_.Path -like '*\shared usage' } | Measure-Object CookedValue -Sum).Sum / 1MB
-                $others = ($all | Where-Object { $_.Path -like '*\dedicated usage' -and -not $_.InstanceName.StartsWith($pre) -and
+                $others = ($all | Where-Object { $_.Path -like '*\total committed' -and -not $_.InstanceName.StartsWith($pre) -and
                     $_.InstanceName -like "*$luid*" } | Measure-Object CookedValue -Sum).Sum / 1MB
                 $free = -1.0
                 try { $free = [double]((& nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits | Select-Object -First 1).Trim()) } catch { }

@@ -56,3 +56,14 @@ Open: G3 again on the 4070 (needs a 3-min GPU gap), G4 on the 2060.
   others +4,187 with 3,000 free: 0. Case A of v2 (others +200, free 300 of F0 4,000) now gives a line: under v3 that
   is a true warning (another program took 200 MiB and 300 MiB is left), so its expectation changes; recorded here.
 - Open: G3 on the 4070 (3-min GPU gap), P166b on the 2060 (1,500 MiB ballast), and G4b again with v3.
+
+## P166b (2060, v2 launcher) and v4
+
+- P166b: a 1,500 MiB ballast after `/health` (free 305 -> 119 MiB): no spill line, then the next read **crashed the
+  server** (`CUDA error: out of memory`, ggml-cuda.cu:110; the client saw a reset). Reading: the ballast cannot be
+  resident on a card with 305 MiB free, so WDDM pages it out and its Dedicated Usage stays small; rule (2) summed the
+  others' Dedicated Usage, so it never saw +1,500.
+- v4: rule (2) sums the other processes' **Total Committed** on the server's adapter (resident or not). G1 cases
+  unchanged (fake values); live: on the 4070 the dGPU adapter has only the server's committed memory (16,132 MiB,
+  pinned host included), the other processes are on the iGPU adapter. A crash cannot be prevented by a warning, but
+  with v4 the line should come first (15 s period). G3 (4070) and P167 (2060) to confirm.
