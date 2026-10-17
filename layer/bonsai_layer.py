@@ -26,6 +26,7 @@ import queue
 import re
 import sys
 import threading
+import time
 import urllib.error
 import urllib.request
 
@@ -267,7 +268,48 @@ class Proxy(http.server.BaseHTTPRequestHandler):
         except Exception as e:   # the cache must never break a request
             self.log_message("slot cache failed: %r", e)
 
+    def _prefill_result(self, body):
+        """Read ahead (T1-d): read the prompt into the server and save it, at the send point (so the body is the one the
+        real request will send). Returns the answer object; never generates. The caller holds the cache lock."""
+        t0 = time.time()
+        b = json.loads(body) if isinstance(body, (bytes, str)) else body
+        try:
+            info = self.slots.before(b, self.headers.get("Authorization", ""), force_save=True)
+        except Exception as e:   # never drop the connection for a read-ahead (review: make failures visible)
+            info = {"status": "failed: " + repr(e)[:300]}
+        n = int(info.get("slot_cache_saved") or info.get("slot_cache_tokens") or 0)
+        return {"id": "prefill-%d" % int(t0 * 1000), "object": "chat.completion", "created": int(t0),
+                "model": b.get("model", ""), "prefill_only": True,
+                "choices": [{"index": 0, "finish_reason": "stop", "message": {"role": "assistant", "content": ""}}],
+                "usage": {"prompt_tokens": n, "completion_tokens": 0, "total_tokens": n},
+                "slot_cache": info, "seconds": round(time.time() - t0, 2)}
+
+    def _prefill_sse(self, body):
+        """The read-ahead answer on a streamed request: one SSE event with the object, then [DONE]. Headers + keep-alive
+        go out before the lock, as for any streamed request (with --keepalive 0: the headers after the work, no comments)."""
+        if self.keepalive > 0:
+            stop = self._early_headers()
+            try:
+                with self.slots.lock:
+                    out = self._prefill_result(body)
+            finally:
+                stop()
+        else:
+            with self.slots.lock:
+                out = self._prefill_result(body)
+            self.send_response(200)
+            self.send_header("Content-Type", "text/event-stream")
+            self.send_header("Cache-Control", "no-cache")
+            self.send_header("Connection", "close")
+            self.end_headers()
+            self.close_connection = True
+        self.wfile.write(b"data: " + json.dumps(out).encode() + b"\n\ndata: [DONE]\n\n")
+        self.wfile.flush()
+
     def _forward(self, method, body=None):
+        if self._slots_on(body) and getattr(self, "_prefill_only", False):
+            with self.slots.lock:
+                return 200, "application/json", json.dumps(self._prefill_result(body)).encode()
         if self._slots_on(body):
             with self.slots.lock:   # check + restore / save + the request itself, one at a time (one server slot)
                 self._slots_check(body)
@@ -285,6 +327,8 @@ class Proxy(http.server.BaseHTTPRequestHandler):
 
     def _stream(self, method, body):
         """Relay a streamed (SSE) response as it arrives."""
+        if self._slots_on(body) and getattr(self, "_prefill_only", False):
+            return self._prefill_sse(body)
         if self._slots_on(body):
             if self.keepalive > 0:
                 return self._stream_early(method, body)
@@ -320,6 +364,32 @@ class Proxy(http.server.BaseHTTPRequestHandler):
             err = {"error": {"code": code, "message": txt[:4000]}}
         err["error"].setdefault("code", code)
         return b"data: " + json.dumps(err).encode() + b"\n\n"
+
+    def _early_headers(self):
+        """Send the SSE headers now and keep the connection alive with comments until the returned stop() is called."""
+        self.send_response(200)
+        self.send_header("Content-Type", "text/event-stream")
+        self.send_header("Cache-Control", "no-cache")
+        self.send_header("Connection", "close")
+        self.end_headers()
+        self.close_connection = True
+        done = threading.Event()
+
+        def beat():
+            while not done.wait(self.keepalive if self.keepalive > 0 else 15.0):
+                try:
+                    self.wfile.write(b": keep-alive\n\n")
+                    self.wfile.flush()
+                except Exception:
+                    return
+
+        t = threading.Thread(target=beat, daemon=True)
+        t.start()
+
+        def stop():
+            done.set()
+            t.join()
+        return stop
 
     def _stream_early(self, method, body):
         """The streamed path when the saved-conversation cache is on: the headers go out at once, BEFORE the cache lock is
@@ -434,13 +504,13 @@ class Proxy(http.server.BaseHTTPRequestHandler):
         req = urllib.request.Request(self.upstream + self.path, data=json.dumps(body).encode(), method="POST", headers=headers)
         return urllib.request.urlopen(req, timeout=7200)
 
-    def _stream_interpreter(self, body, client_tools, with_input=False, extra=None):
+    def _stream_interpreter(self, body, client_tools, with_input=False, extra=None, stop_early=None):
         """The interpreter loop for a streamed request. Everything the model streams is relayed as it arrives except
         run_python tool-call deltas, which are collected, executed in the sandbox, and followed by the next round on
         the same client connection. Only used for requests without client tools."""
         msgs = list(body["messages"])
         body["tools"] = [tool_spec(with_input)]
-        started = False
+        started = stop_early is not None   # the headers went out early (the cache is on); stop the keep-alive at the first stream
         # usage: ask the server for it on every round, sum the rounds, and emit one usage chunk at the end
         # when the client asked for one (stream_options.include_usage); otherwise none, as the client expects.
         client_usage = bool((body.get("stream_options") or {}).get("include_usage"))
@@ -463,7 +533,21 @@ class Proxy(http.server.BaseHTTPRequestHandler):
                 except urllib.error.HTTPError as e:
                     if not started:
                         return self._reply(e.code, e.headers.get("Content-Type", "application/json"), e.read())
+                    if stop_early is not None:
+                        stop_early()
+                        self.wfile.write(self._sse_error(e.code, e.read()))
+                        self.wfile.flush()
                     return
+                except Exception as e:   # server gone (crash, restart)
+                    if not started:
+                        raise
+                    if stop_early is not None:
+                        stop_early()
+                    self.wfile.write(self._sse_error(502, repr(e)))
+                    self.wfile.flush()
+                    return
+                if stop_early is not None:
+                    stop_early()
                 if not started:
                     self.send_response(200)
                     self.send_header("Content-Type", r.headers.get("Content-Type", "text/event-stream"))
@@ -574,6 +658,7 @@ class Proxy(http.server.BaseHTTPRequestHandler):
 
     def do_POST(self):
         self._slots_ok = False   # set by _with_slots only (after the key check); a keep-alive connection reuses the handler
+        self._prefill_only = False
         raw = self.rfile.read(int(self.headers.get("Content-Length", 0)))
         if not self.path.rstrip("/").endswith("/chat/completions"):
             return self._reply(*self._forward("POST", raw))
@@ -585,6 +670,16 @@ class Proxy(http.server.BaseHTTPRequestHandler):
             given = self.headers.get("Authorization", "")
             if not hmac.compare_digest(given.encode("utf-8", "replace"), ("Bearer " + self.api_key).encode()):
                 return self._reply(*self._forward("POST", raw))   # let the server produce its own 401; do no work here
+        # Read ahead (#138 T1-d): "prefill_only": true reads the prompt into the server and saves it (the saved-conversation
+        # cache), and answers with a short JSON object instead of generating. The request takes the normal path (cards,
+        # notes, tools), so the saved tokens are the ones the later real request will render. It answers when the read is
+        # done (minutes for a long cold prompt): a harness sends it in the background, e.g. when a large file is attached.
+        if body.pop("prefill_only", False):
+            if self.slots is None:   # nothing to save to: never generate for a read-ahead (review 2)
+                return self._reply(200, "application/json", json.dumps(
+                    {"object": "chat.completion", "prefill_only": True, "choices": [],
+                     "slot_cache": {"status": "off (BONSAI_SLOT_SAVE_PATH not set)"}}).encode())
+            self._prefill_only = True   # the request keeps its own route (stream or not), so its tools match the real one
         # a client that executes code blocks itself gets nothing changed (see client_runs_code)
         if not (body.get("tools") or []) and client_runs_code(body.get("messages") or []) \
                 and body.get("code_interpreter") is not True:
@@ -626,9 +721,19 @@ class Proxy(http.server.BaseHTTPRequestHandler):
         ours_taken = any(t.get("function", {}).get("name") == TOOL_NAME for t in client_tools)
         if body.get("stream"):
             if enabled and not client_tools and not ours_taken:
-                if self.slots is not None:
-                    with self.slots.lock:   # several rounds on one client connection: hold the slot for all of them
-                        return self._stream_interpreter(body, client_tools, with_input, extra)
+                if self.slots is not None and self._slots_ok:
+                    if self._prefill_only:   # the same body the first round sends: the run_python tool included
+                        body["tools"] = [tool_spec(with_input)]
+                        return self._prefill_sse(json.dumps(body).encode())
+                    if self.keepalive <= 0:   # no comments wanted: the old path (headers at the first stream)
+                        with self.slots.lock:
+                            return self._stream_interpreter(body, client_tools, with_input, extra)
+                    stop = self._early_headers()   # bytes before the lock: a read-ahead can hold it for minutes
+                    try:
+                        with self.slots.lock:   # several rounds on one client connection: hold the slot for all of them
+                            return self._stream_interpreter(body, client_tools, with_input, extra, stop_early=stop)
+                    finally:
+                        stop()
                 return self._stream_interpreter(body, client_tools, with_input, extra)
             return self._stream("POST", json.dumps(body).encode())
         if not enabled:

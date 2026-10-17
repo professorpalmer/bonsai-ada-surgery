@@ -20,6 +20,8 @@ Off unless BONSAI_SLOT_SAVE_PATH is set (the same folder as the server's --slot-
   BONSAI_SLOT_CACHE_GB    disk budget, oldest-used files removed first (20)
   BONSAI_SLOT_CACHE_GAIN  restore only when it saves at least this many tokens of reading (2048)
 Requests with images (any non-text content part) do not take part: /tokenize cannot reproduce the image chunks.
+Read ahead (T1-d): a chat request with "prefill_only": true reads and saves its prompt and returns no text; the later real
+request then restores it.
 Any failure here only logs and lets the request run as before.
 """
 import array
@@ -187,21 +189,28 @@ class SlotCache:
         return toks, base
 
     # ---- the hook ---------------------------------------------------------------------------------------------
-    def before(self, body, auth):
-        """Call with the lock held, right before the request goes to the server. Restores and / or saves as needed."""
+    def before(self, body, auth, force_save=False):
+        """Call with the lock held, right before the request goes to the server. Restores and / or saves as needed.
+        force_save (read ahead, T1-d): nothing is sent after this call, so "held" only changes when a prefill-only call ran;
+        it saves the first state of a conversation at any size >= BONSAI_SLOT_CACHE_MIN and a longer one only after
+        BONSAI_SLOT_CACHE_GROW more tokens (no new multi-GB file per turn). info["status"] says what happened."""
         t0 = time.time()
         if has_media(body):
-            self.held = []
-            return {"slot_cache": "skipped (media)"}
+            if not force_save:
+                self.held = []
+            return {"slot_cache": "skipped (media)", "status": "skipped: media"}
         try:
             toks, base = self.prompt_tokens(body, auth)
         except Exception as e:
             self.log("tokenize failed, cache skipped:", repr(e))
-            self.held = []
-            return {"slot_cache": "skipped"}
+            if not force_save:
+                self.held = []
+            return {"slot_cache": "skipped", "status": "failed: tokenize " + repr(e)[:200]}
         info = {"slot_cache_tokens": len(toks)}
         if len(toks) < self.min_tokens:
-            self.held = toks
+            if not force_save:
+                self.held = toks
+            info["status"] = "skipped: short (< %d tokens)" % self.min_tokens
             return info
         common = 0
         for a, b in zip(self.held, toks):
@@ -226,7 +235,8 @@ class SlotCache:
                 self.log("restored", best_sha[:12], best_n, "tokens in", info["slot_cache_restore_s"], "s")
             except Exception as e:
                 self.log("restore failed:", repr(e))
-        if len(base) < len(toks) and len(base) - max(best_n, 0) >= self.grow:
+        need = (1 if best_n == 0 else self.grow) if force_save else self.grow
+        if len(base) < len(toks) and len(base) - max(best_n, 0) >= need:
             tmp = PREFIX + "saving-%d.bin" % os.getpid()
             try:
                 for p in (tmp, tmp + ".draft"):   # a stale sidecar from a crashed save must not be renamed with this one
@@ -253,10 +263,25 @@ class SlotCache:
                 info["slot_cache_gen_prompt_tokens"] = len(toks) - len(base)
                 info["slot_cache_prefill_s"] = round(t2 - t1, 2)
                 info["slot_cache_save_s"] = round(time.time() - t2, 2)
+                info["status"] = "saved"
                 self.log("saved", sha[:12], len(saved), "tokens: prefill", info["slot_cache_prefill_s"], "s, save", info["slot_cache_save_s"], "s")
                 self._evict()
             except Exception as e:
                 self.log("save failed:", repr(e))
-        self.held = toks
+                info["status"] = "failed: save " + repr(e)[:200]
+        if "status" not in info:
+            if info.get("slot_cache_restored"):
+                info["status"] = "restored"
+            elif len(base) > max(best_n, 0):
+                info["status"] = "skipped: growth < %d" % need
+            else:
+                info["status"] = "skipped: no new tokens to save"
+        if force_save:   # only the work done here changed the server's slot
+            if info.get("slot_cache_saved"):
+                self.held = base
+            elif info.get("slot_cache_restored"):
+                self.held = toks[:info["slot_cache_restored"]]   # a restore-only read-ahead (re-review: blocking)
+        else:
+            self.held = toks
         info["slot_cache_s"] = round(time.time() - t0, 2)
         return info

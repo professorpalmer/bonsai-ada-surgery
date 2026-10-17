@@ -48,6 +48,8 @@ class Fake(http.server.BaseHTTPRequestHandler):
         if self.path == "/apply-template":
             # the effort word sits at the start of the prompt, as in the real template (review B2)
             pre = "E:" + b["reasoning_effort"] + ";" if "reasoning_effort" in b else ""
+            # the tool names sit at the prompt start, as in the real template: a route that adds run_python differs there
+            pre += "T:" + ",".join(t["function"]["name"] for t in b.get("tools") or []) + ";" if b.get("tools") else ""
             out = {"prompt": pre + "".join(m["content"] if isinstance(m["content"], str) else "[media]" for m in b["messages"])
                    + ("" if b.get("add_generation_prompt") is False else GEN)}
         elif self.path == "/tokenize":
@@ -130,7 +132,7 @@ def test_b3_media_skipped():
     body = {"messages": [{"role": "user", "content": [{"type": "text", "text": "a" * 300},
                                                       {"type": "image_url", "image_url": {"url": "data:,"}}]}]}
     info = cache().before(body, "Bearer k")
-    assert info == {"slot_cache": "skipped (media)"} and CALLS == [], (info, CALLS)
+    assert info.get("slot_cache") == "skipped (media)" and info.get("status") == "skipped: media" and CALLS == [], (info, CALLS)
     print("B3 media skipped: ok")
 
 
@@ -181,7 +183,8 @@ def test_n9_equal_length():
 def start_layer(api_key=None):
     P = bonsai_layer.Proxy
     P.upstream, P.keepalive, P.api_key = UP, 0.3, api_key
-    P.slots = slot_cache.SlotCache(UP, tempfile.mkdtemp(), min_tokens=100, grow=50, log=lambda *a: None, min_gain=10)
+    FOLDER[0] = tempfile.mkdtemp()   # the fake server writes its slot files here: the cache must use the same folder
+    P.slots = slot_cache.SlotCache(UP, FOLDER[0], min_tokens=100, grow=50, log=lambda *a: None, min_gain=10)
     lay = http.server.ThreadingHTTPServer(("127.0.0.1", 0), P)
     threading.Thread(target=lay.serve_forever, daemon=True).start()
     return f"http://127.0.0.1:{lay.server_address[1]}", P
@@ -210,7 +213,8 @@ def test_stream_keepalive_and_n3():
     assert first < 1.0 and data.count(b'"content"') == 2 and b"[DONE]" in data and b": keep-alive" in data
     # N3: a second streamed request while the first holds the lock gets its headers + keep-alive at once
     res = {}
-    P.slots = slot_cache.SlotCache(UP, tempfile.mkdtemp(), min_tokens=100, grow=50, log=lambda *a: None, min_gain=10)
+    FOLDER[0] = tempfile.mkdtemp()
+    P.slots = slot_cache.SlotCache(UP, FOLDER[0], min_tokens=100, grow=50, log=lambda *a: None, min_gain=10)
     th = threading.Thread(target=lambda: res.setdefault("a", stream(url, timeout=5.0)))
     th.start()
     time.sleep(0.2)
@@ -230,6 +234,106 @@ def test_r1_keepalive_zero():
     assert "/apply-template" in CALLS and "/completion" in CALLS, "R1: with --keepalive 0 the check still runs"
     assert CALLS.index("/completion") < CALLS.index("/v1/chat/completions"), CALLS
     print("R1 keepalive 0: ok")
+
+
+def sse_events(raw):
+    return [json.loads(l[6:]) for l in raw.decode().splitlines() if l.startswith("data: ") and l[6:] != "[DONE]"]
+
+
+def post(url, body, timeout=5):
+    rq = urllib.request.Request(url + "/v1/chat/completions", data=json.dumps(body).encode(), headers={"Content-Type": "application/json"})
+    return urllib.request.urlopen(rq, timeout=timeout).read()
+
+
+TOOLS = [{"type": "function", "function": {"name": "x", "parameters": {}}}]
+
+
+def test_t1d_read_ahead():
+    url, P = start_layer()
+    # streamed, client tools: the answer is one SSE event with the object, and no chat call reaches the server
+    CALLS.clear()
+    ev = sse_events(post(url, {"messages": [{"role": "user", "content": "r" * 400}], "stream": True, "prefill_only": True, "tools": TOOLS}))
+    assert ev and ev[0]["prefill_only"] and ev[0]["slot_cache"]["status"] == "saved" and ev[0]["usage"]["prompt_tokens"] >= 400, ev
+    assert "/v1/chat/completions" not in CALLS, "a read-ahead must not generate"
+    # a restart, then the real question as a NEW message: it restores
+    CALLS.clear()
+    P.slots = slot_cache.SlotCache(UP, P.slots.folder, min_tokens=100, grow=50, log=lambda *a: None, min_gain=10)
+    data = post(url, {"messages": [{"role": "user", "content": "r" * 400}, {"role": "user", "content": "q" * 30}],
+                      "stream": True, "tools": TOOLS})
+    assert b"[DONE]" in data and "/slots/0?action=restore" in CALLS, CALLS
+    # a second read-ahead of the same conversation with little growth: no new file (disk churn)
+    out = sse_events(post(url, {"messages": [{"role": "user", "content": "r" * 400}, {"role": "user", "content": "q" * 10}],
+                                "stream": True, "prefill_only": True, "tools": TOOLS}))[0]
+    assert "slot_cache_saved" not in out["slot_cache"], out
+    # short: an explicit status, nothing saved
+    out = json.loads(post(url, {"messages": [{"role": "user", "content": "hi"}], "prefill_only": True, "tools": TOOLS}))
+    assert out["slot_cache"]["status"].startswith("skipped: short"), out
+    print("T1-d read ahead (route, restore, churn, short): ok")
+
+
+def test_t1d_restore_only_held():
+    # A saved, B saved (server holds B), A + a little: restored A, no save -> held must say A, so B restores next
+    FOLDER[0] = tempfile.mkdtemp()
+    c = cache()
+    A, B = "a" * 400, "b" * 400
+    assert c.before(req(A), "Bearer k", force_save=True)["status"] == "saved"
+    assert c.before(req(B), "Bearer k", force_save=True)["status"] == "saved"
+    info = c.before(req(A, "x" * 10), "Bearer k", force_save=True)
+    assert info["status"] == "restored", info
+    assert c.held[:400] == [ord(ch) for ch in A], "held must follow the restore"
+    CALLS.clear()
+    info = c.before(req(B, "y" * 30), "Bearer k")
+    assert info.get("slot_cache_restored"), ("B must restore after the restore-only read-ahead of A", info)
+    print("T1-d restore-only held: ok")
+
+
+def test_t1d_interpreter_route():
+    # no client tools, streamed: the layer adds run_python; the read-ahead must save the same body
+    url, P = start_layer()
+    CALLS.clear()
+    ev = sse_events(post(url, {"messages": [{"role": "user", "content": "s" * 400}], "stream": True, "prefill_only": True}))
+    assert ev[0]["slot_cache"]["status"] == "saved", ev
+    P.slots = slot_cache.SlotCache(UP, P.slots.folder, min_tokens=100, grow=50, log=lambda *a: None, min_gain=10)
+    CALLS.clear()
+    post(url, {"messages": [{"role": "user", "content": "s" * 400}, {"role": "user", "content": "q" * 30}], "stream": True})
+    assert "/slots/0?action=restore" in CALLS, CALLS
+    print("T1-d interpreter route restores: ok")
+
+
+def test_t1d_cache_off():
+    P = bonsai_layer.Proxy
+    url, P = start_layer()
+    P.slots = None
+    CALLS.clear()
+    out = json.loads(post(url, {"messages": [{"role": "user", "content": "r" * 400}], "stream": True, "prefill_only": True}))
+    assert out["prefill_only"] and out["slot_cache"]["status"].startswith("off") and CALLS == [], (out, CALLS)
+    print("T1-d cache off -> no-op: ok")
+
+
+def test_n2_interpreter_stream_early_bytes():
+    # a streamed chat with NO client tools (the interpreter route) gets bytes at once while another request holds the slot
+    url, P = start_layer()
+    DELAY[0] = 1.5
+    res = {}
+    th = threading.Thread(target=lambda: res.setdefault("a", post(url, {"messages": [{"role": "user", "content": "t" * 400}],
+                                                                       "stream": True, "prefill_only": True}, timeout=5)))
+    th.start()
+    time.sleep(0.2)
+    body = {"messages": [{"role": "user", "content": "u" * 300}], "stream": True}
+    rq = urllib.request.Request(url + "/v1/chat/completions", data=json.dumps(body).encode(), headers={"Content-Type": "application/json"})
+    t0 = time.time()
+    r = urllib.request.urlopen(rq, timeout=1.0)
+    r.read1(64)
+    first = time.time() - t0
+    try:
+        while r.read1(4096):
+            pass
+    except Exception:
+        pass
+    th.join()
+    DELAY[0] = 0.0
+    assert first < 1.0, first
+    print(f"N2 interpreter stream first bytes after {first:.2f} s while a read-ahead holds the slot: ok")
 
 
 def test_n6_unauthenticated():
@@ -252,5 +356,10 @@ if __name__ == "__main__":
     test_n9_equal_length()
     test_stream_keepalive_and_n3()
     test_r1_keepalive_zero()
+    test_t1d_read_ahead()
+    test_t1d_restore_only_held()
+    test_t1d_interpreter_route()
+    test_t1d_cache_off()
+    test_n2_interpreter_stream_early_bytes()
     test_n6_unauthenticated()
     print("ALL OK")
