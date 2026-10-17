@@ -1,6 +1,6 @@
-"""Offline tests for layer/slot_cache.py and the layer's streamed path with the cache on (#138 T1-c). No GPU, no server:
-a fake upstream implements /apply-template, /tokenize, /completion, /slots/0?action=save|restore and a streamed
-/v1/chat/completions. The layer's code sandbox is stubbed (the tests set no code_interpreter work).
+"""Offline tests for layer/slot_cache.py and the layer's streamed path with the cache on (#138 T1-c, PR #157 review items).
+No GPU, no server: a fake upstream implements /apply-template, /tokenize, /completion, /slots/0?action=save|restore (with the
+.draft sidecar) and a streamed /v1/chat/completions. The layer's code sandbox is stubbed (the tests run no code).
 
 python tests/test_slot_cache.py
 """
@@ -22,8 +22,8 @@ import bonsai_layer  # noqa: E402
 import slot_cache  # noqa: E402
 
 GEN = "@@"          # stands for the generation prompt (<|im_start|>assistant ...)
-CALLS, LAST = [], [0]
-FOLDER = tempfile.mkdtemp()
+CALLS, LAST, DELAY = [], [0], [0.0]
+FOLDER = [tempfile.mkdtemp()]
 
 
 class Fake(http.server.BaseHTTPRequestHandler):
@@ -46,7 +46,10 @@ class Fake(http.server.BaseHTTPRequestHandler):
             self.wfile.write(b"data: [DONE]\n\n")
             return
         if self.path == "/apply-template":
-            out = {"prompt": "".join(m["content"] for m in b["messages"]) + ("" if b.get("add_generation_prompt") is False else GEN)}
+            # the effort word sits at the start of the prompt, as in the real template (review B2)
+            pre = "E:" + b["reasoning_effort"] + ";" if "reasoning_effort" in b else ""
+            out = {"prompt": pre + "".join(m["content"] if isinstance(m["content"], str) else "[media]" for m in b["messages"])
+                   + ("" if b.get("add_generation_prompt") is False else GEN)}
         elif self.path == "/tokenize":
             out = {"tokens": [ord(c) for c in b["content"]]}
         elif self.path == "/completion":
@@ -56,7 +59,8 @@ class Fake(http.server.BaseHTTPRequestHandler):
             LAST[0] = len(b["prompt"])
             out = {}
         elif self.path.startswith("/slots/0?action=save"):
-            open(os.path.join(FOLDER, b["filename"]), "wb").write(b"x" * 1000)
+            for suffix in ("", ".draft"):   # the server writes the sidecar next to the slot file (patches 0062 / 0063)
+                open(os.path.join(FOLDER[0], b["filename"] + suffix), "wb").write(b"x" * 1000)
             out = {"n_saved": LAST[0]}
         else:
             out = {}
@@ -67,26 +71,31 @@ class Fake(http.server.BaseHTTPRequestHandler):
         self.wfile.write(d)
 
 
-DELAY = [0.0]
 up = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Fake)
 threading.Thread(target=up.serve_forever, daemon=True).start()
 UP = f"http://127.0.0.1:{up.server_address[1]}"
 
 
-def cache():
-    return slot_cache.SlotCache(UP, FOLDER, min_tokens=100, grow=50, budget_gb=1e-5, log=lambda *a: None, min_gain=10)
+def cache(**kw):
+    args = dict(min_tokens=100, grow=50, budget_gb=1e-3, log=lambda *a: None, min_gain=10)
+    args.update(kw)
+    return slot_cache.SlotCache(UP, FOLDER[0], **args)
 
 
-def req(*texts):
-    return {"messages": [{"role": "user" if i % 2 == 0 else "assistant", "content": t} for i, t in enumerate(texts)]}
+def req(*texts, **extra):
+    return {"messages": [{"role": "user" if i % 2 == 0 else "assistant", "content": t} for i, t in enumerate(texts)], **extra}
 
 
 def test_cache_logic():
+    FOLDER[0] = tempfile.mkdtemp()
     A = "a" * 300
     c = cache()
     CALLS.clear()
     info = c.before(req(A), "Bearer k")
     assert info["slot_cache_saved"] == 300 and info["slot_cache_gen_prompt_tokens"] == 2, info
+    sha = next(f[:-4] for f in os.listdir(FOLDER[0]) if f.endswith(".bin"))
+    assert os.path.exists(os.path.join(FOLDER[0], sha + ".bin.draft")), "B1: the .draft sidecar must be renamed with the .bin"
+    assert not [f for f in os.listdir(FOLDER[0]) if f.startswith("saving")], "temp save files left"
     CALLS.clear()
     assert "slot_cache_saved" not in c.before(req(A, "ANSWER", "b" * 20), "Bearer k")          # small growth: no save
     assert not any("slots" in p for p in CALLS)
@@ -97,26 +106,88 @@ def test_cache_logic():
     CALLS.clear()
     c2.before(req("hi"), "Bearer k")                                                          # short: nothing
     assert not any("slots" in p or p == "/completion" for p in CALLS), CALLS
-    CALLS.clear()
     info = c2.before(req("z" * 400), "Bearer k")                                              # other conversation
     assert "slot_cache_restored" not in info and info["slot_cache_saved"] == 400
-    assert not [f for f in os.listdir(FOLDER) if f.startswith("saving")], "temp save files left"
-    print("cache logic: ok")
+    print("cache logic + B1 sidecar rename: ok")
 
 
-def test_stream_keepalive():
+def test_b2_effort_in_template():
+    FOLDER[0] = tempfile.mkdtemp()
+    c = cache()
+    c.before(req("a" * 300, reasoning_effort="low"), "Bearer k")
+    c2 = cache()
+    info = c2.before(req("a" * 300, "ANS", "b" * 60, reasoning_effort="low"), "Bearer k")
+    assert info.get("slot_cache_restored"), "B2: reasoning_effort must reach /apply-template, so the saved prefix matches"
+    info = cache().before(req("a" * 300, "ANS", "b" * 60, reasoning_effort="high"), "Bearer k")
+    assert "slot_cache_restored" not in info, "another effort renders other tokens: no restore"
+    print("B2 reasoning_effort: ok")
+
+
+def test_b3_media_skipped():
+    FOLDER[0] = tempfile.mkdtemp()
+    CALLS.clear()
+    body = {"messages": [{"role": "user", "content": [{"type": "text", "text": "a" * 300},
+                                                      {"type": "image_url", "image_url": {"url": "data:,"}}]}]}
+    info = cache().before(body, "Bearer k")
+    assert info == {"slot_cache": "skipped (media)"} and CALLS == [], (info, CALLS)
+    print("B3 media skipped: ok")
+
+
+def test_n1_bad_env():
+    os.environ.update({"BONSAI_SLOT_SAVE_PATH": FOLDER[0], "BONSAI_SLOT_CACHE_MIN": "lots"})
+    try:
+        assert slot_cache.SlotCache.from_env(UP, log=lambda *a: None) is None, "N1: a bad value turns the cache off"
+    finally:
+        for k in ("BONSAI_SLOT_SAVE_PATH", "BONSAI_SLOT_CACHE_MIN"):
+            os.environ.pop(k, None)
+    print("N1 bad env -> cache off: ok")
+
+
+def test_n8_cleanup_and_index():
+    FOLDER[0] = tempfile.mkdtemp()
+    c = cache()
+    c.before(req("a" * 300), "Bearer k")
+    open(os.path.join(FOLDER[0], "saving-999.bin"), "wb").write(b"x")
+    open(os.path.join(FOLDER[0], "saving-999.bin.draft"), "wb").write(b"x")
+    orphan = "f" * 64
+    open(os.path.join(FOLDER[0], orphan + ".bin"), "wb").write(b"x")
+    open(os.path.join(FOLDER[0], "keep-me.bin"), "wb").write(b"x")      # not a cache name: left alone
+    with open(os.path.join(FOLDER[0], "index.jsonl"), "a") as f:
+        f.write("not json\n")
+    c2 = cache()
+    left = os.listdir(FOLDER[0])
+    assert len(c2.index) == 1, "N8: the bad index line must not lose the good entries"
+    assert not [f for f in left if f.startswith("saving-")] and orphan + ".bin" not in left and "keep-me.bin" in left, left
+    print("N8 cleanup + index: ok")
+
+
+def test_n9_equal_length():
+    FOLDER[0] = tempfile.mkdtemp()
+    c = cache()
+    full = [ord(ch) for ch in "a" * 300 + GEN]                     # the whole next request, generation prompt included
+    sha = slot_cache._sha(full)
+    open(os.path.join(FOLDER[0], sha + ".bin"), "wb").write(b"x")
+    c.index[sha] = {"n": len(full), "last": time.time(), "bytes": 1}
+    info = c.before(req("a" * 300), "Bearer k")
+    assert "slot_cache_restored" not in info, "N9: a state as long as the request itself must not be restored"
+    print("N9 equal length: ok")
+
+
+def start_layer(api_key=None):
     P = bonsai_layer.Proxy
-    P.upstream, P.keepalive = UP, 0.3
+    P.upstream, P.keepalive, P.api_key = UP, 0.3, api_key
     P.slots = slot_cache.SlotCache(UP, tempfile.mkdtemp(), min_tokens=100, grow=50, log=lambda *a: None, min_gain=10)
     lay = http.server.ThreadingHTTPServer(("127.0.0.1", 0), P)
     threading.Thread(target=lay.serve_forever, daemon=True).start()
-    DELAY[0] = 1.5                                                                            # a slow prefill-only call
+    return f"http://127.0.0.1:{lay.server_address[1]}", P
+
+
+def stream(url, auth=None, timeout=1.0):
     body = {"messages": [{"role": "user", "content": "a" * 300}], "stream": True,
             "tools": [{"type": "function", "function": {"name": "x", "parameters": {}}}]}
-    rq = urllib.request.Request(f"http://127.0.0.1:{lay.server_address[1]}/v1/chat/completions",
-                                data=json.dumps(body).encode(), headers={"Content-Type": "application/json"})
+    h = {"Content-Type": "application/json", **({"Authorization": auth} if auth else {})}
     t0 = time.time()
-    r = urllib.request.urlopen(rq, timeout=1.0)                                               # 1 s read timeout
+    r = urllib.request.urlopen(urllib.request.Request(url + "/v1/chat/completions", data=json.dumps(body).encode(), headers=h), timeout=timeout)
     first, data = None, b""
     while True:
         chunk = r.read1(4096)
@@ -124,12 +195,45 @@ def test_stream_keepalive():
             break
         first = first if first is not None else time.time() - t0
         data += chunk
-    DELAY[0] = 0.0
+    return first, data
+
+
+def test_stream_keepalive_and_n3():
+    url, P = start_layer()
+    DELAY[0] = 1.5                                                    # a slow prefill-only call
+    first, data = stream(url)
     assert first < 1.0 and data.count(b'"content"') == 2 and b"[DONE]" in data and b": keep-alive" in data
-    print(f"stream keep-alive: ok (first bytes after {first:.2f} s)")
+    # N3: a second streamed request while the first holds the lock gets its headers + keep-alive at once
+    res = {}
+    P.slots = slot_cache.SlotCache(UP, tempfile.mkdtemp(), min_tokens=100, grow=50, log=lambda *a: None, min_gain=10)
+    th = threading.Thread(target=lambda: res.setdefault("a", stream(url, timeout=5.0)))
+    th.start()
+    time.sleep(0.2)
+    first_b, data_b = stream(url, timeout=1.0)                        # 1 s read timeout while A holds the slot ~1.5 s
+    th.join()
+    DELAY[0] = 0.0
+    assert first_b < 1.0 and b"[DONE]" in data_b, first_b
+    print(f"stream keep-alive: ok (first bytes after {first:.2f} s); N3 second stream first bytes after {first_b:.2f} s")
+
+
+def test_n6_unauthenticated():
+    url, P = start_layer(api_key="secret")
+    CALLS.clear()
+    try:
+        stream(url, auth="Bearer wrong", timeout=2.0)
+    except Exception:
+        pass
+    assert "/apply-template" not in CALLS and P.slots.held == [], "N6: a request with a wrong key must not touch the cache"
+    print("N6 unauthenticated request: ok")
 
 
 if __name__ == "__main__":
     test_cache_logic()
-    test_stream_keepalive()
+    test_b2_effort_in_template()
+    test_b3_media_skipped()
+    test_n1_bad_env()
+    test_n8_cleanup_and_index()
+    test_n9_equal_length()
+    test_stream_keepalive_and_n3()
+    test_n6_unauthenticated()
     print("ALL OK")
