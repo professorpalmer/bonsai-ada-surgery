@@ -93,9 +93,10 @@ def test_cache_logic():
     CALLS.clear()
     info = c.before(req(A), "Bearer k")
     assert info["slot_cache_saved"] == 300 and info["slot_cache_gen_prompt_tokens"] == 2, info
-    sha = next(f[:-4] for f in os.listdir(FOLDER[0]) if f.endswith(".bin"))
-    assert os.path.exists(os.path.join(FOLDER[0], sha + ".bin.draft")), "B1: the .draft sidecar must be renamed with the .bin"
-    assert not [f for f in os.listdir(FOLDER[0]) if f.startswith("saving")], "temp save files left"
+    name = next(f for f in os.listdir(FOLDER[0]) if f.endswith(".bin"))
+    assert name.startswith("lc-"), "R2: cache files carry the lc- prefix"
+    assert os.path.exists(os.path.join(FOLDER[0], name + ".draft")), "B1: the .draft sidecar must be renamed with the .bin"
+    assert not [f for f in os.listdir(FOLDER[0]) if "saving" in f], "temp save files left"
     CALLS.clear()
     assert "slot_cache_saved" not in c.before(req(A, "ANSWER", "b" * 20), "Bearer k")          # small growth: no save
     assert not any("slots" in p for p in CALLS)
@@ -147,17 +148,21 @@ def test_n8_cleanup_and_index():
     FOLDER[0] = tempfile.mkdtemp()
     c = cache()
     c.before(req("a" * 300), "Bearer k")
-    open(os.path.join(FOLDER[0], "saving-999.bin"), "wb").write(b"x")
-    open(os.path.join(FOLDER[0], "saving-999.bin.draft"), "wb").write(b"x")
-    orphan = "f" * 64
+    open(os.path.join(FOLDER[0], "lc-saving-999.bin"), "wb").write(b"x")
+    open(os.path.join(FOLDER[0], "lc-saving-999.bin.draft"), "wb").write(b"x")
+    orphan = "lc-" + "f" * 64
     open(os.path.join(FOLDER[0], orphan + ".bin"), "wb").write(b"x")
     open(os.path.join(FOLDER[0], "keep-me.bin"), "wb").write(b"x")      # not a cache name: left alone
-    with open(os.path.join(FOLDER[0], "index.jsonl"), "a") as f:
+    users = "e" * 64 + ".bin"                                          # a user's own save named by sha256: left alone (R2)
+    open(os.path.join(FOLDER[0], users), "wb").write(b"x")
+    open(os.path.join(FOLDER[0], "saving-1.bin"), "wb").write(b"x")    # a user's file without the prefix: left alone
+    with open(os.path.join(FOLDER[0], "lc-index.jsonl"), "a") as f:
         f.write("not json\n")
     c2 = cache()
     left = os.listdir(FOLDER[0])
     assert len(c2.index) == 1, "N8: the bad index line must not lose the good entries"
-    assert not [f for f in left if f.startswith("saving-")] and orphan + ".bin" not in left and "keep-me.bin" in left, left
+    assert not [f for f in left if f.startswith("lc-saving-")] and orphan + ".bin" not in left, left
+    assert "keep-me.bin" in left and users in left and "saving-1.bin" in left, left
     print("N8 cleanup + index: ok")
 
 
@@ -166,7 +171,7 @@ def test_n9_equal_length():
     c = cache()
     full = [ord(ch) for ch in "a" * 300 + GEN]                     # the whole next request, generation prompt included
     sha = slot_cache._sha(full)
-    open(os.path.join(FOLDER[0], sha + ".bin"), "wb").write(b"x")
+    open(os.path.join(FOLDER[0], "lc-" + sha + ".bin"), "wb").write(b"x")
     c.index[sha] = {"n": len(full), "last": time.time(), "bytes": 1}
     info = c.before(req("a" * 300), "Bearer k")
     assert "slot_cache_restored" not in info, "N9: a state as long as the request itself must not be restored"
@@ -216,6 +221,17 @@ def test_stream_keepalive_and_n3():
     print(f"stream keep-alive: ok (first bytes after {first:.2f} s); N3 second stream first bytes after {first_b:.2f} s")
 
 
+def test_r1_keepalive_zero():
+    url, P = start_layer()
+    P.keepalive = 0
+    CALLS.clear()
+    stream(url, timeout=5.0)
+    P.keepalive = 0.3
+    assert "/apply-template" in CALLS and "/completion" in CALLS, "R1: with --keepalive 0 the check still runs"
+    assert CALLS.index("/completion") < CALLS.index("/v1/chat/completions"), CALLS
+    print("R1 keepalive 0: ok")
+
+
 def test_n6_unauthenticated():
     url, P = start_layer(api_key="secret")
     CALLS.clear()
@@ -235,5 +251,6 @@ if __name__ == "__main__":
     test_n8_cleanup_and_index()
     test_n9_equal_length()
     test_stream_keepalive_and_n3()
+    test_r1_keepalive_zero()
     test_n6_unauthenticated()
     print("ALL OK")

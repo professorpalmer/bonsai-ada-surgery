@@ -285,8 +285,15 @@ class Proxy(http.server.BaseHTTPRequestHandler):
 
     def _stream(self, method, body):
         """Relay a streamed (SSE) response as it arrives."""
-        if self._slots_on(body) and self.keepalive > 0:
-            return self._stream_early(method, body)
+        if self._slots_on(body):
+            if self.keepalive > 0:
+                return self._stream_early(method, body)
+            with self.slots.lock:   # --keepalive 0: no early headers, but the check and the slot lock still apply (review R1)
+                self._slots_check(body)
+                return self._stream_plain(method, body)
+        return self._stream_plain(method, body)
+
+    def _stream_plain(self, method, body):
         headers = {k: v for k, v in self.headers.items() if k.lower() in ("authorization", "content-type")}
         req = urllib.request.Request(self.upstream + self.path, data=body, method=method, headers=headers)
         try:

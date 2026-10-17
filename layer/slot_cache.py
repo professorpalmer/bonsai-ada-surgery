@@ -40,6 +40,7 @@ NOT_TEMPLATE = {"stream", "stream_options", "temperature", "top_p", "top_k", "mi
                 "mirostat", "mirostat_tau", "mirostat_eta", "dry_multiplier", "dry_base", "dry_allowed_length",
                 "xtc_probability", "xtc_threshold", "timings_per_token", "return_progress", "metadata", "store"}
 SHA_RE = re.compile(r"^[0-9a-f]{64}$")
+PREFIX = "lc-"   # every file the cache writes starts with this, so the cleanup never touches a user's own slot files (review R2)
 
 
 def _sha(tokens):
@@ -66,7 +67,7 @@ class SlotCache:
         self.lock = threading.RLock()
         self.held = []                 # tokens the server's slot is known to start with
         os.makedirs(self.folder, exist_ok=True)
-        self.index_path = os.path.join(self.folder, "index.jsonl")
+        self.index_path = os.path.join(self.folder, PREFIX + "index.jsonl")
         self.index = {}                # sha -> {"n": tokens, "last": time, "bytes": size}
         self._load_index()
         self._clean()
@@ -88,12 +89,16 @@ class SlotCache:
             return None
 
     # ---- files and index --------------------------------------------------------------------------------------
+    @staticmethod
+    def _name(sha):
+        return PREFIX + sha + ".bin"
+
     def _bin(self, sha):
-        return os.path.join(self.folder, sha + ".bin")
+        return os.path.join(self.folder, self._name(sha))
 
     def _files(self, sha):
         b = self._bin(sha)
-        return (b, b + ".draft", os.path.join(self.folder, sha + ".tok"))
+        return (b, b + ".draft", os.path.join(self.folder, PREFIX + sha + ".tok"))
 
     def _load_index(self):
         try:
@@ -117,13 +122,15 @@ class SlotCache:
                 continue
 
     def _clean(self):
-        """Remove crash leftovers (saving-* files) and cache files that the index does not list (review N8). Only files
-        with the cache's own names are touched."""
+        """Remove crash leftovers (lc-saving-* files) and cache files that the index does not list (review N8). Only files
+        with the cache's own prefix (lc-) are touched: the folder is also the server's --slot-save-path (review R2)."""
         try:
             for f in os.listdir(self.folder):
+                if not f.startswith(PREFIX) or f == PREFIX + "index.jsonl":
+                    continue
                 p = os.path.join(self.folder, f)
-                stem = f.split(".", 1)[0]
-                if f.startswith("saving-") or (SHA_RE.match(stem) and stem not in self.index):
+                stem = f[len(PREFIX):].split(".", 1)[0]
+                if f.startswith(PREFIX + "saving-") or (SHA_RE.match(stem) and stem not in self.index):
                     try:
                         os.remove(p)
                     except OSError:
@@ -210,7 +217,7 @@ class SlotCache:
         if best_sha and best_n >= common + self.min_gain:
             try:
                 t1 = time.time()
-                self._post("/slots/0?action=restore", {"filename": best_sha + ".bin"}, auth)
+                self._post("/slots/0?action=restore", {"filename": self._name(best_sha)}, auth)
                 self.index[best_sha]["last"] = time.time()
                 self._note({"sha": best_sha, **self.index[best_sha]})
                 common = best_n
@@ -220,7 +227,7 @@ class SlotCache:
             except Exception as e:
                 self.log("restore failed:", repr(e))
         if len(base) < len(toks) and len(base) - max(best_n, 0) >= self.grow:
-            tmp = "saving-%d.bin" % os.getpid()
+            tmp = PREFIX + "saving-%d.bin" % os.getpid()
             try:
                 for p in (tmp, tmp + ".draft"):   # a stale sidecar from a crashed save must not be renamed with this one
                     try:
