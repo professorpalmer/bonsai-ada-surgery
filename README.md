@@ -117,6 +117,15 @@ the tiered-KV runtime are detected and get the previous 96k all-VRAM recipe.
 
 ### Upgrading from an older bundle
 
+`bundle-20261017b` adds a **spill guard** to the launcher (no engine change). When the card becomes full after the
+server starts (a browser, a game or a second model takes VRAM, or the NVIDIA driver moves server memory to system
+RAM), the server does not stop: it becomes much slower, or a later long prompt fails with "CUDA error: out of
+memory". On an RTX 2060 SUPER a 200 MiB program after the start took prompt reads from ~400 to 70 tok/s. The launcher
+now prints a `spill` line in its window when this happens (`BONSAI_SPILL_GUARD=0` turns it off; see the knob table).
+It also has the layer's **read ahead**: a chat request with `"prefill_only": true` reads and saves a long prompt (a
+big file or a repo) ahead of the question, so the question itself answers in seconds (2060: a 131k document, then
+6.25 s for the question after a restart; needs `BONSAI_SLOT_SAVE_PATH`).
+
 `bundle-20261017` makes **saved conversations work on every card, and automatic with the layer** (patches 0062-0066,
 layer cache #157). With `BONSAI_SLOT_SAVE_PATH` set, a long conversation is saved to disk and comes back after a restart
 in seconds instead of a cold read: on an RTX 2060 SUPER a **199k-token conversation answers ~6 s after a server restart**
