@@ -31,6 +31,13 @@ guard G4 / G5 tests with the forward-slash fault that made three runs void, the 
 [`experiments/events-p162-p168.md`](experiments/events-p162-p168.md), E67-E75. `REPORT.md` is not updated for this
 range yet.
 
+P169 to P182 (2026-10-17: T4-A on the 2060, the text-match and small-model selectors on two fixed ~240k sets, the R4
+check of bundle-20261017b, the PTQ1_0 matmul on sm_75, and T5, a windowed prefill with dense question rows, from the mask
+screen to the exact run skip and the window-32k candidate at ~1.78x; a rig drift between two numeric states) are in
+[`experiments/index-p169-p182.md`](experiments/index-p169-p182.md) and
+[`experiments/events-p169-p182.md`](experiments/events-p169-p182.md), E76-E87. The P170 sets are in `data/p170/`.
+`REPORT.md` is not updated for this range yet.
+
 | Path | What |
 | --- | --- |
 | `REPORT.md` | Bottom line, what shipped, what was rejected, results by day, open items |
@@ -39,10 +46,12 @@ range yet.
 | `experiments/index-*.md` | One row per experiment |
 | [`experiments/index-p133-p155.md`](experiments/index-p133-p155.md) | P133-P155b (events: [`experiments/events-p133-p155.md`](experiments/events-p133-p155.md), E38-E56) |
 | [`experiments/index-p156-p161.md`](experiments/index-p156-p161.md) | P156-P161 (events: [`experiments/events-p156-p161.md`](experiments/events-p156-p161.md), E57-E66) |
-| [`experiments/index-p162-p168.md`](experiments/index-p162-p168.md) | The latest range: P162-P168 (events: [`experiments/events-p162-p168.md`](experiments/events-p162-p168.md), E67-E75) |
+| [`experiments/index-p162-p168.md`](experiments/index-p162-p168.md) | P162-P168 (events: [`experiments/events-p162-p168.md`](experiments/events-p162-p168.md), E67-E75) |
+| [`experiments/index-p169-p182.md`](experiments/index-p169-p182.md) | The latest range: P169-P182 (events: [`experiments/events-p169-p182.md`](experiments/events-p169-p182.md), E76-E87) |
 | `runs.jsonl` | One JSON line per experiment: id, date, card, engine commit, script, env, metrics, verdict, receipts (same fields as `../depth-20261010/runs.jsonl`, for comparing future models and engines) |
 | `experiments/events-*.md` | Entries that are not experiments: incidents, rig baseline changes, releases, PRs, coordination, decisions |
 | `NOTEBOOK.md` | The full lab notebook, in time order, unchanged (plans, results, corrections, incidents) |
+| `data/p170/` | The P170 sets (`prose.json`, `code.json`: document + 24 items each) and the P171 chunk scores (`scores_code.json`, `scores_prose.json`), as used by `scripts/p170_drive.py` (which reads them from `C:/bonsai/8gb/p170/`) |
 | `scripts/` | Every script that ran an experiment: `pNN.sh`, `queue/NN-pNN-*.sh` (queue jobs), probes (`*.py`), `benchx/`, launch helpers (`serve.ps1`, `run_arm.sh`, `stop.ps1`), queue runner and fillers, Afterburner profile tools, the CPU attention bench |
 | `results-raw.zip` | Every receipt (1,120 files): `receipts/pNN/` summaries, per-run JSON lines, server command lines, text compares. The API key is redacted |
 | `releases/` | Release notes of the 8 GB bundles checked on this card |
