@@ -15,3 +15,11 @@ On an RTX 2060 SUPER a 200 MiB program after the start took prompt reads from ~4
 | R3 the guard from the zip | 4070, staged zip, `BONSAI_8GB=1`, line 80,640 | a ballast after `/health` (card full): the `spill` line within 45 s |
 | R4 2060 post-zip | 2060 agent | sha match; defaults: one cold 64k read within 2 % of P168 and 0 `spill` lines; one small ballast: the line |
 | R5 publish | - | GitHub release `bundle-20261017b` + Hugging Face, the same SHA on both; README upgrade note |
+
+## Amendment (before the gates; found by the zip build)
+
+The release commit also carries the layer read-ahead (PR #159, merged after bundle-20261017): `layer/bonsai_layer.py`
+and `layer/slot_cache.py` change (a chat request with `"prefill_only": true` reads and saves a prompt ahead of the
+question). It is reviewed and was tested as served on the 2060 (P162 read ahead PASS, P164 overnight soak PASS, P165
+demo clip PASS). So it ships here. R1 now allows those two files too; added: `tests/test_slot_cache.py` ALL OK at the
+release commit, and README / release notes name it.
