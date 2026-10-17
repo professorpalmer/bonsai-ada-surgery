@@ -125,3 +125,12 @@ shrinks during a cold read and grows back: 0; squeeze / over / squeeze: 2 lines;
 recipe with +150: 0; free unknown: 0. Live (the T4 test server, 20 s at 2 s): 0 lines, 0 errors; with StartAfter in
 the future the guard does not attach to the running server. Launcher parse 0 errors.
 Open: G3 again on the 4070 (after the T4 runs) and a 1 h soak on the 2060 with the display on that card.
+
+## G5 soak on the 2060 (P168, #138; launcher v5 `7e4ac46`): PASS
+
+One hour, defaults, the display on the 2060, a browser playing a 1080p clip + a WebGL animation on the same card the
+whole time. Cold 128k 239.2 tok/s (P167b 240.6, -0.6 %); cold 64k x3 309.3 / 309.4 / 309.6 tok/s; short requests
+0.5-2.2 s; **0 spill lines** in the hour; trace min free 86 MiB; 0 CUDA errors. At the end a small ballast (18 MiB,
+free 118 -> 86 MiB): **1 line** ("other programs took 191 MiB ... 86 MiB free"; the browser's committed memory had
+grown by ~170 MiB in the hour without changing the free VRAM, so the sum includes it). The guard was alive after an
+hour of normal desktop load. All gates G1-G5 pass.
