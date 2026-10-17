@@ -30,3 +30,16 @@ nothing. README: one row and the NVIDIA setting.
   within 30 s of the slowdown.
 - G4 2060 (8 GB, the 2060 agent): the zip launcher with defaults, a cold 128k read: 0 spill lines; and one squeezed
   arm: the line appears.
+
+## Amendment (before the GPU runs)
+
+- Limit: the base is the server's shared usage at the first good `/health`, so a spill that happens at load (a VRAM
+  line pinned above the free VRAM, as in T1-g) is in the base and gives no line. The launcher's own line is sized
+  from the free VRAM at start, so this needs a pinned line or a program that grows between the check and the load.
+  The guard covers the case the README names: VRAM taken after the start.
+- G2 arms alternate guard on / off / on / off (8 GB preset, line 80,640, layer off, cold 128k + decode via
+  quick_tps), then one default 12 GB arm with the guard on.
+- G3: the 8 GB preset, line 80,640; after `/health` a torch ballast takes all but ~100 MiB of the free VRAM, then a
+  cold 64k read (the compute pool grows into a full card). PASS: if the read is slower than G2 by > 3x, the spill line
+  is in the launcher log; if the read is not slow (the ballast spilled, not the server), G3 is inconclusive and is
+  reported as such.
