@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+# P156 (#138 T2a-2, the kernel session's plan 11:03Z, sm_75 only): GGML_CUDA_FA_PREFILL_NCOLS2=2 gated on quality, not identity.
+# Engine t2-prefill 2724a8349 (bin-t2, P154 build). Order, stop at the first fail (gates as declared by the kernel session):
+#   Q1 PPL + KL at 4k and 16k vs default (NCOLS2 unset): KL <= 0.001, same top-1 >= 99.5 %, PPL within +-0.2 %.
+#      llama-perplexity, wiki.test.raw, q3_0 K/V (the 8 GB default), -b 2048 -ub 512, the 8 GB preset's FA env
+#      (GGML_CUDA_FA_PREFILL_F16=32768, GGML_CUDA_FA_CHUNK=32768). 4k: 16 chunks; 16k: 4 chunks.
+#   Q3 a cold 245k pair, fresh server each, zip launcher defaults: t2 vs default >= 1.10x on TTFT.
+#   Q2 245k items: code_needle n 20, needle_depth n 24 and n 28, fresh server per test, t2 vs default on the same bins:
+#      item by item equal.
+export QTPS_TIMEOUT=10800
+cd /c/bonsai/8gb; R=receipts/p156; mkdir -p $R
+S=/c/bonsai/bonsai-ada-surgery; B=$S/bin-t2; E=$S/artifacts/eval
+M=$S/models/Ternary-Bonsai-2-27B-PTQ1_0.gguf
+powershell -NoProfile -ExecutionPolicy Bypass -File stop.ps1 >/dev/null 2>&1
+export GGML_CUDA_FA_PREFILL_F16=32768 GGML_CUDA_FA_CHUNK=32768
+q1() {   # $1 ctx, $2 chunks
+  local base=$R/kl_base_$1.bin
+  ( cd $B && ./llama-perplexity.exe -m "$(cygpath -w $M)" -f "$(cygpath -w $E/wiki.test.raw)" -c $1 --chunks $2 -b 2048 -ub 512 -ngl 99 -fa on \
+      -ctk q3_0 -ctv q3_0 --kl-divergence-base "$(cygpath -w $base)" ) > $R/ppl_def_$1.log 2>&1
+  ( cd $B && GGML_CUDA_FA_PREFILL_NCOLS2=2 ./llama-perplexity.exe -m "$(cygpath -w $M)" -f "$(cygpath -w $E/wiki.test.raw)" -c $1 --chunks $2 -b 2048 -ub 512 \
+      -ngl 99 -fa on -ctk q3_0 -ctv q3_0 --kl-divergence --kl-divergence-base "$(cygpath -w $base)" ) > $R/ppl_t2_$1.log 2>&1
+  rm -f $base; }
+q1 4096 16; q1 16384 4
+python - "$(cygpath -w $R)" > $R/q1.txt <<'PY'
+import re, os, sys
+R = sys.argv[1]; ok = True
+for c in (4096, 16384):
+    d = open(os.path.join(R, f'ppl_def_{c}.log'), encoding='utf-8', errors='replace').read()
+    t = open(os.path.join(R, f'ppl_t2_{c}.log'), encoding='utf-8', errors='replace').read()
+    pd = re.findall(r'Final estimate: PPL = ([\d.]+)', d); kl = re.search(r'Mean\s+KLD:\s+([\d.]+)', t)
+    top = re.search(r'Same top p:\s+([\d.]+)', t); pt = re.search(r'Mean PPL\(Q\)\s+:\s+([\d.]+)', t)
+    ppl_d = float(pd[-1]) if pd else None; ppl_t = float(pt.group(1)) if pt else None
+    kld = float(kl.group(1)) if kl else None; same = float(top.group(1)) if top else None
+    dp = (ppl_t / ppl_d - 1) * 100 if ppl_d and ppl_t else None
+    g = kld is not None and kld <= 0.001 and same is not None and same >= 99.5 and dp is not None and abs(dp) <= 0.2
+    ok = ok and g
+    print(f'{c}: PPL def {ppl_d} t2 {ppl_t} ({dp if dp is None else round(dp, 3)} %); mean KLD {kld}; same top-1 {same} %: {"PASS" if g else "FAIL"}')
+print('Q1', 'PASS' if ok else 'FAIL')
+PY
+unset GGML_CUDA_FA_PREFILL_F16 GGML_CUDA_FA_CHUNK
+cp $R/q1.txt $R/summary.txt
+grep -q "^Q1 PASS" $R/q1.txt || { echo "stop: Q1 failed" >> $R/summary.txt; exit 0; }
+# Q3
+BIN='C:/bonsai/bonsai-ada-surgery/bin-t2'; L='C:/bonsai/bonsai-ada-surgery/start-server-1016test.ps1'
+V="BONSAI_BIN=$BIN;BONSAI_LAYER=0"; T="$V;GGML_CUDA_FA_PREFILL_NCOLS2=2"
+bash run_arm.sh $R def_245 "$V" "$L" "245000"; bash run_arm.sh $R t2_245 "$T" "$L" "245000"
+python - "$(cygpath -w $R)" > $R/q3.txt <<'PY'
+import re, os, sys
+R = sys.argv[1]; v = {}
+for a in ('def', 't2'):
+    m = re.search(r'code\s+depth\s+245000 \(evaluated (\d+)\): prefill\s+([\d.]+) tok/s\s+ttft\s+([\d.]+)s', open(os.path.join(R, f'{a}_245.txt'), encoding='utf-8', errors='replace').read())
+    v[a] = float(m.group(3)) if m else None
+    print(a, m.groups() if m else None)
+r = v['def'] / v['t2'] if v['def'] and v['t2'] else None
+print('ratio', r, 'Q3', 'PASS' if r and r >= 1.10 else 'FAIL')
+PY
+cat $R/q3.txt >> $R/summary.txt
+grep -q "Q3 PASS" $R/q3.txt || { echo "stop: Q3 failed" >> $R/summary.txt; exit 0; }
+# Q2
+KEY=C:/bonsai/bonsai-ada-surgery/artifacts/api_key.txt
+serve() { powershell -NoProfile -ExecutionPolicy Bypass -File stop.ps1 >/dev/null 2>&1
+  schtasks //run //tn BonsaiAB_P3 >/dev/null; sleep 4; schtasks //run //tn BonsaiAB_P5 >/dev/null; sleep 6
+  powershell -NoProfile -ExecutionPolicy Bypass -File serve.ps1 -Tag p156_$1 -Launcher "$L" -Vars "$2" >/dev/null 2>&1
+  for i in $(seq 1 120); do curl -s localhost:8080/health | grep -q ok && break; sleep 5; done; }
+for arm in def t2; do VA="$V"; [ $arm = t2 ] && VA="$T"
+  serve ${arm}_code "$VA"; PYTHONUTF8=1 python benchx/code_needle.py --key-file $KEY --depth 245000 --n 20 --tag ${arm}_245000 --out $R/code.jsonl > $R/${arm}_code.txt 2>&1
+  serve ${arm}_n24 "$VA"; PYTHONUTF8=1 python benchx/needle_depth.py --key-file $KEY --depth 245000 --n 24 --tag ${arm}_245000 --out $R/needle24.jsonl > $R/${arm}_n24.txt 2>&1
+  serve ${arm}_n28 "$VA"; PYTHONUTF8=1 python benchx/needle_depth.py --key-file $KEY --depth 245000 --n 28 --tag ${arm}_245000 --out $R/needle28.jsonl > $R/${arm}_n28.txt 2>&1
+done
+powershell -NoProfile -ExecutionPolicy Bypass -File stop.ps1 >/dev/null 2>&1
+python - <<'PY' >> $R/summary.txt
+import json
+for f in ('code', 'needle24', 'needle28'):
+    rows = [json.loads(l) for l in open(f'receipts/p156/{f}.jsonl') if '"ok"' in l]
+    by = {}
+    for r in rows:
+        k = (r.get('file'), r.get('fn') or r.get('vault'), r.get('position_frac'))
+        by.setdefault(r['tag'].split('_')[0], {})[k] = r['ok']
+    d, t = by.get('def', {}), by.get('t2', {})
+    diff = [k for k in set(d) | set(t) if d.get(k) != t.get(k)]
+    print(f, 'def', sum(d.values()), '/', len(d), 't2', sum(t.values()), '/', len(t), 'item diffs', diff)
+PY

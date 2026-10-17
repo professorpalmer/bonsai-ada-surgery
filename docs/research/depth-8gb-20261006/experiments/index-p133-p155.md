@@ -9,6 +9,8 @@ are in `events-p133-p155.md`, E38-E56. The previous range is `index-p116-p132.md
 State at the time of writing: 2026-10-16 after 08:10 (last notebook entry "08:10 CDT T1-c v2 ..."), P155 running;
 pending: P155b, P156, P152, P149b (queue 69jea7, 69jea8, 69jeb, 69jf). P156 (T2a-2 quality gates on bin-t2) is outside
 this range.
+Next range: [`index-p156-p161.md`](index-p156-p161.md) ([P156](P156.md)); the P155 / P155b rows below were updated
+with their results.
 
 Results of earlier-range runs that finished in this time span are in the notebook, not in their records (which stay
 "plan only" in `index-p116-p132.md`): P127 (entry "P127 (result): int8 bounds ..."), P129, P130, P131 (entries "P129
@@ -41,5 +43,5 @@ Update restart ..."). P119 and P120 ran 2026-10-15 14:05-15:43 (queue log) with 
 | [P152](P152.md) | pending (queue 69jeb) | BONSAI_CTX 131k vs 262k at 4k-128k | OPEN (plan only) | Rule: 262k within 2 % of 131k at every depth -> "the full window costs nothing up to 128k" |
 | [P153](P153.md) | 2026-10-16 06:25-07:24 | T1-b on the 2060: slot save, restore on a fresh server, continue | PASS (G1-G4) | B2 == D2 at 64k / 131k / 245k; restore + prompt 1.85 / 2.75 / 5.23 s (cold 229.6 / 611.4 / 1,688.9 s); thinking on: full re-read (234.36 s) |
 | [P154](P154.md) | 2026-10-16 04:34-05:54 | T2a on sm_75: NCOLS2=2 prefill attention | DONE | 4k answers identical; cold TTFT 64k 221.2 -> 207.2 s (1.067x), 128k 589.1 -> 530.8 s (1.110x); decode same |
-| [P155](P155.md) | running from 2026-10-16 07:24 | T1-c: automatic saved conversations in the layer | OPEN (running; plan only) | Gates E1 (restart = memory, prompt_n <= new + 512), E3 (edited history re-read), S (4k unchanged), thinking-on report |
-| [P155b](P155.md#p155b) | pending (queue 69jea7) | T1-c v2: save before the generation prompt, n_saved from the server | OPEN (plan only) | P155 gates + n_saved == prefill count; prompt_n after restore <= new + generation prompt + 512; thinking-on pair gated |
+| [P155](P155.md) | 2026-10-16 07:24-08:22 | T1-c: automatic saved conversations in the layer | FAIL (engine crash after restore; result added later) | R1 = M1, 4k unchanged; R2 crashed after the restore at 131k + ~4k (ggml-cuda.cu:109); thinking on: no restore (v1 save point) |
+| [P155b](P155.md#p155b) | 2026-10-16 08:22-09:39 | T1-c v2: save before the generation prompt, n_saved from the server | Layer PASS, engine FAIL (result added later) | n_saved 130,480 / 65,604; answers = memory, E3, S; R4 / RT2 crashed after a restore; R2 read at 12.27 tok/s |
