@@ -54,3 +54,11 @@ commit's files (9 files changed: README, launcher, 7 engine binaries): 616,655,3
 `fe5a3845fe7bef2d813bd385e47c5e818628eacf0427332ab7b8275f9c843f6b`. GitHub release `bundle-20261016b` and Hugging Face
 (`CaryPalmer/Ternary-Bonsai-2-27B-262k-GGUF`, zip + card) show the same SHA. Card PR #154. Bins installed in the
 4070 product folder (backup `bin-ab94810051`). The 2060 post-zip check (cold 245k with defaults) was asked on #105.
+
+## R7 post-zip check on the 2060 (P161, #138 comment 6227607314): pass
+
+Zip 616,655,338 B, sha256 match; zip launcher 0 control bytes; build 10802, commit `9fae15924e`; FA 3115/3115, GET_ROWS
+123/123, SET_ROWS 177/177. Zip launcher defaults: q3_0, line 80,640, sparse auto. **Cold 128k 536.8 s** (237.2 tok/s;
+bundle-20261016 589.1 s: 1.098x; the amendment asked for a cold 245k read, the 2060 ran 128k, which shows the same
+gain as P154 / P156c). Second server: 4k 52.6, 64k 40.6 tok/s (P150 54.0 / 41.1, within 3 %). 0 one-token answers.
+With this, every R7 item of the amended plan is done.

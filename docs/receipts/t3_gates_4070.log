@@ -1,0 +1,30 @@
+19:40 === T3 gates (4070) start: commit 0ef8c83d93
+19:40 server g0_dense: health=1 (); kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; sh
+G0 dense hash 46b54edbc2c98f51 742
+G0 dense hash a74075688a72a22b 651
+G0 dense hash be7a32213f2a9fac 130
+G0 dense hash all 1370fc25030ce635
+19:40 server g0_t3: health=1 (GGML_CUDA_FA_PREFILL_SPARSE=0.5 GGML_CUDA_FA_PREFILL_SPARSE_QTILE=64 GGML_CUDA_FA_PREFILL_SPARSE_STAT=1); kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; sh
+G0 t3 hash 46b54edbc2c98f51 742
+G0 t3 hash a74075688a72a22b 651
+G0 t3 hash be7a32213f2a9fac 130
+G0 t3 hash all 1370fc25030ce635
+19:41 server g2_dense_copies: health=1 (); kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; sh
+{"tag": "g2_dense_copies", "depth": 245000, "correct": 19, "correct_lead": 20, "of": 20}
+19:51 g2_dense_copies: clock 11751 MHz; T3 lines 0; CUDA errors 0
+19:51 server g2_t3_copies: health=1 (GGML_CUDA_FA_PREFILL_SPARSE=0.5 GGML_CUDA_FA_PREFILL_SPARSE_QTILE=64 GGML_CUDA_FA_PREFILL_SPARSE_STAT=1); kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; sh
+{"tag": "g2_t3_copies", "depth": 245000, "correct": 19, "correct_lead": 20, "of": 20}
+20:00 g2_t3_copies: clock 11751 MHz; T3 lines 6; CUDA errors 0
+20:00 server g2_dense_n24: health=1 (); kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; sh
+{"tag": "g2_dense_n24", "depth": 245000, "correct": 24, "of": 24}
+20:09 g2_dense_n24: clock 11751 MHz; T3 lines 0; CUDA errors 0
+20:09 server g2_t3_n24: health=1 (GGML_CUDA_FA_PREFILL_SPARSE=0.5 GGML_CUDA_FA_PREFILL_SPARSE_QTILE=64 GGML_CUDA_FA_PREFILL_SPARSE_STAT=1); kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; sh
+{"tag": "g2_t3_n24", "depth": 245000, "correct": 22, "of": 24}
+20:16 g2_t3_n24: clock 11751 MHz; T3 lines 6; CUDA errors 0
+20:17 server g2_dense_n28: health=1 (); kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; sh
+{"tag": "g2_dense_n28", "depth": 245000, "correct": 28, "of": 28}
+20:26 g2_dense_n28: clock 11751 MHz; T3 lines 0; CUDA errors 0
+20:26 server g2_t3_n28: health=1 (GGML_CUDA_FA_PREFILL_SPARSE=0.5 GGML_CUDA_FA_PREFILL_SPARSE_QTILE=64 GGML_CUDA_FA_PREFILL_SPARSE_STAT=1); kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; sh
+{"tag": "g2_t3_n28", "depth": 245000, "correct": 28, "of": 28}
+20:34 g2_t3_n28: clock 11751 MHz; T3 lines 6; CUDA errors 0
+20:34 === T3 gates (4070) done
