@@ -67,7 +67,8 @@ class Fake(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         S["calls"].append("GET " + self.path)
         if self.path == "/slots":
-            return self._send([{"id": 0, "n_prompt_tokens": len(S["slot"]), "n_prompt_tokens_cache": S["cached"]}])
+            # the real server resets its per-request counts when the task ends: only the slot size stays
+            return self._send([{"id": 0, "n_prompt_tokens": len(S["slot"]), "n_prompt_tokens_cache": 0}])
         self._send({})
 
     def do_POST(self):
@@ -81,7 +82,7 @@ class Fake(http.server.BaseHTTPRequestHandler):
             assert b["n_predict"] == 0
             S["cached"] = common(S["slot"], b["prompt"])
             S["slot"] = list(b["prompt"])
-            return self._send({})
+            return self._send({"timings": {"cache_n": S["cached"]}})
         if self.path == "/v1/chat/completions":
             p = toks(render(b["messages"]))
             S["cached"] = common(S["slot"], p)
@@ -92,13 +93,14 @@ class Fake(http.server.BaseHTTPRequestHandler):
                 self.send_header("Content-Type", "text/event-stream")
                 self.send_header("Connection", "close")
                 self.end_headers()
-                self.wfile.write(b"data: " + json.dumps({"choices": [{"delta": {"content": a}}]}).encode() + b"\n\n")
+                self.wfile.write(b"data: " + json.dumps({"choices": [{"delta": {"content": a}}], "timings": {"cache_n": S["cached"]}}).encode() + b"\n\n")
                 self.wfile.write(b"data: [DONE]\n\n")
                 self.wfile.flush()
                 self.close_connection = True
                 return
             return self._send({"choices": [{"index": 0, "finish_reason": "stop",
-                                            "message": {"role": "assistant", "content": a}}]})
+                                            "message": {"role": "assistant", "content": a}}],
+                               "timings": {"cache_n": S["cached"], "prompt_n": len(p) - S["cached"]}})
         if self.path.startswith("/slots/0?action=save"):
             with open(os.path.join(S["folder"], b["filename"]), "wb") as f:
                 array.array("I", [slot_cache.GGSQ, 2, len(S["slot"])] + S["slot"]).tofile(f)
@@ -130,6 +132,7 @@ def chat(c, msgs):
         r = json.loads(urllib.request.urlopen(urllib.request.Request(
             UP + "/v1/chat/completions", data=json.dumps(body).encode(),
             headers={"Content-Type": "application/json"})).read())
+        c.cached(r["timings"]["cache_n"])   # as the layer does with the reply (_note_cache)
         info["after"] = c.after("")
     return r["choices"][0]["message"]["content"], info
 

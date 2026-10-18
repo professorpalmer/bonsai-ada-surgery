@@ -21,7 +21,7 @@ G1 (`docs/receipts/grow_ab*`, 30-turn agent session, 131k document, restart befo
 `BONSAI_SLOT_CACHE_AFTER=1` (default 0 until the gates below pass):
 
 - After each answer, the layer reads the slot token count (`GET /slots`, `n_prompt_tokens`).
-- At the next turn of the same conversation, the server cached-token count (`n_prompt_tokens_cache`) tells whether the
+- At the next turn of the same conversation, the cached-token count in the server reply (`timings.cache_n`) tells whether the
   state after the answer was a prefix of the new prompt. This test writes no file.
 - When the test passes, the conversation saves AFTER the answer (when it grew by GROW or more since the best saved
   prefix) and does not save before the request. The client has the whole answer before the save starts.

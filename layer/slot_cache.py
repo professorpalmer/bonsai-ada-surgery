@@ -24,8 +24,8 @@ Requests with images (any non-text content part) do not take part: /tokenize can
 Save after the answer (BONSAI_SLOT_CACHE_AFTER=1): when the next turn of a conversation renders the previous answer with the
 same tokens the model generated (thinking off, or a client that sends the reasoning back; not when the template or the
 client drops or rewrites it), the state right after the answer is a prefix of the next turn. After each answer the layer
-reads the slot's token count (GET /slots); at the next turn of the same conversation the server's cached-token count tells
-whether that state was a prefix (no file is written for this test). When it was, the conversation saves after the answer
+reads the slot's token count (GET /slots); at the next turn of the same conversation the cached-token count in the
+server's reply (timings.cache_n) tells whether that state was a prefix (no file is written for this test). When it was, the conversation saves after the answer
 instead of before the request: no prefill-only call (the answer is computed as without the cache), and the save runs after
 the client has the answer. The saved tokens come from the slot file's own header, so a restore is exact. When the test
 fails (the client dropped the reasoning, edited a turn, ...), the conversation goes back to the save before the request.
@@ -97,6 +97,7 @@ class SlotCache:
         self.held = []                 # tokens the server's slot is known to start with
         self.last = None               # the last request's tokens etc., for after() (save after the answer)
         self.probe = None              # (conversation, slot token count after its last answer): the prefix test
+        self.wait = None               # the same, armed by before(): the next reply's cached count resolves it
         self.busy = False              # a chat request is between before() and after(): a stop now can lose a save
         os.makedirs(self.folder, exist_ok=True)
         self.conv_path = os.path.join(self.folder, PREFIX + "conv.json")
@@ -237,10 +238,10 @@ class SlotCache:
         with urllib.request.urlopen(urllib.request.Request(self.upstream + path, headers=headers), timeout=timeout) as r:
             return json.loads(r.read() or b"null")
 
-    def _slot_stats(self, auth):
-        """(tokens in the slot, tokens of the last request that came from the slot's cache) from GET /slots."""
-        s = self._get("/slots", auth)[0]
-        return int(s.get("n_prompt_tokens") or 0), int(s.get("n_prompt_tokens_cache") or 0)
+    def _slot_tokens(self, auth):
+        """Tokens in the slot now (GET /slots n_prompt_tokens; the server keeps it after the task ends, unlike its
+        per-request counts, which it resets)."""
+        return int(self._get("/slots", auth)[0].get("n_prompt_tokens") or 0)
 
     def _store(self, tmp, saved):
         """Give a finished save in tmp (+ its .draft sidecar) its final name and index entry; returns (sha, bytes)."""
@@ -333,6 +334,7 @@ class SlotCache:
                                and not info.get("slot_cache_restored")) else None
         if not force_save:
             self.probe = None
+            self.wait = (key, probe[1]) if (probe and self.after_on) else None
         after_mode = self.after_on and not force_save and self.conv.get(key) is True
         if after_mode:
             info["slot_cache_after"] = "on"   # this conversation saves after the answer: no save before the request
@@ -341,11 +343,10 @@ class SlotCache:
             tmp = self._tmp()
             try:
                 t1 = time.time()
-                self._post("/completion", {"prompt": base, "n_predict": 0, "cache_prompt": True}, auth)
+                pr = self._post("/completion", {"prompt": base, "n_predict": 0, "cache_prompt": True}, auth)
                 t2 = time.time()
-                if probe and self.after_on:   # the prefill-only call is the request that read this turn's tokens
-                    self._probe_result(key, probe[1], auth)
-                    probe = None
+                if self.wait:   # the prefill-only call is the request that read this turn's tokens
+                    self.cached((pr.get("timings") or {}).get("cache_n"))
                 r = self._post("/slots/0?action=save", {"filename": tmp}, auth)
                 n = int(r.get("n_saved") or len(base))
                 saved = base[:n] if n <= len(base) else base   # the server may hold back the last token
@@ -374,17 +375,19 @@ class SlotCache:
                 self.held = toks[:info["slot_cache_restored"]]   # a restore-only read-ahead (re-review: blocking)
         else:
             self.held = toks
-            self.last = {"key": key, "toks": toks, "probe": probe[1] if probe else 0,
-                         "best": max(best_n, int(info.get("slot_cache_saved") or 0))}
+            self.last = {"key": key, "toks": toks, "best": max(best_n, int(info.get("slot_cache_saved") or 0))}
         info["slot_cache_s"] = round(time.time() - t0, 2)
         return info
 
-    def _probe_result(self, key, n_prev, auth):
-        """The prefix test: did the request that just ran reuse all n_prev tokens the slot held after the last answer?"""
-        _, cached = self._slot_stats(auth)
-        ok = cached >= n_prev
-        self._set_conv(key, ok)
-        self.log("after-answer test", key[:12], "pass" if ok else "fail", "(cached", cached, "of", n_prev, ")")
+    def cached(self, n):
+        """The prefix test: the layer passes the cached-token count (timings.cache_n) of the first reply after before().
+        Passes when that request reused all the tokens the slot held after the conversation's last answer."""
+        w, self.wait = self.wait, None
+        if not w or n is None:
+            return None
+        ok = int(n) >= w[1]
+        self._set_conv(w[0], ok)
+        self.log("after-answer test", w[0][:12], "pass" if ok else "fail", "(cached", n, "of", w[1], ")")
         return ok
 
     def after(self, auth):
@@ -396,9 +399,8 @@ class SlotCache:
             return {}
         t0 = time.time()
         info = {}
-        n, _ = self._slot_stats(auth)
-        if last["probe"]:
-            info["test"] = "pass" if self._probe_result(last["key"], last["probe"], auth) else "fail"
+        self.wait = None   # a reply without timings: no result for this test
+        n = self._slot_tokens(auth)
         toks = last["toks"]
         self.probe = (last["key"], n) if n > len(toks) else None
         if self.conv.get(last["key"]) is True and n - last["best"] >= self.grow:

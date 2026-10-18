@@ -1,0 +1,15 @@
+06:37:26 === save-after-answer A/B: commit 96f6e49cdc; layer 90dff04 + worktree; clock 405 MHz
+06:37:46 after: server t1 health=1; waited 0s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "after", "turn": 1, "depth": 131072, "think": false, "edit": false, "wall_s": 178.43, "prompt_n": 7, "prompt_ms": 278.392, "predicted_n": 80, "tg": 44.67522244302212, "layer": null}
+{"arm": "after", "turn": 2, "depth": 131072, "think": false, "edit": false, "wall_s": 8.75, "prompt_n": 3965, "prompt_ms": 8159.588, "predicted_n": 10, "tg": 42.336604228015545, "layer": null}
+{"arm": "after", "turn": 3, "depth": 131072, "think": false, "edit": false, "wall_s": 8.92, "prompt_n": 3978, "prompt_ms": 8403.127, "predicted_n": 6, "tg": 36.833769199602195, "layer": null}
+06:41:21 after: server t4 health=1; waited 0s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "after", "turn": 4, "depth": 131072, "think": false, "edit": false, "wall_s": 28.76, "prompt_n": 7, "prompt_ms": 284.846, "predicted_n": 10, "tg": 33.36162893713557, "layer": null}
+{"arm": "after", "turn": 5, "depth": 131072, "think": false, "edit": false, "wall_s": 9.54, "prompt_n": 3979, "prompt_ms": 8707.638, "predicted_n": 17, "tg": 35.613724639132805, "layer": null}
+{"arm": "after", "turn": 6, "depth": 131072, "think": false, "edit": false, "wall_s": 9.46, "prompt_n": 3987, "prompt_ms": 8878.982, "predicted_n": 6, "tg": 31.23340725239716, "layer": null}
+06:42:28 after: server t7 health=1; waited 0s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "after", "turn": 7, "depth": 131072, "think": false, "edit": false, "wall_s": 37.49, "prompt_n": 7, "prompt_ms": 430.524, "predicted_n": 80, "tg": 139.50695768877588, "layer": null}
+{"arm": "after", "turn": 8, "depth": 131072, "think": false, "edit": false, "wall_s": 10.19, "prompt_n": 4052, "prompt_ms": 9356.578, "predicted_n": 10, "tg": 31.036088073521043, "layer": null}
+{"arm": "after", "turn": 9, "depth": 131072, "think": false, "edit": false, "wall_s": 10.07, "prompt_n": 3981, "prompt_ms": 9360.349, "predicted_n": 6, "tg": 19.90976892722183, "layer": null}
+06:43:35 VOID run 1: the prefix test read GET /slots n_prompt_tokens_cache, which the server resets when the task ends (always 0: 'fail (cached 0 of 130688)'). Stopped at turn 3 of the after arm; fix: read timings.cache_n from the reply.
+06:43:46 after: server t10 health=1; waited 0s for busy=false; {"on": true, "after": true, "busy": false}
