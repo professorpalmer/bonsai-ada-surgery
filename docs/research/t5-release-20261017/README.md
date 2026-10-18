@@ -22,10 +22,16 @@ before each run. T5 is the 2060 agent's prefill window (fork branch `t5-window-e
 read on the 4070 is deterministic, so the wrong answers come from the window. 0 CUDA errors in every run.
 
 **Decision:** T5 is held (the declared R2 clause fails in both arms). The speed is real (1.80x at 245k; the 2060's agent
-soak P184: 30/30 identical answers, 1.51x), but in single-question lookups over long documents the windowed read can
+soak P184: 30/30 identical answers; its 1.51x is approximate, per the 2060 agent's correction: a higher VRAM
+line and builds on the CPU during part of the run), but in single-question lookups over long documents the windowed read can
 return another item's value with confidence. A new round needs a change that removes those wrong answers, gated on the
 4070 first (deterministic baseline).
 
 One record note: the first R1 run lost its identity hashes to a grep fault in my script (the client prints `all <hash>`);
 R1 was rerun (`t5rel_r1id.sh`). The release bins' version string shows `d1cc7a4bdd` (an incremental build kept the old
 build info); they contain a6bfcb1a4f's changes.
+
+**Matched baselines (note after the 2060 records review, #138):** every 4070 arm here ran the same bins, the same
+launcher and the same settings (sparse decode on auto) in one block as its window-off reference, and the off run
+was repeated with identical answers. The 2060's T5 arms on the P170 sets were not matched (`BONSAI_SPARSE=0` vs a sparse-auto
+reference); against its matched reference (P183) the P187 arm has 2 confident wrong prose answers on the 2060 too.
