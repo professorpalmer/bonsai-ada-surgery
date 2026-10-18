@@ -81,3 +81,19 @@ arm with 0; both save after the answer).
 Arm wall time: 1,361 s vs 1,966 s. A save after the answer took 0.17-0.2 s as a delta; the full arm's saves made the next
 turn wait (turns 6, 8, 14, 20, 30: 50-89 s). With D1 (run 1) all gates pass: deltas ship in the next bundle (fork patch
 0068 + the layer).
+
+## Peer review and recheck
+
+The review found no path to a wrong token list or a wrong target state. Fixed (fork a6d4fc698f, patch 0069):
+
+- The draft (MTP) sidecar is always written in full and restored in full: the draft context defers the rows of the last
+  verify batch, so a delta of it left a gap at each link (lower draft acceptance only).
+- Deltas only for a model without SWA and without mtmd (`/props` `slot_save_delta` false, and the save refuses
+  `pos_min`): a delta leaves SWA-masked cells out.
+- A restore with append checks that the slot's cells end at its token count before it loads; the n_ctx check counts the
+  total after the append.
+- The layer never restores a delta without its chain, and restores a chain only when the server reports support.
+
+Recheck with a6d4fc698f (`d1.jsonl`, `d1.log`; run 1's files are `run1_d1.*`): D1 passes again at 20k and 131k (the same
+answer, `prompt_n` 2,407 / 2,406, `cache_n` 34,028 / 173,695 in both arms), 0 CUDA errors; each link restores the full
+draft sidecar (15.0 MB).

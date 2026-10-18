@@ -397,7 +397,9 @@ class SlotCache:
         if best_sha and best_n >= common + self.min_gain:
             try:
                 t1 = time.time()
-                chain = self._chain(best_sha) or [best_sha]
+                chain = self._chain(best_sha)
+                if not chain or (len(chain) > 1 and not self._delta_ok(auth)):   # review: never a delta on its own
+                    raise ValueError("chain of %s not usable (broken, or the server cannot append)" % best_sha[:12])
                 for i, link in enumerate(chain):   # the full save, then each delta after the slot's cells
                     self._post("/slots/0?action=restore", {"filename": self._name(link), **({"append": True} if i else {})}, auth)
                 if len(chain) > 1:
