@@ -25,7 +25,7 @@ import bonsai_layer  # noqa: E402
 import slot_cache  # noqa: E402
 
 GEN = "@@"
-S = {"slot": [], "cached": 0, "calls": [], "folder": tempfile.mkdtemp()}
+S = {"slot": [], "cached": 0, "calls": [], "folder": tempfile.mkdtemp(), "delta": False}
 
 
 def render(msgs, gen=True):
@@ -69,6 +69,8 @@ class Fake(http.server.BaseHTTPRequestHandler):
         if self.path == "/slots":
             # the real server resets its per-request counts when the task ends: only the slot size stays
             return self._send([{"id": 0, "n_prompt_tokens": len(S["slot"]), "n_prompt_tokens_cache": 0}])
+        if self.path == "/props":
+            return self._send({"total_slots": 1, **({"slot_save_delta": True} if S["delta"] else {})})
         self._send({})
 
     def do_POST(self):
@@ -102,16 +104,36 @@ class Fake(http.server.BaseHTTPRequestHandler):
                                             "message": {"role": "assistant", "content": a}}],
                                "timings": {"cache_n": S["cached"], "prompt_n": len(p) - S["cached"]}})
         if self.path.startswith("/slots/0?action=save"):
+            pm = int(b.get("pos_min") or 0) if S["delta"] else 0   # an old server ignores pos_min
+            assert 0 <= pm < len(S["slot"]), (pm, len(S["slot"]))
             with open(os.path.join(S["folder"], b["filename"]), "wb") as f:
-                # as llama-server writes it: the token count of the packed server_tokens state, then that state
-                # (LLAMA_TOKEN_NULL, state version 1, count, tokens, media-chunk count 0)
-                packed = [0xFFFFFFFF, 1, len(S["slot"])] + S["slot"] + [0]
-                array.array("I", [slot_cache.GGSQ, 2, len(packed)] + packed).tofile(f)
-                f.write(b"state" * 20)
+                if pm:   # a delta: the plain tokens from pos_min, and the state says where it starts
+                    array.array("I", [slot_cache.GGSQ, 2, len(S["slot"]) - pm] + S["slot"][pm:]).tofile(f)
+                else:
+                    # as llama-server writes it: the token count of the packed server_tokens state, then that state
+                    # (LLAMA_TOKEN_NULL, state version 1, count, tokens, media-chunk count 0)
+                    packed = [0xFFFFFFFF, 1, len(S["slot"])] + S["slot"] + [0]
+                    array.array("I", [slot_cache.GGSQ, 2, len(packed)] + packed).tofile(f)
+                f.write(b"pos_min=%d;" % pm + b"state" * (20 if not pm else 2))
             open(os.path.join(S["folder"], b["filename"] + ".draft"), "wb").write(b"d" * 10)
             return self._send({"n_saved": len(S["slot"])})
         if self.path.startswith("/slots/0?action=restore"):
-            S["slot"] = slot_cache.read_tokens(os.path.join(S["folder"], b["filename"]))
+            path = os.path.join(S["folder"], b["filename"])
+            ftoks = slot_cache.read_tokens(path)
+            pm = int(open(path, "rb").read().split(b"pos_min=")[1].split(b";")[0])
+            if b.get("append") and S["delta"]:
+                if not S["slot"] or len(S["slot"]) != pm:   # the real server: the delta must continue the slot
+                    S["slot"] = []
+                    d = json.dumps({"error": {"message": "the delta does not continue the slot"}}).encode()
+                    self.send_response(400)
+                    self.send_header("Content-Length", str(len(d)))
+                    self.end_headers()
+                    self.wfile.write(d)
+                    return
+                S["slot"] = S["slot"] + ftoks
+            else:
+                assert pm == 0, "a delta restored without append"
+                S["slot"] = ftoks
             return self._send({"n_restored": len(S["slot"])})
         self._send({})
 
@@ -122,9 +144,9 @@ UP = f"http://127.0.0.1:{up.server_address[1]}"
 LOG = []
 
 
-def cache(after=True):
-    return slot_cache.SlotCache(UP, S["folder"], min_tokens=50, grow=20, budget_gb=1, min_gain=5, after=after,
-                                log=lambda *a: LOG.append(" ".join(str(x) for x in a)))
+def cache(after=True, chain=0, budget_gb=1):
+    return slot_cache.SlotCache(UP, S["folder"], min_tokens=50, grow=20, budget_gb=budget_gb, min_gain=5, after=after,
+                                log=lambda *a: LOG.append(" ".join(str(x) for x in a)), chain=chain)
 
 
 def chat(c, msgs):
@@ -141,7 +163,7 @@ def chat(c, msgs):
 
 
 def reset():
-    S["slot"], S["cached"], S["calls"] = [], 0, []
+    S["slot"], S["cached"], S["calls"], S["delta"] = [], 0, [], False
     S["folder"] = tempfile.mkdtemp()
     LOG.clear()
 
@@ -348,6 +370,73 @@ def test_review_fixes():
     print("review fixes: busy counter, bad cache_n, a read-ahead voids the test: ok")
 
 
+def run_turns(c, answers, n0, n1):
+    for n in range(n0, n1):
+        a, info = chat(c, turn_msgs(answers, n))
+        answers.append(a)
+    return answers
+
+
+def test_delta_chain():
+    reset()
+    S["delta"] = True
+    c = cache(chain=2)
+    answers = run_turns(c, [], 1, 9)   # each turn grows ~30 tokens (> grow 20): a save after most answers
+    deltas = [e for e in c.index.values() if e["parent"]]
+    fulls = [e for e in c.index.values() if not e["parent"]]
+    assert deltas and fulls, c.index
+    assert max(e["depth"] for e in c.index.values()) <= 2, c.index   # a full save again after 2 deltas
+    for sha, e in c.index.items():   # every delta's tokens = its parent's tokens + the file's tokens
+        if e["parent"]:
+            assert c._toks_of(sha)[:c.index[e["parent"]]["n"]] == c._toks_of(e["parent"])
+            assert slot_cache._sha(c._toks_of(sha)) == sha
+    deepest = max(c.index, key=lambda x: (c.index[x]["n"]))
+    # restart: a new layer, an empty slot; the next turn restores the chain and reads only the new turn
+    S["slot"], S["cached"] = [], 0
+    c2 = cache(chain=2)
+    S["calls"].clear()
+    a, info = chat(c2, turn_msgs(answers, 9))
+    chain = c2._chain(deepest)
+    assert info.get("slot_cache_restored") == c2.index[deepest]["n"], (info, LOG[-5:])
+    assert info.get("slot_cache_chain", 1) == len(chain), info
+    assert S["calls"].count("/slots/0?action=restore") == len(chain)
+    assert S["cached"] == c2.index[deepest]["n"]   # the server reused the whole chain
+    print("delta chain: deltas + full every 2, restore of the chain after a restart: ok")
+
+
+def test_delta_old_server():
+    reset()
+    c = cache(chain=4)   # the server does not report slot_save_delta
+    run_turns(c, [], 1, 6)
+    assert c.delta_ok is False and all(not e["parent"] for e in c.index.values()), c.index
+    print("an old server: full saves only: ok")
+
+
+def test_delta_eviction():
+    reset()
+    S["delta"] = True
+    c = cache(chain=8, budget_gb=1)
+    run_turns(c, [], 1, 7)
+    assert any(e["parent"] for e in c.index.values()), c.index
+    c.budget = 1   # every byte over: the whole chain goes, never a delta without its parent
+    c._evict()
+    assert not c.index, c.index
+    left = [f for f in os.listdir(S["folder"]) if f.endswith(".bin")]
+    assert not left, left
+    # a broken chain on disk (a parent's files gone) is dropped at start
+    reset()
+    S["delta"] = True
+    c = cache(chain=8)
+    run_turns(c, [], 1, 6)
+    root = next(x for x in c.index if not c.index[x]["parent"])
+    for f in c._files(root):
+        if os.path.exists(f):
+            os.remove(f)
+    c3 = cache(chain=8)
+    assert not any(c3._chain(x) is None for x in c3.index) and root not in c3.index, c3.index
+    print("delta eviction: whole chains, broken chains dropped at start: ok")
+
+
 if __name__ == "__main__":
     test_read_tokens()
     test_review_fixes()
@@ -357,4 +446,7 @@ if __name__ == "__main__":
     test_slot_changed_before_save()
     test_off_by_default()
     test_layer_hook()
+    test_delta_chain()
+    test_delta_old_server()
+    test_delta_eviction()
     print("ALL OK")
