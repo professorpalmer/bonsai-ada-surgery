@@ -3488,3 +3488,74 @@ Dense: 23 / 20 / 11 at ~1,418-1,452 s. Window 32k: 52/72 vs dense 54/72 at 1.78x
 516 s weights + 245k x 33k pairs x 3.25e-8 = ~779 s). Code lost 2 and 4, gained 22. Prose 16k + first 4 dense (3:7:11:15): 6/24
 (worse than the even set). Candidate: window 32k, no dense layers. P183 queued: dense prose again + window-32k prose again
 (noise floor), 128k cold read + n24 at 128k with window 32k. The preempt watcher started P183 within 20 s (check the log).
+
+## 2026-10-17 17:22 CDT Records PR #173 (P169-P182 + data/p170 sets + drivers) merged (dc1b908); CORRECTIONS posted on #138
+"Dense 1,452 s" in my T5 tables = P174b's mask-only read (same work, not a dense run); the 2060 dense 245k reference is ~1,489 s
+(16b), the P170 sets 1,418 / 1,431 s. Gains vs dense: window 32k 1.83x, 16k runs 2.09x, fixed grid 1.50x. P169: 15 "no such
+code" (not 18). P171 small prose: 12/24 by meaning (item 20 graded right on "capelin" in a "nothing about" answer). P181 "lost in
+every arm" false for P178 w32 (item 7 right). Branch: 6 commits. P176 cold 532.5 / 483.1 / 532.8 s.
+
+## 2026-10-17 17:54 CDT P183: noise floor + 128k. Dense prose again 11/24 (4 items flip vs P170: +6, +23, -4, -7); window-32k prose again 9/24 (= P178, all 24)
+Items 9, 13, 18, 22: right in both dense runs, lost in both window-32k runs: a real loss of ~2-4 paraphrase items per 24,
+offset by gains (1, 6). Dense cold 1,424.2 s; window 32k 808.9 s (1.76x). 128k window 32k: cold 414.3 s (309.6 tok/s) vs dense
+~532 s (1.29x); n24 at 128k 23/24 (cold 413.3 s). 0 CUDA errors.
+
+## 2026-10-17 17:58 CDT P184 (T5 window 32k agent soak, P164-style) running; Turing MMQ table for PTQ1_0 built in variants; P185 queued
+P184: bin-t5r3 + window 32k, 30 turns 131k -> ~250k, restarts every 3rd turn, layer cache on; vs P164 walls (27 s at 135k
+-> 44 s at 250k; the model says ~15 s at 250k with the window, since each turn's new tokens see only 33k cells) and answers.
+turing-mmq (7d262ec31, on 96f6e49cd, no T5): mmq-config-turing.cuh gives PTQ1_0 its own table on sm_75 (host:
+highest_compiled_arch == TURING; device: __CUDA_ARCH__ == 750); variant 1 = occupancy 2, I 128; variant 2 = occupancy 2, I 64
+(Ampere table: 256 threads, occupancy 1 = 8 warps per SM of 32). P185 gates: test-backend-ops MUL_MAT PTQ1_0 all OK; perf >= 5 %
+over zip (28.3 TFLOPS) -> a cold 64k read + det 4k vs zip.
+
+## 2026-10-17 18:27 CDT P184 PASS: T5 window 32k in the 30-turn agent soak: 30/30 answers IDENTICAL to dense P164, 1.51x faster overall (1,504 vs 2,273 s)
+Gates: 30/30 answers, 0 empty, 0 one-token, 0 CUDA errors, trace min free 107 MiB, restart turns within 2x. Walls vs P164:
+first 131k read 434.2 vs 562.0 s; normal ~4k turns 20.0-28.4 s vs 26.9-44.0 s (1.34x at 135k -> 1.55x at 250k); restart turns
+55.5-72.4 s vs 85.0-132.3 s (1.5-1.8x). Every turn's answer equals P164 (the soak's questions are about the session's own text).
+
+## 2026-10-17 18:27 CDT P185: Turing MMQ table variants do not help: occupancy 2 = 24.83 TFLOPS (zip 28.42), I 64 = broken (3 tests, then 0)
+test-backend-ops MUL_MAT PTQ1_0: zip 166 OK; mmqv1 (occupancy 2, I 128) 162 OK 0 FAIL but slower (register pressure, a guess);
+mmqv2 (occupancy 2, I 64) stops after 3 tests, perf 0. No server runs (gate >= 5 %). The weights part needs real kernel work
+(a Turing-native int8 tile, not a table change): a kernel-session lead. turing-mmq branch pushed (7d262ec31) for the record.
+
+## 2026-10-17 18:28 CDT Release session: T5 does NOT ship (R2 wrong-answer clause on the 4070); the next bundle = #171 pool reserve only; G2 = P186
+4070 R2 (release bins a6bfcb1a4f = d1cc7a4bd + review fixes: skip on only with the window set; tail setter only with -np 1):
+n24 24/24 both; code 20 -> 19 (lost 6, 15); prose 11 -> 13 (lost 21); speed 245k 464.5 -> 257.9 s (1.80x), 128k 1.29x. The 3 lost
+items are confident wrong values (98250 for 61, 212 for 43, a wrong object): over the declared limit of 1. MY MISS: the #171 G2
+ask (15:58Z, ping 17:09Z) waited ~7.5 h while I ran T5 work and did not run gh_since.sh; P186 started 18:28 CDT. Lesson: run
+gh_since.sh at every result, not only at wakes.
+
+## 2026-10-17 18:44 CDT P186 (#171 G2): G1 / G2 / G4 PASS, G3 FAIL (not the reserve's fault)
+"pool reserved 176 MiB" printed; cold 128k 241.1 tok/s (+0.8 % vs P168), min free 112 MiB, 0 spill lines; 0 CUDA errors. G3:
+ballast 163 MiB -> cold 16k 61.2 tok/s vs 388.4 just before (P167b no reserve 70.1). The reserve completed (attempt 1 failed in
+cuMemSetAccess "device not ready", attempt 2 grew 176 MiB; no later growth), so on the display card the squeeze cost is WDDM
+demotion, not pool growth. Posted on #138 with the reading: harmless here, helps the 4070; the release session decides.
+
+## 2026-10-17 18:45 CDT T5 on the R2 wrong-answer clause (offline from existing receipts): no tested arm passes; P187 (32k + 8 dense layers) queued
+Wrong (confident) where dense is right: code w16 1, w32 2; prose w16 3, w32 4, 16k/32k + even 4 dense 2, first / last 4 dense 3.
+Dense itself: code 3/24 wrong, prose 11/24 wrong (P183 full answers). Dense layers are the only knob that moves it. P187: window
+32k + dense=7:15:...:63 on code + prose (cost model ~1.35x at 245k). Posted on #138.
+
+## 2026-10-17 19:30 CDT P187: window 32k + 8 dense layers: code 21/24 (0 wrong where dense right), prose 10/24 (1 wrong: 22) = passes the R2 clause, 1.28x
+Cold 1,105.4 s (code) / 1,116.2 s (prose) vs dense 1,418 / 1,431 s. T5 decision posted 00:23Z on #138 (Cary via the release
+session): HOLD; the next 8 GB bundle = #171 pool reserve only; T5 stays on the fork for a round on the wrong-answer items.
+P187 posted as data for that round. T5 work paused here.
+
+## 2026-10-17 21:04 CDT #171 (pool reserve) HOLD (Cary, 02:03Z): harmless on the 2060 but G3 fails here (WDDM demotion with the display); the PR
+stays a draft. The release session runs P187's arm (window 32k + dense 8) on the 4070 now (comment 6244534476). No ask for the
+2060 yet. GPU on fillers (they yield to queued jobs). Watcher restarted.
+
+## 2026-10-17 21:28 CDT 4070: P187's arm fails the clause there (3 wrong: code 17, prose 13 / 18; 1.29x); the release session tests off vs off
+My 2060 data (P170 vs P183 dense prose): 1 confident-wrong flip per direction (7 "bird"; 23 "12") + 1 miss flip each: the full read
+alone is at the clause's limit on prose. Posted (2060 half of the off-vs-off question). No dense code rerun here.
+
+## 2026-10-17 22:22 CDT P188: dense code + prose again = P170 exactly (0 items differ); P183 (the other drift state) differs on 4 prose items
+So the 2060 full read is deterministic within a numeric state; the drift state is a natural rounding null arm (1 confident
+wrong + 1 miss per direction on prose). 4070: off vs off = 0 differences -> the release session keeps T5 held; the kernel
+session plans a rounding null test (GGML_CUDA_FA_CHUNK=16384, window off) - labelled "P188" there (number clash; asked them to
+relabel). Posted.
+
+## 2026-10-17 22:27 CDT 4070 rounding null test (GGML_CUDA_FA_CHUNK=16384, window off): 1 item changes vs 7 for the window: T5 hold stands
+Null: 0 confident wrong where off is right, 1 change (prose 9 gained). Window 32k: 3 wrong, 7 changes; 32k + 8 dense: 3, 7. Net
+the window is neutral (same ok, fewer wrong in all) but moves which items are right. The kernel session works on a fix gated on
+the 4070's deterministic baseline. 2060: nothing asked; T5 work paused; GPU on fillers.

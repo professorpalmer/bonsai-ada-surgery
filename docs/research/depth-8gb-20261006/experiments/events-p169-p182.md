@@ -22,6 +22,7 @@ session.
 - [E85 The T5 proposal and P183](#e85-the-t5-proposal-and-p183)
 - [E86 Corrections in this range](#e86-corrections-in-this-range)
 - [E87 Lessons recorded in this range](#e87-lessons-recorded-in-this-range)
+- Continued in [`events-p183-p188.md`](events-p183-p188.md) (E88-E95)
 
 ## E76 Records PR #165 and the corrections post
 

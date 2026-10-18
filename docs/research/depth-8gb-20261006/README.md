@@ -38,6 +38,13 @@ screen to the exact run skip and the window-32k candidate at ~1.78x; a rig drift
 [`experiments/events-p169-p182.md`](experiments/events-p169-p182.md), E76-E87. The P170 sets are in `data/p170/`.
 `REPORT.md` is not updated for this range yet.
 
+P183 to P188 (2026-10-17: the T5 noise floor and 128k, T5 window 32k in the agent soak at 1.51x with answers equal to
+dense, a Turing MMQ table for PTQ1_0 that does not help, PR #171 G2 on the 2060, T5 window 32k + 8 dense layers, a
+dense rerun as the 2060's off-vs-off; T5 and #171 held) are in
+[`experiments/index-p183-p188.md`](experiments/index-p183-p188.md) and
+[`experiments/events-p183-p188.md`](experiments/events-p183-p188.md), E88-E95. `REPORT.md` is not updated for this
+range yet.
+
 | Path | What |
 | --- | --- |
 | `REPORT.md` | Bottom line, what shipped, what was rejected, results by day, open items |
@@ -47,7 +54,8 @@ screen to the exact run skip and the window-32k candidate at ~1.78x; a rig drift
 | [`experiments/index-p133-p155.md`](experiments/index-p133-p155.md) | P133-P155b (events: [`experiments/events-p133-p155.md`](experiments/events-p133-p155.md), E38-E56) |
 | [`experiments/index-p156-p161.md`](experiments/index-p156-p161.md) | P156-P161 (events: [`experiments/events-p156-p161.md`](experiments/events-p156-p161.md), E57-E66) |
 | [`experiments/index-p162-p168.md`](experiments/index-p162-p168.md) | P162-P168 (events: [`experiments/events-p162-p168.md`](experiments/events-p162-p168.md), E67-E75) |
-| [`experiments/index-p169-p182.md`](experiments/index-p169-p182.md) | The latest range: P169-P182 (events: [`experiments/events-p169-p182.md`](experiments/events-p169-p182.md), E76-E87) |
+| [`experiments/index-p169-p182.md`](experiments/index-p169-p182.md) | P169-P182 (events: [`experiments/events-p169-p182.md`](experiments/events-p169-p182.md), E76-E87) |
+| [`experiments/index-p183-p188.md`](experiments/index-p183-p188.md) | The latest range: P183-P188 (events: [`experiments/events-p183-p188.md`](experiments/events-p183-p188.md), E88-E95) |
 | `runs.jsonl` | One JSON line per experiment: id, date, card, engine commit, script, env, metrics, verdict, receipts (same fields as `../depth-20261010/runs.jsonl`, for comparing future models and engines) |
 | `experiments/events-*.md` | Entries that are not experiments: incidents, rig baseline changes, releases, PRs, coordination, decisions |
 | `NOTEBOOK.md` | The full lab notebook, in time order, unchanged (plans, results, corrections, incidents) |
