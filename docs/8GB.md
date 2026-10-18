@@ -11,6 +11,39 @@ Needs `bundle-20261007-8gb` or later (patches 0036-0038: the Turing one-column d
 engine ignores the switches; the measured fixed costs then do not hold, and the launcher warns before the start.
 `BONSAI_8GB=0` turns the preset off.
 
+**Recommended now: `bundle-20261017b` or later.** The rest of this page keeps the measurements from 10-06 to 10-10; the
+section below lists what changed for 8 GB cards since then.
+
+## What is new since bundle-20261010 (updated 2026-10-18)
+
+All on the same RTX 2060 SUPER (display on the card), the zip's own launcher with its defaults unless named. Records:
+`docs/research/depth-8gb-20261006/experiments/` (P-numbers below) and #138.
+
+- **Defaults on 8 GB:** a 262,144-token window with a q3_0 K/V cache, the VRAM line at about 80,640 positions, and sparse
+  reads of the system-RAM part switched on by the engine where they are faster (bundle-20261015b / 20261016). Measured on
+  bundle-20261017: decode 53.4 tok/s at 4k and 41.2 at 64k; a cold 128k read 529 s (241 tok/s); a cold 64k read 309
+  tok/s (P163, P168).
+- **Faster cold reads on Turing** (bundle-20261016b, patches 0060 / 0061): prefill attention packs 2 query heads per
+  column group on sm_75. A cold 245k read: 1,707 -> 1,489 s (1.147x), the same answers on the item tests.
+- **Saved conversations** (bundle-20261017, `BONSAI_SLOT_SAVE_PATH`): a long conversation is saved to disk and comes back
+  after a server restart in seconds, automatically with the layer.
+  - A ~199k-token document: the first question after a restart answers in 5.3 s (restore 2.9 s); later questions in
+    2.5 s; the one cold read took 1,069 s (P165).
+  - A 30-turn agent session from ~131k to ~250k tokens, with the server restarted before every third turn: 30/30
+    answered, 0 CUDA errors, a normal turn 26.9 s at ~135k and 44.0 s at ~250k, a restart turn 85-132 s, restores
+    2.05-3.36 s (P164).
+- **Read ahead** (bundle-20261017b): a chat request with `"prefill_only": true` reads and saves a long prompt before the
+  question. A 131k document read ahead, then a server restart: the question answered in 6.25 s (P162).
+- **Spill guard** (bundle-20261017b, `BONSAI_SPILL_GUARD`): on this card a program that takes VRAM after the server
+  starts costs a lot. 206 MiB took a 16k read to 70 tok/s and decode to 7 tok/s; 1,500 MiB made the next long prompt fail
+  with "CUDA error: out of memory". The launcher now prints a `spill` line in its window before that happens (P167b),
+  and a one-hour soak with a browser video on the card gave no false line (P168). Close the other program, or set the
+  NVIDIA Control Panel's CUDA - Sysmem Fallback Policy to Prefer No Sysmem Fallback for `llama-server.exe`.
+- **Tried and not shipped:** a fast cold read with a prefill window (T5: 1.8x at 245k, but it returned some confident
+  wrong values on long-document lookups; `docs/research/t5-release-20261017`), query-dependent token selection (T4:
+  `docs/research/t4-20261017`), and a CUDA pool reserve against the squeeze (it does not help with the display on the
+  card; #171).
+
 Measured 2026-10-06/07 on an RTX 2060 SUPER 8 GB (Turing sm_75, PCIe 3.0 x16, stock clocks, power limit 175 W, fan
 100%) that also draws the Windows desktop at 1280x1024 (idle 323-404 MiB), Ryzen 5 2600, 32 GB. Bonsai 2 27B `PTQ1_0`,
 one slot, 131,072-token window, greedy, thinking off, `bench/quick_tps.py` (4k -> 16k -> 32k -> 60k, each depth
