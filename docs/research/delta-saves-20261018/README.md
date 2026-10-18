@@ -138,3 +138,18 @@ draft sidecar. The forced full save every 8 deltas took 167 s there (a slow driv
 but adds ~1 s per extra delta to every restart restore, and the balance depends on the drive. Candidates for a later
 declared test: `BONSAI_SLOT_CACHE_CHAIN` 16 on slow drives (chosen from the measured speed of the last full save), or a
 full save only when the layer has been idle for a while.
+
+## Run 4 (declared before the run): the full save waits for idle time
+
+Change (layer only): after `BONSAI_SLOT_CACHE_CHAIN` deltas (8) the full save of a conversation runs when the layer has
+been idle for `BONSAI_SLOT_CACHE_IDLE` seconds (30), in a background thread under the cache lock; after
+`BONSAI_SLOT_CACHE_CHAIN_MAX` deltas (32) the next save is full in any case. Before: the 9th save was full at once, after
+an answer, and the next turn waited for it (Mirai MD3 turn 29: 163 s).
+
+| Gate | Condition |
+|---|---|
+| I1 Bonsai | G1's first 13 turns (8 GB preset, the 1018d root + this layer, no restarts before turn 13), then 45 s idle: the layer log shows one idle full save; after a restart, turn 13 restores a chain of length 1 (the full save) and its answer equals the run-7 reference; 0 CUDA errors |
+| I2 Mirai | the M8 session (Mirai 1018b root + this layer, 20 s think time, restarts, deltas in both arms) with the gates M8-1 ... M8-5 of `mirai-s-serve receipts/mirai_saa_default.md` |
+
+I1 passes: the idle full save ships in the next bundles (Bonsai, Mirai). I2 decides `MIRAI_SLOT_CACHE_AFTER` (all pass:
+on by default in the next Mirai bundle).
