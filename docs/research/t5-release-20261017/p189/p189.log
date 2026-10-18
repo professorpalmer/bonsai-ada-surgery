@@ -1,0 +1,22 @@
+22:29:48 === P189: commit d1cc7a4bdd
+22:30:06 server off_code (): health=1; deeper in chunks of 32768; window line: ; clock 11751 MHz
+22:38:30   off_code: ok 20 of 24 cold 451.8 s, errors 0; CUDA errors 0
+22:38:48 server off_prose (): health=1; deeper in chunks of 32768; window line: ; clock 11751 MHz
+22:47:39   off_prose: ok 11 of 24 cold 458.8 s, errors 0; CUDA errors 0
+22:47:57 server null_code (GGML_CUDA_FA_CHUNK=16384): health=1; deeper in chunks of 16384; window line: ; clock 11751 MHz
+22:56:27   null_code: ok 20 of 24 cold 455.7 s, errors 0; CUDA errors 0
+22:56:45 server null_prose (GGML_CUDA_FA_CHUNK=16384): health=1; deeper in chunks of 16384; window line: ; clock 11751 MHz
+23:05:40   null_prose: ok 12 of 24 cold 461.8 s, errors 0; CUDA errors 0
+23:05:58 server w32_code (LLAMA_PREFILL_WINDOW=window=32768,sink=1024,tail=1024): health=1; deeper in chunks of 32768; window line: prefill window on (expe; clock 11751 MHz
+23:11:07   w32_code: ok 19 of 24 cold 255.3 s, errors 0; CUDA errors 0
+23:11:25 server w32_prose (LLAMA_PREFILL_WINDOW=window=32768,sink=1024,tail=1024): health=1; deeper in chunks of 32768; window line: prefill window on (expe; clock 11751 MHz
+23:16:56   w32_prose: ok 13 of 24 cold 257.6 s, errors 0; CUDA errors 0
+23:17:14 server w64_code (LLAMA_PREFILL_WINDOW=window=65536,sink=1024,tail=1024): health=1; deeper in chunks of 32768; window line: prefill window on (expe; clock 11751 MHz
+23:23:21   w64_code: ok 21 of 24 cold 314.8 s, errors 0; CUDA errors 0
+23:23:40 server w64_prose (LLAMA_PREFILL_WINDOW=window=65536,sink=1024,tail=1024): health=1; deeper in chunks of 32768; window line: prefill window on (expe; clock 11751 MHz
+23:30:10   w64_prose: ok 10 of 24 cold 317.8 s, errors 0; CUDA errors 0
+23:30:28 server w32s8_code (LLAMA_PREFILL_WINDOW=window=32768,sink=8192,tail=1024): health=1; deeper in chunks of 32768; window line: prefill window on (expe; clock 11751 MHz
+23:35:50   w32s8_code: ok 18 of 24 cold 268.1 s, errors 0; CUDA errors 0
+23:36:08 server w32s8_prose (LLAMA_PREFILL_WINDOW=window=32768,sink=8192,tail=1024): health=1; deeper in chunks of 32768; window line: prefill window on (expe; clock 11751 MHz
+23:41:49   w32s8_prose: ok 8 of 24 cold 270.9 s, errors 0; CUDA errors 0
+23:41:55 === P189 done
