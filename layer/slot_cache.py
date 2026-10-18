@@ -32,7 +32,7 @@ fails (the client dropped the reasoning, edited a turn, ...), the conversation g
 The result per conversation is kept on disk (lc-conv.json), so a restarted layer keeps it. A stop of the server within
 seconds of an answer can lose that save; the next restore then uses the save before it.
 Delta saves (a server that reports "slot_save_delta" in /props; BONSAI_SLOT_CACHE_CHAIN, default 8, 0 = off): a save
-after the answer that continues an earlier save of the conversation writes only the cells after it ("pos_min"), a few
+(after the answer, or before the request) that continues an earlier save of the conversation writes only the cells after it ("pos_min"), a few
 thousand tokens instead of the whole conversation. A restore loads the chain: the full save, then each delta
 ("append"). Every BONSAI_SLOT_CACHE_CHAIN deltas the next save is full again. Eviction removes whole chains.
 Read ahead (T1-d): a chat request with "prefill_only": true reads and saves its prompt and returns no text; the later real
@@ -433,10 +433,21 @@ class SlotCache:
                 t2 = time.time()
                 if self.wait:   # the prefill-only call is the request that read this turn's tokens
                     self.cached((pr.get("timings") or {}).get("cache_n"))
-                r = self._post("/slots/0?action=save", {"filename": tmp}, auth)
-                n = int(r.get("n_saved") or len(base))
-                saved = base[:n] if n <= len(base) else base   # the server may hold back the last token
-                sha, size = self._store(tmp, saved)
+                # a delta of the best saved prefix when the slot starts with it (restored, or held in memory)
+                parent = best_sha if (best_sha in self.index and not force_save
+                                      and (info.get("slot_cache_restored") or best_n <= common)
+                                      and self.index[best_sha]["depth"] < self.chain and self._delta_ok(auth)) else None
+                body = {"filename": tmp, **({"pos_min": self.index[parent]["n"]} if parent else {})}
+                r = self._post("/slots/0?action=save", body, auth)
+                if parent:   # exact: the parent's tokens + the file's tokens, a prefix of the prompt
+                    saved = self._toks_of(parent) + read_tokens(os.path.join(self.folder, tmp))
+                    if len(saved) > len(base) or saved != base[:len(saved)]:
+                        raise ValueError("the delta does not continue the saved prefix (%d tokens)" % len(saved))
+                    info["slot_cache_delta_of"] = self.index[parent]["n"]
+                else:
+                    n = int(r.get("n_saved") or len(base))
+                    saved = base[:n] if n <= len(base) else base   # the server may hold back the last token
+                sha, size = self._store(tmp, saved, parent)
                 best_sha = sha
                 info["slot_cache_saved"] = len(saved)
                 info["slot_cache_gen_prompt_tokens"] = len(toks) - len(base)

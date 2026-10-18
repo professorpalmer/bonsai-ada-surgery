@@ -1,0 +1,17 @@
+[proxy] "GET /health HTTP/1.1" 503 -
+[proxy] "GET /health HTTP/1.1" 503 -
+[proxy] "GET /health HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "POST /tokenize HTTP/1.1" 200 -
+[slots] restored 1d4496a9ea7b 218591 tokens in 1.6 s
+[slots] saved 1a60b85a09c0 226586 tokens: prefill 23.62 s, save 80.16 s
+[slots] evicted e3a9da1f21b9 170584 tokens
+[slots] evicted 12565613352e 178568 tokens
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] "POST /tokenize HTTP/1.1" 200 -
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] "POST /tokenize HTTP/1.1" 200 -
+[slots] saved 3780950787ee 234631 tokens: prefill 12.36 s, save 52.55 s
+[slots] evicted c6c823b2b412 186616 tokens
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
