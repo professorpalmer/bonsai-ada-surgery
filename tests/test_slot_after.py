@@ -87,6 +87,16 @@ class Fake(http.server.BaseHTTPRequestHandler):
             S["cached"] = common(S["slot"], p)
             a = answer_for(p)
             S["slot"] = p + toks(a)   # the slot holds the prompt and the answer tokens (the end token is not read)
+            if b.get("stream"):
+                self.send_response(200)
+                self.send_header("Content-Type", "text/event-stream")
+                self.send_header("Connection", "close")
+                self.end_headers()
+                self.wfile.write(b"data: " + json.dumps({"choices": [{"delta": {"content": a}}]}).encode() + b"\n\n")
+                self.wfile.write(b"data: [DONE]\n\n")
+                self.wfile.flush()
+                self.close_connection = True
+                return
             return self._send({"choices": [{"index": 0, "finish_reason": "stop",
                                             "message": {"role": "assistant", "content": a}}]})
         if self.path.startswith("/slots/0?action=save"):
@@ -267,9 +277,29 @@ def test_layer_hook():
     i = S["calls"].index("/v1/chat/completions")
     assert "GET /slots" in S["calls"][i:], S["calls"]   # after() ran once the answer was out
     assert bonsai_layer.Proxy.slots.probe, LOG
+    # streamed: the client reads to the end of the stream (the layer shuts the write side before the save), then the
+    # next turn of the same conversation passes the prefix test
+    S["calls"].clear()
+    answers = [r["choices"][0]["message"]["content"]]
+    for n, keepalive in ((2, 15.0), (3, 0)):   # with keep-alive comments (early headers) and without
+        bonsai_layer.Proxy.keepalive = keepalive
+        body2 = dict(body, stream=True, messages=turn_msgs(answers, n))
+        t0 = time.time()
+        raw = urllib.request.urlopen(urllib.request.Request(
+            base + "/v1/chat/completions", data=json.dumps(body2).encode(),
+            headers={"Content-Type": "application/json"}), timeout=30).read()
+        assert b"[DONE]" in raw and time.time() - t0 < 10, (raw, time.time() - t0)
+        answers.append(json.loads(raw.split(b"data: ")[-2])["choices"][0]["delta"]["content"])
+        for _ in range(50):
+            if not json.loads(urllib.request.urlopen(base + "/layer/slot-cache").read())["busy"]:
+                break
+            time.sleep(0.1)
+    key = bonsai_layer.Proxy.slots._conv_key(toks(render(body2["messages"])))
+    assert bonsai_layer.Proxy.slots.conv.get(key) is True, (bonsai_layer.Proxy.slots.conv, LOG)
+    bonsai_layer.Proxy.keepalive = 15.0
     srv.shutdown()
     bonsai_layer.Proxy.slots = None
-    print("layer hook: after() runs after the answer, status endpoint: ok")
+    print("layer hook: after() runs after the answer (plain and streamed), status endpoint: ok")
 
 
 if __name__ == "__main__":
