@@ -1,0 +1,25 @@
+15:40:59 === release-20261018c R1-R5: zip sha256 6111693d463a030d, engine commit a6d4fc698f; clock 405 MHz
+15:41:04 R1 entries 67 only-new [] only-old [] identical ['bin/ggml-cuda.dll', 'bin/ggml-cpu.dll'] changed ['README.md', 'bin/ggml-base.dll', 'bin/llama-common.dll', 'bin/llama-server-impl.dll', 'bin/llama-server.exe', 'bin/llama.dll', 'bin/mtmd.dll', 'bin/test-backend-ops.exe', 'docs/8GB.md', 'layer/slot_cache.py'] control-byte files 0
+15:41:17 server default (BONSAI_LAYER=0): health=1; window 262144 / q4_0  (12 GB default, BONSAI_CTK=q8_0 for th|
+15:41:32 R2 default: answer: Red, blue, and yellow.; CUDA errors 0
+15:41:51 server 8gb (BONSAI_8GB=1 BONSAI_SLOT_SAVE_PATH=C:\Users\pwall\AppData\Local\Temp\r18c_slots_r2): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)|layer  on: clients use :8080 (API cards, API check, sandboxe|
+15:42:07 R2 8gb: answer: Red, blue, and yellow.; CUDA errors 0
+15:42:27 server 24gb (BONSAI_LAYER=0 BONSAI_TOTAL_MIB=24576): health=1; window 262144 / q8_0  (q8_0: the card holds most of the wind|
+15:42:43 R2 24gb: answer: Red, blue, and yellow.; CUDA errors 0
+15:43:00 server r3_build (BONSAI_LAYER=0 BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640 BONSAI_SLOT_SAVE_PATH=C:\Users\pwall\AppData\Local\Temp\r18c_slots_r3): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)|
+15:44:06 server r3_full (BONSAI_LAYER=0 BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640 BONSAI_SLOT_SAVE_PATH=C:\Users\pwall\AppData\Local\Temp\r18c_slots_r3): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)|
+15:44:27 server r3_chain (BONSAI_LAYER=0 BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640 BONSAI_SLOT_SAVE_PATH=C:\Users\pwall\AppData\Local\Temp\r18c_slots_r3): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)|
+15:44:32 R3 same answer True prompt_n 2407 2407 cache_n 34028 34028; CUDA errors 0
+15:44:50 server r4_1018b (BONSAI_LAYER=0 BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)|
+15:45:08 R4 1018b 4000: mean decode 87.9 tok/s
+15:45:34 R4 1018b 16000: mean decode 92.7 tok/s
+15:45:52 server r4_1018c (BONSAI_LAYER=0 BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)|
+15:46:10 R4 1018c 4000: mean decode 88.5 tok/s
+15:46:36 R4 1018c 16000: mean decode 92.9 tok/s
+15:46:54 server r5 (BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640 BONSAI_SLOT_SAVE_PATH=C:\Users\pwall\AppData\Local\Temp\r18c_slots_r5): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)|layer  on: clients use :8080 (API cards, API check, sandboxe|
+15:46:54 R5 props "slot_save_delta":true
+15:47:14 R5 {"turn": 1, "s": 19.2, "prompt_tokens": 21152, "slot_files": 1, "answer": "4821"}
+15:47:23 R5 {"turn": 2, "s": 8.8, "prompt_tokens": 28269, "slot_files": 2, "answer": "27611"}
+15:47:32 R5 {"turn": 3, "s": 9.8, "prompt_tokens": 35398, "slot_files": 3, "answer": "17412"}
+15:47:34 R5 index 3 entries; 1 deltas; [(21145, 0), (28262, 0), (35404, 1)]; CUDA errors 0
+15:47:40 === release-20261018c R1-R5 done

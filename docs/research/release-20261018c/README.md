@@ -19,3 +19,16 @@ dev drive the full save of a 173k state took 70.6 s, a delta 0.08 s; G1 with thi
 | R5 default | `BONSAI_8GB=1`, layer, slot folder, no cache variables: `/props` says `slot_save_delta: true`; a 5-turn 20k conversation through the layer leaves at least one delta (an index entry with a parent); 0 CUDA errors |
 
 All pass: publish as the latest release. Any fail: no publish; log why.
+
+## Results (`release_1018c.log`, `r3_d1.jsonl`)
+
+Zip `bonsai-bundle-win-x64-20261018c.zip`, 616,681,040 bytes, SHA-256
+`6111693d463a030d128ab80b44abd81b28d749b05d5ebff176f3a72e46d7ba76`.
+
+| Gate | Result |
+|---|---|
+| R1 zip | PASS: 67 entries, the same set as 1018b; engine commit a6d4fc698f; `ggml-cuda.dll` and `ggml-cpu.dll` byte-identical; 0 control-byte files |
+| R2 launcher | PASS: default (q4_0), 8 GB (q3_0, layer on), 24 GB (q8_0) each answer; 0 CUDA errors |
+| R3 exact | PASS: the chain restore gives the same answer, `prompt_n` 2,407 and `cache_n` 34,028 as the full-file restore; 0 CUDA errors |
+| R4 speed | PASS: 4k 87.9 -> 88.5 tok/s, 16k 92.7 -> 92.9 tok/s (1018b -> 1018c) |
+| R5 default | PASS: `slot_save_delta: true`; 3 turns through the layer left a delta (depth 1 on the turn-2 save); 0 CUDA errors |
