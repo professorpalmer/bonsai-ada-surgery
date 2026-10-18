@@ -107,7 +107,8 @@ class SlotCache:
         self.last = None               # the last request's tokens etc., for after() (save after the answer)
         self.probe = None              # (conversation, slot token count after its last answer): the prefix test
         self.wait = None               # the same, armed by before(): the next reply's cached count resolves it
-        self.busy = False              # a chat request is between before() and after(): a stop now can lose a save
+        self.busy_n = 0                # chat requests between their start and the end of after(): a stop now can lose a save
+        self.busy_lock = threading.Lock()
         os.makedirs(self.folder, exist_ok=True)
         self.conv_path = os.path.join(self.folder, PREFIX + "conv.json")
         self.conv = {}                 # conversation key -> True / False: the last prefix test passed / failed
@@ -171,6 +172,18 @@ class SlotCache:
                     self.index[sha] = {"n": int(e["n"]), "last": float(e["last"]), "bytes": int(e["bytes"])}
             except Exception:
                 continue
+
+    def enter(self):
+        with self.busy_lock:
+            self.busy_n += 1
+
+    def leave(self):
+        with self.busy_lock:
+            self.busy_n = max(0, self.busy_n - 1)
+
+    @property
+    def busy(self):
+        return self.busy_n > 0
 
     def _conv_key(self, toks):
         """A conversation is its first BONSAI_SLOT_CACHE_MIN tokens (they do not change from turn to turn). Two
@@ -378,6 +391,8 @@ class SlotCache:
             else:
                 info["status"] = "skipped: no new tokens to save"
         if force_save:   # only the work done here changed the server's slot
+            if info.get("slot_cache_saved") or info.get("slot_cache_restored"):
+                self.probe = None   # the slot no longer holds the state after the last answer (review: a false pass)
             if info.get("slot_cache_saved"):
                 self.held = base
             elif info.get("slot_cache_restored"):
@@ -392,9 +407,13 @@ class SlotCache:
         """The prefix test: the layer passes the cached-token count (timings.cache_n) of the first reply after before().
         Passes when that request reused all the tokens the slot held after the conversation's last answer."""
         w, self.wait = self.wait, None
-        if not w or n is None:
+        try:
+            n = int(n)
+        except (TypeError, ValueError):
             return None
-        ok = int(n) >= w[1]
+        if not w:
+            return None
+        ok = n >= w[1]
         self._set_conv(w[0], ok)
         self.log("after-answer test", w[0][:12], "pass" if ok else "fail", "(cached", n, "of", w[1], ")")
         return ok

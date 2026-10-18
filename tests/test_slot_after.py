@@ -327,8 +327,31 @@ def test_read_tokens():
     print("slot-file token list (packed server_tokens state, plain, media / unknown refused): ok")
 
 
+def test_review_fixes():
+    reset()
+    c = cache()
+    c.enter()
+    c.enter()
+    c.leave()
+    assert c.busy, "two requests in, one out: still busy"
+    c.leave()
+    c.leave()
+    assert not c.busy and c.busy_n == 0
+    c.wait = ("k", 5)
+    assert c.cached("x") is None and c.cached(None) is None and c.wait is None   # a bad count never raises
+    answers = []
+    a, _ = chat(c, turn_msgs(answers, 1))
+    answers.append(a)
+    assert c.probe
+    with c.lock:   # a read-ahead of the next turn overwrites the slot: the test of the last answer is void
+        c.before({"messages": turn_msgs(answers, 2)}, "", force_save=True)
+    assert c.probe is None, c.probe
+    print("review fixes: busy counter, bad cache_n, a read-ahead voids the test: ok")
+
+
 if __name__ == "__main__":
     test_read_tokens()
+    test_review_fixes()
     test_pass_then_after_mode()
     test_rewritten_answer_fails()
     test_other_conversation_between()

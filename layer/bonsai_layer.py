@@ -281,7 +281,10 @@ class Proxy(http.server.BaseHTTPRequestHandler):
             n = int(m[-1]) if m else None
         if n is not None:
             self._slot_send = False
-            self.slots.cached(n)
+            try:
+                self.slots.cached(n)
+            except Exception as e:   # the cache must never break a reply
+                self.log_message("slot cache test failed: %r", e)
 
     def _prefill_result(self, body):
         """Read ahead (T1-d): read the prompt into the server and save it, at the send point (so the body is the one the
@@ -677,7 +680,7 @@ class Proxy(http.server.BaseHTTPRequestHandler):
         if self.slots is None:
             return fn()
         self._slot_info, self._slots_ok = info, True
-        self.slots.busy = True
+        self.slots.enter()
         try:
             return fn()
         finally:
@@ -686,7 +689,7 @@ class Proxy(http.server.BaseHTTPRequestHandler):
                 if not self._prefill_only and self.slots.after_on:
                     self._slots_after()
             finally:
-                self.slots.busy = False
+                self.slots.leave()
 
     def _slots_after(self):
         """Save after the answer (BONSAI_SLOT_CACHE_AFTER): the client has the whole answer first. A streamed reply ends
