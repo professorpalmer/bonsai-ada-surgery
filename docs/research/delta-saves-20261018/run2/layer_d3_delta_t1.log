@@ -1,0 +1,19 @@
+[proxy] "GET /health HTTP/1.1" 503 -
+[proxy] "GET /health HTTP/1.1" 503 -
+[proxy] "GET /health HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "POST /tokenize HTTP/1.1" 200 -
+[slots] saved 7efe2002108a 130601 tokens: prefill 174.42 s, save 2.0 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.0}
+[proxy] "POST /tokenize HTTP/1.1" 200 -
+[slots] after-answer test 8467d3134706 pass (cached 130688 of 130688 )
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.02}
+[proxy] "POST /tokenize HTTP/1.1" 200 -
+[slots] after-answer test 8467d3134706 pass (cached 134663 of 134663 )
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] delta saves on
+[slots] saved after the answer bbb98096cbb9 138647 tokens: 0.19 s, n_saved 138647
+[proxy] slot cache after the answer: {"delta_of": 130601, "saved": 138647, "save_s": 0.19, "s": 0.22}
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -

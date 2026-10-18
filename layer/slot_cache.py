@@ -31,6 +31,10 @@ the client has the answer. The saved tokens come from the slot file's own header
 fails (the client dropped the reasoning, edited a turn, ...), the conversation goes back to the save before the request.
 The result per conversation is kept on disk (lc-conv.json), so a restarted layer keeps it. A stop of the server within
 seconds of an answer can lose that save; the next restore then uses the save before it.
+Delta saves (a server that reports "slot_save_delta" in /props; BONSAI_SLOT_CACHE_CHAIN, default 8, 0 = off): a save
+after the answer that continues an earlier save of the conversation writes only the cells after it ("pos_min"), a few
+thousand tokens instead of the whole conversation. A restore loads the chain: the full save, then each delta
+("append"). Every BONSAI_SLOT_CACHE_CHAIN deltas the next save is full again. Eviction removes whole chains.
 Read ahead (T1-d): a chat request with "prefill_only": true reads and saves its prompt and returns no text; the later real
 request then restores it.
 Any failure here only logs and lets the request run as before.
@@ -94,9 +98,12 @@ def has_media(body):
 
 
 class SlotCache:
-    def __init__(self, upstream, folder, min_tokens=16384, grow=8192, budget_gb=20.0, log=None, min_gain=2048, after=False):
+    def __init__(self, upstream, folder, min_tokens=16384, grow=8192, budget_gb=20.0, log=None, min_gain=2048, after=False,
+                 chain=0):
         self.upstream, self.folder = upstream.rstrip("/"), os.path.abspath(folder)
         self.after_on = bool(after)   # save after the answer when the conversation passed the prefix test (see the top)
+        self.chain = int(chain)        # delta saves: at most this many deltas after a full save (0: off)
+        self.delta_ok = None           # the server takes "pos_min" / "append" (GET /props slot_save_delta); None: not asked
         self.min_gain = int(min_gain)   # restore only when it saves at least this many tokens of reading (~15-25 s at depth)
         self.min_tokens, self.grow, self.budget = int(min_tokens), int(grow), float(budget_gb) * 2**30
         self.log = log or (lambda *a: sys.stderr.write("[slots] " + " ".join(str(x) for x in a) + "\n"))
@@ -134,7 +141,8 @@ class SlotCache:
             return cls(upstream, folder, int(os.environ.get("BONSAI_SLOT_CACHE_MIN", 16384)),
                        int(os.environ.get("BONSAI_SLOT_CACHE_GROW", 8192)), float(os.environ.get("BONSAI_SLOT_CACHE_GB", 20)),
                        log, int(os.environ.get("BONSAI_SLOT_CACHE_GAIN", 2048)),
-                       os.environ.get("BONSAI_SLOT_CACHE_AFTER", "1") not in ("", "0"))
+                       os.environ.get("BONSAI_SLOT_CACHE_AFTER", "1") not in ("", "0"),
+                       int(os.environ.get("BONSAI_SLOT_CACHE_CHAIN", 8)))
         except Exception as e:
             (log or (lambda *a: sys.stderr.write("[slots] " + " ".join(str(x) for x in a) + "\n")))(
                 "saved conversations OFF: cannot start the cache:", repr(e))
@@ -169,9 +177,18 @@ class SlotCache:
                 if e.get("drop"):
                     self.index.pop(sha, None)
                 elif os.path.exists(self._bin(sha)):
-                    self.index[sha] = {"n": int(e["n"]), "last": float(e["last"]), "bytes": int(e["bytes"])}
+                    self.index[sha] = {"n": int(e["n"]), "last": float(e["last"]), "bytes": int(e["bytes"]),
+                                       "parent": e.get("parent"), "depth": int(e.get("depth") or 0)}
             except Exception:
                 continue
+        # a delta whose chain lost a file is no use: drop it (its files go in _clean)
+        changed = True
+        while changed:
+            changed = False
+            for sha, e in list(self.index.items()):
+                if e.get("parent") and e["parent"] not in self.index:
+                    del self.index[sha]
+                    changed = True
 
     def enter(self):
         with self.busy_lock:
@@ -227,24 +244,47 @@ class SlotCache:
         with open(self.index_path, "a", encoding="utf-8") as f:
             f.write(json.dumps(entry) + "\n")
 
+    def _chain(self, sha):
+        """[full save, delta, ..., sha] for an index entry, or None when a link is missing."""
+        out = []
+        while sha:
+            e = self.index.get(sha)
+            if e is None or len(out) > 1000:
+                return None
+            out.append(sha)
+            sha = e.get("parent")
+        return out[::-1]
+
+    def _root(self, sha):
+        c = self._chain(sha)
+        return c[0] if c else sha
+
     def _evict(self):
+        """Remove the least recently used saves until the folder fits the budget. A chain (a full save and its deltas)
+        goes as a whole, so no delta is left without its parent."""
         total = sum(e["bytes"] for e in self.index.values())
-        for sha, e in sorted(self.index.items(), key=lambda kv: kv[1]["last"]):
+        groups = {}
+        for sha in self.index:
+            groups.setdefault(self._root(sha), []).append(sha)
+        order = sorted(groups.items(), key=lambda kv: max(self.index[x]["last"] for x in kv[1]))
+        for root, members in order:
             if total <= self.budget:
                 break
-            ok = True
-            for p in self._files(sha):
-                try:
-                    if os.path.exists(p):
-                        os.remove(p)
-                except OSError:
-                    ok = False
-            if not ok:   # keep the entry when a file could not be removed (review N8)
-                continue
-            total -= e["bytes"]
-            del self.index[sha]
-            self._note({"sha": sha, "drop": True})
-            self.log("evicted", sha[:12], e["n"], "tokens")
+            for sha in sorted(members, key=lambda x: -self.index[x]["depth"]):   # deltas first, the full save last
+                e = self.index[sha]
+                ok = True
+                for p in self._files(sha):
+                    try:
+                        if os.path.exists(p):
+                            os.remove(p)
+                    except OSError:
+                        ok = False
+                if not ok:   # keep the entry when a file could not be removed (review N8); its parents stay too
+                    break
+                total -= e["bytes"]
+                del self.index[sha]
+                self._note({"sha": sha, "drop": True})
+                self.log("evicted", sha[:12], e["n"], "tokens")
 
     # ---- server calls -----------------------------------------------------------------------------------------
     def _post(self, path, body, auth, timeout=7200):
@@ -265,8 +305,9 @@ class SlotCache:
         per-request counts, which it resets)."""
         return int(self._get("/slots", auth)[0].get("n_prompt_tokens") or 0)
 
-    def _store(self, tmp, saved):
-        """Give a finished save in tmp (+ its .draft sidecar) its final name and index entry; returns (sha, bytes)."""
+    def _store(self, tmp, saved, parent=None):
+        """Give a finished save in tmp (+ its .draft sidecar) its final name and index entry; returns (sha, bytes). saved
+        is the whole token list (for a delta too); parent: the save a delta continues."""
         sha = _sha(saved)
         os.replace(os.path.join(self.folder, tmp), self._bin(sha))
         if os.path.exists(os.path.join(self.folder, tmp + ".draft")):   # the draft sidecar goes with it (review B1)
@@ -274,9 +315,24 @@ class SlotCache:
         with open(self._files(sha)[2], "wb") as f:
             array.array("I", saved).tofile(f)
         size = sum(os.path.getsize(p) for p in self._files(sha) if os.path.exists(p))
-        self.index[sha] = {"n": len(saved), "last": time.time(), "bytes": size}
+        depth = self.index[parent]["depth"] + 1 if parent else 0
+        self.index[sha] = {"n": len(saved), "last": time.time(), "bytes": size, "parent": parent, "depth": depth}
         self._note({"sha": sha, **self.index[sha]})
         return sha, size
+
+    def _toks_of(self, sha):
+        a = array.array("I")
+        a.frombytes(open(self._files(sha)[2], "rb").read())
+        return list(a)
+
+    def _delta_ok(self, auth):
+        if self.delta_ok is None:
+            try:
+                self.delta_ok = bool((self._get("/props", auth) or {}).get("slot_save_delta"))
+            except Exception:
+                self.delta_ok = False
+            self.log("delta saves", "on" if (self.delta_ok and self.chain > 0) else "off (server or BONSAI_SLOT_CACHE_CHAIN)")
+        return self.delta_ok and self.chain > 0
 
     def _tmp(self):
         tmp = PREFIX + "saving-%d.bin" % os.getpid()
@@ -341,7 +397,13 @@ class SlotCache:
         if best_sha and best_n >= common + self.min_gain:
             try:
                 t1 = time.time()
-                self._post("/slots/0?action=restore", {"filename": self._name(best_sha)}, auth)
+                chain = self._chain(best_sha)
+                if not chain or (len(chain) > 1 and not self._delta_ok(auth)):   # review: never a delta on its own
+                    raise ValueError("chain of %s not usable (broken, or the server cannot append)" % best_sha[:12])
+                for i, link in enumerate(chain):   # the full save, then each delta after the slot's cells
+                    self._post("/slots/0?action=restore", {"filename": self._name(link), **({"append": True} if i else {})}, auth)
+                if len(chain) > 1:
+                    info["slot_cache_chain"] = len(chain)
                 self.index[best_sha]["last"] = time.time()
                 self._note({"sha": best_sha, **self.index[best_sha]})
                 common = best_n
@@ -350,6 +412,8 @@ class SlotCache:
                 self.log("restored", best_sha[:12], best_n, "tokens in", info["slot_cache_restore_s"], "s")
             except Exception as e:
                 self.log("restore failed:", repr(e))
+                self.held = []   # a failed append may have emptied the slot
+                common = 0
         key = self._conv_key(toks)
         # the prefix test of this conversation's last answer is valid only when nothing else used the slot since
         probe = self.probe if (not force_save and self.probe and self.probe[0] == key
@@ -373,6 +437,7 @@ class SlotCache:
                 n = int(r.get("n_saved") or len(base))
                 saved = base[:n] if n <= len(base) else base   # the server may hold back the last token
                 sha, size = self._store(tmp, saved)
+                best_sha = sha
                 info["slot_cache_saved"] = len(saved)
                 info["slot_cache_gen_prompt_tokens"] = len(toks) - len(base)
                 info["slot_cache_prefill_s"] = round(t2 - t1, 2)
@@ -399,7 +464,9 @@ class SlotCache:
                 self.held = toks[:info["slot_cache_restored"]]   # a restore-only read-ahead (re-review: blocking)
         else:
             self.held = toks
-            self.last = {"key": key, "toks": toks, "best": max(best_n, int(info.get("slot_cache_saved") or 0))}
+            self.last = {"key": key, "toks": toks, "best": max(best_n, int(info.get("slot_cache_saved") or 0)),
+                         "best_sha": best_sha if (info.get("slot_cache_restored") or info.get("slot_cache_saved")
+                                                  or (best_sha and best_n <= common)) else None}
         info["slot_cache_s"] = round(time.time() - t0, 2)
         return info
 
@@ -433,13 +500,23 @@ class SlotCache:
         self.probe = (last["key"], n) if n > len(toks) else None
         if self.conv.get(last["key"]) is True and n - last["best"] >= self.grow:
             tmp = self._tmp()
+            parent = last.get("best_sha")
+            if not (parent in self.index and self.index[parent]["depth"] < self.chain and self._delta_ok(auth)):
+                parent = None
             try:
                 t1 = time.time()
-                r = self._post("/slots/0?action=save", {"filename": tmp}, auth)
+                body = {"filename": tmp}
+                if parent:
+                    body["pos_min"] = self.index[parent]["n"]
+                r = self._post("/slots/0?action=save", body, auth)
                 saved = read_tokens(os.path.join(self.folder, tmp))
+                if parent:   # the file holds the tokens from pos_min on
+                    saved = self._toks_of(parent) + saved
                 if len(saved) <= len(toks) or saved[:len(toks)] != toks:   # another request used the slot in between
                     raise ValueError("the slot does not extend the request's tokens (%d tokens)" % len(saved))
-                sha, size = self._store(tmp, saved)
+                sha, size = self._store(tmp, saved, parent)
+                if parent:
+                    info["delta_of"] = self.index[parent]["n"]
                 self.held = saved
                 info.update(saved=len(saved), save_s=round(time.time() - t1, 2))
                 self.log("saved after the answer", sha[:12], len(saved), "tokens:", info["save_s"], "s, n_saved", r.get("n_saved"))

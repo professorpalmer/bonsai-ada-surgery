@@ -1,0 +1,26 @@
+15:29:13 === D1/D2: engine commit c5e73e7d81
+15:29:26 server build_20000: health=1; delta "slot_save_delta":true
+{"turn": 1, "n_slot": 24175, "prompt_n": 24119, "file": {"name": "d1-d20k-0.bin", "pos_min": 0, "n": 24175, "bytes": 504047784, "save_s": 0.33}, "tag": "d20k", "phase": "build"}
+{"turn": 2, "n_slot": 26615, "prompt_n": 2407, "file": {"name": "d1-d20k-1.bin", "pos_min": 24175, "n": 26615, "bytes": 191933168, "save_s": 0.15}, "tag": "d20k", "phase": "build"}
+{"turn": 3, "n_slot": 29066, "prompt_n": 2414, "file": {"name": "d1-d20k-2.bin", "pos_min": 26615, "n": 29066, "bytes": 192091128, "save_s": 0.16}, "tag": "d20k", "phase": "build"}
+{"turn": 4, "n_slot": 31496, "prompt_n": 2417, "file": {"name": "d1-d20k-3.bin", "pos_min": 29066, "n": 31496, "bytes": 191789568, "save_s": 0.18}, "tag": "d20k", "phase": "build"}
+{"turn": 5, "n_slot": 34028, "prompt_n": 2413, "file": {"name": "d1-d20k-4.bin", "pos_min": 31496, "n": 34028, "bytes": 193254288, "save_s": 0.17}, "tag": "d20k", "phase": "build"}
+{"files": [{"name": "d1-d20k-0.bin", "pos_min": 0, "n": 24175, "bytes": 504047784, "save_s": 0.33}, {"name": "d1-d20k-1.bin", "pos_min": 24175, "n": 26615, "bytes": 191933168, "save_s": 0.15}, {"name": "d1-d20k-2.bin", "pos_min": 26615, "n": 29066, "bytes": 192091128, "save_s": 0.16}, {"name": "d1-d
+15:30:23 server full_20000: health=1; delta "slot_save_delta":true
+{"n_restored": null, "restore_s": 0.7, "prompt_n": 2407, "cache_n": 34028, "wall_s": 3.0, "tag": "d20k", "phase": "full"}
+15:30:45 server chain_20000: health=1; delta "slot_save_delta":true
+{"n_restored": null, "restore_s": 0.77, "prompt_n": 2407, "cache_n": 34028, "wall_s": 3.02, "tag": "d20k", "phase": "chain"}
+15:30:49 CUDA errors 0
+15:31:07 server build_131072: health=1; delta "slot_save_delta":true
+{"turn": 1, "n_slot": 163903, "prompt_n": 163881, "file": {"name": "d1-d131k-0.bin", "pos_min": 0, "n": 163903, "bytes": 2510541864, "save_s": 2.27}, "tag": "d131k", "phase": "build"}
+{"turn": 2, "n_slot": 166344, "prompt_n": 2407, "file": {"name": "d1-d131k-1.bin", "pos_min": 163903, "n": 166344, "bytes": 191947528, "save_s": 0.2}, "tag": "d131k", "phase": "build"}
+{"turn": 3, "n_slot": 168794, "prompt_n": 2413, "file": {"name": "d1-d131k-2.bin", "pos_min": 166344, "n": 168794, "bytes": 192076768, "save_s": 3.93}, "tag": "d131k", "phase": "build"}
+{"turn": 4, "n_slot": 171244, "prompt_n": 2417, "file": {"name": "d1-d131k-3.bin", "pos_min": 168794, "n": 171244, "bytes": 192076768, "save_s": 0.17}, "tag": "d131k", "phase": "build"}
+{"turn": 5, "n_slot": 173695, "prompt_n": 2413, "file": {"name": "d1-d131k-4.bin", "pos_min": 171244, "n": 173695, "bytes": 192091128, "save_s": 0.16}, "tag": "d131k", "phase": "build"}
+{"files": [{"name": "d1-d131k-0.bin", "pos_min": 0, "n": 163903, "bytes": 2510541864, "save_s": 2.27}, {"name": "d1-d131k-1.bin", "pos_min": 163903, "n": 166344, "bytes": 191947528, "save_s": 0.2}, {"name": "d1-d131k-2.bin", "pos_min": 166344, "n": 168794, "bytes": 192076768, "save_s": 3.93}, {"name
+15:36:53 server full_131072: health=1; delta "slot_save_delta":true
+{"n_restored": null, "restore_s": 1.36, "prompt_n": 2406, "cache_n": 173695, "wall_s": 7.44, "tag": "d131k", "phase": "full"}
+15:37:20 server chain_131072: health=1; delta "slot_save_delta":true
+{"n_restored": null, "restore_s": 1.79, "prompt_n": 2406, "cache_n": 173695, "wall_s": 7.46, "tag": "d131k", "phase": "chain"}
+15:37:29 CUDA errors 0
+15:37:35 === D1/D2 done

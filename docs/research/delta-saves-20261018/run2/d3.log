@@ -1,0 +1,84 @@
+14:25:41 === save-after-answer A/B: commit c5e73e7d81; layer dca2ff4 + worktree; clock 405 MHz
+14:25:57 delta: server t1 health=1; waited 2s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "delta", "turn": 1, "depth": 131072, "think": false, "edit": false, "wall_s": 178.8, "prompt_n": 7, "prompt_ms": 287.782, "predicted_n": 80, "tg": 45.56139715466191, "layer": null}
+{"arm": "delta", "turn": 2, "depth": 131072, "think": false, "edit": false, "wall_s": 9.0, "prompt_n": 3965, "prompt_ms": 8382.474, "predicted_n": 10, "tg": 42.40822154054933, "layer": null}
+{"arm": "delta", "turn": 3, "depth": 131072, "think": false, "edit": false, "wall_s": 9.05, "prompt_n": 3978, "prompt_ms": 8514.604, "predicted_n": 6, "tg": 36.92762186115214, "layer": null}
+14:30:33 delta: server t4 health=1; waited 0s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "delta", "turn": 4, "depth": 131072, "think": false, "edit": false, "wall_s": 10.37, "prompt_n": 3964, "prompt_ms": 8495.769, "predicted_n": 10, "tg": 30.870337721494675, "layer": null}
+{"arm": "delta", "turn": 5, "depth": 131072, "think": false, "edit": false, "wall_s": 9.85, "prompt_n": 3979, "prompt_ms": 8801.449, "predicted_n": 80, "tg": 119.82060277346778, "layer": null}
+{"arm": "delta", "turn": 6, "depth": 131072, "think": false, "edit": false, "wall_s": 9.58, "prompt_n": 3988, "prompt_ms": 9006.088, "predicted_n": 6, "tg": 31.68828864228358, "layer": null}
+14:32:22 delta: server t7 health=1; waited 0s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "delta", "turn": 7, "depth": 131072, "think": false, "edit": false, "wall_s": 20.04, "prompt_n": 7979, "prompt_ms": 17673.91, "predicted_n": 80, "tg": 111.24159703505939, "layer": null}
+{"arm": "delta", "turn": 8, "depth": 131072, "think": false, "edit": false, "wall_s": 10.07, "prompt_n": 3968, "prompt_ms": 9347.365, "predicted_n": 10, "tg": 31.344032096288863, "layer": null}
+{"arm": "delta", "turn": 9, "depth": 131072, "think": false, "edit": false, "wall_s": 10.07, "prompt_n": 3981, "prompt_ms": 9560.642, "predicted_n": 6, "tg": 52.19370126413145, "layer": null}
+14:34:22 delta: server t10 health=1; waited 0s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "delta", "turn": 10, "depth": 131072, "think": false, "edit": false, "wall_s": 11.66, "prompt_n": 3971, "prompt_ms": 9605.59, "predicted_n": 10, "tg": 65.86265441133423, "layer": null}
+{"arm": "delta", "turn": 11, "depth": 131072, "think": false, "edit": false, "wall_s": 10.81, "prompt_n": 3970, "prompt_ms": 9781.366, "predicted_n": 17, "tg": 27.238354326727464, "layer": null}
+{"arm": "delta", "turn": 12, "depth": 131072, "think": false, "edit": false, "wall_s": 10.71, "prompt_n": 3979, "prompt_ms": 10005.29, "predicted_n": 6, "tg": 24.370628518509495, "layer": null}
+14:36:14 delta: server t13 health=1; waited 0s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "delta", "turn": 13, "depth": 131072, "think": false, "edit": false, "wall_s": 22.21, "prompt_n": 7967, "prompt_ms": 19733.712, "predicted_n": 80, "tg": 167.75031957497592, "layer": null}
+{"arm": "delta", "turn": 14, "depth": 131072, "think": false, "edit": false, "wall_s": 11.0, "prompt_n": 3977, "prompt_ms": 10402.472, "predicted_n": 10, "tg": 74.99312563015057, "layer": null}
+{"arm": "delta", "turn": 15, "depth": 131072, "think": false, "edit": false, "wall_s": 11.34, "prompt_n": 3981, "prompt_ms": 10607.855, "predicted_n": 6, "tg": 21.977538955187796, "layer": null}
+14:38:18 delta: server t16 health=1; waited 0s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "delta", "turn": 16, "depth": 131072, "think": false, "edit": false, "wall_s": 13.1, "prompt_n": 3978, "prompt_ms": 10658.044, "predicted_n": 10, "tg": 57.965787304204454, "layer": null}
+{"arm": "delta", "turn": 17, "depth": 131072, "think": false, "edit": false, "wall_s": 11.55, "prompt_n": 3975, "prompt_ms": 10888.101, "predicted_n": 17, "tg": 85.85395169642042, "layer": null}
+{"arm": "delta", "turn": 18, "depth": 131072, "think": false, "edit": false, "wall_s": 11.94, "prompt_n": 3979, "prompt_ms": 11127.244, "predicted_n": 6, "tg": 16.09404069861012, "layer": null}
+14:40:14 delta: server t19 health=1; waited 0s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "delta", "turn": 19, "depth": 131072, "think": false, "edit": false, "wall_s": 26.57, "prompt_n": 7973, "prompt_ms": 21923.731, "predicted_n": 80, "tg": 35.900556367736215, "layer": null}
+{"arm": "delta", "turn": 20, "depth": 131072, "think": false, "edit": false, "wall_s": 34.64, "prompt_n": 3982, "prompt_ms": 11448.187, "predicted_n": 10, "tg": 62.6518437045339, "layer": null}
+{"arm": "delta", "turn": 21, "depth": 131072, "think": false, "edit": false, "wall_s": 12.24, "prompt_n": 3978, "prompt_ms": 11562.517, "predicted_n": 6, "tg": 39.481996209728365, "layer": null}
+14:42:47 delta: server t22 health=1; waited 0s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "delta", "turn": 22, "depth": 131072, "think": false, "edit": false, "wall_s": 14.03, "prompt_n": 3975, "prompt_ms": 11643.861, "predicted_n": 10, "tg": 53.14845544683088, "layer": null}
+{"arm": "delta", "turn": 23, "depth": 131072, "think": false, "edit": false, "wall_s": 12.68, "prompt_n": 3976, "prompt_ms": 11914.421, "predicted_n": 17, "tg": 81.9932560546895, "layer": null}
+{"arm": "delta", "turn": 24, "depth": 131072, "think": false, "edit": false, "wall_s": 13.09, "prompt_n": 3985, "prompt_ms": 12043.453, "predicted_n": 6, "tg": 11.245254502599902, "layer": null}
+14:44:46 delta: server t25 health=1; waited 0s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "delta", "turn": 25, "depth": 131072, "think": false, "edit": false, "wall_s": 26.65, "prompt_n": 7978, "prompt_ms": 23705.297, "predicted_n": 80, "tg": 129.96413647879444, "layer": null}
+{"arm": "delta", "turn": 26, "depth": 131072, "think": false, "edit": false, "wall_s": 13.51, "prompt_n": 3972, "prompt_ms": 12315.033, "predicted_n": 10, "tg": 17.304065109428983, "layer": null}
+{"arm": "delta", "turn": 27, "depth": 131072, "think": false, "edit": false, "wall_s": 13.57, "prompt_n": 3983, "prompt_ms": 12647.863, "predicted_n": 6, "tg": 15.615679391363281, "layer": null}
+14:46:59 delta: server t28 health=1; waited 0s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "delta", "turn": 28, "depth": 131072, "think": false, "edit": false, "wall_s": 15.46, "prompt_n": 3962, "prompt_ms": 12662.896, "predicted_n": 10, "tg": 47.29200712532907, "layer": null}
+{"arm": "delta", "turn": 29, "depth": 131072, "think": false, "edit": false, "wall_s": 13.73, "prompt_n": 3974, "prompt_ms": 12919.02, "predicted_n": 17, "tg": 80.04042041230822, "layer": null}
+{"arm": "delta", "turn": 30, "depth": 131072, "think": false, "edit": false, "wall_s": 13.83, "prompt_n": 3969, "prompt_ms": 12900.447, "predicted_n": 6, "tg": 14.553413939842008, "layer": null}
+14:48:24 delta done: arm wall 1361 s (waits 2 s); CUDA error logs 0; saving leftovers 0; files 15; conv {"8467d3134706cab3356b60c0": true}
+14:48:42 full: server t1 health=1; waited 0s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "full", "turn": 1, "depth": 131072, "think": false, "edit": false, "wall_s": 187.07, "prompt_n": 7, "prompt_ms": 567.244, "predicted_n": 80, "tg": 46.86469273371838, "layer": null}
+{"arm": "full", "turn": 2, "depth": 131072, "think": false, "edit": false, "wall_s": 8.96, "prompt_n": 3965, "prompt_ms": 8310.886, "predicted_n": 10, "tg": 42.59871067902345, "layer": null}
+{"arm": "full", "turn": 3, "depth": 131072, "think": false, "edit": false, "wall_s": 9.23, "prompt_n": 3978, "prompt_ms": 8642.896, "predicted_n": 6, "tg": 36.36866185145584, "layer": null}
+14:54:02 full: server t4 health=1; waited 34s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "full", "turn": 4, "depth": 131072, "think": false, "edit": false, "wall_s": 10.33, "prompt_n": 3964, "prompt_ms": 8637.844, "predicted_n": 10, "tg": 36.8618295754746, "layer": null}
+{"arm": "full", "turn": 5, "depth": 131072, "think": false, "edit": false, "wall_s": 10.08, "prompt_n": 3979, "prompt_ms": 8988.058, "predicted_n": 80, "tg": 119.14780662461804, "layer": null}
+{"arm": "full", "turn": 6, "depth": 131072, "think": false, "edit": false, "wall_s": 49.5, "prompt_n": 3987, "prompt_ms": 9156.5, "predicted_n": 6, "tg": 31.7355539758302, "layer": null}
+14:56:31 full: server t7 health=1; waited 0s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "full", "turn": 7, "depth": 131072, "think": false, "edit": false, "wall_s": 20.01, "prompt_n": 7978, "prompt_ms": 17710.481, "predicted_n": 80, "tg": 110.86987946058294, "layer": null}
+{"arm": "full", "turn": 8, "depth": 131072, "think": false, "edit": false, "wall_s": 59.52, "prompt_n": 3968, "prompt_ms": 9292.416, "predicted_n": 10, "tg": 31.287806099036338, "layer": null}
+{"arm": "full", "turn": 9, "depth": 131072, "think": false, "edit": false, "wall_s": 10.11, "prompt_n": 3981, "prompt_ms": 9535.468, "predicted_n": 6, "tg": 52.21604912485902, "layer": null}
+15:00:23 full: server t10 health=1; waited 60s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "full", "turn": 10, "depth": 131072, "think": false, "edit": false, "wall_s": 11.5, "prompt_n": 3971, "prompt_ms": 9641.172, "predicted_n": 10, "tg": 64.64681291212344, "layer": null}
+{"arm": "full", "turn": 11, "depth": 131072, "think": false, "edit": false, "wall_s": 11.07, "prompt_n": 3970, "prompt_ms": 9941.184, "predicted_n": 17, "tg": 27.33710927155147, "layer": null}
+{"arm": "full", "turn": 12, "depth": 131072, "think": false, "edit": false, "wall_s": 26.75, "prompt_n": 3979, "prompt_ms": 10043.725, "predicted_n": 6, "tg": 24.3223785340416, "layer": null}
+15:02:32 full: server t13 health=1; waited 0s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "full", "turn": 13, "depth": 131072, "think": false, "edit": false, "wall_s": 22.06, "prompt_n": 7967, "prompt_ms": 19778.602, "predicted_n": 80, "tg": 163.53026655433447, "layer": null}
+{"arm": "full", "turn": 14, "depth": 131072, "think": false, "edit": false, "wall_s": 72.68, "prompt_n": 3977, "prompt_ms": 10382.708, "predicted_n": 10, "tg": 75.0581700818134, "layer": null}
+{"arm": "full", "turn": 15, "depth": 131072, "think": false, "edit": false, "wall_s": 11.33, "prompt_n": 3981, "prompt_ms": 10576.031, "predicted_n": 6, "tg": 21.974448111735676, "layer": null}
+15:06:03 full: server t16 health=1; waited 22s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "full", "turn": 16, "depth": 131072, "think": false, "edit": false, "wall_s": 13.28, "prompt_n": 3979, "prompt_ms": 10891.949, "predicted_n": 10, "tg": 52.86095220195232, "layer": null}
+{"arm": "full", "turn": 17, "depth": 131072, "think": false, "edit": false, "wall_s": 11.58, "prompt_n": 3975, "prompt_ms": 10881.326, "predicted_n": 17, "tg": 100.08194209008626, "layer": null}
+{"arm": "full", "turn": 18, "depth": 131072, "think": false, "edit": false, "wall_s": 18.7, "prompt_n": 3979, "prompt_ms": 11032.152, "predicted_n": 6, "tg": 16.208453681101915, "layer": null}
+15:08:41 full: server t19 health=1; waited 0s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "full", "turn": 19, "depth": 131072, "think": false, "edit": false, "wall_s": 25.96, "prompt_n": 7973, "prompt_ms": 21759.502, "predicted_n": 80, "tg": 35.917515199019405, "layer": null}
+{"arm": "full", "turn": 20, "depth": 131072, "think": false, "edit": false, "wall_s": 85.28, "prompt_n": 3982, "prompt_ms": 11472.517, "predicted_n": 10, "tg": 61.28953174797745, "layer": null}
+{"arm": "full", "turn": 21, "depth": 131072, "think": false, "edit": false, "wall_s": 12.25, "prompt_n": 3978, "prompt_ms": 11551.479, "predicted_n": 6, "tg": 38.79758523829477, "layer": null}
+15:12:42 full: server t22 health=1; waited 11s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "full", "turn": 22, "depth": 131072, "think": false, "edit": false, "wall_s": 14.04, "prompt_n": 3975, "prompt_ms": 11742.596, "predicted_n": 10, "tg": 50.88511836443922, "layer": null}
+{"arm": "full", "turn": 23, "depth": 131072, "think": false, "edit": false, "wall_s": 12.73, "prompt_n": 3976, "prompt_ms": 11954.393, "predicted_n": 17, "tg": 87.01137673750844, "layer": null}
+{"arm": "full", "turn": 24, "depth": 131072, "think": false, "edit": false, "wall_s": 30.54, "prompt_n": 3985, "prompt_ms": 12174.964, "predicted_n": 6, "tg": 11.06968588659328, "layer": null}
+15:14:59 full: server t25 health=1; waited 0s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "full", "turn": 25, "depth": 131072, "think": false, "edit": false, "wall_s": 26.47, "prompt_n": 7978, "prompt_ms": 23635.187, "predicted_n": 80, "tg": 129.52900629937267, "layer": null}
+{"arm": "full", "turn": 26, "depth": 131072, "think": false, "edit": false, "wall_s": 22.66, "prompt_n": 3972, "prompt_ms": 12258.295, "predicted_n": 10, "tg": 17.26824101859598, "layer": null}
+{"arm": "full", "turn": 27, "depth": 131072, "think": false, "edit": false, "wall_s": 13.54, "prompt_n": 3983, "prompt_ms": 12594.581, "predicted_n": 6, "tg": 15.573267551851195, "layer": null}
+15:18:29 full: server t28 health=1; waited 22s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "full", "turn": 28, "depth": 131072, "think": false, "edit": false, "wall_s": 15.33, "prompt_n": 3962, "prompt_ms": 12739.445, "predicted_n": 10, "tg": 44.37913588891409, "layer": null}
+{"arm": "full", "turn": 29, "depth": 131072, "think": false, "edit": false, "wall_s": 13.67, "prompt_n": 3974, "prompt_ms": 12865.994, "predicted_n": 17, "tg": 80.11456382627156, "layer": null}
+{"arm": "full", "turn": 30, "depth": 131072, "think": false, "edit": false, "wall_s": 88.75, "prompt_n": 3969, "prompt_ms": 12943.422, "predicted_n": 6, "tg": 14.58874332564993, "layer": null}
+15:21:10 full done: arm wall 1966 s (waits 149 s); CUDA error logs 0; saving leftovers 0; files 6; conv {"8467d3134706cab3356b60c0": true}
+15:21:16 === save-after-answer A/B done
