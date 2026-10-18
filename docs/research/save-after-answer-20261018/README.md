@@ -174,3 +174,27 @@ The wait of a turn = its client wall time (`wall_s`).
 | W5 health | 0 CUDA errors; no `lc-saving-*` files; the prefix test passes on every turn |
 
 All pass: AFTER=1 becomes the default in the next bundle (for all presets). Any fail: it stays opt-in.
+
+### Run 6 result: W1 FAIL (29/30), W2-W5 PASS — stays opt-in
+
+Receipts in `run6/` (bundle-20261018 zip, 8 GB defaults: GROW 4096, 20 s think time).
+
+| Gate | Result |
+|---|---|
+| W1 answers | **FAIL**: 29/30 the same |
+| W2 mean wait | PASS: 21.8 s vs 30.0 s (-27.2 %) |
+| W3 p95 wait | PASS: 79.9 s vs 107.6 s |
+| W4 normal turns | PASS: 23.7 s vs 30.8 s (-23.2 %) |
+| W5 health | PASS: 0 CUDA errors, no `lc-saving-*` files, prefix test 20 pass / 0 fail |
+
+The one difference: turn 5 ("Which vaults have a code above 5000? List the vault numbers only."). The after arm gave the
+full code list; the before arm and both run-5 arms gave `1, 2, 3, 4, 7, 8`. This question is a known near tie: P164 on the
+2060 gave the full list at turn 5 without save after the answer. Numeric differences from other batch splits before it
+(here: which saved state turn 4 restored, and so how many tokens it read) can flip it.
+
+With think time, the save after the answer no longer costs the next turn: the mean wait, the p95 wait and the normal
+turns are all lower. In the before arm the saves still land before answers (turns 15, 21, 29: 104-130 s).
+
+Decision: the declared rule keeps it opt-in (W1 failed). No rerun for a pass. A next test, if any, needs a reference:
+a session with the cache off and no restarts, and the count of turns where each arm differs from that reference. The
+2060's P204 (the same A/B on the real 8 GB card) is pending.
