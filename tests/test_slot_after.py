@@ -437,6 +437,25 @@ def test_delta_eviction():
     print("delta eviction: whole chains, broken chains dropped at start: ok")
 
 
+def test_delta_before_request():
+    reset()
+    S["delta"] = True
+    c = cache(after=False, chain=4)   # save before the request only (a template that rewrites answers, or AFTER=0)
+    answers = run_turns(c, [], 1, 7)
+    deltas = [x for x, e in c.index.items() if e["parent"]]
+    assert deltas, c.index
+    for sha in deltas:   # exact chains: parent tokens + file tokens
+        e = c.index[sha]
+        assert c._toks_of(sha)[:c.index[e["parent"]]["n"]] == c._toks_of(e["parent"])
+        assert slot_cache._sha(c._toks_of(sha)) == sha
+    deepest = max(c.index, key=lambda x: c.index[x]["n"])
+    S["slot"], S["cached"] = [], 0
+    c2 = cache(after=False, chain=4)
+    a, info = chat(c2, turn_msgs(answers, 7))
+    assert info.get("slot_cache_restored") == c2.index[deepest]["n"] or info.get("slot_cache_restored"), (info, LOG[-4:])
+    print("delta saves before the request, chain restore after a restart: ok")
+
+
 if __name__ == "__main__":
     test_read_tokens()
     test_review_fixes()
@@ -449,4 +468,5 @@ if __name__ == "__main__":
     test_delta_chain()
     test_delta_old_server()
     test_delta_eviction()
+    test_delta_before_request()
     print("ALL OK")

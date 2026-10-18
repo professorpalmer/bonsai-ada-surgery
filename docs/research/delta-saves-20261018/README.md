@@ -97,3 +97,21 @@ The review found no path to a wrong token list or a wrong target state. Fixed (f
 Recheck with a6d4fc698f (`d1.jsonl`, `d1.log`; run 1's files are `run1_d1.*`): D1 passes again at 20k and 131k (the same
 answer, `prompt_n` 2,407 / 2,406, `cache_n` 34,028 / 173,695 in both arms), 0 CUDA errors; each link restores the full
 draft sidecar (15.0 MB).
+
+## Run 3 (declared before the run): deltas for the save before the request
+
+The save before the request (used when the prefix test fails, with `BONSAI_SLOT_CACHE_AFTER=0`, and by Mirai's default)
+still wrote full files, and there the user waits for it. Change (layer only): that save is also a delta of the best saved
+prefix when the slot starts with it.
+
+Setup: G1 session (30 turns, 131k document, restarts before every 3rd turn, no think time), 8 GB preset, the delta engine,
+`BONSAI_SLOT_CACHE_AFTER=0` in both arms; arm delta (`BONSAI_SLOT_CACHE_CHAIN` 8) vs arm full (0).
+
+| Gate | Condition |
+|---|---|
+| P1 answers | the two arms give the same 30 answers (the save does not change what is computed) |
+| P2 mean wait | mean `wall_s` of turns 2-30 at least 20 % lower in the delta arm |
+| P3 mechanism | at least 1 delta saved before the request; no "restore failed" in the delta arm's layer log |
+| P4 health | 0 CUDA errors; no `lc-saving-*` files |
+
+All pass: ships with the next bundle (Bonsai and Mirai). Any fail: not shipped; log why.
