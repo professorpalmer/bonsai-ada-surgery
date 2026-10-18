@@ -23,6 +23,9 @@ All on the same RTX 2060 SUPER (display on the card), the zip's own launcher wit
   reads of the system-RAM part switched on by the engine where they are faster (bundle-20261015b / 20261016). Measured on
   bundle-20261017: decode 53.4 tok/s at 4k and 41.2 at 64k; a cold 128k read 529 s (241 tok/s); a cold 64k read 309
   tok/s (P163, P168).
+- **How much q3_0 drifts** (measured 10-18, `docs/research/kv-kl-20261018`): against an f16 K/V cache, mean KL 0.008 at
+  16k (q4_0 0.0021, q8_0 0.00024), the top token the same as f16 96 % of the time (q4_0 97.9 %), perplexity +0.45 % at
+  16k and within noise at 32k. No task loss measured (HumanEval 160/164; copies and needles equal to q4_0).
 - **Faster cold reads on Turing** (bundle-20261016b, patches 0060 / 0061): prefill attention packs 2 query heads per
   column group on sm_75. A cold 245k read: 1,707 -> 1,489 s (1.147x), the same answers on the item tests.
 - **Saved conversations** (bundle-20261017, `BONSAI_SLOT_SAVE_PATH`): a long conversation is saved to disk and comes back

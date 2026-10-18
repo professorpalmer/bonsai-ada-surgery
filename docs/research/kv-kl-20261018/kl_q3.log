@@ -1,0 +1,10 @@
+05:44:01 === KL q3_0: commit 96f6e49cdc; clock 405 MHz
+05:51:17 base 16k: 7.14.626.736 I Final estimate: PPL = 6.9774 +/- 0.09785
+05:53:47 16k q8_0: chunk PPL ln(PPL(Q)/PPL(base)) KL Divergence Δp RMS Same top p;Mean PPL(Q) : 6.973818 ± 0.097791;Mean PPL(Q)/PPL(base) : 0.999661 ± 0.000156;Mean PPL(Q)-PPL(base) : -0.002365 ± 0.001091;Mean KLD: 0.000235 ± 0.000064;Maximum KLD: 2.094858;99.0% KLD: 0.0011
+05:56:24 16k q4_0: chunk PPL ln(PPL(Q)/PPL(base)) KL Divergence Δp RMS Same top p;Mean PPL(Q) : 6.993948 ± 0.098172;Mean PPL(Q)/PPL(base) : 1.002546 ± 0.000417;Mean PPL(Q)-PPL(base) : 0.017765 ± 0.002929;Mean KLD: 0.002115 ± 0.000048;Maximum KLD: 1.172894;99.0% KLD: 0.01478
+05:58:58 16k q3_0: chunk PPL ln(PPL(Q)/PPL(base)) KL Divergence Δp RMS Same top p;Mean PPL(Q) : 7.007623 ± 0.098206;Mean PPL(Q)/PPL(base) : 1.004507 ± 0.000819;Mean PPL(Q)-PPL(base) : 0.031440 ± 0.005715;Mean KLD: 0.008022 ± 0.000114;Maximum KLD: 1.438777;99.0% KLD: 0.05829
+06:05:18 base 32k: 6.16.871.144 I Final estimate: PPL = 8.3938 +/- 0.12319
+06:08:08 32k q8_0: chunk PPL ln(PPL(Q)/PPL(base)) KL Divergence Δp RMS Same top p;Mean PPL(Q) : 8.384093 ± 0.123011;Mean PPL(Q)/PPL(base) : 0.999142 ± 0.000175;Mean PPL(Q)-PPL(base) : -0.007198 ± 0.001470;Mean KLD: 0.000207 ± 0.000013;Maximum KLD: 0.339763;99.0% KLD: 0.0013
+06:10:54 32k q4_0: chunk PPL ln(PPL(Q)/PPL(base)) KL Divergence Δp RMS Same top p;Mean PPL(Q) : 8.421975 ± 0.123741;Mean PPL(Q)/PPL(base) : 1.003657 ± 0.000443;Mean PPL(Q)-PPL(base) : 0.030684 ± 0.003760;Mean KLD: 0.002260 ± 0.000106;Maximum KLD: 2.941708;99.0% KLD: 0.01443
+06:13:37 32k q3_0: chunk PPL ln(PPL(Q)/PPL(base)) KL Divergence Δp RMS Same top p;Mean PPL(Q) : 8.387307 ± 0.122786;Mean PPL(Q)/PPL(base) : 0.999525 ± 0.000865;Mean PPL(Q)-PPL(base) : -0.003984 ± 0.007262;Mean KLD: 0.009066 ± 0.000363;Maximum KLD: 9.663406;99.0% KLD: 0.0615
+06:13:37 === KL q3_0 done
