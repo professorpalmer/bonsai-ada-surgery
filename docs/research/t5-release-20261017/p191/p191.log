@@ -1,0 +1,10 @@
+00:54:23 === P191: commit d1cc7a4bdd
+00:54:41 server f16st8_code (LLAMA_ARG_KQ_MASK_PACKED=0 LLAMA_PREFILL_WINDOW=window=32768,sink=1024,tail=1024,stride=8): health=1; deeper in chunks of 32768; window line: prefill window on (expe; clock 11751 MHz
+01:03:11   f16st8_code: ok 19 of 24 cold 455.4 s, errors 0; CUDA errors 0
+01:03:29 server f16st8_prose (LLAMA_ARG_KQ_MASK_PACKED=0 LLAMA_PREFILL_WINDOW=window=32768,sink=1024,tail=1024,stride=8): health=1; deeper in chunks of 32768; window line: prefill window on (expe; clock 11751 MHz
+01:12:24   f16st8_prose: ok 9 of 24 cold 460.9 s, errors 0; CUDA errors 0
+01:12:43 server f16st8b_code (LLAMA_ARG_KQ_MASK_PACKED=0 LLAMA_PREFILL_WINDOW=window=32768,sink=1024,tail=1024,stride=8,bias=1): health=1; deeper in chunks of 32768; window line: prefill window on (expe; clock 11751 MHz
+01:21:12   f16st8b_code: ok 21 of 24 cold 455.2 s, errors 0; CUDA errors 0
+01:21:30 server f16st8b_prose (LLAMA_ARG_KQ_MASK_PACKED=0 LLAMA_PREFILL_WINDOW=window=32768,sink=1024,tail=1024,stride=8,bias=1): health=1; deeper in chunks of 32768; window line: prefill window on (expe; clock 11751 MHz
+01:30:26   f16st8b_prose: ok 9 of 24 cold 460.9 s, errors 0; CUDA errors 0
+01:30:31 === P191 done
