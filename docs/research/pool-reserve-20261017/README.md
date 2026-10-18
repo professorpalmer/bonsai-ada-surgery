@@ -35,3 +35,12 @@ G1-G3 as declared in PR2; results below.
 | G3 12 GB default, 24 GB path | no reserve set (no 176 MiB growth) |
 
 0 CUDA errors in all runs. G1 and G3 PASS. G2 (the 2060) asked on #138.
+
+## G2 on the 2060 (P186, #138) and the decision
+
+- G1 launcher line PASS; G2 cold 128k 241.1 tok/s (P168 239.2), min free 112 MiB, 0 spill lines PASS; G4 0 CUDA errors PASS.
+- **G3 FAIL:** a ballast after the reads, then a cold 16k: **61.2 tok/s** with the reserve vs 388.4 without the ballast
+  (P167b, no reserve: 70.1). The reserve grew once (112 -> 176 MiB via the retry); there was no other pool growth. With
+  the display on that card the squeeze slowdown is WDDM demotion of the server's memory, not pool growth.
+- **Decision (Cary, 2026-10-18): hold.** Harmless, but not shown to help a real 8 GB card. Reopen only with a
+  measurement on a headless 8 GB card. The spill guard (bundle-20261017b) stays the protection for the squeeze.
