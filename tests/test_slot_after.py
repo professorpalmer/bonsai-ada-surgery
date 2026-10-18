@@ -245,10 +245,9 @@ def test_off_by_default():
     old = os.environ.pop("BONSAI_SLOT_CACHE_AFTER", None)
     os.environ["BONSAI_SLOT_SAVE_PATH"] = S["folder"]
     try:
-        c = slot_cache.SlotCache.from_env(UP)
-        assert c.after_on is False
-        os.environ["BONSAI_SLOT_CACHE_AFTER"] = "1"
-        assert slot_cache.SlotCache.from_env(UP).after_on is True
+        assert slot_cache.SlotCache.from_env(UP).after_on is True    # on by default (run 8)
+        os.environ["BONSAI_SLOT_CACHE_AFTER"] = "0"
+        assert slot_cache.SlotCache.from_env(UP).after_on is False   # 0 turns it off
     finally:
         os.environ.pop("BONSAI_SLOT_SAVE_PATH", None)
         os.environ.pop("BONSAI_SLOT_CACHE_AFTER", None)
@@ -258,7 +257,7 @@ def test_off_by_default():
     c = cache(after=False)
     chat(c, turn_msgs([], 1))
     assert "GET /slots" not in S["calls"], S["calls"]   # off: no extra server call at all
-    print("off by default, no GET /slots when off: ok")
+    print("on by default, 0 turns it off, no GET /slots when off: ok")
 
 
 def test_layer_hook():
