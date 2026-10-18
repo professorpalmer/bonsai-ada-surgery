@@ -24,6 +24,7 @@ import json
 import os
 import queue
 import re
+import socket
 import sys
 import threading
 import time
@@ -37,6 +38,7 @@ import apicards_v2 as apicards  # noqa: E402  (E9b: v2 docstring cards adopted)
 import apilint  # noqa: E402
 import slot_cache  # noqa: E402  (#138 T1-c: saved conversations on disk)
 
+CACHE_N = re.compile(rb'"cache_n"\s*:\s*(\d+)')
 TOOL_NAME = "run_python"
 TOOL = {"type": "function", "function": {
     "name": TOOL_NAME,
@@ -260,6 +262,7 @@ class Proxy(http.server.BaseHTTPRequestHandler):
         it, so the tokens match what the server reads). The caller holds the cache lock."""
         if not self._slots_on(body):
             return
+        self._slot_send = True   # the reply of this send gives its cached-token count to the cache (_note_cache)
         try:
             got = self.slots.before(json.loads(body) if isinstance(body, (bytes, str)) else body,
                                     self.headers.get("Authorization", ""))
@@ -267,6 +270,21 @@ class Proxy(http.server.BaseHTTPRequestHandler):
                 self._slot_info.update(got)
         except Exception as e:   # the cache must never break a request
             self.log_message("slot cache failed: %r", e)
+
+    def _note_cache(self, n):
+        """The cached-token count (timings.cache_n) of the reply to a send that _slots_check saw: the cache's prefix test
+        for the save after the answer. n is a number, or bytes to search (the last match counts)."""
+        if not getattr(self, "_slot_send", False) or self.slots is None:
+            return
+        if isinstance(n, (bytes, bytearray)):
+            m = CACHE_N.findall(n)
+            n = int(m[-1]) if m else None
+        if n is not None:
+            self._slot_send = False
+            try:
+                self.slots.cached(n)
+            except Exception as e:   # the cache must never break a reply
+                self.log_message("slot cache test failed: %r", e)
 
     def _prefill_result(self, body):
         """Read ahead (T1-d): read the prompt into the server and save it, at the send point (so the body is the one the
@@ -313,7 +331,9 @@ class Proxy(http.server.BaseHTTPRequestHandler):
         if self._slots_on(body):
             with self.slots.lock:   # check + restore / save + the request itself, one at a time (one server slot)
                 self._slots_check(body)
-                return self._forward_raw(method, body)
+                out = self._forward_raw(method, body)
+                self._note_cache(out[2])
+                return out
         return self._forward_raw(method, body)
 
     def _forward_raw(self, method, body=None):
@@ -441,6 +461,7 @@ class Proxy(http.server.BaseHTTPRequestHandler):
             self._relay(r)
 
     def _relay(self, r):
+        tail = b""                                 # the end of the stream: the last event carries timings.cache_n
         try:
             at_boundary = True                     # a comment may only go between two SSE events
             for chunk in self._keepalive_chunks(r):
@@ -449,6 +470,7 @@ class Proxy(http.server.BaseHTTPRequestHandler):
                         self.wfile.write(b": keep-alive\n\n")
                         self.wfile.flush()
                     continue
+                tail = (tail + chunk)[-16384:]
                 self.wfile.write(chunk)
                 self.wfile.flush()
                 at_boundary = chunk.endswith(b"\n\n") or chunk.endswith(b"\r\n\r\n")
@@ -456,6 +478,7 @@ class Proxy(http.server.BaseHTTPRequestHandler):
             pass
         finally:
             r.close()
+            self._note_cache(tail)
 
     def _keepalive_chunks(self, r, lines=False):
         """Yield what the server sends (chunks, or lines when lines=True), and None after each keepalive seconds of
@@ -575,6 +598,8 @@ class Proxy(http.server.BaseHTTPRequestHandler):
                         except ValueError:
                             send(line)
                             continue
+                        if isinstance(ev.get("timings"), dict):
+                            self._note_cache(ev["timings"].get("cache_n"))
                         ch = (ev.get("choices") or [{}])[0]
                         delta = ch.get("delta") or {}
                         if template is None and ev.get("id"):
@@ -642,6 +667,10 @@ class Proxy(http.server.BaseHTTPRequestHandler):
         self.wfile.write(data)
 
     def do_GET(self):
+        if self.path.rstrip("/") == "/layer/slot-cache":   # for stop scripts and harnesses: wait while busy before a stop
+            s = self.slots
+            return self._reply(200, "application/json", json.dumps(
+                {"on": s is not None, "after": bool(s and s.after_on), "busy": bool(s and s.busy)}).encode())
         self._reply(*self._forward("GET"))
 
     def _with_slots(self, body, fn, info=None):
@@ -651,14 +680,38 @@ class Proxy(http.server.BaseHTTPRequestHandler):
         if self.slots is None:
             return fn()
         self._slot_info, self._slots_ok = info, True
+        self.slots.enter()
         try:
             return fn()
         finally:
             self._slot_info, self._slots_ok = None, False
+            try:
+                if not self._prefill_only and self.slots.after_on:
+                    self._slots_after()
+            finally:
+                self.slots.leave()
+
+    def _slots_after(self):
+        """Save after the answer (BONSAI_SLOT_CACHE_AFTER): the client has the whole answer first. A streamed reply ends
+        with a closed connection, so the write side is shut before the save (a client that waits for the close is done)."""
+        try:
+            self.wfile.flush()
+            if self.close_connection:
+                self.connection.shutdown(socket.SHUT_WR)
+        except Exception:
+            pass
+        with self.slots.lock:
+            try:
+                got = self.slots.after(self.headers.get("Authorization", ""))
+                if got:
+                    self.log_message("slot cache after the answer: %s", json.dumps(got))
+            except Exception as e:   # the cache must never break a request
+                self.log_message("slot cache after the answer failed: %r", e)
 
     def do_POST(self):
         self._slots_ok = False   # set by _with_slots only (after the key check); a keep-alive connection reuses the handler
         self._prefill_only = False
+        self._slot_send = False
         raw = self.rfile.read(int(self.headers.get("Content-Length", 0)))
         if not self.path.rstrip("/").endswith("/chat/completions"):
             return self._reply(*self._forward("POST", raw))
