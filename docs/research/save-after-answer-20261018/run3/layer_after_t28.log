@@ -1,0 +1,21 @@
+[proxy] "GET /health HTTP/1.1" 503 -
+[proxy] "GET /health HTTP/1.1" 503 -
+[proxy] "GET /health HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "POST /tokenize HTTP/1.1" 200 -
+[slots] restored 1a60b85a09c0 226586 tokens in 1.68 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] "POST /tokenize HTTP/1.1" 200 -
+[slots] save after the answer failed: ValueError("the slot does not extend the request's tokens (238623 tokens)")
+[proxy] slot cache after the answer: {"failed": "ValueError(\"the slot does not extend the request's tokens (238623 tokens)\")", "s": 36.12}
+[slots] after-answer test 8467d3134706 fail (cached 238602 of 238619 )
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.02}
+[proxy] "POST /tokenize HTTP/1.1" 200 -
+[slots] after-answer test 8467d3134706 fail (cached 242586 of 242610 )
+[slots] saved 1c64445201dd 246569 tokens: prefill 12.83 s, save 31.01 s
+[slots] evicted 7efe2002108a 130601 tokens
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.01}
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -

@@ -1,0 +1,2 @@
+{"arm": "after", "turn": 10, "depth": 131072, "think": false, "edit": false, "wall_s": 49.7, "prompt_n": 7, "prompt_ms": 458.9, "predicted_n": 10, "tg": 30.780069562957213, "answer": "4111\n9387", "layer": null}
+{"arm": "after", "turn": 11, "depth": 131072, "think": false, "edit": false, "wall_s": 10.67, "prompt_n": 3984, "prompt_ms": 9613.278, "predicted_n": 17, "tg": 30.509954826198136, "answer": "1, 2, 3, 4, 7, 8", "layer": null}

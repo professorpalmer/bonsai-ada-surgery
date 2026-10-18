@@ -1,6 +1,0 @@
-[proxy] "GET /health HTTP/1.1" 503 -
-[proxy] "GET /health HTTP/1.1" 503 -
-[proxy] "GET /health HTTP/1.1" 200 -
-[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
-[proxy] "POST /tokenize HTTP/1.1" 200 -
-[slots] restored 685f2ca3d403 154588 tokens in 1.16 s
