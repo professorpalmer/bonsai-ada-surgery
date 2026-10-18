@@ -129,3 +129,12 @@ Receipts in `run3/` (`BONSAI_SLOT_CACHE_AFTER=0` in both arms, no think time).
 
 Arm wall time: 793 s vs 1,972 s. The save before the request took 0.23-0.24 s as a delta; the full arm's saves added
 40-145 s to every second turn (the answer waits for them).
+
+## Open item: the chain length (measured, no change yet)
+
+Mirai MD3 (`mirai-s-serve receipts/delta/m8d`): a chain restore takes ~1.1 s per delta on the dev machine (depth 2:
+2.95 s, 4: 6.69 s, 6: 9.23 s, 8: 11.42 s), because each delta carries the ~150 MiB fixed recurrent state and the full
+draft sidecar. The forced full save every 8 deltas took 167 s there (a slow drive). A longer chain halves the full saves
+but adds ~1 s per extra delta to every restart restore, and the balance depends on the drive. Candidates for a later
+declared test: `BONSAI_SLOT_CACHE_CHAIN` 16 on slow drives (chosen from the measured speed of the last full save), or a
+full save only when the layer has been idle for a while.
