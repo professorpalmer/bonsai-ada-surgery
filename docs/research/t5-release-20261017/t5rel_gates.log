@@ -1,0 +1,37 @@
+17:16:26 === T5 release R1/R2/R4: ref commit 96f6e49cdc; new commit d1cc7a4bdd; launcher f3a1057 READ; clock 405 MHz
+17:16:29 R1 op ADD: 99/99 tests passed; FAIL lines 0
+17:16:29 R1 op RMS_NORM: 51/51 tests passed; FAIL lines 0
+17:16:35 R1 op GET_ROWS: 123/123 tests passed; FAIL lines 0
+17:16:35 R1 op SET_ROWS: 177/177 tests passed; FAIL lines 0
+17:16:36 R1 op CPY: 259/259 tests passed; FAIL lines 0
+17:19:55 R1 op FLASH_ATTN_EXT: 3115/3115 tests passed; FAIL lines 0
+17:19:58 R1 op GATED_DELTA_NET: 55/55 tests passed; FAIL lines 0
+17:20:16 server r1_12gb_t5ref (r-t5ref ): health=1; 
+17:20:21   r1_12gb_t5ref: CUDA errors 0; window lines 0
+17:20:38 server r1_12gb_t5 (r-t5 ): health=1; 
+17:20:43   r1_12gb_t5: CUDA errors 0; window lines 0
+17:21:01 server r1_8gb_t5ref (r-t5ref BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640): health=1; 8gb    preset on (12282 MiB card; BONSAI_8GB=0 turns it off): ub 512, f16 prefill to 32768|
+17:21:07   r1_8gb_t5ref: CUDA errors 0; window lines 0
+17:21:25 server r1_8gb_t5 (r-t5 BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640): health=1; 8gb    preset on (12282 MiB card; BONSAI_8GB=0 turns it off): ub 512, pool reserved 176 Mi|
+17:21:30   r1_8gb_t5: CUDA errors 0; window lines 0
+17:21:48 server r4_off_128 (r-t5 BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640): health=1; 8gb    preset on (12282 MiB card; BONSAI_8GB=0 turns it off): ub 512, pool reserved 176 Mi|
+17:24:12 NOTE: R1 identity hashes above are VOID (no 'hash all' line was captured: the hash client output did not reach the log); R1 identity reruns after this script. The version string shows d1cc7a4bdd because the incremental build did not regenerate build-info; the bins contain a6bfcb1a4f's changes (strings checked); the release build gets a fresh build-info.
+17:24:41 CORRECTION to the NOTE: the hash client did not fail; my grep looked for 'hash all' but the client prints 'all <hash>' (the earlier logs' 'hash all' came from a sed prefix). The hashes were computed but not kept. R1 identity reruns with grep '^all'.
+R4 off 128k code   depth 128000 (evaluated 127340): prefill   759.2 tok/s  ttft 167.72s  decode   45.0 tok/s (400 tok)
+17:25:05   r4_off_128: CUDA errors 0; window lines 0
+17:25:23 server r2_off_245 (r-t5 BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640): health=1; 8gb    preset on (12282 MiB card; BONSAI_8GB=0 turns it off): ub 512, pool reserved 176 Mi|
+R2 off n24 {"tag": "t5r_off", "depth": 245000, "correct": 24, "of": 24}
+17:34:01   r2_off_245: CUDA errors 0; window lines 0
+17:34:02   R4 off 245k cold (first n24 item): "wall_s": 464.5
+17:34:19 server r4_on_128 (r-t5 BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640 BONSAI_FAST_READ=1): health=1; 8gb    preset on (12282 MiB card; BONSAI_8GB=0 turns it off): ub 512, pool reserved 176 Mi|fast   BONSAI_FAST_READ=1: long prompts are read with a 32k window (+ the first 1k; the qu|
+R4 on 128k code   depth 128000 (evaluated 127340): prefill   980.9 tok/s  ttft 129.81s  decode   46.0 tok/s (400 tok)
+17:36:58   r4_on_128: CUDA errors 0; window lines 1
+17:37:16 server r2_on_245 (r-t5 BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640 BONSAI_FAST_READ=1): health=1; 8gb    preset on (12282 MiB card; BONSAI_8GB=0 turns it off): ub 512, pool reserved 176 Mi|fast   BONSAI_FAST_READ=1: long prompts are read with a 32k window (+ the first 1k; the qu|
+R2 on n24 {"tag": "t5r_on", "depth": 245000, "correct": 24, "of": 24}
+17:42:28   r2_on_245: CUDA errors 0; window lines 1
+17:42:28   R4 on 245k cold (first n24 item): "wall_s": 257.9
+17:42:34 === T5 release R1/R2/R4 done
+17:43:46 R1 identity 12gb t5ref: health=1; 4c6b9a6dd9696680 742 db8523959cf84229 645 c5c7dd705f5d0769 131 all edf0b1fbd89000ba ; CUDA errors 0
+17:44:08 R1 identity 12gb t5: health=1; 4c6b9a6dd9696680 742 db8523959cf84229 645 c5c7dd705f5d0769 131 all edf0b1fbd89000ba ; CUDA errors 0
+17:44:31 R1 identity 8gb t5ref: health=1; 46b54edbc2c98f51 742 a74075688a72a22b 651 be7a32213f2a9fac 130 all 1370fc25030ce635 ; CUDA errors 0
+17:44:55 R1 identity 8gb t5: health=1; 46b54edbc2c98f51 742 a74075688a72a22b 651 be7a32213f2a9fac 130 all 1370fc25030ce635 ; CUDA errors 0

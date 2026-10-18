@@ -1,0 +1,18 @@
+17:45:01 === R2 code/prose: commit d1cc7a4bdd; clock 405 MHz
+17:45:14 server off code: health=1; 
+R2 off code {"set": "code", "arm": "dense", "keep": null, "item": 23, "pos": 0.93, "want": ["7"], "named": true, "answer": "7", "ok": true, "prompt_n": 504, "prefill_tps": 278.2, "wall_s": 2.1}
+R2 off code {"set": "code", "arm": "dense", "keep": null, "item": 24, "pos": 0.981, "want": ["8830"], "named": false, "answer": "8830", "ok": true, "prompt_n": 512, "prefill_tps": 282.7, "wall_s": 2.2}
+17:53:38   CUDA errors 0
+17:53:56 server off prose: health=1; 
+R2 off prose {"set": "prose", "arm": "dense", "keep": null, "item": 23, "pos": 0.961, "want": ["nine", "9"], "named": null, "answer": "The answer is **12**.", "ok": false, "prompt_n": 510, "prefill_tps": 278.8, "w
+R2 off prose {"set": "prose", "arm": "dense", "keep": null, "item": 24, "pos": 0.986, "want": ["elm"], "named": null, "answer": "The street with the broken pipe was **Elm Avenue**.\n\nAccording to the P012 entry i
+18:02:44   CUDA errors 0
+18:03:02 server on code: health=1; fast   BONSAI_FAST_READ=1: long prompts are read with a 32k 
+R2 on code {"set": "code", "arm": "dense", "keep": null, "item": 23, "pos": 0.93, "want": ["7"], "named": true, "answer": "7", "ok": true, "prompt_n": 504, "prefill_tps": 279.2, "wall_s": 2.1}
+R2 on code {"set": "code", "arm": "dense", "keep": null, "item": 24, "pos": 0.981, "want": ["8830"], "named": false, "answer": "8830", "ok": true, "prompt_n": 512, "prefill_tps": 284.3, "wall_s": 2.1}
+18:08:07   CUDA errors 0
+18:08:25 server on prose: health=1; fast   BONSAI_FAST_READ=1: long prompts are read with a 32k 
+R2 on prose {"set": "prose", "arm": "dense", "keep": null, "item": 23, "pos": 0.961, "want": ["nine", "9"], "named": null, "answer": "The answer is **12**.", "ok": false, "prompt_n": 510, "prefill_tps": 280.7, "w
+R2 on prose {"set": "prose", "arm": "dense", "keep": null, "item": 24, "pos": 0.986, "want": ["elm"], "named": null, "answer": "The street with the broken pipe was **Elm Avenue**.\n\nThis is stated in the P012 en
+18:13:53   CUDA errors 0
+18:13:59 === R2 code/prose done
