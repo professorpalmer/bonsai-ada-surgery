@@ -154,3 +154,23 @@ and faster in total (D) and at restarts (B), so it ships as an opt-in setting, `
 with these numbers. It needs patch 0067 (without it about half of the prefix tests fail and the conversation uses the save
 before the request, run 4). A default needs a new declared test of what the user waits for (for example a session with
 think time between turns, or the p95 of the wait per turn).
+
+## Run 6 (declared before the run): the wait per turn with think time
+
+Question: is save after the answer a good default when the client does not send the next turn at once (a user reads,
+a tool runs)? Gate C of run 5 counted a save that G1 forced into the next turn.
+
+Setup: the published bundle-20261018 (engine c5e73e7d81, the launcher's 8 GB defaults: GROW 4096), the G1 session (30
+turns, 131k document, a restart before every 3rd turn), and **20 s of think time after each answer** (the harness sleeps
+before it sends the next turn; before a restart it also waits until `busy: false`). Arms: AFTER=1 first, then AFTER=0.
+The wait of a turn = its client wall time (`wall_s`).
+
+| Gate | Condition |
+|---|---|
+| W1 answers | 30/30 the same in both arms |
+| W2 mean wait | mean `wall_s` of turns 2-30 at least 15 % lower with AFTER=1 |
+| W3 p95 wait | the 95th-percentile `wall_s` of turns 2-30 not higher with AFTER=1 |
+| W4 normal turns | mean `wall_s` of the normal turns not more than 10 % higher with AFTER=1 |
+| W5 health | 0 CUDA errors; no `lc-saving-*` files; the prefix test passes on every turn |
+
+All pass: AFTER=1 becomes the default in the next bundle (for all presets). Any fail: it stays opt-in.
