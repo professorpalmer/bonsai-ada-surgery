@@ -11,6 +11,7 @@ range are "16:02 CDT Fillers now yield to queued jobs (preempt_lib.sh)" and "16:
 1k = n24 24/24 (814.3 s), code 19/24 (801.1 s), prose (P178) 9/24 (807.8 s)". P183 (queue 69jebn, "dense prose again +
 window-32k prose again (noise floor), 128k cold read + n24 at 128k with window 32k") is running from 16:53:47 and is
 outside this range. PR #171 (the 8 GB pool reserve) is open; the T5 proposal (#138 21:54:09Z) is not decided.
+Next range: [`index-p183-p188.md`](index-p183-p188.md) ([P183](P183.md)).
 
 P174 stopped at T5-0 because the product zip's own answer bytes had moved since P169 (a rig drift between two numeric
 states, cause open, E82), not because of T5. P174b repeats P174 with in-block identity gates. P178 R-3 is void (a bug in
