@@ -1,0 +1,21 @@
+09:04:01 === release-20261018 R1-R5: zip sha256 f8347f4e9ba8fa77, engine commit c5e73e7d81; clock 405 MHz
+09:04:06 R1 entries 67 only-new [] only-old [] identical ['bin/ggml-cuda.dll', 'bin/ggml-cpu.dll'] changed ['README.md', 'bin/ggml-base.dll', 'bin/llama-common.dll', 'bin/llama-server-impl.dll', 'bin/llama-server.exe', 'bin/llama.dll', 'bin/test-backend-ops.exe', 'docs/8GB.md', 'layer/bonsai_layer.py', 'layer/slot_cache.py', 'start-server.ps1'] control-byte files 0
+09:04:18 server default (BONSAI_LAYER=0): health=1; window 262144 / q4_0  (12 GB default, BONSAI_CTK=q8_0 for th|
+09:04:34 R2 default: answer: Red, blue, and yellow.; CUDA errors 0
+09:04:52 server 8gb (BONSAI_8GB=1 BONSAI_SLOT_SAVE_PATH=C:\Users\pwall\AppData\Local\Temp\r18_slots_r2): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)|layer  on: clients use :8080 (API cards, API check, sandboxe|
+09:05:09 R2 8gb: answer: Red, blue, and yellow.; CUDA errors 0
+09:05:26 server 24gb (BONSAI_LAYER=0 BONSAI_TOTAL_MIB=24576): health=1; window 262144 / q8_0  (q8_0: the card holds most of the wind|
+09:05:42 R2 24gb: answer: Red, blue, and yellow.; CUDA errors 0
+09:06:00 server r3 (BONSAI_LAYER=0 BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)|
+09:06:26 R3 full reuse 9 of 9 ; answers same as diag_0067 10 of 10
+09:06:44 server r4_1017b (BONSAI_LAYER=0 BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)|
+09:07:02 R4 1017b 4000: mean decode 88.6 tok/s
+09:07:28 R4 1017b 16000: mean decode 93.4 tok/s
+09:07:46 server r4_1018 (BONSAI_LAYER=0 BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)|
+09:08:04 R4 1018 4000: mean decode 88.6 tok/s
+09:08:29 R4 1018 16000: mean decode 93.7 tok/s
+09:08:48 server r5 (BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640 BONSAI_SLOT_SAVE_PATH=C:\Users\pwall\AppData\Local\Temp\r18_slots_r5): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)|layer  on: clients use :8080 (API cards, API check, sandboxe|
+09:09:06 R5 {"turn": 1, "s": 18.2, "prompt_tokens": 21152, "slot_files": 1, "answer": "4821"}
+09:09:14 R5 {"turn": 2, "s": 7.8, "prompt_tokens": 28269, "slot_files": 2, "answer": "27611"}
+09:09:22 R5 {"turn": 3, "s": 8.3, "prompt_tokens": 35398, "slot_files": 3, "answer": "17412"}
+09:09:28 === release-20261018 R1-R5 done
