@@ -1,0 +1,363 @@
+From 92a05282c0ec7953d93a49ef445d5ac7b79b3dd2 Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Sun, 18 Oct 2026 14:13:48 -0500
+Subject: [PATCH] server + llama: delta slot saves (save pos_min: only
+ attention cells at or after it; restore append: add the cells after the
+ slot's; /props slot_save_delta)
+
+---
+ src/llama-context.cpp           | 29 +++++++++++++--
+ src/llama-context.h             |  6 ++--
+ src/llama-ext.h                 | 16 +++++++++
+ src/llama-io.h                  |  4 +++
+ src/llama-kv-cache.cpp          | 14 +++++---
+ src/llama-kv-cache.h            |  2 +-
+ tools/server/server-context.cpp | 63 +++++++++++++++++++++++++--------
+ tools/server/server-task.h      |  2 ++
+ 8 files changed, 112 insertions(+), 24 deletions(-)
+
+diff --git a/src/llama-context.cpp b/src/llama-context.cpp
+index 872dbc6360..5e833d60b2 100644
+--- a/src/llama-context.cpp
++++ b/src/llama-context.cpp
+@@ -3389,7 +3389,7 @@ bool llama_context::state_save_file(const char * filepath, const llama_token * t
+     return true;
+ }
+ 
+-size_t llama_context::state_seq_load_file(llama_seq_id seq_id, const char * filepath, llama_token * tokens_out, size_t n_token_capacity, size_t * n_token_count_out) {
++size_t llama_context::state_seq_load_file(llama_seq_id seq_id, const char * filepath, llama_token * tokens_out, size_t n_token_capacity, size_t * n_token_count_out, llama_state_seq_flags flags) {
+     llama_file file(filepath, "rb");
+ 
+     // version checks
+@@ -3431,7 +3431,7 @@ size_t llama_context::state_seq_load_file(llama_seq_id seq_id, const char * file
+     {
+         const size_t state_size = file.size() - file.tell();
+         llama_io_read_file io(&file);
+-        const size_t nread = state_seq_read_data(io, seq_id, 0);
++        const size_t nread = state_seq_read_data(io, seq_id, flags);
+         if (!nread) {
+             LLAMA_LOG_ERROR("%s: failed to restore sequence state\n", __func__);
+             return 0;
+@@ -3443,7 +3443,7 @@ size_t llama_context::state_seq_load_file(llama_seq_id seq_id, const char * file
+     return file.tell();
+ }
+ 
+-size_t llama_context::state_seq_save_file(llama_seq_id seq_id, const char * filepath, const llama_token * tokens, size_t n_token_count) {
++size_t llama_context::state_seq_save_file(llama_seq_id seq_id, const char * filepath, const llama_token * tokens, size_t n_token_count, llama_pos pos_min) {
+     llama_file file(filepath, "wb");
+ 
+     file.write_u32(LLAMA_STATE_SEQ_MAGIC);
+@@ -3455,6 +3455,7 @@ size_t llama_context::state_seq_save_file(llama_seq_id seq_id, const char * file
+ 
+     // save the context state using stream saving
+     llama_io_write_file io(&file);
++    io.pos_min = pos_min;
+     state_seq_write_data(io, seq_id, 0);
+ 
+     const size_t res = file.tell();
+@@ -4450,6 +4451,28 @@ size_t llama_state_seq_load_file(llama_context * ctx, const char * filepath, lla
+     }
+ }
+ 
++size_t llama_state_seq_save_file_from(llama_context * ctx, const char * filepath, llama_seq_id seq_id, llama_pos pos_min, const llama_token * tokens, size_t n_token_count) {
++    ctx->synchronize();
++
++    try {
++        return ctx->state_seq_save_file(seq_id, filepath, tokens, n_token_count, pos_min);
++    } catch (const std::exception & err) {
++        LLAMA_LOG_ERROR("%s: error saving sequence state file: %s\n", __func__, err.what());
++        return 0;
++    }
++}
++
++size_t llama_state_seq_load_file_ext(llama_context * ctx, const char * filepath, llama_seq_id dest_seq_id, llama_token * tokens_out, size_t n_token_capacity, size_t * n_token_count_out, llama_state_seq_flags flags) {
++    ctx->synchronize();
++
++    try {
++        return ctx->state_seq_load_file(dest_seq_id, filepath, tokens_out, n_token_capacity, n_token_count_out, flags);
++    } catch (const std::exception & err) {
++        LLAMA_LOG_ERROR("%s: error loading sequence state file: %s\n", __func__, err.what());
++        return 0;
++    }
++}
++
+ ///
+ 
+ int32_t llama_encode(
+diff --git a/src/llama-context.h b/src/llama-context.h
+index 6057da7f43..809fab4ef7 100644
+--- a/src/llama-context.h
++++ b/src/llama-context.h
+@@ -190,13 +190,15 @@ struct llama_context {
+             const char * filepath,
+            llama_token * tokens_out,
+                 size_t   n_token_capacity,
+-                size_t * n_token_count_out);
++                size_t * n_token_count_out,
++ llama_state_seq_flags   flags = 0);
+ 
+     size_t state_seq_save_file(
+           llama_seq_id   seq_id,
+             const char * filepath,
+      const llama_token * tokens,
+-                size_t   n_token_count);
++                size_t   n_token_count,
++             llama_pos   pos_min = 0);
+ 
+     //
+     // perf
+diff --git a/src/llama-ext.h b/src/llama-ext.h
+index c6cfc35bc3..b02c7cc788 100644
+--- a/src/llama-ext.h
++++ b/src/llama-ext.h
+@@ -223,3 +223,19 @@ LLAMA_API bool llama_model_dspark_get_meta(const struct llama_model * model, lla
+ LLAMA_API bool llama_model_dspark_get_markov(const struct llama_model * model,
+                                              std::vector<float> &       w1,
+                                              std::vector<float> &       w2);
++
++//
++// delta saves (layer cache): a save writes only the attention cells at or after a position, a load appends them
++//
++// load flag: the attention cells of the file are added to the cells the sequence already has (the file must start
++// where the sequence ends) instead of replacing them. Recurrent state is replaced as always.
++#define LLAMA_STATE_SEQ_FLAGS_APPEND 4
++
++// like llama_state_seq_save_file, but writes only the attention cells with pos >= pos_min (recurrent state in full)
++LLAMA_API size_t llama_state_seq_save_file_from(struct llama_context * ctx, const char * filepath, llama_seq_id seq_id,
++                                                llama_pos pos_min, const llama_token * tokens, size_t n_token_count);
++
++// like llama_state_seq_load_file, with flags (LLAMA_STATE_SEQ_FLAGS_APPEND)
++LLAMA_API size_t llama_state_seq_load_file_ext(struct llama_context * ctx, const char * filepath, llama_seq_id dest_seq_id,
++                                               llama_token * tokens_out, size_t n_token_capacity,
++                                               size_t * n_token_count_out, llama_state_seq_flags flags);
+diff --git a/src/llama-io.h b/src/llama-io.h
+index f276af4fb9..bd6e3eedcb 100644
+--- a/src/llama-io.h
++++ b/src/llama-io.h
+@@ -18,6 +18,10 @@ public:
+     virtual size_t n_bytes() = 0;
+ 
+     void write_string(const std::string & str);
++
++    // delta saves: a sequence save writes only the attention cells with pos >= pos_min (recurrent and other fixed-size
++    // state is written in full)
++    int32_t pos_min = 0;   // llama_pos
+ };
+ 
+ class llama_io_read_i {
+diff --git a/src/llama-kv-cache.cpp b/src/llama-kv-cache.cpp
+index 538b8f55b8..f289822ac5 100644
+--- a/src/llama-kv-cache.cpp
++++ b/src/llama-kv-cache.cpp
+@@ -2354,6 +2354,8 @@ void llama_kv_cache::state_write(llama_io_write_i & io, llama_seq_id seq_id, lla
+ 
+             add_cell = add_cell && !cells.is_empty(i);
+             add_cell = add_cell && (seq_id == -1 || cells.seq_has(i, seq_id));
++            // delta saves: only the cells at or after io.pos_min (0: all)
++            add_cell = add_cell && (seq_id == -1 || io.pos_min <= 0 || cells.pos_get(i) >= io.pos_min);
+ 
+             // check the cell is not SWA-masked
+             if (add_cell && seq_id != -1) {
+@@ -2428,7 +2430,9 @@ void llama_kv_cache::state_read(llama_io_read_i & io, llama_seq_id seq_id, llama
+         slot_info sinfo;
+ 
+         bool res = true;
+-        res = res && state_read_meta(io, strm, cell_count, sinfo, seq_id);
++        // LLAMA_STATE_SEQ_FLAGS_APPEND (4, llama-ext.h): add the cells to the sequence instead of replacing it
++        const bool append = seq_id != -1 && (flags & 4) != 0;
++        res = res && state_read_meta(io, strm, cell_count, sinfo, seq_id, append);
+ 
+         try {
+             res = res && state_read_data(io, strm, cell_count, sinfo);
+@@ -2579,13 +2583,15 @@ void llama_kv_cache::state_write_data(llama_io_write_i & io, const cell_ranges_t
+     }
+ }
+ 
+-bool llama_kv_cache::state_read_meta(llama_io_read_i & io, uint32_t strm, uint32_t cell_count, slot_info & sinfo, llama_seq_id dest_seq_id) {
++bool llama_kv_cache::state_read_meta(llama_io_read_i & io, uint32_t strm, uint32_t cell_count, slot_info & sinfo, llama_seq_id dest_seq_id, bool append) {
+     auto & cells = v_cells[strm];
+     auto & head  = v_heads[strm];
+ 
+     if (dest_seq_id != -1) {
+-        // single sequence
+-        seq_rm(dest_seq_id, -1, -1);
++        // single sequence (append: a delta save, the cells go after the ones the sequence has)
++        if (!append) {
++            seq_rm(dest_seq_id, -1, -1);
++        }
+ 
+         llama_batch_allocr balloc(hparams.n_pos_per_embd());
+ 
+diff --git a/src/llama-kv-cache.h b/src/llama-kv-cache.h
+index ee66e5c1fc..fae5a1727c 100644
+--- a/src/llama-kv-cache.h
++++ b/src/llama-kv-cache.h
+@@ -345,7 +345,7 @@ private:
+     void state_write_meta(llama_io_write_i & io, const cell_ranges_t & cr, llama_seq_id seq_id = -1) const;
+     void state_write_data(llama_io_write_i & io, const cell_ranges_t & cr) const;
+ 
+-    bool state_read_meta(llama_io_read_i & io, uint32_t strm, uint32_t cell_count,       slot_info & sinfo, llama_seq_id dest_seq_id = -1);
++    bool state_read_meta(llama_io_read_i & io, uint32_t strm, uint32_t cell_count,       slot_info & sinfo, llama_seq_id dest_seq_id = -1, bool append = false);
+     bool state_read_data(llama_io_read_i & io, uint32_t strm, uint32_t cell_count, const slot_info & sinfo);
+ };
+ 
+diff --git a/tools/server/server-context.cpp b/tools/server/server-context.cpp
+index 558de1830d..eb560e3d91 100644
+--- a/tools/server/server-context.cpp
++++ b/tools/server/server-context.cpp
+@@ -11,6 +11,7 @@
+ #include "common.h"
+ #include "fit.h"
+ #include "llama.h"
++#include "../../src/llama-ext.h"  // staging API: delta slot saves (llama_state_seq_save_file_from / _load_file_ext)
+ #include "log.h"
+ #include "sampling.h"
+ #include "speculative.h"
+@@ -2534,18 +2535,31 @@ private:
+                     std::string filename = task.slot_action.filename;
+                     std::string filepath = task.slot_action.filepath;
+ 
++                    const int32_t pos_min = task.slot_action.pos_min;
+                     std::vector<char> packed;
+-                    try {
+-                        packed = slot->prompt.tokens.serialize();
+-                    } catch (const std::exception & err) {
+-                        send_error(task, err.what(), ERROR_TYPE_NOT_SUPPORTED);
+-                        break;
++                    llama_tokens      delta;   // a delta save: the plain text tokens from pos_min
++                    if (pos_min > 0) {
++                        if (pos_min >= (int32_t) slot->prompt.tokens.size() || mctx != nullptr) {
++                            send_error(task, "pos_min must be below the slot's token count (and the slot text-only)", ERROR_TYPE_INVALID_REQUEST);
++                            break;
++                        }
++                        const llama_tokens all = slot->prompt.tokens.get_text_tokens();
++                        delta.assign(all.begin() + pos_min, all.end());
++                    } else {
++                        try {
++                            packed = slot->prompt.tokens.serialize();
++                        } catch (const std::exception & err) {
++                            send_error(task, err.what(), ERROR_TYPE_NOT_SUPPORTED);
++                            break;
++                        }
+                     }
+ 
+                     GGML_ASSERT(packed.size() % sizeof(llama_token) == 0);
+-                    const size_t nwrite = llama_state_seq_save_file(
+-                        ctx_tgt, filepath.c_str(), slot->id,
+-                        reinterpret_cast<const llama_token *>(packed.data()), packed.size() / sizeof(llama_token));
++                    const size_t nwrite = pos_min > 0
++                        ? llama_state_seq_save_file_from(ctx_tgt, filepath.c_str(), slot->id, pos_min, delta.data(), delta.size())
++                        : llama_state_seq_save_file(
++                            ctx_tgt, filepath.c_str(), slot->id,
++                            reinterpret_cast<const llama_token *>(packed.data()), packed.size() / sizeof(llama_token));
+                     if (nwrite == 0) {
+                         send_error(task, "Unable to save slot", ERROR_TYPE_SERVER);
+                         break;
+@@ -2556,7 +2570,7 @@ private:
+                     // after a restore runs the draft context from empty: ~9-11x slower prefill on an 8 GB 2060)
+                     if (ctx_dft) {
+                         const std::string path_dft = filepath + ".draft";
+-                        if (llama_state_seq_save_file(ctx_dft, path_dft.c_str(), slot->id, nullptr, 0) == 0) {
++                        if (llama_state_seq_save_file_from(ctx_dft, path_dft.c_str(), slot->id, pos_min, nullptr, 0) == 0) {
+                             SRV_WRN("slot %d: draft context state not saved to %s\n", slot->id, path_dft.c_str());
+                         }
+                     }
+@@ -2595,13 +2609,18 @@ private:
+                     std::string filepath = task.slot_action.filepath;
+ 
+                     size_t nread = 0;
++                    const bool append = task.slot_action.append;
+                     try {
++                        if (append && (slot->prompt.tokens.empty() || mctx != nullptr)) {
++                            throw std::runtime_error("append needs a text-only slot that already holds tokens");
++                        }
+                         size_t n_packed = 0;
+                         llama_tokens packed;
+                         nread = llama_state_seq_load_file(ctx_tgt, filepath.c_str(), slot->id, nullptr, 0, &n_packed);
+                         if (nread != 0) {
+                             packed.resize(std::max<size_t>(1, n_packed));
+-                            nread = llama_state_seq_load_file(ctx_tgt, filepath.c_str(), slot->id, packed.data(), packed.size(), &n_packed);
++                            nread = llama_state_seq_load_file_ext(ctx_tgt, filepath.c_str(), slot->id, packed.data(), packed.size(), &n_packed,
++                                                                  append ? LLAMA_STATE_SEQ_FLAGS_APPEND : 0);
+                         }
+                         if (nread == 0) {
+                             throw std::runtime_error("No available space in KV cache or invalid slot save file");
+@@ -2618,21 +2637,34 @@ private:
+                             throw std::runtime_error("Invalid tokens in slot save file");
+                         }
+ 
+-                        slot->prompt.clear();
+-                        slot->prompt.tokens = std::move(restored);
++                        if (append) {
++                            // the delta's cells follow the slot's cells: the sequence must now end at the new token count
++                            slot->prompt.tokens.insert(restored.get_text_tokens());
++                            const llama_pos pos_max = llama_memory_seq_pos_max(llama_get_memory(ctx_tgt), slot->id);
++                            if (pos_max + 1 != (llama_pos) slot->prompt.tokens.size()) {
++                                throw std::runtime_error("the delta does not continue the slot (pos_max " + std::to_string(pos_max) +
++                                                         ", tokens " + std::to_string(slot->prompt.tokens.size()) + ")");
++                            }
++                        } else {
++                            slot->prompt.clear();
++                            slot->prompt.tokens = std::move(restored);
++                        }
+ 
+                         // the draft context: its sidecar file when there is one, else an empty draft sequence (it then
+                         // refills from the next prompt, as it did before)
+                         if (ctx_dft) {
+                             const std::string path_dft = filepath + ".draft";
+                             size_t n_dft = 0;
+-                            llama_memory_seq_rm(llama_get_memory(ctx_dft), slot->id, -1, -1);
++                            if (!append) {
++                                llama_memory_seq_rm(llama_get_memory(ctx_dft), slot->id, -1, -1);
++                            }
+                             if (std::ifstream(path_dft).good()) {
+                                 // a token buffer is required: with tokens_out == nullptr the call only reads the header
+                                 // (12 bytes) and restores nothing. The sidecar is saved with no tokens.
+                                 llama_token tok_dft  = 0;
+                                 size_t      n_tok_dft = 0;
+-                                n_dft = llama_state_seq_load_file(ctx_dft, path_dft.c_str(), slot->id, &tok_dft, 1, &n_tok_dft);
++                                n_dft = llama_state_seq_load_file_ext(ctx_dft, path_dft.c_str(), slot->id, &tok_dft, 1, &n_tok_dft,
++                                                                      append ? LLAMA_STATE_SEQ_FLAGS_APPEND : 0);
+                             }
+                             if (n_dft == 0) {
+                                 llama_memory_seq_rm(llama_get_memory(ctx_dft), slot->id, -1, -1);
+@@ -4647,6 +4679,7 @@ static json get_res_props(const server_context_meta & meta, const common_params
+     json props = {
+         { "default_generation_settings", default_generation_settings_for_props },
+         { "total_slots",                 params.n_parallel },
++        { "slot_save_delta",             true },   // slot save takes "pos_min", restore takes "append" (delta saves)
+         { "model_alias",                 meta.model_name },
+         { "model_ftype",                 meta.model_ftype },
+         { "model_path",                  meta.model_path },
+@@ -5339,6 +5372,7 @@ std::unique_ptr<server_res_generator> server_routes::handle_slots_save(const ser
+         task.slot_action.id_slot  = id_slot;
+         task.slot_action.filename = filename;
+         task.slot_action.filepath = filepath;
++        task.slot_action.pos_min  = json_value(request_data, "pos_min", 0);
+         rd.post_task(std::move(task));
+     }
+ 
+@@ -5375,6 +5409,7 @@ std::unique_ptr<server_res_generator> server_routes::handle_slots_restore(const
+         task.slot_action.id_slot  = id_slot;
+         task.slot_action.filename = filename;
+         task.slot_action.filepath = filepath;
++        task.slot_action.append   = json_value(request_data, "append", false);
+         rd.post_task(std::move(task));
+     }
+ 
+diff --git a/tools/server/server-task.h b/tools/server/server-task.h
+index 9c99143f8e..81785d332b 100644
+--- a/tools/server/server-task.h
++++ b/tools/server/server-task.h
+@@ -166,6 +166,8 @@ struct server_task {
+         int id_slot;
+         std::string filename;
+         std::string filepath;
++        int32_t pos_min = 0;    // save: write only the cells at or after this position (a delta save)
++        bool    append  = false; // restore: add the file's cells after the slot's cells (the file is a delta save)
+     };
+     slot_action slot_action;
+ 
+-- 
+2.55.0.windows.3
+
