@@ -24,6 +24,7 @@ import json
 import os
 import queue
 import re
+import socket
 import sys
 import threading
 import time
@@ -642,6 +643,10 @@ class Proxy(http.server.BaseHTTPRequestHandler):
         self.wfile.write(data)
 
     def do_GET(self):
+        if self.path.rstrip("/") == "/layer/slot-cache":   # for stop scripts and harnesses: wait while busy before a stop
+            s = self.slots
+            return self._reply(200, "application/json", json.dumps(
+                {"on": s is not None, "after": bool(s and s.after_on), "busy": bool(s and s.busy)}).encode())
         self._reply(*self._forward("GET"))
 
     def _with_slots(self, body, fn, info=None):
@@ -651,10 +656,33 @@ class Proxy(http.server.BaseHTTPRequestHandler):
         if self.slots is None:
             return fn()
         self._slot_info, self._slots_ok = info, True
+        self.slots.busy = True
         try:
             return fn()
         finally:
             self._slot_info, self._slots_ok = None, False
+            try:
+                if not self._prefill_only and self.slots.after_on:
+                    self._slots_after()
+            finally:
+                self.slots.busy = False
+
+    def _slots_after(self):
+        """Save after the answer (BONSAI_SLOT_CACHE_AFTER): the client has the whole answer first. A streamed reply ends
+        with a closed connection, so the write side is shut before the save (a client that waits for the close is done)."""
+        try:
+            self.wfile.flush()
+            if self.close_connection:
+                self.connection.shutdown(socket.SHUT_WR)
+        except Exception:
+            pass
+        with self.slots.lock:
+            try:
+                got = self.slots.after(self.headers.get("Authorization", ""))
+                if got:
+                    self.log_message("slot cache after the answer: %s", json.dumps(got))
+            except Exception as e:   # the cache must never break a request
+                self.log_message("slot cache after the answer failed: %r", e)
 
     def do_POST(self):
         self._slots_ok = False   # set by _with_slots only (after the key check); a keep-alive connection reuses the handler

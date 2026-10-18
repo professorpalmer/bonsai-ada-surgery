@@ -19,7 +19,18 @@ Off unless BONSAI_SLOT_SAVE_PATH is set (the same folder as the server's --slot-
   BONSAI_SLOT_CACHE_GROW  save again only when the prompt grew by this many tokens since the best saved prefix (8192)
   BONSAI_SLOT_CACHE_GB    disk budget, oldest-used files removed first (20)
   BONSAI_SLOT_CACHE_GAIN  restore only when it saves at least this many tokens of reading (2048)
+  BONSAI_SLOT_CACHE_AFTER save after the answer (1; default 0): see below
 Requests with images (any non-text content part) do not take part: /tokenize cannot reproduce the image chunks.
+Save after the answer (BONSAI_SLOT_CACHE_AFTER=1): when the next turn of a conversation renders the previous answer with the
+same tokens the model generated (thinking off, or a client that sends the reasoning back; not when the template or the
+client drops or rewrites it), the state right after the answer is a prefix of the next turn. After each answer the layer
+reads the slot's token count (GET /slots); at the next turn of the same conversation the server's cached-token count tells
+whether that state was a prefix (no file is written for this test). When it was, the conversation saves after the answer
+instead of before the request: no prefill-only call (the answer is computed as without the cache), and the save runs after
+the client has the answer. The saved tokens come from the slot file's own header, so a restore is exact. When the test
+fails (the client dropped the reasoning, edited a turn, ...), the conversation goes back to the save before the request.
+The result per conversation is kept on disk (lc-conv.json), so a restarted layer keeps it. A stop of the server within
+seconds of an answer can lose that save; the next restore then uses the save before it.
 Read ahead (T1-d): a chat request with "prefill_only": true reads and saves its prompt and returns no text; the later real
 request then restores it.
 Any failure here only logs and lets the request run as before.
@@ -49,6 +60,21 @@ def _sha(tokens):
     return hashlib.sha256(array.array("I", tokens).tobytes()).hexdigest()
 
 
+GGSQ = 0x67677371   # LLAMA_FILE_MAGIC_GGSQ: llama_state_seq_save_file writes magic, version 2, token count, tokens, state
+
+
+def read_tokens(path):
+    """The token list at the head of a slot file: exactly the tokens whose state the file holds."""
+    with open(path, "rb") as f:
+        head = array.array("I")
+        head.fromfile(f, 3)
+        if head[0] != GGSQ or head[1] != 2:
+            raise ValueError("not a version-2 slot file: magic %08x version %d" % (head[0], head[1]))
+        toks = array.array("I")
+        toks.fromfile(f, head[2])
+    return list(toks)
+
+
 def has_media(body):
     """True when any message has a non-text content part (image, audio, file): the cache skips such requests (review B3)."""
     for m in body.get("messages") or []:
@@ -59,8 +85,9 @@ def has_media(body):
 
 
 class SlotCache:
-    def __init__(self, upstream, folder, min_tokens=16384, grow=8192, budget_gb=20.0, log=None, min_gain=2048):
+    def __init__(self, upstream, folder, min_tokens=16384, grow=8192, budget_gb=20.0, log=None, min_gain=2048, after=False):
         self.upstream, self.folder = upstream.rstrip("/"), os.path.abspath(folder)
+        self.after_on = bool(after)   # save after the answer when the conversation passed the prefix test (see the top)
         self.min_gain = int(min_gain)   # restore only when it saves at least this many tokens of reading (~15-25 s at depth)
         self.min_tokens, self.grow, self.budget = int(min_tokens), int(grow), float(budget_gb) * 2**30
         self.log = log or (lambda *a: sys.stderr.write("[slots] " + " ".join(str(x) for x in a) + "\n"))
@@ -68,7 +95,18 @@ class SlotCache:
         # locked loop (the interpreter stream) does not deadlock
         self.lock = threading.RLock()
         self.held = []                 # tokens the server's slot is known to start with
+        self.last = None               # the last request's tokens etc., for after() (save after the answer)
+        self.probe = None              # (conversation, slot token count after its last answer): the prefix test
+        self.busy = False              # a chat request is between before() and after(): a stop now can lose a save
         os.makedirs(self.folder, exist_ok=True)
+        self.conv_path = os.path.join(self.folder, PREFIX + "conv.json")
+        self.conv = {}                 # conversation key -> True / False: the last prefix test passed / failed
+        try:
+            self.conv = {k: bool(v) for k, v in json.load(open(self.conv_path, encoding="utf-8")).items()}
+        except FileNotFoundError:
+            pass
+        except Exception as e:
+            self.log("conv read failed:", repr(e))
         self.index_path = os.path.join(self.folder, PREFIX + "index.jsonl")
         self.index = {}                # sha -> {"n": tokens, "last": time, "bytes": size}
         self._load_index()
@@ -84,7 +122,8 @@ class SlotCache:
         try:
             return cls(upstream, folder, int(os.environ.get("BONSAI_SLOT_CACHE_MIN", 16384)),
                        int(os.environ.get("BONSAI_SLOT_CACHE_GROW", 8192)), float(os.environ.get("BONSAI_SLOT_CACHE_GB", 20)),
-                       log, int(os.environ.get("BONSAI_SLOT_CACHE_GAIN", 2048)))
+                       log, int(os.environ.get("BONSAI_SLOT_CACHE_GAIN", 2048)),
+                       os.environ.get("BONSAI_SLOT_CACHE_AFTER", "0") not in ("", "0"))
         except Exception as e:
             (log or (lambda *a: sys.stderr.write("[slots] " + " ".join(str(x) for x in a) + "\n")))(
                 "saved conversations OFF: cannot start the cache:", repr(e))
@@ -122,6 +161,27 @@ class SlotCache:
                     self.index[sha] = {"n": int(e["n"]), "last": float(e["last"]), "bytes": int(e["bytes"])}
             except Exception:
                 continue
+
+    def _conv_key(self, toks):
+        """A conversation is its first BONSAI_SLOT_CACHE_MIN tokens (they do not change from turn to turn). Two
+        conversations with the same start share the prefix-test result only; a restore always checks the exact tokens."""
+        return _sha(toks[:self.min_tokens])[:24]
+
+    def _set_conv(self, key, ok):
+        if self.conv.get(key) is ok:
+            return
+        self.conv.pop(key, None)
+        self.conv[key] = ok
+        if len(self.conv) > 1000:   # keep the file small: drop the oldest entries (dicts keep insertion order)
+            for k in list(self.conv)[:len(self.conv) - 1000]:
+                del self.conv[k]
+        try:
+            tmp = self.conv_path + ".tmp"
+            with open(tmp, "w", encoding="utf-8") as f:
+                json.dump(self.conv, f)
+            os.replace(tmp, self.conv_path)
+        except Exception as e:
+            self.log("conv write failed:", repr(e))
 
     def _clean(self):
         """Remove crash leftovers (lc-saving-* files) and cache files that the index does not list (review N8). Only files
@@ -171,6 +231,38 @@ class SlotCache:
         req = urllib.request.Request(self.upstream + path, data=json.dumps(body).encode(), headers=headers)
         with urllib.request.urlopen(req, timeout=timeout) as r:
             return json.loads(r.read() or b"{}")
+
+    def _get(self, path, auth, timeout=60):
+        headers = {"Authorization": auth} if auth else {}
+        with urllib.request.urlopen(urllib.request.Request(self.upstream + path, headers=headers), timeout=timeout) as r:
+            return json.loads(r.read() or b"null")
+
+    def _slot_stats(self, auth):
+        """(tokens in the slot, tokens of the last request that came from the slot's cache) from GET /slots."""
+        s = self._get("/slots", auth)[0]
+        return int(s.get("n_prompt_tokens") or 0), int(s.get("n_prompt_tokens_cache") or 0)
+
+    def _store(self, tmp, saved):
+        """Give a finished save in tmp (+ its .draft sidecar) its final name and index entry; returns (sha, bytes)."""
+        sha = _sha(saved)
+        os.replace(os.path.join(self.folder, tmp), self._bin(sha))
+        if os.path.exists(os.path.join(self.folder, tmp + ".draft")):   # the draft sidecar goes with it (review B1)
+            os.replace(os.path.join(self.folder, tmp + ".draft"), self._bin(sha) + ".draft")
+        with open(self._files(sha)[2], "wb") as f:
+            array.array("I", saved).tofile(f)
+        size = sum(os.path.getsize(p) for p in self._files(sha) if os.path.exists(p))
+        self.index[sha] = {"n": len(saved), "last": time.time(), "bytes": size}
+        self._note({"sha": sha, **self.index[sha]})
+        return sha, size
+
+    def _tmp(self):
+        tmp = PREFIX + "saving-%d.bin" % os.getpid()
+        for p in (tmp, tmp + ".draft"):   # a stale sidecar from a crashed save must not be renamed with this one
+            try:
+                os.remove(os.path.join(self.folder, p))
+            except OSError:
+                pass
+        return tmp
 
     def _tokens(self, b, auth):
         prompt = self._post("/apply-template", b, auth)["prompt"]
@@ -235,30 +327,29 @@ class SlotCache:
                 self.log("restored", best_sha[:12], best_n, "tokens in", info["slot_cache_restore_s"], "s")
             except Exception as e:
                 self.log("restore failed:", repr(e))
+        key = self._conv_key(toks)
+        # the prefix test of this conversation's last answer is valid only when nothing else used the slot since
+        probe = self.probe if (not force_save and self.probe and self.probe[0] == key
+                               and not info.get("slot_cache_restored")) else None
+        if not force_save:
+            self.probe = None
+        after_mode = self.after_on and not force_save and self.conv.get(key) is True
+        if after_mode:
+            info["slot_cache_after"] = "on"   # this conversation saves after the answer: no save before the request
         need = (1 if best_n == 0 else self.grow) if force_save else self.grow
-        if len(base) < len(toks) and len(base) - max(best_n, 0) >= need:
-            tmp = PREFIX + "saving-%d.bin" % os.getpid()
+        if not after_mode and len(base) < len(toks) and len(base) - max(best_n, 0) >= need:
+            tmp = self._tmp()
             try:
-                for p in (tmp, tmp + ".draft"):   # a stale sidecar from a crashed save must not be renamed with this one
-                    try:
-                        os.remove(os.path.join(self.folder, p))
-                    except OSError:
-                        pass
                 t1 = time.time()
                 self._post("/completion", {"prompt": base, "n_predict": 0, "cache_prompt": True}, auth)
                 t2 = time.time()
+                if probe and self.after_on:   # the prefill-only call is the request that read this turn's tokens
+                    self._probe_result(key, probe[1], auth)
+                    probe = None
                 r = self._post("/slots/0?action=save", {"filename": tmp}, auth)
                 n = int(r.get("n_saved") or len(base))
                 saved = base[:n] if n <= len(base) else base   # the server may hold back the last token
-                sha = _sha(saved)
-                os.replace(os.path.join(self.folder, tmp), self._bin(sha))
-                if os.path.exists(os.path.join(self.folder, tmp + ".draft")):   # the draft sidecar goes with it (review B1)
-                    os.replace(os.path.join(self.folder, tmp + ".draft"), self._bin(sha) + ".draft")
-                with open(self._files(sha)[2], "wb") as f:
-                    array.array("I", saved).tofile(f)
-                size = sum(os.path.getsize(p) for p in self._files(sha) if os.path.exists(p))
-                self.index[sha] = {"n": len(saved), "last": time.time(), "bytes": size}
-                self._note({"sha": sha, **self.index[sha]})
+                sha, size = self._store(tmp, saved)
                 info["slot_cache_saved"] = len(saved)
                 info["slot_cache_gen_prompt_tokens"] = len(toks) - len(base)
                 info["slot_cache_prefill_s"] = round(t2 - t1, 2)
@@ -283,5 +374,53 @@ class SlotCache:
                 self.held = toks[:info["slot_cache_restored"]]   # a restore-only read-ahead (re-review: blocking)
         else:
             self.held = toks
+            self.last = {"key": key, "toks": toks, "probe": probe[1] if probe else 0,
+                         "best": max(best_n, int(info.get("slot_cache_saved") or 0))}
         info["slot_cache_s"] = round(time.time() - t0, 2)
+        return info
+
+    def _probe_result(self, key, n_prev, auth):
+        """The prefix test: did the request that just ran reuse all n_prev tokens the slot held after the last answer?"""
+        _, cached = self._slot_stats(auth)
+        ok = cached >= n_prev
+        self._set_conv(key, ok)
+        self.log("after-answer test", key[:12], "pass" if ok else "fail", "(cached", cached, "of", n_prev, ")")
+        return ok
+
+    def after(self, auth):
+        """Call with the lock held, after the answer went to the client. Resolves the prefix test of the last answer,
+        starts the test of this one, and in a conversation that passed the test saves the slot when it grew by
+        BONSAI_SLOT_CACHE_GROW or more since the best saved prefix. Returns an info dict (also for the log)."""
+        last, self.last = self.last, None
+        if not self.after_on or not last:
+            return {}
+        t0 = time.time()
+        info = {}
+        n, _ = self._slot_stats(auth)
+        if last["probe"]:
+            info["test"] = "pass" if self._probe_result(last["key"], last["probe"], auth) else "fail"
+        toks = last["toks"]
+        self.probe = (last["key"], n) if n > len(toks) else None
+        if self.conv.get(last["key"]) is True and n - last["best"] >= self.grow:
+            tmp = self._tmp()
+            try:
+                t1 = time.time()
+                r = self._post("/slots/0?action=save", {"filename": tmp}, auth)
+                saved = read_tokens(os.path.join(self.folder, tmp))
+                if len(saved) <= len(toks) or saved[:len(toks)] != toks:   # another request used the slot in between
+                    raise ValueError("the slot does not extend the request's tokens (%d tokens)" % len(saved))
+                sha, size = self._store(tmp, saved)
+                self.held = saved
+                info.update(saved=len(saved), save_s=round(time.time() - t1, 2))
+                self.log("saved after the answer", sha[:12], len(saved), "tokens:", info["save_s"], "s, n_saved", r.get("n_saved"))
+                self._evict()
+            except Exception as e:
+                self.log("save after the answer failed:", repr(e))
+                info["failed"] = repr(e)[:200]
+                for p in (tmp, tmp + ".draft"):
+                    try:
+                        os.remove(os.path.join(self.folder, p))
+                    except OSError:
+                        pass
+        info["s"] = round(time.time() - t0, 2)
         return info
