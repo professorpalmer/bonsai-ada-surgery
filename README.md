@@ -545,6 +545,7 @@ Hadamard-embedding fix of sudoingX's #217 landed through #205. #285 was split at
 | 0064 | cuda: VMM pool growth retries (sync + backoff, 4 tries) and says why before it aborts; `GGML_CUDA_POOL_RESERVE_MIB=n` grows each VMM pool to n MiB at first use. On an 8 GB card after a slot restore, the first long batch asked for the pool's whole deep-context size at once and `cuMemSetAccess` failed ("device not ready") | this repo |
 | 0065 | cuda: `GGML_CUDA_POOL_LOG=1` (debug) logs every VMM pool growth | this repo |
 | 0066 | cuda: VMM pool growth maps at most 16 MiB per piece (`GGML_CUDA_POOL_GROW_PIECE_MIB`); a retry asks only for the rest. RTX 2060 SUPER, MTP on, shared pool on: restore + ~4k new tokens at 227 tok/s (64k) and 157 tok/s (131k), 0 CUDA errors over 7 restores (`docs/research/release-0062/`) | this repo |
+| 0067 | server: a speculative draft stops at its first end-of-generation token. An n-gram draft continued past `<|im_end|>`, the target read those tokens into the slot, and the next turn could not reuse the state after the answer (6 of 9 turns reused it; with 0067 9 of 9, answers 10/10 the same; `docs/research/draft-eog-20261018/`) | this repo |
 
 How each cut was found (CUPTI traces, L1 wavefront counts, what did not work):
 [`surgery/ADA4070_PTQ1.md`](surgery/ADA4070_PTQ1.md) and [`docs/Q8_FULL_CONTEXT.md`](docs/Q8_FULL_CONTEXT.md).

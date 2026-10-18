@@ -1,0 +1,37 @@
+From c5e73e7d81ee1e93934fd8d197ff56c0e8b858a7 Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Sun, 18 Oct 2026 07:33:55 -0500
+Subject: [PATCH] server: a speculative draft stops at its first
+ end-of-generation token (n-gram drafts continued past the answer, the target
+ read those tokens into the slot, and the next turn could not reuse the state
+ after the answer)
+
+---
+ tools/server/server-context.cpp | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/tools/server/server-context.cpp b/tools/server/server-context.cpp
+index 39018b2cb5..558de1830d 100644
+--- a/tools/server/server-context.cpp
++++ b/tools/server/server-context.cpp
+@@ -3057,6 +3057,17 @@ private:
+             auto & draft = slot.spec_draft;
+             auto & ckpt  = slot.spec_ckpt;
+ 
++            // a draft stops at its first end-of-generation token. Without this, an n-gram draft continues past the end
++            // of the answer (the history makes "<|im_end|>\n<|im_start|>..." easy to predict), the target accepts those
++            // tokens and reads them into the slot, and the next turn of the conversation, which differs there, cannot
++            // reuse the state after the answer (it falls back to a context checkpoint; a saved state is not a prefix)
++            for (size_t i = 0; i < draft.size(); ++i) {
++                if (llama_vocab_is_eog(vocab, draft[i])) {
++                    draft.resize(i + 1);
++                    break;
++                }
++            }
++
+             slot.stats.n_draft_tokens += draft.size();
+ 
+             // TODO: avoid restoring the draft context and re-evaluating the drafted tokens when not needed [TAG_SPEC_AVOID_DRAFT_REEVAL]
+-- 
+2.55.0.windows.3
+
