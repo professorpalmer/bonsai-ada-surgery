@@ -27,3 +27,12 @@ Zip `bonsai-bundle-win-x64-20261018d.zip`, 616,681,355 bytes, SHA-256
 | R2 launcher | PASS: default, 8 GB (layer on), 24 GB each answer; 0 CUDA errors |
 | R3 before | PASS: `BONSAI_SLOT_CACHE_AFTER=0`: 3 turns left 2 deltas (depth 1 and 2 before the request); 0 CUDA errors |
 | R4 default | PASS: no variables: 3 turns left 2 deltas; 0 CUDA errors |
+
+## Post-release smoke: the layer's Python tool loop with the cache on
+
+The unzipped 1018d root, 8 GB preset, layer + slot folder: 3 turns of a ~20k conversation, each asking for a computation
+with `code_interpreter: true`, turn 2 streamed. All 3 answers correct (197722, 18, 9908; turn 1 used one `run_python`
+round). The prefix test fails for these conversations, as expected (the tool rounds render differently in the next
+turn), so they use the save before the request, which is a delta since 1018d. 0 CUDA errors. One traceback in the layer
+log comes from a `/health` probe during the server load (the client timed out while the layer relayed the 503); it is not
+from this release.
