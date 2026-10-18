@@ -3,7 +3,8 @@
 [proxy] "GET /health HTTP/1.1" 200 -
 [proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
 [proxy] "POST /tokenize HTTP/1.1" 200 -
-[slots] saved 7efe2002108a 130601 tokens: prefill 174.71 s, save 2.67 s
+[slots] restored 12565613352e 178568 tokens in 1.37 s
+[slots] saved 3e41425db11d 190600 tokens: prefill 30.5 s, save 21.95 s
 [proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
 [proxy] "POST /tokenize HTTP/1.1" 200 -
 [proxy] "POST /v1/chat/completions HTTP/1.1" 200 -

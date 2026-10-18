@@ -128,3 +128,29 @@ turn.
 
 Decision: save after the answer stays off (declared gates). Next: build patch 0067, check it with `diag.py`, then run 5 =
 both arms on the 0067 server with the same gates.
+
+### Run 5: both arms on the 0067 server (c5e73e7d81) — gate C FAIL, all others PASS
+
+| Gate | Result |
+|---|---|
+| A answers | PASS: 30/30 the same |
+| B restart turns | PASS: 33.0 s vs 75.1 s (-56.1 %) |
+| C normal turns | **FAIL**: 22.1 s vs 11.4 s (+94.2 %) |
+| D session | PASS: 1,136 s vs 1,293 s (-12.1 %) |
+| E mechanism | PASS: prefix test 20 pass / 0 fail; 9 saves after the answer + 1 before (before arm: 10) |
+| F health | PASS: 0 CUDA errors, no `lc-saving-*` files |
+
+With 0067 every prefix test passes, and the saves after the answer replace the saves before the request (10 saves in
+both arms). Restart turns read about 12k tokens (the state after the answer of the last save, every 2-3 turns) and take
+26-39 s, against 48-128 s in the before arm (where the restart turn also writes the save).
+
+Why C fails: in the after arm the save runs after the answer, and G1 sends the next turn at once, so that turn waits for
+it. A ~5 GB save took between 2 s and ~90 s on this disk (the time varies a lot), so the turns after a slow save took
+30-100 s (turns 14, 20, 23, 26). In the before arm the same saves land on the restart turns (turns 13 and 25: 104 s and
+128 s), which gate C does not count.
+
+Decision: save after the answer is not the default (declared rule: any failed gate keeps it off). It is safe (A, E, F)
+and faster in total (D) and at restarts (B), so it ships as an opt-in setting, `BONSAI_SLOT_CACHE_AFTER=1`, documented
+with these numbers. It needs patch 0067 (without it about half of the prefix tests fail and the conversation uses the save
+before the request, run 4). A default needs a new declared test of what the user waits for (for example a session with
+think time between turns, or the p95 of the wait per turn).

@@ -3,17 +3,19 @@
 [proxy] "GET /health HTTP/1.1" 200 -
 [proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
 [proxy] "POST /tokenize HTTP/1.1" 200 -
-[slots] restored 8e18f3a3ff9a 142621 tokens in 1.09 s
+[slots] restored 349eb3b02868 226673 tokens in 1.7 s
 [proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
 [proxy] "POST /tokenize HTTP/1.1" 200 -
-[slots] saved after the answer dbf8093f1dad 154678 tokens: 38.12 s, n_saved 154678
-[proxy] slot cache after the answer: {"saved": 154678, "save_s": 38.12, "s": 38.15}
-[slots] after-answer test 8467d3134706 fail (cached 154591 of 154678 )
+[slots] saved after the answer bdd9e88c8ff2 238616 tokens: 3.24 s, n_saved 238616
+[slots] evicted 054f3075bfe3 154675 tokens
+[slots] evicted a0b9fd095ff3 166621 tokens
+[proxy] slot cache after the answer: {"saved": 238616, "save_s": 3.24, "s": 3.24}
+[slots] after-answer test 8467d3134706 pass (cached 238616 of 238616 )
 [proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
 [proxy] slot cache after the answer: {"s": 0.0}
 [proxy] "POST /tokenize HTTP/1.1" 200 -
-[slots] after-answer test 8467d3134706 pass (cached 158653 of 158653 )
-[slots] saved c7b572a99fdc 162627 tokens: prefill 9.37 s, save 2.24 s
+[slots] after-answer test 8467d3134706 pass (cached 242607 of 242607 )
 [proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
 [proxy] slot cache after the answer: {"s": 0.01}
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
 [proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
