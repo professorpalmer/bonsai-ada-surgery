@@ -117,6 +117,11 @@ the tiered-KV runtime are detected and get the previous 96k all-VRAM recipe.
 
 ### Upgrading from an older bundle
 
+`bundle-20261018b` (no engine change): with the layer and `BONSAI_SLOT_SAVE_PATH`, conversations now save **after the
+answer** by default, so an answer no longer waits for a multi-GB save (4070, 30 turns with 20 s between them: mean wait
+-44 %, answers equal to the cache-off session 30/30; RTX 2060 SUPER without pauses: session -2.3 %, answers 30/30).
+`BONSAI_SLOT_CACHE_AFTER=0` turns it off. Gates: `docs/research/release-20261018b`.
+
 `bundle-20261018` (engine `c5e73e7d81`, patch 0067): a speculative draft stops at the end of the answer, so the next turn
 of a conversation reuses the whole state after the answer (9 of 9 turns, was 6 of 9; the same answers; decode speed
 unchanged). On 8 GB cards, saved conversations save every 4,096 new tokens (RTX 2060 SUPER: restart turns -48.5 %, a
