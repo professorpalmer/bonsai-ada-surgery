@@ -110,3 +110,44 @@ IndexError: list index out of range
 07:28:49 run 3: after arm INVALID (read_tokens took the packed server_tokens state as a plain token list: every save after the answer failed its token check; fixed, checked on 13 real files). before arm valid: the baseline. Receipts in run3/.
 07:32:30 === save-after-answer A/B: commit 96f6e49cdc; layer 28f4159 + worktree; clock 405 MHz
 07:32:46 after: server t1 health=1; waited 2s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "after", "turn": 1, "depth": 131072, "think": false, "edit": false, "wall_s": 178.87, "prompt_n": 7, "prompt_ms": 298.218, "predicted_n": 80, "tg": 45.52395770305702, "layer": null}
+{"arm": "after", "turn": 2, "depth": 131072, "think": false, "edit": false, "wall_s": 8.8, "prompt_n": 3965, "prompt_ms": 8179.923, "predicted_n": 10, "tg": 42.3344136448519, "layer": null}
+{"arm": "after", "turn": 3, "depth": 131072, "think": false, "edit": false, "wall_s": 8.95, "prompt_n": 3978, "prompt_ms": 8404.462, "predicted_n": 6, "tg": 37.125037125037124, "layer": null}
+07:36:22 after: server t4 health=1; waited 1s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "after", "turn": 4, "depth": 131072, "think": false, "edit": false, "wall_s": 26.47, "prompt_n": 12010, "prompt_ms": 24796.366, "predicted_n": 10, "tg": 36.4521524996051, "layer": null}
+{"arm": "after", "turn": 5, "depth": 131072, "think": false, "edit": false, "wall_s": 11.55, "prompt_n": 3979, "prompt_ms": 8894.72, "predicted_n": 17, "tg": 35.563853788106115, "layer": null}
+{"arm": "after", "turn": 6, "depth": 131072, "think": false, "edit": false, "wall_s": 9.51, "prompt_n": 3987, "prompt_ms": 8895.12, "predicted_n": 6, "tg": 31.65518638573744, "layer": null}
+07:37:28 after: server t7 health=1; waited 0s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "after", "turn": 7, "depth": 131072, "think": false, "edit": false, "wall_s": 28.24, "prompt_n": 11974, "prompt_ms": 26127.594, "predicted_n": 80, "tg": 135.04135000324783, "layer": null}
+{"arm": "after", "turn": 8, "depth": 131072, "think": false, "edit": false, "wall_s": 48.13, "prompt_n": 4052, "prompt_ms": 9599.784, "predicted_n": 10, "tg": 31.34523291249456, "layer": null}
+{"arm": "after", "turn": 9, "depth": 131072, "think": false, "edit": false, "wall_s": 12.78, "prompt_n": 7, "prompt_ms": 314.626, "predicted_n": 6, "tg": 14.419111667368396, "layer": null}
+07:39:17 after: server t10 health=1; waited 1s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "after", "turn": 10, "depth": 131072, "think": false, "edit": false, "wall_s": 11.74, "prompt_n": 3984, "prompt_ms": 9629.202, "predicted_n": 10, "tg": 21.58444193425379, "layer": null}
+{"arm": "after", "turn": 11, "depth": 131072, "think": false, "edit": false, "wall_s": 10.51, "prompt_n": 3968, "prompt_ms": 9524.078, "predicted_n": 17, "tg": 30.722084186191193, "layer": null}
+{"arm": "after", "turn": 12, "depth": 131072, "think": false, "edit": false, "wall_s": 10.52, "prompt_n": 3980, "prompt_ms": 9877.394, "predicted_n": 6, "tg": 24.40679289859954, "layer": null}
+07:40:16 after: server t13 health=1; waited 3s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "after", "turn": 13, "depth": 131072, "think": false, "edit": false, "wall_s": 13.21, "prompt_n": 3982, "prompt_ms": 10244.703, "predicted_n": 80, "tg": 122.8701853162352, "layer": null}
+{"arm": "after", "turn": 14, "depth": 131072, "think": false, "edit": false, "wall_s": 11.26, "prompt_n": 4061, "prompt_ms": 10481.888, "predicted_n": 10, "tg": 31.478877673081364, "layer": null}
+{"arm": "after", "turn": 15, "depth": 131072, "think": false, "edit": false, "wall_s": 31.94, "prompt_n": 7, "prompt_ms": 533.104, "predicted_n": 6, "tg": 21.98246678449269, "layer": null}
+07:42:05 after: server t16 health=1; waited 0s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "after", "turn": 16, "depth": 131072, "think": false, "edit": false, "wall_s": 12.84, "prompt_n": 3991, "prompt_ms": 10619.72, "predicted_n": 10, "tg": 26.991443712343184, "layer": null}
+{"arm": "after", "turn": 17, "depth": 131072, "think": false, "edit": false, "wall_s": 11.62, "prompt_n": 3989, "prompt_ms": 10723.734, "predicted_n": 17, "tg": 49.48917888173014, "layer": null}
+{"arm": "after", "turn": 18, "depth": 131072, "think": false, "edit": false, "wall_s": 69.46, "prompt_n": 7, "prompt_ms": 466.165, "predicted_n": 6, "tg": 13.462284064963598, "layer": null}
+07:44:00 after: server t19 health=1; waited 0s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "after", "turn": 19, "depth": 131072, "think": false, "edit": false, "wall_s": 15.29, "prompt_n": 4001, "prompt_ms": 11129.585, "predicted_n": 80, "tg": 35.81165066324084, "layer": null}
+{"arm": "after", "turn": 20, "depth": 131072, "think": false, "edit": false, "wall_s": 12.17, "prompt_n": 3982, "prompt_ms": 11203.351, "predicted_n": 10, "tg": 22.08979255230372, "layer": null}
+{"arm": "after", "turn": 21, "depth": 131072, "think": false, "edit": false, "wall_s": 12.4, "prompt_n": 3992, "prompt_ms": 11493.295, "predicted_n": 6, "tg": 14.15776850915866, "layer": null}
+07:44:59 after: server t22 health=1; waited 0s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "after", "turn": 22, "depth": 131072, "think": false, "edit": false, "wall_s": 64.81, "prompt_n": 7, "prompt_ms": 492.39, "predicted_n": 10, "tg": 23.9022239691502, "layer": null}
+{"arm": "after", "turn": 23, "depth": 131072, "think": false, "edit": false, "wall_s": 12.9, "prompt_n": 3990, "prompt_ms": 11700.777, "predicted_n": 17, "tg": 44.384155965924066, "layer": null}
+{"arm": "after", "turn": 24, "depth": 131072, "think": false, "edit": false, "wall_s": 13.21, "prompt_n": 4006, "prompt_ms": 12106.534, "predicted_n": 6, "tg": 9.650721101880732, "layer": null}
+07:47:10 after: server t25 health=1; waited 0s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "after", "turn": 25, "depth": 131072, "think": false, "edit": false, "wall_s": 67.47, "prompt_n": 7, "prompt_ms": 616.019, "predicted_n": 80, "tg": 96.5751281148535, "layer": null}
+{"arm": "after", "turn": 26, "depth": 131072, "think": false, "edit": false, "wall_s": 14.04, "prompt_n": 4056, "prompt_ms": 12645.96, "predicted_n": 10, "tg": 17.204333962884515, "layer": null}
+{"arm": "after", "turn": 27, "depth": 131072, "think": false, "edit": false, "wall_s": 13.39, "prompt_n": 3983, "prompt_ms": 12420.246, "predicted_n": 6, "tg": 15.582828969102367, "layer": null}
+07:49:20 after: server t28 health=1; waited 0s for busy=false; {"on": true, "after": true, "busy": false}
+{"arm": "after", "turn": 28, "depth": 131072, "think": false, "edit": false, "wall_s": 39.57, "prompt_n": 12020, "prompt_ms": 36849.091, "predicted_n": 10, "tg": 21.93832405829744, "layer": null}
+{"arm": "after", "turn": 29, "depth": 131072, "think": false, "edit": false, "wall_s": 87.93, "prompt_n": 3988, "prompt_ms": 12955.016, "predicted_n": 17, "tg": 39.44121656432493, "layer": null}
+{"arm": "after", "turn": 30, "depth": 131072, "think": false, "edit": false, "wall_s": 98.85, "prompt_n": 7, "prompt_ms": 615.951, "predicted_n": 6, "tg": 14.474293654469662, "layer": null}
+07:53:08 after done: arm wall 1236 s (waits 7 s); CUDA error logs 0; saving leftovers 0; files 6; conv {"8467d3134706cab3356b60c0": false}
+07:53:14 === save-after-answer A/B done

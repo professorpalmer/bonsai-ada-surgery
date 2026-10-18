@@ -108,3 +108,23 @@ so it is never a prefix of a later prompt). It is only useless.
 Fix: fork patch 0067 (`serve/draft-stop-at-eog`, c5e73e7d81 on the product commit 96f6e49cdc): a speculative draft stops
 at its first end-of-generation token. Gate for 0067: `diag.py` with the patched server gives `cache_n` = the previous slot
 size on all turns, and the same 10 answers as without the patch.
+
+### Run 4: after arm with the fixed reader (against the run-3 before arm) — FAIL (gates C, E)
+
+| Gate | Result |
+|---|---|
+| A answers | PASS: 30/30 the same |
+| B restart turns | PASS: 31.1 s vs 72.5 s (-57.1 %) |
+| C normal turns | **FAIL**: 25.5 s vs 11.5 s (+120.9 %) |
+| D session | PASS: 1,236 s vs 1,291 s (-4.3 %) |
+| E mechanism | **FAIL**: prefix test 9 pass / 11 fail; 4 saves after the answer + 7 before (before arm: 10) |
+| F health | PASS: 0 CUDA errors, no `lc-saving-*` files |
+
+Why C fails: the work moved from the restart turns to the normal turns. After each failed prefix test (the n-gram drafts,
+see the diagnosis) the conversation went back to the save before the request, and that save ran on a normal turn (turns 9,
+15, 18, 30: `prompt_n` 7, 32-99 s). A normal turn right after a save after the answer waited for that save (turn 8: 48 s
+after a 38 s save). The saves after the answer work: turn 7 restored the state after the turn-6 answer and read only the new
+turn.
+
+Decision: save after the answer stays off (declared gates). Next: build patch 0067, check it with `diag.py`, then run 5 =
+both arms on the 0067 server with the same gates.
