@@ -11,7 +11,7 @@ Needs `bundle-20261007-8gb` or later (patches 0036-0038: the Turing one-column d
 engine ignores the switches; the measured fixed costs then do not hold, and the launcher warns before the start.
 `BONSAI_8GB=0` turns the preset off.
 
-**Recommended now: `bundle-20261017b` or later.** The rest of this page keeps the measurements from 10-06 to 10-10; the
+**Recommended now: `bundle-20261018` or later.** The rest of this page keeps the measurements from 10-06 to 10-10; the
 section below lists what changed for 8 GB cards since then.
 
 ## What is new since bundle-20261010 (updated 2026-10-18)
@@ -35,7 +35,7 @@ All on the same RTX 2060 SUPER (display on the card), the zip's own launcher wit
   - A 30-turn agent session from ~131k to ~250k tokens, with the server restarted before every third turn: 30/30
     answered, 0 CUDA errors, a normal turn 26.9 s at ~135k and 44.0 s at ~250k, a restart turn 85-132 s, restores
     2.05-3.36 s (P164).
-  - The 8 GB preset saves every 4,096 new tokens (was 8,192; next bundle). The same session: restart turns 109.8 -> 56.5 s
+  - The 8 GB preset saves every 4,096 new tokens (was 8,192; bundle-20261018). The same session: restart turns 109.8 -> 56.5 s
     (-48.5 %), normal turns +8.8 %, the session 2,266 -> 1,842 s (-18.7 %), answers 30/30 the same (P200, [#138](https://github.com/professorpalmer/bonsai-ada-surgery/issues/138#issuecomment-6249409712)).
 - **Read ahead** (bundle-20261017b): a chat request with `"prefill_only": true` reads and saves a long prompt before the
   question. A 131k document read ahead, then a server restart: the question answered in 6.25 s (P162).

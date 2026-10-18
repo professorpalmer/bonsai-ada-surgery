@@ -117,6 +117,12 @@ the tiered-KV runtime are detected and get the previous 96k all-VRAM recipe.
 
 ### Upgrading from an older bundle
 
+`bundle-20261018` (engine `c5e73e7d81`, patch 0067): a speculative draft stops at the end of the answer, so the next turn
+of a conversation reuses the whole state after the answer (9 of 9 turns, was 6 of 9; the same answers; decode speed
+unchanged). On 8 GB cards, saved conversations save every 4,096 new tokens (RTX 2060 SUPER: restart turns -48.5 %, a
+30-turn session -18.7 %). Opt-in `BONSAI_SLOT_CACHE_AFTER=1` saves after the answer (see the knob table). Gates:
+`docs/research/release-20261018`.
+
 `bundle-20261017b` adds a **spill guard** to the launcher (no engine change). When the card becomes full after the
 server starts (a browser, a game or a second model takes VRAM, or the NVIDIA driver moves server memory to system
 RAM), the server does not stop: it becomes much slower, or a later long prompt fails with "CUDA error: out of
