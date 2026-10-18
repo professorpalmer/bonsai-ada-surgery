@@ -1,0 +1,11 @@
+21:04:34 === T5 d8: commit d1cc7a4bdd; window=32768,sink=1024,tail=1024,dense=7:15:23:31:39:47:55:63; clock 405 MHz
+21:04:52 server code: health=1; env line: 
+d8 code {"set": "code", "arm": "dense", "keep": null, "item": 24, "pos": 0.981, "want": ["8830"], "named": false, "answer": "8830", "ok": true, "prompt_n": 512, "prefil
+21:11:35   CUDA errors 0
+21:11:53 server prose: health=1; env line: 
+d8 prose {"set": "prose", "arm": "dense", "keep": null, "item": 24, "pos": 0.986, "want": ["elm"], "named": null, "answer": "The street with the broken pipe was **Elm Av
+21:19:03   CUDA errors 0
+21:19:20 server n24: health=1; env line: 
+d8 n24 {"tag": "t5_d8", "depth": 245000, "correct": 24, "of": 24}
+21:26:15   n24 cold first item: "wall_s": 361.2; CUDA errors 0
+21:26:21 === T5 d8 done

@@ -1,0 +1,8 @@
+21:27:31 === T5 off2: commit d1cc7a4bdd; ; clock 405 MHz
+21:27:49 server code: health=1; env line: 
+d8 code {"set": "code", "arm": "dense", "keep": null, "item": 24, "pos": 0.981, "want": ["8830"], "named": false, "answer": "8830", "ok": true, "prompt_n": 512, "prefil
+21:36:13   CUDA errors 0
+21:36:32 server prose: health=1; env line: 
+d8 prose {"set": "prose", "arm": "dense", "keep": null, "item": 24, "pos": 0.986, "want": ["elm"], "named": null, "answer": "The street with the broken pipe was **Elm Av
+21:45:19   CUDA errors 0
+21:45:25 === T5 off2 done
