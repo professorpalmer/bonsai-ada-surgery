@@ -19,9 +19,9 @@ Off unless BONSAI_SLOT_SAVE_PATH is set (the same folder as the server's --slot-
   BONSAI_SLOT_CACHE_GROW  save again only when the prompt grew by this many tokens since the best saved prefix (8192)
   BONSAI_SLOT_CACHE_GB    disk budget, oldest-used files removed first (20)
   BONSAI_SLOT_CACHE_GAIN  restore only when it saves at least this many tokens of reading (2048)
-  BONSAI_SLOT_CACHE_AFTER save after the answer (1; default 0): see below
+  BONSAI_SLOT_CACHE_AFTER save after the answer (default 1; 0 turns it off): see below
 Requests with images (any non-text content part) do not take part: /tokenize cannot reproduce the image chunks.
-Save after the answer (BONSAI_SLOT_CACHE_AFTER=1): when the next turn of a conversation renders the previous answer with the
+Save after the answer (on by default since run 8 of docs/research/save-after-answer-20261018): when the next turn of a conversation renders the previous answer with the
 same tokens the model generated (thinking off, or a client that sends the reasoning back; not when the template or the
 client drops or rewrites it), the state right after the answer is a prefix of the next turn. After each answer the layer
 reads the slot's token count (GET /slots); at the next turn of the same conversation the cached-token count in the
@@ -134,7 +134,7 @@ class SlotCache:
             return cls(upstream, folder, int(os.environ.get("BONSAI_SLOT_CACHE_MIN", 16384)),
                        int(os.environ.get("BONSAI_SLOT_CACHE_GROW", 8192)), float(os.environ.get("BONSAI_SLOT_CACHE_GB", 20)),
                        log, int(os.environ.get("BONSAI_SLOT_CACHE_GAIN", 2048)),
-                       os.environ.get("BONSAI_SLOT_CACHE_AFTER", "0") not in ("", "0"))
+                       os.environ.get("BONSAI_SLOT_CACHE_AFTER", "1") not in ("", "0"))
         except Exception as e:
             (log or (lambda *a: sys.stderr.write("[slots] " + " ".join(str(x) for x in a) + "\n")))(
                 "saved conversations OFF: cannot start the cache:", repr(e))

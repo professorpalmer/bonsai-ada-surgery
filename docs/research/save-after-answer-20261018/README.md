@@ -229,3 +229,22 @@ folders, and the run-7 reference (`run7/ref.jsonl`).
 
 All pass: AFTER=1 becomes the default in the next bundle (all presets; `BONSAI_SLOT_CACHE_AFTER=0` turns it off). Any
 fail: it stays opt-in, and this question is closed for this release cycle.
+
+### Run 8 result: all gates PASS — save after the answer becomes the default
+
+Receipts in `run8/`.
+
+| Gate | Result |
+|---|---|
+| R8-1 answers | PASS: the after arm equals the reference on 30/30 turns; the before arm differs at turn 5 |
+| R8-2 mean wait | PASS: 24.1 s vs 43.0 s (-44.0 %) |
+| R8-3 p95 wait | PASS: 70.8 s vs 112.6 s |
+| R8-4 normal turns | PASS: 27.0 s vs 42.8 s (-37.0 %) |
+| R8-5 health | PASS: 0 CUDA errors, no `lc-saving-*` files, prefix test 20 pass / 0 fail |
+
+Arm wall time: 1,818 s vs 2,213 s. In the before arm, the saves before the request land on answers (turns 7, 9, 11, 15,
+17, 19, 21, 25: 81-121 s); in the after arm they run during the think time.
+
+Decision (declared): `BONSAI_SLOT_CACHE_AFTER` defaults to 1 in the next bundle (all presets); `=0` turns it off. Mirai
+keeps it opt-in until it has its own check (its launcher removes the variable unless `MIRAI_SLOT_CACHE_AFTER=1`; a port
+of this default must make the Mirai launcher set 0 explicitly).
