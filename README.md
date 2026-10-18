@@ -117,6 +117,12 @@ the tiered-KV runtime are detected and get the previous 96k all-VRAM recipe.
 
 ### Upgrading from an older bundle
 
+`bundle-20261018c` (engine `a6d4fc698f`, patches 0068-0069): with the layer and `BONSAI_SLOT_SAVE_PATH`, a save after the
+answer writes only the tokens since the last save (a delta; a full save every 8, `BONSAI_SLOT_CACHE_CHAIN`). A slow drive
+no longer holds up the next turn: on the dev drive the full save of a 173k conversation took 70.6 s, a delta 0.08 s;
+30 turns with 20 s between them: mean wait -44 %, normal turns -56 %, answers equal to the cache-off session 30/30. Gates:
+`docs/research/release-20261018c`.
+
 `bundle-20261018b` (no engine change): with the layer and `BONSAI_SLOT_SAVE_PATH`, conversations now save **after the
 answer** by default, so an answer no longer waits for a multi-GB save (4070, 30 turns with 20 s between them: mean wait
 -44 %, answers equal to the cache-off session 30/30; RTX 2060 SUPER without pauses: session -2.3 %, answers 30/30).
