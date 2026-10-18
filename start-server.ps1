@@ -543,6 +543,10 @@ if ($Mmproj) { Write-Host "vision $(Split-Path $Mmproj -Leaf) on the $(if ($Mmpr
 # and the server use the same absolute folder (a relative or ~ value would differ: the server starts in $Bin).
 if ($env:BONSAI_SLOT_SAVE_PATH) {
     $env:BONSAI_SLOT_SAVE_PATH = (New-Item -ItemType Directory -Force -Path $env:BONSAI_SLOT_SAVE_PATH).FullName
+    # 8 GB preset: save every 4096 new tokens instead of 8192. A slow card re-reads the tokens after the last save at
+    # every restart; on the RTX 2060 SUPER this cut restart turns 48.5 % and a 30-turn session 18.7 % (P200, #138 comment 6249409712). On a
+    # 12 GB 4070 the extra saves cost more than they save (G1), so the other presets keep 8192.
+    if ($Small -and -not $env:BONSAI_SLOT_CACHE_GROW) { $env:BONSAI_SLOT_CACHE_GROW = '4096' }
 }
 $LayerDir = Join-Path $Root 'layer'
 $Layer = $env:BONSAI_LAYER -ne '0'
