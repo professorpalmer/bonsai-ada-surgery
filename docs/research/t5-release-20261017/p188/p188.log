@@ -1,0 +1,8 @@
+22:07:44 === P188: commit d1cc7a4bdd; GGML_CUDA_FA_CHUNK=16384, window off
+22:08:03 server code: health=1; deeper in chunks of 16384; window: 0; clock 11751 MHz
+p188 code {"set": "code", "arm": "dense", "keep": null, "item": 24, "pos": 0.981, "want": ["8830"], "named": false, "answer": "8830", "ok": true, "prompt_n": 512, "prefil
+22:16:29   CUDA errors 0
+22:16:47 server prose: health=1; deeper in chunks of 16384; window: 0; clock 11751 MHz
+p188 prose {"set": "prose", "arm": "dense", "keep": null, "item": 24, "pos": 0.986, "want": ["elm"], "named": null, "answer": "The street with the broken pipe was **Elm Av
+22:25:40   CUDA errors 0
+22:25:45 === P188 done
