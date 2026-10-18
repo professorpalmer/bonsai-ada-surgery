@@ -115,3 +115,17 @@ Setup: G1 session (30 turns, 131k document, restarts before every 3rd turn, no t
 | P4 health | 0 CUDA errors; no `lc-saving-*` files |
 
 All pass: ships with the next bundle (Bonsai and Mirai). Any fail: not shipped; log why.
+
+## Run 3 result: P1-P4 PASS — deltas before the request ship
+
+Receipts in `run3/` (`BONSAI_SLOT_CACHE_AFTER=0` in both arms, no think time).
+
+| Gate | Result |
+|---|---|
+| P1 answers | PASS: 30/30 the same |
+| P2 mean wait | PASS: 14.2 s vs 53.2 s (-73.4 %) |
+| P3 mechanism | PASS: 13 deltas in the index; 0 restore failures |
+| P4 health | PASS: 0 CUDA errors, no `lc-saving-*` files |
+
+Arm wall time: 793 s vs 1,972 s. The save before the request took 0.23-0.24 s as a delta; the full arm's saves added
+40-145 s to every second turn (the answer waits for them).
