@@ -64,15 +64,24 @@ GGSQ = 0x67677371   # LLAMA_FILE_MAGIC_GGSQ: llama_state_seq_save_file writes ma
 
 
 def read_tokens(path):
-    """The token list at the head of a slot file: exactly the tokens whose state the file holds."""
+    """The token list at the head of a slot file: exactly the tokens whose state the file holds. The server writes its
+    server_tokens state there: LLAMA_TOKEN_NULL (0xffffffff), state version 1, the token count, the tokens, then the
+    media-chunk count (0 for text). An older server wrote the plain token list."""
     with open(path, "rb") as f:
         head = array.array("I")
         head.fromfile(f, 3)
         if head[0] != GGSQ or head[1] != 2:
             raise ValueError("not a version-2 slot file: magic %08x version %d" % (head[0], head[1]))
-        toks = array.array("I")
-        toks.fromfile(f, head[2])
-    return list(toks)
+        packed = array.array("I")
+        packed.fromfile(f, head[2])
+    if not packed or packed[0] != 0xFFFFFFFF:
+        return list(packed)
+    if len(packed) < 4 or packed[1] != 1 or packed[2] + 4 > len(packed):
+        raise ValueError("unknown server_tokens state in the slot file")
+    n = packed[2]
+    if packed[3 + n] != 0:
+        raise ValueError("the slot holds media chunks")
+    return list(packed[3:3 + n])
 
 
 def has_media(body):

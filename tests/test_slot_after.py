@@ -103,7 +103,10 @@ class Fake(http.server.BaseHTTPRequestHandler):
                                "timings": {"cache_n": S["cached"], "prompt_n": len(p) - S["cached"]}})
         if self.path.startswith("/slots/0?action=save"):
             with open(os.path.join(S["folder"], b["filename"]), "wb") as f:
-                array.array("I", [slot_cache.GGSQ, 2, len(S["slot"])] + S["slot"]).tofile(f)
+                # as llama-server writes it: the token count of the packed server_tokens state, then that state
+                # (LLAMA_TOKEN_NULL, state version 1, count, tokens, media-chunk count 0)
+                packed = [0xFFFFFFFF, 1, len(S["slot"])] + S["slot"] + [0]
+                array.array("I", [slot_cache.GGSQ, 2, len(packed)] + packed).tofile(f)
                 f.write(b"state" * 20)
             open(os.path.join(S["folder"], b["filename"] + ".draft"), "wb").write(b"d" * 10)
             return self._send({"n_saved": len(S["slot"])})
@@ -305,7 +308,27 @@ def test_layer_hook():
     print("layer hook: after() runs after the answer (plain and streamed), status endpoint: ok")
 
 
+def test_read_tokens():
+    d = tempfile.mkdtemp()
+
+    def write(name, words):
+        p = os.path.join(d, name)
+        array.array("I", [slot_cache.GGSQ, 2, len(words)] + words).tofile(open(p, "wb"))
+        open(p, "ab").write(b"state")
+        return p
+    assert slot_cache.read_tokens(write("plain", [5, 6, 7])) == [5, 6, 7]                  # an older server
+    assert slot_cache.read_tokens(write("packed", [0xFFFFFFFF, 1, 3, 5, 6, 7, 0])) == [5, 6, 7]
+    for bad in ([0xFFFFFFFF, 1, 3, 5, 6, 7, 1], [0xFFFFFFFF, 2, 3, 5, 6, 7, 0], [0xFFFFFFFF, 1, 9, 5]):
+        try:
+            slot_cache.read_tokens(write("bad", bad))
+            raise AssertionError(bad)
+        except ValueError:
+            pass
+    print("slot-file token list (packed server_tokens state, plain, media / unknown refused): ok")
+
+
 if __name__ == "__main__":
+    test_read_tokens()
     test_pass_then_after_mode()
     test_rewritten_answer_fails()
     test_other_conversation_between()
