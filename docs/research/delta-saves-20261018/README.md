@@ -64,3 +64,20 @@ D2 is declared again with the measured model (the declared rule kept deltas off 
 | D4 health | 0 CUDA errors; no `lc-saving-*` files; prefix tests all pass |
 
 All pass: deltas ship in the next bundle. Any fail: not shipped; log why.
+
+## Run 2 result: D2', D3, D4 PASS — delta saves ship
+
+Receipts in `run2/` (G1 session, 20 s think time, 8 GB preset; the delta arm with `BONSAI_SLOT_CACHE_CHAIN` 8, the full
+arm with 0; both save after the answer).
+
+| Gate | Result |
+|---|---|
+| D2' size | PASS: 13 deltas of ~8,000 tokens, 258.7-260.0 MiB each (limits 265.9-267.2 MiB) |
+| D3 mean wait | PASS: 14.2 s vs 25.4 s (-44.1 %) |
+| D3 normal turns | PASS: 12.6 s vs 28.9 s (-56.4 %) |
+| D3 answers | PASS: both arms equal the run-7 reference on 30/30 turns |
+| D4 health | PASS: 0 CUDA errors, no `lc-saving-*` files, prefix tests all pass |
+
+Arm wall time: 1,361 s vs 1,966 s. A save after the answer took 0.17-0.2 s as a delta; the full arm's saves made the next
+turn wait (turns 6, 8, 14, 20, 30: 50-89 s). With D1 (run 1) all gates pass: deltas ship in the next bundle (fork patch
+0068 + the layer).
