@@ -1,0 +1,61 @@
+[proxy] "GET /health HTTP/1.1" 503 -
+[proxy] "GET /health HTTP/1.1" 503 -
+[proxy] "GET /health HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "POST /tokenize HTTP/1.1" 200 -
+[slots] restored 44ee0ebe5dff 218678 tokens in 1.7 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] "POST /tokenize HTTP/1.1" 200 -
+[slots] saved after the answer 465363656543 226736 tokens: 34.47 s, n_saved 226736
+[slots] evicted 5c43668989e3 170671 tokens
+[slots] evicted 89c13500b842 178718 tokens
+[proxy] slot cache after the answer: {"saved": 226736, "save_s": 34.47, "s": 34.47}
+[slots] after-answer test 8467d3134706 pass (cached 226736 of 226736 )
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.02}
+[proxy] "POST /tokenize HTTP/1.1" 200 -
+[slots] after-answer test 8467d3134706 pass (cached 230718 of 230718 )
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[slots] saved after the answer 5cfbad73f03e 234707 tokens: 62.64 s, n_saved 234707
+[slots] evicted 12eb8e34d2ca 186691 tokens
+[proxy] slot cache after the answer: {"saved": 234707, "save_s": 62.64, "s": 62.67}
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -

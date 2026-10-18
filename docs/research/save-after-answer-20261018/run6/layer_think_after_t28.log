@@ -1,0 +1,42 @@
+[proxy] "GET /health HTTP/1.1" 503 -
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 59303)
+Traceback (most recent call last):
+  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 436, in handle
+    self.handle_one_request()
+  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 424, in handle_one_request
+    method()
+  File "C:\Users\pwall\AppData\Local\Temp\r-1018t\layer\bonsai_layer.py", line 674, in do_GET
+    self._reply(*self._forward("GET"))
+  File "C:\Users\pwall\AppData\Local\Temp\r-1018t\layer\bonsai_layer.py", line 667, in _reply
+    self.wfile.write(data)
+  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 845, in write
+    self._sock.sendall(b)
+[proxy] "GET /health HTTP/1.1" 503 -
+ConnectionAbortedError: [WinError 10053] An established connection was aborted by the software in your host machine
+----------------------------------------
+[proxy] "GET /health HTTP/1.1" 503 -
+[proxy] "GET /health HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "POST /tokenize HTTP/1.1" 200 -
+[slots] restored 5cfbad73f03e 234707 tokens in 2.1 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.0}
+[proxy] "POST /tokenize HTTP/1.1" 200 -
+[slots] after-answer test 8467d3134706 pass (cached 238679 of 238679 )
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] "POST /tokenize HTTP/1.1" 200 -
+[slots] saved after the answer 529beabe2b26 242670 tokens: 104.54 s, n_saved 242670
+[slots] evicted 7badd1edc6b8 194672 tokens
+[proxy] slot cache after the answer: {"saved": 242670, "save_s": 104.54, "s": 104.56}
+[slots] after-answer test 8467d3134706 pass (cached 242670 of 242670 )
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.01}
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
