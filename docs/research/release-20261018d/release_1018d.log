@@ -1,0 +1,21 @@
+18:23:36 === release-20261018d R1-R4: zip sha256 63f3af825e6b24f5, engine commit a6d4fc698f
+18:23:44 R1 entries 67 only-new [] only-old [] bin identical True changed ['README.md', 'docs/8GB.md', 'layer/slot_cache.py'] control-byte files 0
+18:23:57 server default (BONSAI_LAYER=0): health=1; window 262144 / q4_0  (12 GB default, BONSAI_CTK=q8_0 for th|
+18:24:13 R2 default: answer: Red, blue, and yellow.; CUDA errors 0
+18:24:31 server 8gb (BONSAI_8GB=1 BONSAI_SLOT_SAVE_PATH=C:\Users\pwall\AppData\Local\Temp\r18d_slots_r2): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)|layer  on: clients use :8080 (API cards, API check, sandboxe|
+18:24:47 R2 8gb: answer: Red, blue, and yellow.; CUDA errors 0
+18:25:07 server 24gb (BONSAI_LAYER=0 BONSAI_TOTAL_MIB=24576): health=1; window 262144 / q8_0  (q8_0: the card holds most of the wind|
+18:25:23 R2 24gb: answer: Red, blue, and yellow.; CUDA errors 0
+18:25:41 server after0 (BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640 BONSAI_SLOT_SAVE_PATH=C:\Users\pwall\AppData\Local\Temp\r18d_slots_after0 BONSAI_SLOT_CACHE_AFTER=0): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)|layer  on: clients use :8080 (API cards, API check, sandboxe|
+18:25:42 R3 status {"on": true, "after": false, "busy": false}
+18:26:00 R3 {"turn": 1, "s": 18.2, "prompt_tokens": 21152, "slot_files": 1, "answer": "4821"}
+18:26:08 R3 {"turn": 2, "s": 7.6, "prompt_tokens": 28269, "slot_files": 2, "answer": "27611"}
+18:26:16 R3 {"turn": 3, "s": 8.1, "prompt_tokens": 35398, "slot_files": 3, "answer": "17412"}
+18:26:16 R3 index 3 entries; 2 deltas; [(21145, 0), (28262, 1), (35391, 2)]; CUDA errors 0
+18:26:39 server default (BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640 BONSAI_SLOT_SAVE_PATH=C:\Users\pwall\AppData\Local\Temp\r18d_slots_default): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)|layer  on: clients use :8080 (API cards, API check, sandboxe|
+18:26:39 R4 status {"on": true, "after": true, "busy": false}
+18:27:00 R4 {"turn": 1, "s": 20.4, "prompt_tokens": 21152, "slot_files": 1, "answer": "4821"}
+18:27:09 R4 {"turn": 2, "s": 8.7, "prompt_tokens": 28269, "slot_files": 2, "answer": "27611"}
+18:27:17 R4 {"turn": 3, "s": 8.8, "prompt_tokens": 35398, "slot_files": 3, "answer": "17412"}
+18:27:18 R4 index 3 entries; 2 deltas; [(21145, 0), (28262, 1), (35404, 2)]; CUDA errors 0
+18:27:24 === release-20261018d R1-R4 done
