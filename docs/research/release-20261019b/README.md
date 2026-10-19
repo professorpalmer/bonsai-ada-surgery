@@ -19,6 +19,6 @@ changes against 1 / 1 and the rounding null); RTX 4070 with the 8 GB split: `../
 | R3 graph line | `BONSAI_8GB=1`, the line pinned at 32,768, a 40k request: the `ggml_cuda_graph_check_compability` warning appears at most twice (once per state); 0 CUDA errors |
 | R4 saved conversations | `BONSAI_8GB=1` (replay on by default), layer, slot folder: 3 turns of a 20k conversation (slot files 1, 2, 3), then two conversations that take turns (each turn 2 restores its own save); 0 CUDA errors |
 | R5 file compatibility | carried over from release-20261019 (patch 0071 does not touch the slot code) |
-| R6 speed, 12 GB | default, 4k and 16k quick_tps mean decode within 5 % of bundle-20261019a's fresh table (96.5 at 4k) |
+| R6 speed, 12 GB | default, fresh server per depth, 4k and 32k quick_tps mean decode within 5 % of bundle-20261019a's fresh table (96.5 and 86.8) |
 
 All pass: publish as the latest release. Any fail: no publish; log why.
