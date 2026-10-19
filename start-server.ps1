@@ -175,6 +175,13 @@ if ($env:BONSAI_BS -ne '0') { $BsArgs += '--backend-sampling' }   # typed: a one
 $Spec = if ($env:BONSAI_SPEC) { [int]$env:BONSAI_SPEC } elseif ((Split-Path $Model -Leaf) -match '-mtp') { if ($Small) { 1 } else { 2 } } else { 0 }
 # 8 GB: tail 1. The recurrent-state rollback ring is sized max(draft, tail); tail 2 holds one more 150 MiB plane.
 $SpecDeep = if ($env:BONSAI_SPEC_DEEP) { [int]$env:BONSAI_SPEC_DEEP } elseif ($Small) { 1 } else { 4 }
+# Replay rollback (an engine with LLAMA_RS_REPLAY, BONSAI_RS_REPLAY=1): the recurrent state keeps one 144 MiB plane
+# instead of one per draft token, plus the inputs of the last max(draft, tail) tokens (1.5 MiB each), so each rollback
+# token costs ~142 MiB less VRAM (docs/research/gdn-replay-20261018).
+$LlamaDll = ''
+try { $LlamaDll = [Text.Encoding]::ASCII.GetString([IO.File]::ReadAllBytes((Join-Path $Bin 'llama.dll'))) } catch { }
+$Replay = $Spec -gt 0 -and $env:BONSAI_RS_REPLAY -eq '1' -and $LlamaDll.Contains('LLAMA_RS_REPLAY')
+if ($Replay) { $env:LLAMA_RS_REPLAY = '1' } elseif ($env:BONSAI_RS_REPLAY -eq '1') { Write-Host "note   BONSAI_RS_REPLAY=1 needs an engine with replay rollback; off" }
 $Ubatch = if ($env:BONSAI_UBATCH) { [int]$env:BONSAI_UBATCH } elseif ($Small -and $Spec -eq 0) { 1024 } else { 512 }
 # 12 GB recipe: one CUDA pool for the main and the MTP draft context and a 256-token draft micro-batch, as the Mirai S
 # serve does. Measured on the RTX 4070 (docs/receipts/pool_ab.log): 74 MiB less VRAM after a 32k request, so the VRAM line
@@ -343,6 +350,9 @@ if ($Tier) {
             # measured on an RTX 2060 SUPER with the desktop on it (docs/8GB.md): the server's fixed cost per mode
             # and the free VRAM that held (drafting: 225 MiB; no head: 400, room for the f16 prefill copy at 64k)
             $FixedMiB = if ($Spec -gt 0) { 6531 + $MmprojMiB } elseif ($Ubatch -ge 1024) { 6218 + $MmprojMiB } else { 5955 + $MmprojMiB }
+            # the measured 6531 holds one rollback plane (draft 1, tail 1); with replay that plane goes, and each rollback
+            # token past the first costs ~7 MiB (its conv snapshot + its inputs) instead of ~150 MiB
+            if ($Replay) { $FixedMiB += -142 + 7 * ([math]::Max($Spec, $SpecDeep) - 1) }
             $Margin = if ($env:BONSAI_VRAM_MARGIN) { [int]$env:BONSAI_VRAM_MARGIN } elseif ($Spec -gt 0) { 225 } else { 400 }
             # Those costs hold the f16 KQ mask of a 131072 window (Ctx x ubatch x 2 bytes) and no shared pool. A longer
             # window without this term over-committed the card (P75: 262k went below 0 MiB free at depth).
