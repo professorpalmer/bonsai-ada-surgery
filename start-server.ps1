@@ -172,15 +172,21 @@ if ($env:BONSAI_BS -ne '0') { $BsArgs += '--backend-sampling' }   # typed: a one
 # (a verified token matches it decoded alone) at no measurable cost. Attention is not batch-invariant under
 # drafting (its KV split follows the kernel instance and the padded KV length): MTP-on output can differ from
 # MTP-off at the rounding level. Older binaries: drafting stops at 24k (BONSAI_SPEC_DEPTH), as measured then.
-$Spec = if ($env:BONSAI_SPEC) { [int]$env:BONSAI_SPEC } elseif ((Split-Path $Model -Leaf) -match '-mtp') { if ($Small) { 1 } else { 2 } } else { 0 }
-# 8 GB: tail 1. The recurrent-state rollback ring is sized max(draft, tail); tail 2 holds one more 150 MiB plane.
-$SpecDeep = if ($env:BONSAI_SPEC_DEEP) { [int]$env:BONSAI_SPEC_DEEP } elseif ($Small) { 1 } else { 4 }
-# Replay rollback (an engine with LLAMA_RS_REPLAY, BONSAI_RS_REPLAY=1): the recurrent state keeps one 144 MiB plane
-# instead of one per draft token, plus the inputs of the last max(draft, tail) tokens (1.5 MiB each), so each rollback
-# token costs ~142 MiB less VRAM (docs/research/gdn-replay-20261018).
+# Replay rollback (an engine with LLAMA_RS_REPLAY): the recurrent state keeps one 144 MiB plane instead of one per
+# draft token, plus the inputs of the last max(draft, tail) tokens (1.5 MiB each), so each rollback token costs ~142 MiB
+# less VRAM (docs/research/gdn-replay-20261018). On by default on the 8 GB preset (RTX 2060 SUPER, #138 P213-P217:
+# identical text, +10.5k positions in VRAM, a soak, 200k, the code-set gate); BONSAI_RS_REPLAY=0 turns it off there,
+# BONSAI_RS_REPLAY=1 turns it on for other cards (on 12 GB nearly the whole window is in VRAM already).
 $LlamaDll = ''
 try { $LlamaDll = [Text.Encoding]::ASCII.GetString([IO.File]::ReadAllBytes((Join-Path $Bin 'llama.dll'))) } catch { }
-$Replay = $Spec -gt 0 -and $env:BONSAI_RS_REPLAY -eq '1' -and $LlamaDll.Contains('LLAMA_RS_REPLAY')
+$HasReplay = $LlamaDll.Contains('LLAMA_RS_REPLAY')
+$ReplayWant = if ($env:BONSAI_RS_REPLAY) { $env:BONSAI_RS_REPLAY -eq '1' } else { [bool]$Small }
+$Spec = if ($env:BONSAI_SPEC) { [int]$env:BONSAI_SPEC } elseif ((Split-Path $Model -Leaf) -match '-mtp') { if ($Small) { if ($ReplayWant -and $HasReplay) { 2 } else { 1 } } else { 2 } } else { 0 }
+# 8 GB: draft 2 / tail 2 with replay (the rollback ring then costs ~7 MiB per token; RTX 2060 SUPER P215: 128k decode
+# 26.1 -> 31.8 tok/s, P217: the code-set gate passes; RTX 4070 with the 8 GB split, docs/research/adaptive-mtp-20261019
+# AD2: 128k code +19.6 %). Without replay: draft 1 / tail 1 (each extra token held a 150 MiB plane).
+$SpecDeep = if ($env:BONSAI_SPEC_DEEP) { [int]$env:BONSAI_SPEC_DEEP } elseif ($Small) { if ($ReplayWant -and $HasReplay) { 2 } else { 1 } } else { 4 }
+$Replay = $Spec -gt 0 -and $ReplayWant -and $HasReplay
 if ($Replay) { $env:LLAMA_RS_REPLAY = '1' }
 elseif ($env:BONSAI_RS_REPLAY -eq '1') { Write-Host "note   BONSAI_RS_REPLAY=1 is off: $(if ($Spec -le 0) { 'drafting is off (BONSAI_SPEC=0 or no MTP head)' } else { 'this engine has no replay rollback' })" }
 $Ubatch = if ($env:BONSAI_UBATCH) { [int]$env:BONSAI_UBATCH } elseif ($Small -and $Spec -eq 0) { 1024 } else { 512 }
