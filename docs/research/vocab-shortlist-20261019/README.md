@@ -1,5 +1,8 @@
 # A draft vocabulary shortlist for the MTP head (2026-10-19)
 
+**Result: not adopted.** The coverage gate fails on the model's own thinking text (best map 97.98 % against
+99.0 %), so the speed A/B did not run. See [EXPERIMENTS.md](EXPERIMENTS.md).
+
 Plan written before the runs. One entry per run goes to `EXPERIMENTS.md`, one line per run to `runs.jsonl`.
 
 ## Question
