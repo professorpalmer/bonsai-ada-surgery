@@ -604,6 +604,24 @@ def test_shared_key_and_branch_drop():
     print("shared conversation key: both sessions restore exactly; a branched chain drop leaves no orphan: ok")
 
 
+def test_rewritten_backoff():
+    reset()
+    S["delta"] = True
+    c = cache(chain=8)
+    ans = []
+    n0 = len(LOG)
+    for k in range(1, 13):
+        a, info = chat(c, conv_msgs("F", ans, k, rewrite=True))
+        ans.append(a)
+        chat(c, conv_msgs("G", [], 1))   # another conversation in between
+    keyf = c._conv_key(toks(render(conv_msgs("F", ans, 2, rewrite=True))))
+    gn = len(toks(render(conv_msgs("G", [], 1)))) + 10
+    f_saves = [l for l in LOG[n0:] if l.startswith("saved after the answer") and int(l.split()[5]) > gn]
+    assert c.fails.get(keyf, 0) >= 2, c.fails
+    assert 3 <= len(f_saves) <= 5, f_saves   # 12 turns: turns 1 and 2, then one try every 4th turn (12 without the back-off)
+    print("rewritten answers: saves after the answer back off (%d of 12 turns), a try every 4th turn: ok" % len(f_saves))
+
+
 if __name__ == "__main__":
     test_read_tokens()
     test_review_fixes()
@@ -623,4 +641,5 @@ if __name__ == "__main__":
     test_budget_replaces_chain()
     test_protect_recent()
     test_shared_key_and_branch_drop()
+    test_rewritten_backoff()
     print("ALL OK")

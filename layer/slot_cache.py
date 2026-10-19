@@ -138,6 +138,8 @@ class SlotCache:
         os.makedirs(self.folder, exist_ok=True)
         self.conv_path = os.path.join(self.folder, PREFIX + "conv.json")
         self.conv = {}                 # conversation key -> True / False: the last prefix test passed / failed
+        self.fails = {}                # conversation key -> failed exact tests in a row (every-answer mode)
+        self.skips = {}                # conversation key -> saves after the answer skipped since the last try
         try:
             self.conv = {k: bool(v) for k, v in json.load(open(self.conv_path, encoding="utf-8")).items()}
         except FileNotFoundError:
@@ -592,6 +594,9 @@ class SlotCache:
                 if self.conv.get(key) is not ok:
                     self.log("after-answer test", key[:12], "pass" if ok else "fail", "(exact)")
                 self._set_conv(key, ok)
+                self.fails[key] = 0 if ok else self.fails.get(key, 0) + 1
+                if len(self.fails) > 1000:
+                    self.fails.pop(next(iter(self.fails)))
             self.wait = None   # no cached-token test in this mode
         after_mode = self.after_on and not force_save and (self.conv.get(key) is True or (every and self.conv.get(key) is not False))
         if after_mode:
@@ -682,8 +687,16 @@ class SlotCache:
         toks = last["toks"]
         every = last.get("every")
         self.probe = (last["key"], n) if (n > len(toks) and not every) else None
-        # every answer: also after a failed exact test (the next turn tests the new save and can pass again)
-        want = n > len(toks) if every else \
+        # every answer: also after one failed exact test (the next turn tests the new save and can pass again); after 2
+        # or more failures in a row (a template that rewrites every answer, e.g. it drops the reasoning) only every 4th
+        # turn tries again, so unused deltas do not fill the budget
+        key = last["key"]
+        backoff = bool(every) and self.fails.get(key, 0) >= 2 and self.skips.get(key, 0) < 3
+        if backoff:
+            self.skips[key] = self.skips.get(key, 0) + 1
+        else:
+            self.skips.pop(key, None)
+        want = (n > len(toks) and not backoff) if every else \
             (self.conv.get(last["key"]) is True and n - last["best"] >= self.grow)
         if want:
             tmp = self._tmp()
