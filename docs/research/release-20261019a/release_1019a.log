@@ -1,0 +1,22 @@
+08:11:22 === release-20261019a R1-R4: zip sha256 206e1e9d0b47e978, engine commit a6d4fc698f
+08:11:31 R1 entries 67 only-new [] only-old [] bin identical True changed ['README.md', 'docs/8GB.md', 'layer/bonsai_layer.py'] control-byte files 0
+08:11:51 server default (BONSAI_LAYER=0): health=1; window 262144 / q4_0  (12 GB default, BONSAI_CTK=q8_0 for th|
+08:12:07 R2 default: answer: Red, blue, and yellow.; CUDA errors 0
+08:12:26 server 8gb (BONSAI_8GB=1 BONSAI_SLOT_SAVE_PATH=%USERPROFILE%\AppData\Local\Temp\r19a_slots_r2): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)|layer  on: clients use :8080 (API cards, API check, sandboxe|
+08:12:42 R2 8gb: answer: Red, blue, and yellow.; CUDA errors 0
+08:13:00 server 24gb (BONSAI_LAYER=0 BONSAI_TOTAL_MIB=24576): health=1; window 262144 / q8_0  (q8_0: the card holds most of the wind|
+08:13:16 R2 24gb: answer: Red, blue, and yellow.; CUDA errors 0
+08:13:35 server r3 (BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)|layer  on: clients use :8080 (API cards, API check, sandboxe|
+08:13:36 R3 {"tag": "r3", "case": "short40", "stream": false, "finish": "length", "content_len": 245, "cut_retry": null, "completion_tokens": 40, "head": "Warehouses maintain spare parts to minimize downtime and pro"}
+08:13:37 R3 {"tag": "r3", "case": "short40", "stream": true, "finish": "length", "content_len": 245, "head": "Warehouses maintain spare parts to minimize downtime and pro"}
+08:13:49 R3 {"tag": "r3", "case": "doc4k250", "stream": false, "finish": "length", "content_len": 1080, "cut_retry": true, "completion_tokens": 500, "head": "The inventory data reveals a highly fragmented and uneven di"}
+08:13:54 R3 {"tag": "r3", "case": "doc4k250", "stream": true, "finish": "length", "content_len": 1018, "head": "The inventory data reveals a highly fragmented and uneven di"}
+08:16:12 R3 {"tag": "r3", "case": "doc64k250", "stream": false, "finish": "length", "content_len": 1137, "cut_retry": true, "completion_tokens": 500, "head": "This inventory suggests a large-scale, multi-room storage fa"}
+08:18:30 R3 {"tag": "r3", "case": "doc64k250", "stream": true, "finish": "length", "content_len": 1177, "head": "This inventory suggests a large-scale, multi-room storage fa"}
+08:18:30 R3 CUDA errors 0
+08:18:49 server r4 (BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640 BONSAI_SLOT_SAVE_PATH=%USERPROFILE%\AppData\Local\Temp\r19a_slots_r3): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)|layer  on: clients use :8080 (API cards, API check, sandboxe|
+08:19:08 R4 {"turn": 1, "s": 18.8, "prompt_tokens": 21152, "slot_files": 1, "answer": "4821"}
+08:19:17 R4 {"turn": 2, "s": 8.3, "prompt_tokens": 28269, "slot_files": 2, "answer": "27611"}
+08:19:25 R4 {"turn": 3, "s": 8.8, "prompt_tokens": 35398, "slot_files": 3, "answer": "17412"}
+08:19:26 R4 index 3 entries; 2 deltas; [(21156, 0), (28275, 1), (35404, 2)]; CUDA errors 0
+08:19:32 === release-20261019a R1-R4 done
