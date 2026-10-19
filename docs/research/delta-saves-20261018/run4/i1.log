@@ -1,0 +1,21 @@
+18:58:54 === I1: engine commit a6d4fc698f
+18:59:07 server a: health=1; {"on": true, "after": true, "busy": false}
+{"arm": "i1", "turn": 1, "depth": 131072, "think": false, "edit": false, "wall_s": 200.02, "prompt_n": 7, "prompt_ms": 461.373, "predicted_n": 80, "tg": 46.81936496346904, "layer": null}
+{"arm": "i1", "turn": 2, "depth": 131072, "think": false, "edit": false, "wall_s": 9.35, "prompt_n": 3965, "prompt_ms": 8479.627, "predicted_n": 10, "tg": 42.43481540855298, "layer": null}
+{"arm": "i1", "turn": 3, "depth": 131072, "think": false, "edit": false, "wall_s": 9.35, "prompt_n": 3978, "prompt_ms": 8726.408, "predicted_n": 6, "tg": 36.85657631891259, "layer": null}
+{"arm": "i1", "turn": 4, "depth": 131072, "think": false, "edit": false, "wall_s": 9.62, "prompt_n": 3964, "prompt_ms": 8817.252, "predicted_n": 10, "tg": 37.90080097026051, "layer": null}
+{"arm": "i1", "turn": 5, "depth": 131072, "think": false, "edit": false, "wall_s": 10.22, "prompt_n": 3979, "prompt_ms": 9050.884, "predicted_n": 80, "tg": 115.94049757552276, "layer": null}
+{"arm": "i1", "turn": 6, "depth": 131072, "think": false, "edit": false, "wall_s": 9.87, "prompt_n": 3987, "prompt_ms": 9225.56, "predicted_n": 6, "tg": 31.552111467299394, "layer": null}
+{"arm": "i1", "turn": 7, "depth": 131072, "think": false, "edit": false, "wall_s": 10.51, "prompt_n": 3985, "prompt_ms": 9374.592, "predicted_n": 80, "tg": 116.36299362212961, "layer": null}
+{"arm": "i1", "turn": 8, "depth": 131072, "think": false, "edit": false, "wall_s": 10.17, "prompt_n": 3968, "prompt_ms": 9412.276, "predicted_n": 10, "tg": 31.327339369067385, "layer": null}
+{"arm": "i1", "turn": 9, "depth": 131072, "think": false, "edit": false, "wall_s": 10.25, "prompt_n": 3981, "prompt_ms": 9683.266, "predicted_n": 6, "tg": 52.69703421091461, "layer": null}
+{"arm": "i1", "turn": 10, "depth": 131072, "think": false, "edit": false, "wall_s": 10.4, "prompt_n": 3971, "prompt_ms": 9810.812, "predicted_n": 10, "tg": 76.0957792207792, "layer": null}
+{"arm": "i1", "turn": 11, "depth": 131072, "think": false, "edit": false, "wall_s": 10.84, "prompt_n": 3970, "prompt_ms": 9776.915, "predicted_n": 17, "tg": 27.075048650478042, "layer": null}
+{"arm": "i1", "turn": 12, "depth": 131072, "think": false, "edit": false, "wall_s": 11.0, "prompt_n": 3979, "prompt_ms": 10249.527, "predicted_n": 6, "tg": 24.388221464561475, "layer": null}
+19:05:00 idle 45 s
+19:05:45 a: 0 idle full saves: 
+19:06:03 server b: health=1; {"on": true, "after": true, "busy": false}
+{"arm": "i1", "turn": 13, "depth": 131072, "think": false, "edit": false, "wall_s": 22.58, "prompt_n": 7967, "prompt_ms": 19773.829, "predicted_n": 80, "tg": 167.85047284965484, "layer": null}
+19:06:27 b: [slots] restored 5c43668989e3 170671 tokens in 1.82 s|
+19:06:28 CUDA errors 0; index [(130601, 0), (138647, 1), (146680, 2), (154738, 3), (162703, 4), (170671, 5), (178718, 6)]
+19:06:34 === I1 done

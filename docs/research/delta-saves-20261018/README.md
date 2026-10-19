@@ -153,3 +153,13 @@ an answer, and the next turn waited for it (Mirai MD3 turn 29: 163 s).
 
 I1 passes: the idle full save ships in the next bundles (Bonsai, Mirai). I2 decides `MIRAI_SLOT_CACHE_AFTER` (all pass:
 on by default in the next Mirai bundle).
+
+### Run 4, I1: FAIL as declared (the test did not reach the soft cap)
+
+`run4/i1.*`. The G1 turns grow by ~3,990 tokens, just under the 8 GB preset's 4,096, so a save came every second turn:
+after 12 turns the chain had depth 5, below the soft cap 8, so no full save was due and the 45 s idle did nothing. The
+rest held: 13/13 answers equal the reference, turn 13 restored the 5-delta chain (170,671 tokens) in 1.82 s and read
+7,967 tokens, 0 CUDA errors.
+
+I1' (declared now, before its run): the same with `BONSAI_SLOT_CACHE_CHAIN=4` (soft cap 4, hard cap 16): one idle full
+save in the 45 s pause; turn 13 restores a chain of length 1 and equals the reference; 0 CUDA errors.
