@@ -225,6 +225,9 @@ class SlotCache:
             return None
         if not self.lock.acquire(blocking=False):
             return None
+        if not self.compact or self.busy:   # review: a request may have started between the check and the lock
+            self.lock.release()
+            return None
         self.enter()
         try:
             key, auth = self.compact
@@ -365,6 +368,11 @@ class SlotCache:
         os.replace(os.path.join(self.folder, tmp), self._bin(sha))
         if os.path.exists(os.path.join(self.folder, tmp + ".draft")):   # the draft sidecar goes with it (review B1)
             os.replace(os.path.join(self.folder, tmp + ".draft"), self._bin(sha) + ".draft")
+        elif os.path.exists(self._bin(sha) + ".draft"):   # review: a sidecar of an older save of the same tokens
+            try:
+                os.remove(self._bin(sha) + ".draft")
+            except OSError:
+                pass
         with open(self._files(sha)[2], "wb") as f:
             array.array("I", saved).tofile(f)
         size = sum(os.path.getsize(p) for p in self._files(sha) if os.path.exists(p))
