@@ -1,0 +1,10 @@
+11:54 === pres-p0: template model, root <bundle-20261019a root>, kwargs none, --temp -1, health=1
+pass@1 96.95%  (159/164)  arm=medium effort=- temp=server max_tokens=24576  3619.6s
+wrote artifacts/humaneval-pres-p0\summary.json
+pres-p0: mean tokens 1939 median 598, over 4k: 18
+12:54 === pres-p0 done
+12:55 === pres-p15: template model, root <bundle-20261019a root>, kwargs none, --temp -1, health=1
+pass@1 98.78%  (162/164)  arm=medium effort=- temp=server max_tokens=24576  4854.3s
+wrote artifacts/humaneval-pres-p15\summary.json
+pres-p15: mean tokens 2366 median 655, over 4k: 22
+14:16 === pres-p15 done
