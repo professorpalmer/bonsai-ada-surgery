@@ -1,0 +1,32 @@
+17:49:16 === release-20261019b: zip sha256 469c272b1e95c5ed, engine commit 810d93e5aa
+17:49:24 R1 outside docs: only-new [] only-old [] runtime identical True changed ['README.md', 'bin/ggml-base.dll', 'bin/ggml-cpu.dll', 'bin/ggml-cuda.dll', 'bin/ggml.dll', 'bin/llama-common.dll', 'bin/llama-server-impl.dll', 'bin/llama-server.exe', 'bin/llama.dll', 'bin/mtmd.dll', 'bin/test-backend-ops.exe', 'layer/wasi-python/canaries.py', 'start-server.ps1'] | docs files 54 | control-byte files 1
+17:49:41 server default (BONSAI_LAYER=0): health=1; kv     tiered: cells 0..260352 in VRAM, 260352..262144 in system RAM (|spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lo| RS ; replay 0
+17:49:58 R2 default: answer: Here are three primary colours and a fact about each:  1.  **Red**     *   **Fact:** Red h; CUDA errors 0
+17:50:17 server 8gb (BONSAI_8GB=1 BONSAI_SLOT_SAVE_PATH=<home>\AppData\Local\Temp\r19b_slots_r2): health=1; spec   draft 2, draft window 16384 (MTP on); lookup drafting up to 32 | RS ; replay 0
+17:50:34 R2 8gb: answer: Here are three primary colours and a fact about each:  1. **Red** � Red is the colour of t; CUDA errors 0
+17:50:53 server 8gb_r0 (BONSAI_8GB=1 BONSAI_LAYER=0 BONSAI_RS_REPLAY=0): health=1; spec   draft 1, draft window 16384 (MTP on); lookup drafting up to 32 | RS ; replay 0
+17:51:09 R2 8gb_r0: answer: Here are three primary colors and a fact about each:  1.  **Red**     *   **Fact:** Red ha; CUDA errors 0
+17:51:29 server 24gb (BONSAI_LAYER=0 BONSAI_TOTAL_MIB=24576): health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (|spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lo| RS ; replay 0
+17:51:46 R2 24gb: answer: Here are three primary colours and a fact about each:  1.  **Red**     *   **Fact:** Red h; CUDA errors 0
+17:52:05 server r3 (BONSAI_8GB=1 BONSAI_LAYER=0 BONSAI_KV_VRAM_CELLS=32768): health=1; kv     tiered: cells 0..32768 in VRAM, 32768..262144 in system RAM; sh|kv     sparse host-tail reads: auto (dense line 32768; past it the eng|spec   draft 2 (2 past the VRAM line), draft window 16384 (MTP on); lo| RS ; replay 0
+{"tag": "r3", "depth": 40000, "prompt": "quote", "temp": 0.8, "sha": "6e108a5e31c769ef", "n": 300, "tg": 120.41390164399208, "draft_n": 298, "draft_acc": 248, "
+17:57:19 R3 graph-check warnings 2 (at most 2); records 6; CUDA errors 0
+17:57:37 server r4 (BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=90112 BONSAI_SLOT_SAVE_PATH=<home>\AppData\Local\Temp\r19b_slots_r4): health=1; kv     tiered: cells 0..90112 in VRAM, 90112..262144 in system RAM; sh|kv     sparse host-tail reads: auto (dense line 90112; past it the eng|spec   draft 2 (2 past the VRAM line), draft window 16384 (MTP on); lo| RS ; replay 0
+17:57:57 R4 {"turn": 1, "s": 18.8, "prompt_tokens": 21152, "slot_files": 1, "answer": "4821"}
+17:58:05 R4 {"turn": 2, "s": 8.3, "prompt_tokens": 28269, "slot_files": 2, "answer": "27611"}
+17:58:14 R4 {"turn": 3, "s": 8.7, "prompt_tokens": 35398, "slot_files": 3, "answer": "17412"}
+17:58:37 R4 {"conv": "A", "turn": 1, "prompt_n": 25846, "cache_n": 121, "answer": "6247"}
+17:59:00 R4 {"conv": "B", "turn": 1, "prompt_n": 25859, "cache_n": 121, "answer": "6722"}
+17:59:01 R4 {"conv": "A", "turn": 2, "prompt_n": 24, "cache_n": 25972, "answer": "pump"}
+17:59:02 R4 {"conv": "B", "turn": 2, "prompt_n": 24, "cache_n": 25985, "answer": "pump"}
+17:59:02 R4 index 6 entries; 3 deltas; CUDA errors 0
+17:59:43 R6 4000: 4000: mean decode 95.9 tok/s
+18:00:43 R6 32000: 32000: mean decode 86.1 tok/s
+18:00:43 === release-20261019b done
+18:11:38 recheck: archive 6d19a8dd79d52d2e006bd6bf8ecdc4db7567cc95; broken relative links: 0 size 616377333 sha256 d5a53c2b2ad238e237925d3ff927e39c81b91649cc80e4129c1b7aeb8328c561 
+18:11:42 recheck: new zip against the gated zip: only-new [] only-old [] changed ['docs/8gb/README.md']
+18:11:42 recheck R1 control-byte files: 0
+18:12:03 recheck R2 default: health=1; spec   draft 2 (4 past the VRAM line), d; RS 748.12 MiB; replay line: ; CUDA errors 0
+18:12:22 recheck R2 8gb: health=1; spec   draft 2, draft window 16384 (MTP ; RS 163.92 MiB; replay line: replay rollback: one S plane + pending inputs of 2 tokens (8288 floats a token); CUDA errors 0
+18:12:41 recheck R2 8gb_r0: health=1; spec   draft 1, draft window 16384 (MTP ; RS 299.25 MiB; replay line: ; CUDA errors 0
+18:12:47 === recheck done

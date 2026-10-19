@@ -11,7 +11,7 @@ every `BONSAI_*`, `LLAMA_ARG_*` and `GGML_*` variable that is set, and it says w
 | `BONSAI_TIER` | 1 | 0 = all-VRAM cache (then 96k window) |
 | `BONSAI_KV_VRAM_CELLS` | auto | pin the VRAM line |
 | `BONSAI_VRAM_MARGIN` | 1000 (display on iGPU) / 1300; 8 GB: 225 (400 without drafting) | MiB kept free below the demotion point |
-| `BONSAI_SPEC` / `BONSAI_SPEC_DEEP` | 2 / 4 (8 GB: 1 / 1) | draft size, and past the VRAM line |
+| `BONSAI_SPEC` / `BONSAI_SPEC_DEEP` | 2 / 4 (8 GB: 2 / 2 with replay, 1 / 1 without) | draft size, and past the VRAM line |
 | `BONSAI_LOOKUP` / `BONSAI_LOOKUP_N` | on / 32 | lookup drafting from the context and its draft limit; `BONSAI_LOOKUP=0` turns it off |
 | `BONSAI_DRAFT_WINDOW` | 16384 | rows the draft head keeps |
 | `BONSAI_EFFORT` | medium | server default reasoning effort |
@@ -27,4 +27,4 @@ every `BONSAI_*`, `LLAMA_ARG_*` and `GGML_*` variable that is set, and it says w
 | `BONSAI_CKPT_EVERY` | 8192 | context checkpoints also every N tokens inside a long message; 0 = only at user messages and prompt ends |
 | `BONSAI_RAM_BUDGET` | on | sizes the prompt cache and the checkpoints from the system RAM; 0 = the server defaults |
 | `BONSAI_LAYER` | 1 | 0 = no Bonsai layer: the plain server on the port ([the layer](../agents-layer/README.md)) |
-| `BONSAI_RS_REPLAY` | 0 | 1 = replay rollback (patch 0070): one recurrent-state plane instead of one per draft token. Needs an engine with patch 0070 (not in a published bundle yet) and drafting on |
+| `BONSAI_RS_REPLAY` | 8 GB: 1, other cards: 0 | replay rollback (patch 0070): one recurrent-state plane instead of one per draft token, so each draft token costs ~7 MiB of VRAM instead of ~150 MiB. 0 = off (the 8 GB preset then drafts 1 / 1), 1 = on for any card. Needs an engine with patch 0070 and drafting on |
