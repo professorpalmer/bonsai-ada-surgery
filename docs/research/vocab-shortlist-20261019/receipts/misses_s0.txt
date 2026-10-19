@@ -1,0 +1,3 @@
+held-out tokens 17102, missed 468 (2.74 %), distinct missed 285
+by kind: {'latin word': 438, 'symbol/other': 27, 'non-ascii': 3}
+top 40: [('enne', 19), (' Lucas', 13), ('dx', 9), (' restaurant', 7), ('abin', 6), (' kitchen', 6), (' mechanic', 6), ('iate', 6), (' scattering', 5), (' modular', 5), (' residue', 5), (' Miller', 5), ('-pointer', 4), (' nu', 4), (' buying', 4), (' seller', 4), ('dy', 4), ('-year', 3), ('leigh', 3), (' wavelengths', 3), ('ock', 3), ('lington', 3), ('CPP', 3), ('trial', 3), (' probabil', 3), ('equiv', 3), ('lease', 3), (' tires', 3), (' wear', 3), (' steering', 3), ('riage', 3), (' fluid', 3), (' Transmission', 3), (' transmission', 3), (' wheel', 3), (' mileage', 3), (' underscore', 2), (' Ray', 2), (' wavelength', 2), ('λ', 2)]

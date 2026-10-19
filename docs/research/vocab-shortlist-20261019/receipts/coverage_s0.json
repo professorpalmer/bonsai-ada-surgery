@@ -1,0 +1,17 @@
+{
+ "16384": {
+  "heldout_answers.txt": 99.991,
+  "heldout_docs.txt": 99.139,
+  "heldout_traces.txt": 95.574
+ },
+ "24576": {
+  "heldout_answers.txt": 100.0,
+  "heldout_docs.txt": 99.782,
+  "heldout_traces.txt": 96.766
+ },
+ "32768": {
+  "heldout_answers.txt": 100.0,
+  "heldout_docs.txt": 99.89,
+  "heldout_traces.txt": 97.263
+ }
+}
