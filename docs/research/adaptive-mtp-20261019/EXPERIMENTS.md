@@ -72,3 +72,23 @@ Quote (copy a record from the context):
   gate on the 2060 (P164 / G1 and the P170 code set, in #138).
 - Consequence for the draft vocab shortlist: with 2 / 2, each token takes two MTP draft steps, and each step reads the
   full 248k-row output head. A shortlist head saves that read twice per token, so the shortlist is the next item.
+
+## AD3: fixed 2 below the line, 4 past it (F2T4)
+
+- When: 2026-10-19 15:15-15:54, 0.65 GPU-h. Line 89,088. 0 CUDA errors; every request answered. Receipts: the same
+  `receipts/ab.log` / `ab.jsonl` (tag F2T4).
+
+| depth | code F2 | code F2T4 | story F2 | story F2T4 | quote F2 | quote F2T4 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 4k | 89.0 | 89.5 (+0.5 %) | 78.8 | 76.1 (-3.5 %) | 115.6 | 119.6 (+3.5 %) |
+| 32k | 81.0 | 79.3 (-2.2 %) | 69.9 | 66.3 (-5.0 %) | 116.2 | 115.6 (-0.5 %) |
+| 64k | 69.6 | 73.6 (+5.9 %) | 61.6 | 59.6 (-3.2 %) | 97.6 | 99.6 (+2.1 %) |
+| 128k | 40.2 | 40.1 (-0.1 %) | 30.8 | 28.0 (-9.1 %) | 46.7 | 52.4 (+12.1 %) |
+
+- T1 FAIL: at 128k the mean of the three means is 40.2 against 39.2 (+2.4 %; +5 % required). Quote gains, story loses.
+- T2 FAIL: below the line both arms draft 2, yet story is up to 5.0 % lower (32k). This is the run-to-run noise of
+  these requests (one request per prompt and temperature).
+- Verdict: **2 / 2 stays** in the 8 GB proposal.
+- Consequence for AD1 / AD2: differences of a few percent between arms are within this noise (up to 5 % per prompt
+  type and depth). AD2's large 128k gains (code +19.6 %, quote +25.2 %) are well above it; its all-depth means
+  (code +4.6 %, story +1.4 %) are not.
