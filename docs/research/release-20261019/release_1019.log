@@ -1,0 +1,32 @@
+03:13:07 === release-20261019 R1-R5: zip sha256 91d3dd0dde56dbac, engine commit 5b79541ebb
+03:13:14 R1 entries 67 only-new [] only-old [] runtime identical True changed ['README.md', 'bin/ggml-base.dll', 'bin/ggml-cpu.dll', 'bin/ggml-cuda.dll', 'bin/ggml.dll', 'bin/llama-common.dll', 'bin/llama-server-impl.dll', 'bin/llama-server.exe', 'bin/llama.dll', 'bin/mtmd.dll', 'bin/test-backend-ops.exe', 'docs/8GB.md', 'start-server.ps1'] control-byte files 0
+03:13:27 server default (BONSAI_LAYER=0): health=1; window 262144 / q4_0  (12 GB default, BONSAI_CTK=q8_0 for the previous one; trai|kv     tiered: cells 0..260352 in VRAM, 260352..262144 in system RAM (VRAM margi| RS 
+03:13:44 default: answer: Here are three primary colours and a fact about each:  1.  **Red**     *   **Fact:** Red h; CUDA errors 0
+03:14:02 server 8gb (BONSAI_8GB=1 BONSAI_SLOT_SAVE_PATH=C:\Users\pwall\AppData\Local\Temp\r19_slots_r2): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)| RS 
+03:14:19 8gb: answer: Here are three primary colours and a fact about each:  1. **Red** – Red is the colour of t; CUDA errors 0
+03:14:39 server 24gb (BONSAI_LAYER=0 BONSAI_TOTAL_MIB=24576): health=1; window 262144 / q8_0  (q8_0: the card holds most of the window; trained max 2621|kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margi| RS 
+03:14:56 24gb: answer: Here are three primary colours and a fact about each:  1.  **Red**     *   **Fact:** Red h; CUDA errors 0
+03:15:14 server r3 (BONSAI_8GB=1 BONSAI_RS_REPLAY=1 BONSAI_SLOT_SAVE_PATH=C:\Users\pwall\AppData\Local\Temp\r19_slots_r2): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)| RS 
+03:15:31 r3: answer: Here are three primary colours and a fact about each:  1. **Red** – Red is the colour of t; CUDA errors 0
+03:15:50 server r4 (BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=90880 BONSAI_RS_REPLAY=1 BONSAI_SLOT_SAVE_PATH=C:\Users\pwall\AppData\Local\Temp\r19_slots_r4): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)|kv     tiered: cells 0..90880 in VRAM, 90880..262144 in system RAM; shared CUDA | RS 
+03:16:09 R4 {"turn": 1, "s": 18.8, "prompt_tokens": 21152, "slot_files": 1, "answer": "4821"}
+03:16:17 R4 {"turn": 2, "s": 8.3, "prompt_tokens": 28269, "slot_files": 2, "answer": "27611"}
+03:16:26 R4 {"turn": 3, "s": 8.8, "prompt_tokens": 35398, "slot_files": 3, "answer": "17412"}
+03:16:49 R4 {"conv": "A", "turn": 1, "prompt_n": 25846, "cache_n": 121, "answer": "6247"}
+03:17:12 R4 {"conv": "B", "turn": 1, "prompt_n": 25859, "cache_n": 121, "answer": "6722"}
+03:17:13 R4 {"conv": "A", "turn": 2, "prompt_n": 25, "cache_n": 25971, "answer": "pump"}
+03:17:14 R4 {"conv": "B", "turn": 2, "prompt_n": 24, "cache_n": 25985, "answer": "pump"}
+03:17:14 R4 index 7 entries; 4 deltas; CUDA errors 0
+03:17:32 server r5a (BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640 BONSAI_LAYER=0 BONSAI_SLOT_SAVE_PATH=C:\Users\pwall\AppData\Local\Temp\r19_slots_r5): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)|kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; shared CUDA | RS 
+03:18:01 R5 off->on build: {"a1_sha": "e2be9f5b06fa5e98", "n_saved": 27404, "draft1": [114, 85], "a2_sha": "d69a8f37fcc17b26", "a2_cache_n": 27404, "a2_prompt_n": 30, "a2": "```python\ndef count_pump_entries(log_entries):\n    \"\"\"\n    Count the number of pump entries in a shift log.
+03:18:19 server r5b (BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640 BONSAI_LAYER=0 BONSAI_RS_REPLAY=1 BONSAI_SLOT_SAVE_PATH=C:\Users\pwall\AppData\Local\Temp\r19_slots_r5): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)|kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; shared CUDA | RS 
+03:18:21 R5 off->on restore: {"n_restored": 27404, "restore_error": null, "a2_sha": "d69a8f37fcc17b26", "a2_cache_n": 27404, "a2_prompt_n": 30, "a2": "```python\ndef count_pump_entries(log_entries):\n    \"\"\"\n    Count the number of pump entries in a shift log.\n\n    Args:\n ", "tag":
+03:18:39 server r5c (BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640 BONSAI_LAYER=0 BONSAI_RS_REPLAY=1 BONSAI_SLOT_SAVE_PATH=C:\Users\pwall\AppData\Local\Temp\r19_slots_r5): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)|kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; shared CUDA | RS 
+03:19:07 R5 on->off build: {"a1_sha": "e2be9f5b06fa5e98", "n_saved": 27404, "draft1": [114, 85], "a2_sha": "d69a8f37fcc17b26", "a2_cache_n": 27404, "a2_prompt_n": 30, "a2": "```python\ndef count_pump_entries(log_entries):\n    \"\"\"\n    Count the number of pump entries in a shift log.
+03:19:26 server r5d (BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640 BONSAI_LAYER=0 BONSAI_SLOT_SAVE_PATH=C:\Users\pwall\AppData\Local\Temp\r19_slots_r5): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)|kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; shared CUDA | RS 
+03:19:51 R5 on->off restore: {"n_restored": null, "restore_error": "<HTTPError 400: 'Bad Request'>", "a2_sha": "8fc9d5ea58b58ff3", "a2_cache_n": 0, "a2_prompt_n": 27434, "a2": "```python\ndef count_pump_entries(log):\n    \"\"\"\n    Count the number of pump entries in a shift log.\n\n   
+03:19:51 R5 CUDA errors 0
+03:19:58 === release-20261019 R1-R5 done
+03:21:11 R3b b8 (): health=1; line none; RS 299.25 MiB; answer Here are three primary colors and a fact about each:  1.  **; CUDA errors 0
+03:21:40 R3b b8r (BONSAI_RS_REPLAY=1): health=1; line none; RS 156.77 MiB; answer Here are three primary colors and a fact about each:  1.  **; CUDA errors 0
+03:23:04 R3c ballast 4272 MiB, free now 7576 MiB (pid 20296)

@@ -17,3 +17,32 @@ the same bytes as bundle-20261018f (`docs/research/gdn-replay-20261018`).
 | R5 file compatibility | a slot file saved with replay off restores with replay on (turn 2 reads only its new tokens); a file saved with replay on, offered to a server with replay off, is refused and the request is still answered (it reads the conversation again); 0 CUDA errors |
 
 All pass: publish as the latest release. Any fail: no publish; log why.
+
+R3 as run could not check the line or the RS buffer: on this 12 GB card the 8 GB preset holds the whole window in
+VRAM (no tier line), and the server's INFO lines (RS buffer) need `LLAMA_ARG_LOG_VERBOSITY=4`. R3b (declared before
+its run): both arms with `BONSAI_TOTAL_MIB=8192` (the launcher sizes for an 8 GB card) and verbose server logs; the
+same conditions as R3 (RS 299.25 -> 156.77 MiB, line +10,240 +- 256 cells, equal short answer, 0 CUDA errors).
+
+R3b result: RS buffer 299.25 MiB (off) -> 156.77 MiB (on), equal answers, 0 CUDA errors; but no line: `BONSAI_TOTAL_MIB`
+changes only the card size the preset sees, the line is sized from the real free VRAM. Also, R3's bound was
+imprecise: the launcher spends the freed 142 MiB at its per-cell cost (14,336 B x 15/16 minus the sparse page bounds),
+so the line grows by ~11,000-11,700 cells, not 10,240.
+
+R3c (declared before its run): a ballast process (PyTorch) holds VRAM until ~7,600 MiB is free (an 8 GB card with the
+desktop on it); the launcher's own sizing with `BONSAI_8GB=1`, replay off vs on: the line grows by 10,500 to 12,000
+cells; each server starts, answers the short question with equal text, runs a 128k request with 0 CUDA errors, and
+nvidia-smi free VRAM stays at 100 MiB or more during that request.
+
+R3c result: void. Under the ballast (7,576 MiB free) the launcher sized the line to 66,560 cells (the 2060 SUPER with
+the desktop sizes 80,640), and the replay-off arm itself spilled into system memory (17 MiB free, prefill 53 tok/s
+instead of ~750): this card plus a second CUDA context does not stand in for an 8 GB card. Stopped.
+
+## Decision: not published
+
+R1, R2, R4 and R5 pass (R5: a file saved with replay off restores with replay on and continues identically; a file
+saved with replay on is refused by an engine without replay, and the request is answered by reading the conversation
+again). R3 passes on the RS buffer (299.25 -> 156.77 MiB) and equal answers, but its VRAM-line part cannot be checked on
+this machine (the RTX 4070 holds the whole 8 GB window, and the ballast emulation spills). Per the declared rule the
+bundle is not published until the line check runs on the RTX 2060 (R6 of docs/research/gdn-replay-20261018). The
+staged zip stays at `artifacts/release/bonsai-bundle-win-x64-20261019.zip` (SHA-256
+`91d3dd0dde56dbac93cf9b6b3762482d4195f4e3523e69dc0ff82a69b5c109be`).
