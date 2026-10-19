@@ -1,9 +1,59 @@
 # Bonsai 2 27B quality: what the runtime controls, measured
 
-**262,144 tokens is the trained maximum.** The bundle serves that window. Default on a 12 GB
-card is 98,304 with q8_0 K/V (10.8 GB, no paging). The same 12 GB card takes the full 262k at
-q4_0 with the draft head off; 16 GB and up take 262k at q8_0. Recipes and VRAM are in the
-memory table below and in the README headline.
+![Quality on both cards. HumanEval 164 at medium with the default cache: RTX 4070 12 GB 158 (q4_0), RTX 2060 SUPER 8 GB 163 (q3_0). At 245k: exact copies 20/20 on both, needles 24/24 (12 GB) and 23/24 (8 GB). RTX 4070 only: AppWorld 70.8 %, AIME 2025 52 to 56 of 60 and MMLU-Pro 71 to 76 of 100 with the layer; not measured on 8 GB](img/quality.png)
+
+## Summary
+
+The complaint about Bonsai 2 is code and agentic work, and most of that gap is runtime, not compression.
+Details and every measurement are in the sections below.
+
+- **KV precision.** Per token, q4_0 KV flips the top token on 1 in 48 positions at depth, q8_0 on 1 in 160 (KL 0.00218
+  vs 0.00017 against f16 KV; [chart](img/kv.png)). On the tasks that matter at depth the two are equal: at 245k
+  exact code copies 20/20 and needles 24/24 with q4_0 (q8_0: 20/20, 23/24), HumanEval 158 for both, perplexity +0.21 %
+  (`docs/research/depth-20261010/` D29). Because q4_0 keeps ~99 % of the 262k window in VRAM on a 12 GB card, it is the
+  12 GB default from bundle-20261016 (245k decode 4x q8_0); `BONSAI_CTK=q8_0` keeps the per-token precision when the
+  window is short.
+- **q3_0 on 8 GB cards.** q3_0 is the 8 GB default from bundle-20261015b. Against an f16 K/V cache it has a mean KL
+  of 0.008 at 16k (q4_0 0.0021, q8_0 0.00024), the same top token 96 % of the time, perplexity +0.45 % at 16k
+  ([kv-kl-20261018](../research/kv-kl-20261018/README.md)). On tasks: HumanEval 164 163/164 (RTX 2060 SUPER, P131), and at
+  245k exact copies 20/20 and needles 23/24, equal to the dense read item by item (P148).
+- **Reasoning effort.** The GGUF template defaults to `xhigh` (an extra "think carefully" line: runaway thinking,
+  empty answers). `low` behaves close to `xhigh`. `medium` is the model's natural thinking and beats both, and
+  thinking off, at every output cap from 2k up (Killy's HumanEval grid: 160-161 of 164). Default: `medium` with a
+  20k thinking budget and a force-close message so a trip still yields the answer.
+- **Reasoning budget report** (patch 0035). Every response to a request that ran with a thinking budget says
+  whether the budget closed the thinking: `timings.reasoning_budget_exhausted` (`true` / `false`),
+  `timings.reasoning_n` (tokens inside the thinking, forced tokens included) and the OpenAI field
+  `usage.completion_tokens_details.reasoning_tokens`, streaming and non-streaming. A client can count forced
+  closes without searching `reasoning_content` for the budget message. A request may send its own
+  `reasoning_budget_tokens`; when that is above the server's budget, the output cap becomes that budget + 4096
+  (also for a request with no `max_tokens`, which before was cut at the server default inside its thinking).
+  Check: `python bench\budget_report_probe.py --base http://127.0.0.1:18080 --key-file artifacts\api_key.txt`. On agent work the budget rarely
+  acts: AppWorld (168 tasks, 2835 model calls) has no call above 3,021 completion tokens.
+- **Harness-proofing.** Cline, Kilo and Open WebUI send `effort: "high"`, which the template rejects: HTTP 500,
+  0 of 164. Apps with 256-4096 token caps end a thinking model mid-thought (17-137 of 164). The server maps
+  unknown effort words to medium and raises small caps to the thinking budget. Replays of Killy's rows against
+  this server: [Killy's plates, replayed](../12gb/Q8_FULL_CONTEXT.md#killys-plates-replayed): `effort: "high"` 0 -> **160** of 164 (the same server with harness-proofing off: HTTP 500, 0), a 4096-token cap 137 -> **157**, medium **161**.
+- **Tool calls.** The native format is Qwen3-Coder XML with raw string parameters, grammar-constrained by the
+  server: 9 of 9 parsed vs 1 of 9 for JSON-in-content. For file-writing agents, thinking off parsed 8 of 9 vs 6
+  of 9 at medium (which spent 10-17k tokens thinking first): send `enable_thinking: false` per request.
+- **Generated pages: run them.** Killy's voxel pagoda at medium, 6 samples: 3 correct on the first try, and all 6
+  after `bench/pagoda_plate.py --repair` rendered each page headless and sent back what it saw (console errors,
+  voxels floating, structure out of view). The first-try misses were one-token slips (a space inside a hex
+  literal, an import map missing its `imports` key). Agents that run their output get this for free.
+  ([pagoda details](../12gb/Q8_FULL_CONTEXT.md#the-voxel-pagoda))
+
+![Voxel pagoda, medium reasoning: 6 of 6 samples build it, 3 on the first try](img/pagoda.png)
+
+Other pages here: [Benchmark your own model the way this repo does](BENCHMARK.md).
+
+## About this page
+
+**262,144 tokens is the trained maximum.** The bundle serves that window on 8 GB and 12 GB cards. The 12 GB
+default K/V cache is q4_0 since bundle-20261016 (`BONSAI_CTK=q8_0` for the previous q8_0 recipe); the 8 GB default
+is q3_0 since bundle-20261015b; cards with more than 14 GB keep q8_0. The sections below are dated: some describe
+the recipes of their time (98,304 with q8_0, then 262k with q8_0 and a tiered cache). Current setups:
+[12 GB](../12gb/README.md), [8 GB](../8gb/README.md).
 
 Kernel work made this model fast on a 12 GB card. This page is about the other complaint people
 have, that Bonsai 2 is worse than its 98% retention claim on code and agentic work, and about which
