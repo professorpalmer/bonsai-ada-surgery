@@ -1,0 +1,53 @@
+21:50:54 === soak5 (H1, default budget): engine commit a6d4fc698f; disk 63%
+21:51:10 server s1: health=1; {"on": true, "after": true, "busy": false}
+{"arm": "soak", "conv": "A", "turn": 1, "wall_s": 35.12, "prompt_n": 38129, "cache_n": 0}
+{"arm": "soak", "conv": "B", "turn": 1, "wall_s": 35.77, "prompt_n": 38008, "cache_n": 121}
+{"arm": "soak", "conv": "C", "turn": 1, "wall_s": 36.18, "prompt_n": 38008, "cache_n": 121}
+{"arm": "soak", "conv": "A", "turn": 2, "wall_s": 5.09, "prompt_n": 2416, "cache_n": 38151}
+{"arm": "soak", "conv": "B", "turn": 2, "wall_s": 3.48, "prompt_n": 2412, "cache_n": 38151}
+{"arm": "soak", "conv": "C", "turn": 2, "wall_s": 4.67, "prompt_n": 2413, "cache_n": 38186}
+{"arm": "soak", "conv": "A", "turn": 3, "wall_s": 4.56, "prompt_n": 2405, "cache_n": 40686}
+{"arm": "soak", "conv": "B", "turn": 3, "wall_s": 3.63, "prompt_n": 2416, "cache_n": 40570}
+{"arm": "soak", "conv": "C", "turn": 3, "wall_s": 3.95, "prompt_n": 2419, "cache_n": 40718}
+21:53:43 server s10: health=1; {"on": true, "after": true, "busy": false}
+{"arm": "soak", "conv": "A", "turn": 4, "wall_s": 3.92, "prompt_n": 2414, "cache_n": 43174}
+{"arm": "soak", "conv": "B", "turn": 4, "wall_s": 3.82, "prompt_n": 2410, "cache_n": 42992}
+{"arm": "soak", "conv": "C", "turn": 4, "wall_s": 4.23, "prompt_n": 2417, "cache_n": 43191}
+{"arm": "soak", "conv": "A", "turn": 5, "wall_s": 4.82, "prompt_n": 2417, "cache_n": 45592}
+{"arm": "soak", "conv": "B", "turn": 5, "wall_s": 4.03, "prompt_n": 2421, "cache_n": 45406}
+{"arm": "soak", "conv": "C", "turn": 5, "wall_s": 4.77, "prompt_n": 2417, "cache_n": 45650}
+{"arm": "soak", "conv": "A", "turn": 6, "wall_s": 4.27, "prompt_n": 2420, "cache_n": 48128}
+{"arm": "soak", "conv": "B", "turn": 6, "wall_s": 4.13, "prompt_n": 2411, "cache_n": 47832}
+{"arm": "soak", "conv": "C", "turn": 6, "wall_s": 4.41, "prompt_n": 2420, "cache_n": 48186}
+21:54:42 server s19: health=1; {"on": true, "after": true, "busy": false}
+{"arm": "soak", "conv": "A", "turn": 7, "wall_s": 4.48, "prompt_n": 2421, "cache_n": 50568}
+{"arm": "soak", "conv": "B", "turn": 7, "wall_s": 4.4, "prompt_n": 2419, "cache_n": 50249}
+{"arm": "soak", "conv": "C", "turn": 7, "wall_s": 4.68, "prompt_n": 2414, "cache_n": 50623}
+{"arm": "soak", "conv": "A", "turn": 8, "wall_s": 5.0, "prompt_n": 2411, "cache_n": 53012}
+{"arm": "soak", "conv": "B", "turn": 8, "wall_s": 4.46, "prompt_n": 2420, "cache_n": 52691}
+{"arm": "soak", "conv": "C", "turn": 8, "wall_s": 5.03, "prompt_n": 2411, "cache_n": 53094}
+{"arm": "soak", "conv": "A", "turn": 9, "wall_s": 5.07, "prompt_n": 2415, "cache_n": 55542}
+{"arm": "soak", "conv": "B", "turn": 9, "wall_s": 4.67, "prompt_n": 2417, "cache_n": 55119}
+{"arm": "soak", "conv": "C", "turn": 9, "wall_s": 4.85, "prompt_n": 2420, "cache_n": 55624}
+21:55:45 server s28: health=1; {"on": true, "after": true, "busy": false}
+{"arm": "soak", "conv": "A", "turn": 10, "wall_s": 5.05, "prompt_n": 2413, "cache_n": 58040}
+{"arm": "soak", "conv": "B", "turn": 10, "wall_s": 4.94, "prompt_n": 2408, "cache_n": 57542}
+{"arm": "soak", "conv": "C", "turn": 10, "wall_s": 5.28, "prompt_n": 2408, "cache_n": 58098}
+{"arm": "soak", "conv": "A", "turn": 11, "wall_s": 5.87, "prompt_n": 2418, "cache_n": 60457}
+{"arm": "soak", "conv": "B", "turn": 11, "wall_s": 5.16, "prompt_n": 2422, "cache_n": 59954}
+{"arm": "soak", "conv": "C", "turn": 11, "wall_s": 5.58, "prompt_n": 2422, "cache_n": 60548}
+{"arm": "soak", "conv": "A", "turn": 12, "wall_s": 5.58, "prompt_n": 2422, "cache_n": 62994}
+{"arm": "soak", "conv": "B", "turn": 12, "wall_s": 5.36, "prompt_n": 2416, "cache_n": 62381}
+{"arm": "soak", "conv": "C", "turn": 12, "wall_s": 5.55, "prompt_n": 2415, "cache_n": 63089}
+21:56:54 server s37: health=1; {"on": true, "after": true, "busy": false}
+{"arm": "soak", "conv": "A", "turn": 13, "wall_s": 5.72, "prompt_n": 2415, "cache_n": 65437}
+{"arm": "soak", "conv": "B", "turn": 13, "wall_s": 5.59, "prompt_n": 2412, "cache_n": 64803}
+{"arm": "soak", "conv": "C", "turn": 13, "wall_s": 5.86, "prompt_n": 2410, "cache_n": 65522}
+{"arm": "soak", "conv": "A", "turn": 14, "wall_s": 6.03, "prompt_n": 2416, "cache_n": 67874}
+{"arm": "soak", "conv": "B", "turn": 14, "wall_s": 5.71, "prompt_n": 2414, "cache_n": 67238}
+{"arm": "soak", "conv": "C", "turn": 14, "wall_s": 6.06, "prompt_n": 2412, "cache_n": 67989}
+{"arm": "soak", "conv": "A", "turn": 15, "wall_s": 6.37, "prompt_n": 2420, "cache_n": 70409}
+{"arm": "soak", "conv": "B", "turn": 15, "wall_s": 5.89, "prompt_n": 2419, "cache_n": 69660}
+{"arm": "soak", "conv": "C", "turn": 15, "wall_s": 6.17, "prompt_n": 2416, "cache_n": 70520}
+21:57:51 soak done: folder 10373 MiB; files 45; CUDA errors 0
+21:57:57 === soak5 done

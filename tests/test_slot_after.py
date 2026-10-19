@@ -543,6 +543,35 @@ def test_budget_replaces_chain():
     print("budget pressure: a full save replaces a long chain, no orphans: ok")
 
 
+def test_protect_recent():
+    for protect in (600, 0):
+        reset()
+        S["delta"] = True
+        c = cache(chain=8, protect_s=protect)
+        ans = {"D": [], "E": [], "F": []}
+        for k in range(1, 3):
+            for tag in "DEF":
+                a, info = chat(c, conv_msgs(tag, ans[tag], k))
+                ans[tag].append(a)
+        c.budget = sum(e["bytes"] for e in c.index.values()) * 1.02   # three conversations that take turns no longer fit
+        n0 = len(LOG)
+        restored = []
+        for k in range(3, 6):
+            for tag in "DEF":
+                a, info = chat(c, conv_msgs(tag, ans[tag], k))
+                ans[tag].append(a)
+                restored.append(bool(info.get("slot_cache_restored")))
+        new = LOG[n0:]
+        skipped = [l for l in new if "skipped" in l]
+        evicted = [l for l in new if l.startswith("evicted")]
+        if protect:
+            assert skipped and not evicted and all(restored), (skipped, evicted, restored)   # a save of each is kept
+        else:
+            assert evicted and not skipped and not all(restored), (skipped, evicted, restored)   # the saves evict each other
+        assert not [x for x, e in c.index.items() if e["parent"] and e["parent"] not in c.index]
+    print("small budget, conversations that take turns: saves used in the last 600 s are not evicted; 0 = off: ok")
+
+
 if __name__ == "__main__":
     test_read_tokens()
     test_review_fixes()
@@ -560,4 +589,5 @@ if __name__ == "__main__":
     test_every_answer_interleaved()
     test_every_answer_rewritten()
     test_budget_replaces_chain()
+    test_protect_recent()
     print("ALL OK")

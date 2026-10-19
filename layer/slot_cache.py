@@ -37,7 +37,9 @@ thousand tokens instead of the whole conversation. A restore loads the chain: th
 ("append"). After BONSAI_SLOT_CACHE_CHAIN deltas (8) the layer writes a full save of the conversation the next time it
 has been idle for BONSAI_SLOT_CACHE_IDLE seconds (30; a full save can take minutes on a slow drive, and the user does
 not wait for it then); after BONSAI_SLOT_CACHE_CHAIN_MAX deltas (32) the next save is full in any case. Eviction removes
-whole chains.
+whole chains. A save after an answer that would evict another conversation's save used in the last
+BONSAI_SLOT_CACHE_PROTECT seconds (600; 0 = off) is skipped, so conversations that take turns under a small budget do
+not evict each other's saves before each next use.
 Every answer (a delta server, BONSAI_SLOT_CACHE_EVERY=1, the default): the layer saves after every answer of a long
 conversation, as a delta, so a restore lands exactly on the last answer and the next request reads only the new turn:
 the same computation as a session that never left memory, also when several conversations take turns. The test is
@@ -108,13 +110,14 @@ def has_media(body):
 
 class SlotCache:
     def __init__(self, upstream, folder, min_tokens=16384, grow=8192, budget_gb=20.0, log=None, min_gain=2048, after=False,
-                 chain=0, chain_max=None, idle_s=30.0, every=True):
+                 chain=0, chain_max=None, idle_s=30.0, every=True, protect_s=600.0):
         self.upstream, self.folder = upstream.rstrip("/"), os.path.abspath(folder)
         self.after_on = bool(after)   # save after the answer when the conversation passed the prefix test (see the top)
         self.chain = int(chain)        # delta saves: a full save when idle after this many deltas (0: deltas off)
         self.chain_max = int(chain_max) if chain_max is not None else 4 * self.chain   # ... and in any case after this many
         self.idle_s = float(idle_s)    # the idle time before a full save of a long chain
         self.every = bool(every)       # with a delta server: save after every answer, test by exact token match
+        self.protect_s = float(protect_s)   # a save after an answer does not evict a save used this recently (0: off)
         self.last_after = {}           # conversation key -> sha of its last save after an answer
         self.compact = None            # (conversation key, auth) of a chain that wants a full save when idle
         self.t_active = time.time()    # the end of the last chat request
@@ -162,7 +165,8 @@ class SlotCache:
                        int(os.environ.get("BONSAI_SLOT_CACHE_CHAIN", 8)),
                        int(os.environ["BONSAI_SLOT_CACHE_CHAIN_MAX"]) if os.environ.get("BONSAI_SLOT_CACHE_CHAIN_MAX") else None,
                        float(os.environ.get("BONSAI_SLOT_CACHE_IDLE", 30)),
-                       os.environ.get("BONSAI_SLOT_CACHE_EVERY", "1") not in ("", "0"))
+                       os.environ.get("BONSAI_SLOT_CACHE_EVERY", "1") not in ("", "0"),
+                       float(os.environ.get("BONSAI_SLOT_CACHE_PROTECT", 600)))
         except Exception as e:
             (log or (lambda *a: sys.stderr.write("[slots] " + " ".join(str(x) for x in a) + "\n")))(
                 "saved conversations OFF: cannot start the cache:", repr(e))
@@ -359,6 +363,41 @@ class SlotCache:
         if total > 0.8 * self.budget and cbytes >= 2 * self.index[chain[0]]["bytes"]:
             return chain
         return None
+
+    def _evicts_recent(self, parent, own_sha, n, old_chain):
+        """Would a save after an answer (a delta on parent, or full; n tokens) make _evict remove another
+        conversation's save that was used in the last protect_s seconds? Several conversations that take turns under
+        a budget that cannot hold them all would then evict each other's saves before each next use (run 7: every turn
+        read its whole conversation again). Skipping the save keeps the others; this conversation's earlier save stays a
+        prefix of its next prompt, so its next turn reads only the turns since that save."""
+        if self.protect_s <= 0 or not self.index:
+            return False
+        own = self._root(own_sha) if own_sha in self.index else None   # this conversation's chain is never a victim
+        fulls = sorted((e for e in self.index.values() if not e.get("parent")), key=lambda e: -e["last"])
+        ref = self.index[own] if own in self.index else (fulls[0] if fulls else None)
+        if not ref or ref["n"] <= 0:
+            return False
+        rate = ref["bytes"] / ref["n"]   # bytes per token of a full save (with its fixed part: an over-estimate)
+        est = rate * (n - self.index[parent]["n"]) + 160 * 2**20 if parent else rate * n
+        total = sum(e["bytes"] for e in self.index.values())
+        if old_chain:
+            total -= sum(self.index[x]["bytes"] for x in old_chain)
+        need = total + est - self.budget
+        if need <= 0:
+            return False
+        groups = {}
+        for sha in self.index:
+            r = self._root(sha)
+            if r != own:
+                groups.setdefault(r, []).append(sha)
+        now = time.time()
+        for root, members in sorted(groups.items(), key=lambda kv: max(self.index[x]["last"] for x in kv[1])):
+            if need <= 0:
+                break
+            if now - max(self.index[x]["last"] for x in members) < self.protect_s:
+                return True
+            need -= sum(self.index[x]["bytes"] for x in members)
+        return False
 
     def _evict(self):
         """Remove the least recently used saves until the folder fits the budget. A chain (a full save and its deltas)
@@ -641,6 +680,10 @@ class SlotCache:
             old_chain = self._replace_chain(parent) if parent else None
             if old_chain:
                 parent = None   # a full save; the old chain goes after it is stored
+            if self._evicts_recent(parent, last.get("best_sha"), n, old_chain):
+                self.log("save after the answer skipped: it would evict a save used in the last", int(self.protect_s), "s")
+                info.update(skipped="protect", s=round(time.time() - t0, 2))
+                return info
             try:
                 t1 = time.time()
                 body = {"filename": tmp}

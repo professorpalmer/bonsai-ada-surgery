@@ -296,3 +296,36 @@ turn read its conversation again (43-80 s). This shows what a too-small budget d
 | H2 | the old design (`BONSAI_SLOT_CACHE_EVERY=0`) at 3 GB, the same soak, against run 7 (the new design at 3 GB): run 7's mean wall not more than 10 % above the old design's, and run 7's answers = cache-off at no fewer than the old design's minus 1 per conversation |
 
 H1 and H2 pass: save after every answer + chain replacement ship. Any fail: not shipped; log why.
+
+### Run 8 result: H1 PASS, H2 FAIL on speed — not shipped (`soak5/`, `soak6/`)
+
+| Gate | Result |
+|---|---|
+| H1 | PASS: 45/45, 0 CUDA errors, 0 failures, 0 tracebacks (other than `/health`), 0 orphans, answers = cache-off A 15, B 15, C 15 of 15, mean wall 7.0 s vs 9.4 s (-25.5 %), 0 saves before the request (folder 10.1 GiB, no eviction) |
+| H2 | **FAIL**: at 3 GB the new design's mean wall is 36.5 s vs the old design's 31.1 s (+17.1 %; gate +10 %). Answers = cache-off: new A 11, B 15, C 15; old A 5, B 13, C 0 |
+
+Why H2 fails: both designs thrash at 3 GB (turns 12-15 read the whole conversation again in both). In turns 4-11 the
+new design saves after every answer, and with three conversations that take turns each save evicts the save of the
+conversation that comes next (least recently used = next used), so it re-read more often (A4, C4, C5, A6, B6, C7)
+than the old design, which saves less often.
+
+## Run 9 (declared before the run): run 7 + a guard against eviction of recently used saves
+
+Change (layer only): a save after an answer that would make eviction remove another conversation's save used in the
+last `BONSAI_SLOT_CACHE_PROTECT` seconds (600; 0 = off) is skipped. That conversation's earlier save stays a token prefix
+of its next prompt, so its next turn restores it and reads only the turns since. Conversations idle for longer than
+600 s can still be evicted. The size of the skipped save is estimated from the conversation's full save (bytes per
+token, an over-estimate), a delta adds 160 MiB for the recurrent state. Unit test `test_protect_recent` (guard on: a
+save of every conversation is kept and restored, no eviction; off: the saves evict each other); both suites pass.
+
+Setup: run 7 again (`soak7/`: the soak, `BONSAI_SLOT_CACHE_GB=3`, the 1018e root with this layer). Baseline: run 8's old
+design at 3 GB (`soak6/`). H1 does not change: at the default budget the soak never evicts, so the guard never acts.
+
+| Gate | Condition |
+|---|---|
+| J1 | S1 (45/45, 0 CUDA errors), S2 (no traceback other than the harness's `/health` time-out), S3 (0 orphans), 0 failed saves or restores |
+| J2 | mean wall not more than 10 % above the old design's at 3 GB (31.1 s, so 34.2 s or less) |
+| J3 | answers = cache-off at no fewer than the old design's minus 1 per conversation (old: A 5, B 13, C 0) |
+
+J1-J3 pass: H2's question is answered for the design with the guard, and with H1 the save after every answer + chain
+replacement + the guard ship in the next bundles (Bonsai, Mirai). Any fail: not shipped; log why.
