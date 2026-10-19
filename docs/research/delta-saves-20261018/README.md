@@ -346,3 +346,7 @@ splits than cache-off, which can flip a near tie (the same cause as run 4's S5);
 With H1 (run 8) this answers the run-8 question: save after every answer + chain replacement + the guard ship in the
 next bundle (1018f). A later improvement: let a conversation replace its own old chain under the
 guard (today a frozen save means a growing re-read per turn).
+
+Note on run 8 H1 (added 2026-10-19): H1 compared the new design at the default 20 GB budget (7.0 s) with the first soak at
+6 GB (9.4 s), so it bounded a regression but is not a like-for-like gain. The like-for-like figure at 6 GB is run 6:
+9.4 -> 6.7 s, answers 45 of 45 vs 18 of 45 (run 6 had no eviction, so the guard of run 9 would not have acted).

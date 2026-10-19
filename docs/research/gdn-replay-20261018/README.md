@@ -47,3 +47,56 @@ Opt-in: `LLAMA_RS_REPLAY=1` (models whose GDN op takes raw gates; else the snaps
 
 R1-R4 pass: replay ships on (launcher sets `LLAMA_RS_REPLAY=1` for the 8 GB preset, with the new line). R5 sets the
 deep draft default. Any fail: not shipped; log why.
+
+## Run log
+
+R1 (2026-10-19, `r1/`, `r2_try1/`): the replay build starts with `LLAMA_RS_REPLAY=1` and reports the smaller buffer:
+RS 156.77 MiB (R 11.25 + S 144.00 + P 1.52) against 299.25 MiB (the snapshot design, `n_rs_seq` 1): -142.5 MiB, as
+planned. But the server faults at warm-up ("illegal memory access") when the CUDA state-gather fusion
+(`ggml_cuda_try_gdn_gather_skip`, the GET_ROWS of the state folded into the GDN kernel) is on; with
+`GGML_CUDA_GDN_GATHER_FUSION=0` it starts. Not the cause (tested): CUDA graphs, the Hadamard q8 fusion, the KV tier
+(a 32k window without tier also faults), the kernel's row read (a temporary gather with the GET_ROWS still skipped also
+faults). Open item; the snapshot design keeps the fusion.
+
+R2 deviation (declared before its run): both arms (snapshot and replay, the same build) run with
+`GGML_CUDA_GDN_GATHER_FUSION=0`, so the identity test compares only the rollback design. The fusion's speed share is
+measured in R4.
+
+### R2 result: FAIL — not shipped (`r2/`)
+
+Both arms with the gather fusion off; 4k / 32k / 100k, story / code / quote, T 0 and 0.8 (seeded), 300 tokens, 0 CUDA
+errors. Identical text in 3 of 18 requests (both 4k quote, 32k quote T 0); draft counts differ by a few in most. Speed:
+replay 1-7 % slower (4k code 82.3 -> 78.9, 32k story 70.5 -> 65.4, 100k code 47.8 -> 47.4).
+
+Why (hypothesis, tested next as R2b): the CUDA GDN op runs a prefill ubatch in 64-token MMA chunks and only its last K
+tokens in the per-token kernel. Putting the P pending tokens in front of the batch moves every chunk boundary by P, so
+the prefill rounding differs and greedy text diverges later. The per-token replay of accepted tokens is exact by
+construction. The speed loss is the graph form: about 13 small kernels per GDN layer (concats, adds, copies), ~600
+more launches per step.
+
+R2b (declared before its run): the same build and requests at 4k and 32k with `GGML_CUDA_GDN_MMA_DISABLE=1` in both
+arms (every token through the per-token kernel). If the text is byte-identical in all 12, the hypothesis holds and the
+next design is in-kernel replay: the GDN kernel reads and skips the pending tokens itself before the batch (the MMA
+chunks then stay where they were) and writes the new pending inputs, with no extra launches. Any difference: replay
+itself is not exact; find why before any further design.
+
+### R2b result: the hypothesis holds (`r2b/`)
+
+With `GGML_CUDA_GDN_MMA_DISABLE=1` in both arms: identical text in 12 of 12 requests (4k and 32k, story / code / quote,
+T 0 and 0.8), and identical draft counts in all 12. The replay arithmetic is exact; the R2 differences came only from
+the MMA chunk boundaries. Speed in this mode: replay 3-7 % slower (the graph form's extra launches).
+
+## Design 2 (declared before its runs): in-kernel replay
+
+The graph keeps the production form (state gather -> GDN op -> state copy). The GDN op gets the pending inputs as an
+extra source and the rows / skip counts as an extra input; the CUDA kernel:
+
+1. runs the P pending tokens first from the S plane (a rejected token is skipped, not computed), no outputs;
+2. runs the batch as today (MMA chunks over the first n - (P + 1) tokens, the per-token kernel over the last P + 1,
+   the same boundaries as the snapshot design), writing outputs;
+3. writes the state after the first batch token of that per-token tail (the commit point: P tokens before the end)
+   instead of P + 1 snapshot slots, and the last P tokens' inputs to a pending tail of its output, which one copy per
+   layer moves into the pending buffer.
+
+Gates: R2' = R2 (4k / 32k / 100k, MMA on, the gather fusion on in both arms): identical text and draft counts in all 18;
+R2'' speed: no request slower than the snapshot design by more than 3 %; then R3-R6 as declared above.
