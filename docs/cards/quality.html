@@ -1,0 +1,51 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Bonsai quality</title>
+<!-- Quality results on both cards. Every number is in DATA below, each with its source. Edit DATA, then run
+     bench/render_cards.ps1. null = not measured on that card (the card says so). Values are display text. -->
+<script>
+var DATA = {
+  rig: {
+    '12gb': '12 GB: RTX 4070. HumanEval release-20261016 U03 (q4_0, 2026-10-16); copies / needles D29 (q4_0, 2026-10-15); AppWorld AW2 (2026-10-04); AIME / MMLU-Pro quality-20260929; effort replay Q8_FULL_CONTEXT (2026-09-27)',
+    '8gb': '8 GB: RTX 2060 SUPER, q3_0. HumanEval P131 (release-20261014b S04, 2026-10-14); copies / needles P148 (bundle-20261016 engine, 2026-10-16)'
+  },
+  heads: { '12gb': 'q4_0 K/V cache', '8gb': 'q3_0 K/V cache' },
+  rows: [
+    { label: 'HumanEval 164', note: 'medium reasoning',
+      '12gb': { v: '158', unit: '/ 164' },            // docs/research/release-20261016 U03
+      '8gb': { v: '163', unit: '/ 164' } },           // docs/research/release-20261014b S04 (P131)
+    { label: 'Exact code copies at 245k',
+      '12gb': { v: '20', unit: '/ 20' },              // depth-20261010 D29 q4_0
+      '8gb': { v: '20', unit: '/ 20' } },             // depth-8gb-20261006 P148 (auto = dense)
+    { label: 'Needles at 245k',
+      '12gb': { v: '24', unit: '/ 24' },              // D29 q4_0
+      '8gb': { v: '23', unit: '/ 24' } },             // P148 n 24 (auto = dense)
+    { label: 'AppWorld, 168 tasks', note: 'code agent',
+      '12gb': { v: '70.8 %', unit: 'CI 63.6-77.2' },  // docs/agents-layer/README.md AW2
+      '8gb': null },
+    { label: 'AIME 2025, 60', note: 'raw → layer',
+      '12gb': { v: '52 → 56' },                       // quality-20260929 A1, A1b
+      '8gb': null },
+    { label: 'MMLU-Pro, 100', note: 'raw → layer',
+      '12gb': { v: '71 → 76' },                       // quality-20260929 K1
+      '8gb': null },
+    { label: 'Apps that send effort "high"', note: 'HumanEval',
+      '12gb': { v: '0 → 160', unit: '/ 164' },        // Q8_FULL_CONTEXT.md, Killy's plates replayed
+      '8gb': null }
+  ]
+};
+</script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<link rel="stylesheet" href="card.css">
+<div class="card" id="card"></div>
+<script src="card.js"></script>
+<script>
+(function () {
+  var body = card({
+    eyebrow: 'Quality, measured with tests executed',
+    title: 'Quality at depth on both cards',
+    foot: ORDER.map(function (t) { return DATA.rig[t]; })
+  });
+  tierTable(body, DATA.rows, DATA.heads);
+})();
+</script>

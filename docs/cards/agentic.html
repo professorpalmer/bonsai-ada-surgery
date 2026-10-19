@@ -1,0 +1,45 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Bonsai agent work</title>
+<!-- What the server does for agent work, on both cards. Every number is in DATA below, each with its source. Edit
+     DATA, then run bench/render_cards.ps1. null = not measured on that card. Values are display text. -->
+<script>
+var DATA = {
+  rig: {
+    '12gb': '12 GB: RTX 4070. Checkpoints bundle-20261009-agent (ckpt_every_nt_12gb.jsonl); lookup and tools 2026-10-08 (lookup_ab.jsonl, issue7_fix_ab.log); tool calls QUALITY section 3',
+    '8gb': '8 GB: RTX 2060 SUPER. Checkpoints (ckpt_every_nt_8gb.jsonl) and lookup (lookup_ab_8gb.jsonl), 2026-10-08/09, q4_0 era; saved conversation P165, bundle-20261017, 2026-10-17'
+  },
+  heads: { '12gb': 'before → now', '8gb': 'before → now' },
+  rows: [
+    { label: 'Edited tool result at 64k', note: 's per request',
+      '12gb': { v: '64.5 → 15.5', unit: 's' },          // docs/receipts/ckpt_every_nt_12gb.jsonl (bundle-20261009-agent notes)
+      '8gb': { v: '272-294 → 18-58', unit: 's' } },     // docs/receipts/ckpt_every_nt_8gb.jsonl (docs/8gb/README.md)
+    { label: 'File rewrites', note: 'lookup drafting, tok/s',
+      '12gb': { v: '117 → 352', unit: 'at 4k' },        // docs/receipts/lookup_ab.jsonl
+      '8gb': { v: '58.2 → 125.9', unit: 'at depth 0' } }, // docs/receipts/lookup_ab_8gb.jsonl
+    { label: '107 tools at 63k', note: 'tok/s',
+      '12gb': { v: '41.8 → 61.2' },                    // docs/receipts/issue7_fix_ab.log (patch 0042)
+      '8gb': null },
+    { label: 'Tool calls parsed', note: 'JSON → native',
+      '12gb': { v: '1 → 9', unit: 'of 9' },             // docs/quality/README.md section 3 (JSON in content vs native XML + grammar)
+      '8gb': null },
+    { label: '199k chat, after a restart', note: 'first token',
+      '12gb': null,                                    // not measured with the 12 GB default recipe
+      '8gb': { v: '1,069 → 5.3', unit: 's' } }          // P165: cold read 1,068.59 s, saved state 5.3 s
+  ]
+};
+</script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<link rel="stylesheet" href="card.css">
+<div class="card" id="card"></div>
+<script src="card.js"></script>
+<script>
+(function () {
+  var body = card({
+    eyebrow: 'Agent work: what the server does',
+    title: 'Faster agent turns on both cards',
+    foot: ORDER.map(function (t) { return DATA.rig[t]; })
+  });
+  tierTable(body, DATA.rows, DATA.heads);
+})();
+</script>
