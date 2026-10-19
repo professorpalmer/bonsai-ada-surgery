@@ -2,17 +2,17 @@
 23:38:45 R1 entries 67 only-new [] only-old [] bin identical True changed ['README.md', 'docs/8GB.md', 'layer/slot_cache.py'] control-byte files 0
 23:38:58 server default (BONSAI_LAYER=0): health=1; window 262144 / q4_0  (12 GB default, BONSAI_CTK=q8_0 for th|
 23:39:14 R2 default: answer: Red, blue, and yellow.; CUDA errors 0
-23:39:32 server 8gb (BONSAI_8GB=1 BONSAI_SLOT_SAVE_PATH=C:\Users\pwall\AppData\Local\Temp\r18f_slots_r2): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)|layer  on: clients use :8080 (API cards, API check, sandboxe|
+23:39:32 server 8gb (BONSAI_8GB=1 BONSAI_SLOT_SAVE_PATH=%TEMP%\r18f_slots_r2): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)|layer  on: clients use :8080 (API cards, API check, sandboxe|
 23:39:48 R2 8gb: answer: Red, blue, and yellow.; CUDA errors 0
 23:40:06 server 24gb (BONSAI_LAYER=0 BONSAI_TOTAL_MIB=24576): health=1; window 262144 / q8_0  (q8_0: the card holds most of the wind|
 23:40:22 R2 24gb: answer: Red, blue, and yellow.; CUDA errors 0
-23:40:40 server r3 (BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640 BONSAI_SLOT_SAVE_PATH=C:\Users\pwall\AppData\Local\Temp\r18f_slots_r3): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)|layer  on: clients use :8080 (API cards, API check, sandboxe|
+23:40:40 server r3 (BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640 BONSAI_SLOT_SAVE_PATH=%TEMP%\r18f_slots_r3): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)|layer  on: clients use :8080 (API cards, API check, sandboxe|
 23:40:40 R3 status {"on": true, "after": true, "busy": false}
 23:40:59 R3 {"turn": 1, "s": 18.7, "prompt_tokens": 21152, "slot_files": 1, "answer": "4821"}
 23:41:08 R3 {"turn": 2, "s": 8.3, "prompt_tokens": 28269, "slot_files": 2, "answer": "27611"}
 23:41:16 R3 {"turn": 3, "s": 8.8, "prompt_tokens": 35398, "slot_files": 3, "answer": "17412"}
 23:41:17 R3 index 3 entries; 2 deltas; [(21156, 0), (28275, 1), (35404, 2)]; CUDA errors 0
-23:41:35 server r4 (BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640 BONSAI_SLOT_SAVE_PATH=C:\Users\pwall\AppData\Local\Temp\r18f_slots_r4): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)|layer  on: clients use :8080 (API cards, API check, sandboxe|
+23:41:35 server r4 (BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=80640 BONSAI_SLOT_SAVE_PATH=%TEMP%\r18f_slots_r4): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)|layer  on: clients use :8080 (API cards, API check, sandboxe|
 23:41:57 R4 {"conv": "A", "turn": 1, "prompt_n": 25967, "cache_n": 0, "answer": "6247"}
 23:42:21 R4 {"conv": "B", "turn": 1, "prompt_n": 25859, "cache_n": 121, "answer": "6722"}
 23:42:22 R4 {"conv": "A", "turn": 2, "prompt_n": 25, "cache_n": 25971, "answer": "pump"}
