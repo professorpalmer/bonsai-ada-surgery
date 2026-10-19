@@ -15,3 +15,14 @@ inside the layer's own run_python call came back with empty content; the layer n
 | R4 saved conversations | `BONSAI_8GB=1`, layer, slot folder: 3 turns of a 20k conversation: slot files 1, 2, 3; 0 CUDA errors |
 
 All pass: publish as the latest release. Any fail: no publish; log why.
+
+## Results (`release_1019a.log`)
+
+Zip `bonsai-bundle-win-x64-20261019a.zip`, 616685079 bytes, SHA-256 `206e1e9d0b47e978adf08e7e97237df1b9d957ae998fc400a4865f1dfab5fa83`.
+
+| Gate | Result |
+|---|---|
+| R1 zip | PASS: 67 entries; every `bin/` file identical to 1018f; changed `README.md`, `docs/8GB.md`, `layer/bonsai_layer.py` (the launcher kept as in 1018f); 0 control-byte files |
+| R2 launcher | PASS: default, 8 GB (layer on), 24 GB each answer; 0 CUDA errors |
+| R3 cut replies | PASS: 6 of 6 return text (245 / 1,018-1,177 characters); the 4k and 64k document requests took the retry (`cut_retry`, 500 completion tokens); 0 CUDA errors |
+| R4 saved conversations | PASS: slot files 1, 2, 3 (full save + 2 deltas); 0 CUDA errors |
