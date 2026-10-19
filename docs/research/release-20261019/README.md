@@ -10,7 +10,7 @@ the same bytes as bundle-20261018f (`docs/research/gdn-replay-20261018`).
 
 | Gate | Condition |
 |---|---|
-| R1 zip | the same entries as 1018f; changed: the engine `bin/` files, `start-server.ps1`, docs, `patches/0070`; the CUDA runtime DLLs identical; 0 text files with control bytes; `--version` reports `5b79541ebb` |
+| R1 zip | the same entries as 1018f; changed: the engine `bin/` files, `start-server.ps1`, docs; the CUDA runtime DLLs identical; 0 text files with control bytes; `--version` reports `5b79541ebb` |
 | R2 launcher | default, `BONSAI_8GB=1` (layer on, slot folder) and `BONSAI_TOTAL_MIB=24576`: health ok, a short greedy answer, 0 CUDA errors; the RS buffer is 299.25 MiB (replay off) |
 | R3 replay on | `BONSAI_8GB=1 BONSAI_RS_REPLAY=1` (the launcher's own sizing): RS buffer 156.77 MiB, the launcher's VRAM line 10,240 +- 256 cells above R2's 8 GB line, a short greedy answer equal to R2's 8 GB answer, 0 CUDA errors |
 | R4 replay + saved conversations | `BONSAI_8GB=1 BONSAI_RS_REPLAY=1`, layer, slot folder: 3 turns of a 20k conversation (slot files 1, 2, 3), then two conversations that take turns (A2 and B2 each restore their own last save); 0 CUDA errors |
