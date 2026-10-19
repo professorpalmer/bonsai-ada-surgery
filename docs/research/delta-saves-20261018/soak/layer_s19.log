@@ -1,0 +1,39 @@
+[proxy] "GET /health HTTP/1.1" 503 -
+[proxy] "GET /health HTTP/1.1" 503 -
+[proxy] "GET /health HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[slots] delta saves on
+[slots] restored 162fca289061 47812 tokens in 0.63 s
+[slots] saved 33ec7ddba0cd 52664 tokens: prefill 5.97 s, save 0.21 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.01}
+[slots] restored d569f4940ca7 47820 tokens in 0.61 s
+[slots] saved 2d99f51d95ff 52661 tokens: prefill 5.9 s, save 0.2 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.0}
+[slots] restored 77f0afca2fca 47827 tokens in 0.65 s
+[slots] saved f8e968f1a4cc 52676 tokens: prefill 5.9 s, save 0.2 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.02}
+[slots] restored 33ec7ddba0cd 52664 tokens in 0.77 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.01}
+[slots] restored 2d99f51d95ff 52661 tokens in 0.77 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.02}
+[slots] restored f8e968f1a4cc 52676 tokens in 0.81 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.01}
+[slots] restored 33ec7ddba0cd 52664 tokens in 0.78 s
+[slots] saved 2bf2833b8f57 57519 tokens: prefill 6.13 s, save 0.21 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.0}
+[slots] restored 2d99f51d95ff 52661 tokens in 0.78 s
+[slots] saved aaf10a67b6ed 57529 tokens: prefill 6.14 s, save 0.2 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.0}
+[slots] restored f8e968f1a4cc 52676 tokens in 0.79 s
+[slots] saved 4cd7cb22dae6 57537 tokens: prefill 6.12 s, save 0.22 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.0}
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -

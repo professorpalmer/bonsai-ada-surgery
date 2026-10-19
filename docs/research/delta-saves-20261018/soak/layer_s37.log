@@ -1,0 +1,46 @@
+[proxy] "GET /health HTTP/1.1" 503 -
+[proxy] "GET /health HTTP/1.1" 503 -
+[proxy] "GET /health HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[slots] delta saves on
+[slots] restored 255cd634ba3b 62360 tokens in 1.03 s
+[slots] saved f66d495e725d 67209 tokens: prefill 6.63 s, save 0.22 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.0}
+[slots] restored 1ae0fab2b430 62369 tokens in 1.08 s
+[slots] saved f76a004a4015 67208 tokens: prefill 6.54 s, save 0.22 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.0}
+[slots] restored aaf69b378927 62376 tokens in 1.03 s
+[slots] saved ca6d3cc200f6 67217 tokens: prefill 6.56 s, save 0.21 s
+[slots] evicted f66d495e725d 67209 tokens
+[slots] evicted 255cd634ba3b 62360 tokens
+[slots] evicted 2bf2833b8f57 57519 tokens
+[slots] evicted 33ec7ddba0cd 52664 tokens
+[slots] evicted 162fca289061 47812 tokens
+[slots] evicted cd079822b1fb 42971 tokens
+[slots] evicted 0cb6b56adb64 38122 tokens
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.02}
+[slots] saved ce1b82e2b4a5 69647 tokens: prefill 73.76 s, save 0.96 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.0}
+[slots] restored f76a004a4015 67208 tokens in 1.2 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.0}
+[slots] restored ca6d3cc200f6 67217 tokens in 1.22 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.01}
+[slots] restored ce1b82e2b4a5 69647 tokens in 0.61 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.02}
+[slots] restored f76a004a4015 67208 tokens in 1.17 s
+[slots] saved 9980241b47d2 72072 tokens: prefill 6.83 s, save 0.21 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.0}
+[slots] restored ca6d3cc200f6 67217 tokens in 1.15 s
+[slots] saved e94bcd8dd945 72075 tokens: prefill 6.79 s, save 0.22 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.02}
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -

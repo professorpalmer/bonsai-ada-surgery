@@ -170,3 +170,50 @@ save in the 45 s pause; turn 13 restores a chain of length 1 and equals the refe
 hard cap is 16). In the 45 s pause the layer wrote one idle full save (174,656 tokens, 50.0 s on this drive, with no
 request waiting). After the restart, turn 13 restored that full save alone (1.32 s) and read 3,982 tokens (I1: 7,967 from
 the depth-5 chain). 13/13 answers equal the run-7 reference; 0 CUDA errors.
+
+## Soak (declared before the run): three conversations, a small budget, restarts
+
+Not a release gate; a robustness check of the shipped layer (bundle-20261018e) under pressure: three ~30k-token
+conversations take turns (A, B, C, A, ...), 45 turns in total (15 each, ~2.5k new tokens per turn), the server and layer
+restarted before every 9th turn, 8 GB preset, `BONSAI_SLOT_CACHE_GB=6` (evictions), all other defaults.
+
+| Check | Condition |
+|---|---|
+| S1 | 45/45 turns answered; 0 CUDA errors |
+| S2 | no "restore failed", no "save ... failed" and no Python traceback in the layer logs |
+| S3 | after the run, every index entry's chain is complete (no delta without its parent) and the folder is at most the budget + one save |
+| S4 | at least 3 evictions and at least 3 chain restores (a restore of a delta chain) happened |
+| S5 | each conversation's answers equal the same conversation run alone with the cache off (no restarts), at 13 of 15 turns or more |
+
+Any fail: a bug to fix before more cache work.
+
+### Soak result: S1-S4 PASS, S5 FAIL (`soak/`)
+
+| Check | Result |
+|---|---|
+| S1 | PASS: 45/45 answered, 0 CUDA errors |
+| S2 | PASS: no failed restore or save, no traceback in the layer logs |
+| S3 | PASS: 17 entries, 0 deltas without a parent, folder 5.58 GiB (budget 6 GiB) |
+| S4 | PASS: 7 evictions, 41 restores, 34 of them chain restores |
+| S5 | **FAIL**: answers equal to the cache-off run: A 5, B 13, C 0 of 15 |
+
+Why S5 fails: the first difference comes early (C at turn 1, before any restore; A at turn 2; B at turn 5) and then
+cascades, because each later prompt holds the conversation's own earlier answers. At C turn 1 the only difference is
+the save before the request (a prefill-only call, then the request), which reads the prompt in another batch split than
+the cache-off run; that flips a near tie at the first answer token (a terse code list vs "The codes for vaults 1 to 4
+are: ..."). Restores are exact (D1: a chain restore equals a full-file restore), so this is not a wrong state.
+
+Graded against the ground truth (`grade_soak.py`): cache 30/45, cache-off 33/45. The per-turn pattern of right and wrong
+is the same in all three cached conversations and in cache-off B (the misses are the same two hard questions, "largest
+code" and "vaults below 5000"); conversation A's cache-off run took a verbose path that held the right numbers on three
+more turns. One run per conversation cannot separate this from noise.
+
+Findings and open items:
+- "The same answers as cache-off" holds for the measured single-conversation sessions (G1 30/30, run 8 30/30, D3 30/30),
+  not for interleaved conversations, where the save before the request changes the batch splits. The release notes claim
+  only the measured cases.
+- A larger answer-quality study (many conversations, graded) is needed before any claim about quality with the cache in
+  interleaved use.
+- With interleaved conversations the prefix test never completes (the slot holds another conversation at the next
+  turn), so save after the answer never turns on there. With deltas now cheap (~0.2 s), a simpler design would always
+  save after the answer as a delta and use the next request's exact token match as the test.
