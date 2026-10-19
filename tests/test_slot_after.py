@@ -144,9 +144,10 @@ UP = f"http://127.0.0.1:{up.server_address[1]}"
 LOG = []
 
 
-def cache(after=True, chain=0, budget_gb=1):
+def cache(after=True, chain=0, budget_gb=1, **kw):
+    kw.setdefault("idle_s", 3600)   # the idle thread stays quiet unless a test asks for it
     return slot_cache.SlotCache(UP, S["folder"], min_tokens=50, grow=20, budget_gb=budget_gb, min_gain=5, after=after,
-                                log=lambda *a: LOG.append(" ".join(str(x) for x in a)), chain=chain)
+                                log=lambda *a: LOG.append(" ".join(str(x) for x in a)), chain=chain, **kw)
 
 
 def chat(c, msgs):
@@ -385,7 +386,7 @@ def test_delta_chain():
     deltas = [e for e in c.index.values() if e["parent"]]
     fulls = [e for e in c.index.values() if not e["parent"]]
     assert deltas and fulls, c.index
-    assert max(e["depth"] for e in c.index.values()) <= 2, c.index   # a full save again after 2 deltas
+    assert max(e["depth"] for e in c.index.values()) <= c.chain_max, c.index   # forced full save at the hard cap
     for sha, e in c.index.items():   # every delta's tokens = its parent's tokens + the file's tokens
         if e["parent"]:
             assert c._toks_of(sha)[:c.index[e["parent"]]["n"]] == c._toks_of(e["parent"])
@@ -401,7 +402,7 @@ def test_delta_chain():
     assert info.get("slot_cache_chain", 1) == len(chain), info
     assert S["calls"].count("/slots/0?action=restore") == len(chain)
     assert S["cached"] == c2.index[deepest]["n"]   # the server reused the whole chain
-    print("delta chain: deltas + full every 2, restore of the chain after a restart: ok")
+    print("delta chain: deltas up to the hard cap, restore of the chain after a restart: ok")
 
 
 def test_delta_old_server():
@@ -456,6 +457,27 @@ def test_delta_before_request():
     print("delta saves before the request, chain restore after a restart: ok")
 
 
+def test_idle_full_save():
+    reset()
+    S["delta"] = True
+    c = cache(chain=2)
+    answers = run_turns(c, [], 1, 6)
+    assert c.compact, (c.index, LOG[-3:])                   # the chain passed the soft cap: a full save is wanted
+    assert c.idle_tick(now=c.t_active + 1) is None          # not idle long enough yet
+    info = c.idle_tick(now=c.t_active + 10**6)
+    assert info and info.get("saved") == len(S["slot"]), (info, LOG[-3:])
+    tip = slot_cache._sha(S["slot"])
+    assert c.index[tip]["parent"] is None and c.index[tip]["depth"] == 0 and c.compact is None
+    # the next saves continue from the full save
+    run_turns(c, answers, 6, 8)
+    assert any(e["parent"] == tip for e in c.index.values()), c.index
+    # another conversation in the slot: the idle save is skipped, nothing stored
+    c.compact = ("not-this-conversation", "")
+    n = len(c.index)
+    assert c.idle_tick(now=c.t_active + 10**6) == {"skipped": True} and len(c.index) == n
+    print("idle full save: after the soft cap, only when idle, skipped for another conversation: ok")
+
+
 if __name__ == "__main__":
     test_read_tokens()
     test_review_fixes()
@@ -469,4 +491,5 @@ if __name__ == "__main__":
     test_delta_old_server()
     test_delta_eviction()
     test_delta_before_request()
+    test_idle_full_save()
     print("ALL OK")

@@ -34,7 +34,10 @@ seconds of an answer can lose that save; the next restore then uses the save bef
 Delta saves (a server that reports "slot_save_delta" in /props; BONSAI_SLOT_CACHE_CHAIN, default 8, 0 = off): a save
 (after the answer, or before the request) that continues an earlier save of the conversation writes only the cells after it ("pos_min"), a few
 thousand tokens instead of the whole conversation. A restore loads the chain: the full save, then each delta
-("append"). Every BONSAI_SLOT_CACHE_CHAIN deltas the next save is full again. Eviction removes whole chains.
+("append"). After BONSAI_SLOT_CACHE_CHAIN deltas (8) the layer writes a full save of the conversation the next time it
+has been idle for BONSAI_SLOT_CACHE_IDLE seconds (30; a full save can take minutes on a slow drive, and the user does
+not wait for it then); after BONSAI_SLOT_CACHE_CHAIN_MAX deltas (32) the next save is full in any case. Eviction removes
+whole chains.
 Read ahead (T1-d): a chat request with "prefill_only": true reads and saves its prompt and returns no text; the later real
 request then restores it.
 Any failure here only logs and lets the request run as before.
@@ -99,10 +102,14 @@ def has_media(body):
 
 class SlotCache:
     def __init__(self, upstream, folder, min_tokens=16384, grow=8192, budget_gb=20.0, log=None, min_gain=2048, after=False,
-                 chain=0):
+                 chain=0, chain_max=None, idle_s=30.0):
         self.upstream, self.folder = upstream.rstrip("/"), os.path.abspath(folder)
         self.after_on = bool(after)   # save after the answer when the conversation passed the prefix test (see the top)
-        self.chain = int(chain)        # delta saves: at most this many deltas after a full save (0: off)
+        self.chain = int(chain)        # delta saves: a full save when idle after this many deltas (0: deltas off)
+        self.chain_max = int(chain_max) if chain_max is not None else 4 * self.chain   # ... and in any case after this many
+        self.idle_s = float(idle_s)    # the idle time before a full save of a long chain
+        self.compact = None            # (conversation key, auth) of a chain that wants a full save when idle
+        self.t_active = time.time()    # the end of the last chat request
         self.delta_ok = None           # the server takes "pos_min" / "append" (GET /props slot_save_delta); None: not asked
         self.min_gain = int(min_gain)   # restore only when it saves at least this many tokens of reading (~15-25 s at depth)
         self.min_tokens, self.grow, self.budget = int(min_tokens), int(grow), float(budget_gb) * 2**30
@@ -129,6 +136,8 @@ class SlotCache:
         self.index = {}                # sha -> {"n": tokens, "last": time, "bytes": size}
         self._load_index()
         self._clean()
+        if self.chain > 0:
+            threading.Thread(target=self._idle_loop, daemon=True).start()
 
     @classmethod
     def from_env(cls, upstream, log=None):
@@ -142,7 +151,9 @@ class SlotCache:
                        int(os.environ.get("BONSAI_SLOT_CACHE_GROW", 8192)), float(os.environ.get("BONSAI_SLOT_CACHE_GB", 20)),
                        log, int(os.environ.get("BONSAI_SLOT_CACHE_GAIN", 2048)),
                        os.environ.get("BONSAI_SLOT_CACHE_AFTER", "1") not in ("", "0"),
-                       int(os.environ.get("BONSAI_SLOT_CACHE_CHAIN", 8)))
+                       int(os.environ.get("BONSAI_SLOT_CACHE_CHAIN", 8)),
+                       int(os.environ["BONSAI_SLOT_CACHE_CHAIN_MAX"]) if os.environ.get("BONSAI_SLOT_CACHE_CHAIN_MAX") else None,
+                       float(os.environ.get("BONSAI_SLOT_CACHE_IDLE", 30)))
         except Exception as e:
             (log or (lambda *a: sys.stderr.write("[slots] " + " ".join(str(x) for x in a) + "\n")))(
                 "saved conversations OFF: cannot start the cache:", repr(e))
@@ -197,6 +208,51 @@ class SlotCache:
     def leave(self):
         with self.busy_lock:
             self.busy_n = max(0, self.busy_n - 1)
+            self.t_active = time.time()
+
+    def _idle_loop(self):
+        while True:
+            time.sleep(max(1.0, min(5.0, self.idle_s / 4)))
+            try:
+                self.idle_tick()
+            except Exception as e:   # never stop the thread
+                self.log("idle full save failed:", repr(e))
+
+    def idle_tick(self, now=None):
+        """The full save of a long chain, when the layer has been idle for idle_s. Returns the info dict or None."""
+        now = time.time() if now is None else now
+        if not self.compact or self.busy or now - self.t_active < self.idle_s:
+            return None
+        if not self.lock.acquire(blocking=False):
+            return None
+        if not self.compact or self.busy:   # review: a request may have started between the check and the lock
+            self.lock.release()
+            return None
+        self.enter()
+        try:
+            key, auth = self.compact
+            self.compact = None
+            tmp = self._tmp()
+            t1 = time.time()
+            self._post("/slots/0?action=save", {"filename": tmp}, auth)
+            saved = read_tokens(os.path.join(self.folder, tmp))
+            if len(saved) < self.min_tokens or self._conv_key(saved) != key:   # the slot holds another conversation now
+                for f in (tmp, tmp + ".draft"):
+                    try:
+                        os.remove(os.path.join(self.folder, f))
+                    except OSError:
+                        pass
+                self.log("idle full save skipped: the slot holds another conversation")
+                return {"skipped": True}
+            sha, size = self._store(tmp, saved)
+            self.held = saved
+            info = {"saved": len(saved), "save_s": round(time.time() - t1, 2)}
+            self.log("idle full save", sha[:12], len(saved), "tokens:", info["save_s"], "s")
+            self._evict()
+            return info
+        finally:
+            self.leave()
+            self.lock.release()
 
     @property
     def busy(self):
@@ -312,11 +368,21 @@ class SlotCache:
         os.replace(os.path.join(self.folder, tmp), self._bin(sha))
         if os.path.exists(os.path.join(self.folder, tmp + ".draft")):   # the draft sidecar goes with it (review B1)
             os.replace(os.path.join(self.folder, tmp + ".draft"), self._bin(sha) + ".draft")
+        elif os.path.exists(self._bin(sha) + ".draft"):   # review: a sidecar of an older save of the same tokens
+            try:
+                os.remove(self._bin(sha) + ".draft")
+            except OSError:
+                pass
         with open(self._files(sha)[2], "wb") as f:
             array.array("I", saved).tofile(f)
         size = sum(os.path.getsize(p) for p in self._files(sha) if os.path.exists(p))
         depth = self.index[parent]["depth"] + 1 if parent else 0
         self.index[sha] = {"n": len(saved), "last": time.time(), "bytes": size, "parent": parent, "depth": depth}
+        key = self._conv_key(saved)
+        if depth >= self.chain > 0:   # a long chain: a full save the next time the layer is idle
+            self.compact = (key, getattr(self, "last_auth", ""))
+        elif depth == 0 and self.compact and self.compact[0] == key:
+            self.compact = None
         self._note({"sha": sha, **self.index[sha]})
         return sha, size
 
@@ -366,6 +432,7 @@ class SlotCache:
         it saves the first state of a conversation at any size >= BONSAI_SLOT_CACHE_MIN and a longer one only after
         BONSAI_SLOT_CACHE_GROW more tokens (no new multi-GB file per turn). info["status"] says what happened."""
         t0 = time.time()
+        self.last_auth = auth
         if has_media(body):
             if not force_save:
                 self.held = []
@@ -436,7 +503,7 @@ class SlotCache:
                 # a delta of the best saved prefix when the slot starts with it (restored, or held in memory)
                 parent = best_sha if (best_sha in self.index and not force_save
                                       and (info.get("slot_cache_restored") or best_n <= common)
-                                      and self.index[best_sha]["depth"] < self.chain and self._delta_ok(auth)) else None
+                                      and self.index[best_sha]["depth"] < self.chain_max and self._delta_ok(auth)) else None
                 body = {"filename": tmp, **({"pos_min": self.index[parent]["n"]} if parent else {})}
                 r = self._post("/slots/0?action=save", body, auth)
                 if parent:   # exact: the parent's tokens + the file's tokens, a prefix of the prompt
@@ -512,7 +579,7 @@ class SlotCache:
         if self.conv.get(last["key"]) is True and n - last["best"] >= self.grow:
             tmp = self._tmp()
             parent = last.get("best_sha")
-            if not (parent in self.index and self.index[parent]["depth"] < self.chain and self._delta_ok(auth)):
+            if not (parent in self.index and self.index[parent]["depth"] < self.chain_max and self._delta_ok(auth)):
                 parent = None
             try:
                 t1 = time.time()
