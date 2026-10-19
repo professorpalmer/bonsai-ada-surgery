@@ -44,3 +44,14 @@ Sizes 16k, 24k and 32k are measured for coverage; the A/B uses the smallest size
   - S1d: 0 CUDA errors; every request answers.
 - All pass: the map ships in the bundle and the 8 GB preset uses it (together with the 2 / 2 default, after the RTX
   2060 gate in #138). Any fail: not adopted; log why.
+
+## S0b (declared 2026-10-19 15:20, after S0 failed)
+
+S0 failed on the held-out thinking traces (16k / 24k / 32k: 95.6 / 96.8 / 97.3 %; the answers and docs passed). Of the
+468 missed trace tokens at 32k, 438 are plain Latin-letter words, mostly topic words that our technical corpus does not
+have (restaurant, kitchen, mechanic, wavelengths, tires). The corpus has no general English.
+
+S0b keeps the corpus ranking and fills the rest of each map with the lowest-id ASCII tokens that are not already in it.
+In this byte-level BPE vocabulary a token's id follows its merge rank, so a low id marks a frequent piece of the
+tokenizer's own training text: a frequency prior that needs no corpus and does not look at the held-out sets. Same
+held-out sets, same gate (99.0 % on each). S0b fails: the shortlist is not adopted.
