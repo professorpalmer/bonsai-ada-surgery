@@ -1,8 +1,31 @@
 # Receipts
 
+This directory holds the raw logs behind the numbers in the docs. The pages that cite them name the file.
+Current defaults and numbers: [12 GB](../12gb/README.md), [8 GB](../8gb/README.md). The sheet below is dated and
+records the recipes current at the time.
+
+## Measure it yourself
+
+**Benchmark your own model the same way:** [`docs/quality/BENCHMARK.md`](../quality/BENCHMARK.md) has the server line, chat
+template, runners and settings behind the quality numbers in this repo, for any model on any OpenAI-compatible server
+(for example the base model at Q4 on your own GPU), and what to send back so we can pair it with ours.
+
+```powershell
+bench\killy_suite.ps1                          # HumanEval replays of Killy's plates + the voxel pagoda (~5 h)
+python bench\receipt.py <tag>                  # decode by depth, prefill, TTFT, power, VRAM by window
+python bench\quick_tps.py --key-file artifacts\api_key.txt --depth 32000   # served decode at depth
+bench\kv_kl_sweep.ps1                          # KV precision KL table (needs wikitext-2)
+bench\kv_mean_center_kl.ps1                    # K mean-centering on top of the Hadamard KV rotation (no gain)
+python bench\toolcall_stress.py                # tool-call syntax, XML+grammar vs JSON-in-content
+python bench\humaneval_run.py --arm medium     # HumanEval 164, tests executed
+python bench\mtp_identity.py                   # greedy draft-on vs draft-off
+```
+
+## Speed receipts
+
 Same sheet for every card: Ternary Bonsai 2 27B `PTQ1_0` (1.75 bpw, 5.95 GB), PrismML
-llama.cpp fork, `-fa on`, one slot, `--jinja`. Trained context **262,144**. Shipped 12 GB
-recipe (since bundle-20260927) is **262k / q8_0 with tiered KV**: ~113k positions in VRAM, the
+llama.cpp fork, `-fa on`, one slot, `--jinja`. Trained context **262,144**. The 12 GB
+recipe from bundle-20260927 to bundle-20261015c was **262k / q8_0 with tiered KV**: ~113k positions in VRAM, the
 rest (~5.2 GB) in pinned system RAM; receipts in [`Q8_FULL_CONTEXT.md`](../12gb/Q8_FULL_CONTEXT.md).
 16 GB+ holds the whole q8_0 window in VRAM. The sections below are dated and record the recipes
 current at the time (96k / q8_0 all-VRAM, then 262k / q4_0). Run `python bench/receipt.py` and

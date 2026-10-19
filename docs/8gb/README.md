@@ -1,18 +1,60 @@
-# Bonsai 2 27B on an 8 GB card that also draws the desktop
+# Bonsai 2 27B on an 8 GB card
 
-```powershell
-.\build\make_mtp_q4head.ps1   # once, after make_mtp_procreations.ps1: the drafting mode's head file
-.\start-server.ps1             # detects an 8 GB card: drafting mode if the Q4_0 head file is present
-$env:BONSAI_MODEL = 'Ternary-Bonsai-2-27B-PTQ1_0.gguf'; .\start-server.ps1   # long-context mode
-```
+![Decode by context depth on the RTX 2060 SUPER 8 GB with q3_0: 53.4 / 41.2 / 22.3 / 16.7 / 9.8 tok/s at 4k / 64k / 128k / 160k / 245k; RTX 4070 12 GB with q4_0: 96.2 / 92.9 / 80.1 / 76.6 / 64.2 / 60.4 tok/s at 4k / 32k / 64k / 128k / 192k / 245k](img/decode.png)
 
-Needs `bundle-20261007-8gb` or later (patches 0036-0038: the Turing one-column decode, `GGML_CUDA_FA_PREFILL_F16`);
-`bundle-20261008-8gbfix` or later is recommended (no 1-token answers, lookup drafting, patches 0041-0045). An older
-engine ignores the switches; the measured fixed costs then do not hold, and the launcher warns before the start.
-`BONSAI_8GB=0` turns the preset off.
+On an 8 GB card the launcher serves the full 262,144-token window with a q3_0 K/V cache. About 80,640 positions stay
+in VRAM; the rest of the cache is in pinned system RAM and is read over PCIe. The numbers on this page are from an
+RTX 2060 SUPER 8 GB (Turing, PCIe 3.0 x16) that also draws the Windows desktop.
 
-**Recommended now: `bundle-20261018f` or later.** The rest of this page keeps the measurements from 10-06 to 10-10; the
-section below lists what changed for 8 GB cards since then.
+## Setup
+
+1. Follow [Quick start (Windows)](../build/README.md#quick-start-windows-nvidia): the release zip, the model file and
+   the MTP head file in `models\`.
+2. Make the Q4_0 head file once (it is 214 MiB smaller on the card):
+
+   ```powershell
+   .uild\make_mtp_q4head.ps1   # after make_mtp_procreations.ps1
+   ```
+
+3. Run `.\start-server.ps1`. The launcher detects a card with up to 8.5 GB of VRAM and turns on the 8 GB preset
+   (`BONSAI_8GB=1` forces it, `BONSAI_8GB=0` turns it off). It prints `window 262144 / q3_0 (8 GB default)`.
+4. The 262k window needs 24 GB of system RAM or more and an MTP head file. With less RAM, or without the head file,
+   the window is 131,072.
+
+Use `bundle-20261018f` or later. For agent work, a smaller window keeps a session in the fast range: see
+[Choosing the window](#choosing-the-window). Settings: [launcher settings](../build/KNOBS.md).
+
+## Numbers (q3_0, the default)
+
+RTX 2060 SUPER 8 GB, driver 610.88, stock clocks, the display on the card, the zip's own launcher with its defaults.
+`bench/quick_tps.py`: mean of a code, a prose and a bash prompt, 400-token greedy answers, MTP and lookup drafting.
+
+| depth | 4k | 64k | 128k | 160k | 245k |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| decode (tok/s) | 53.4 | 41.2 | 22.3 | 16.7 | 9.8 |
+
+4k, 64k, 128k: P163, bundle-20261017, 2026-10-16. 160k, 245k: P150, bundle-20261016, 2026-10-16. Records:
+[`docs/research/depth-8gb-20261006/experiments/`](../research/depth-8gb-20261006/experiments/P163.md).
+
+| prompt read (prefill) | tok/s | time to first token | record |
+| --- | ---: | ---: | --- |
+| 4k, cold (4,048 tokens) | 417 | 9.7 s | P163 |
+| 64k, cold | 309 | | P168, 2026-10-17 |
+| 128k, cold (127,340 tokens) | 241 | 529 s | P163 |
+| 245k, cold (243,896 tokens) | 164 | 1,489 s | P156c, bundle-20261016b, 2026-10-16 |
+
+A cold read of a long prompt is slow on this card. [Saved conversations](../agents-layer/SAVED_CONVERSATIONS.md) make
+the next read after a restart take seconds: a ~199k document answered 5.3 s after a restart (the cold read took
+1,069 s).
+
+Quality with q3_0: HumanEval 164 163/164 (P131); at 245k exact code copies 20/20 and needles 23/24, equal to the dense
+read item by item (P148). Drift against an f16 cache: [Quality](../quality/README.md).
+
+![Prompt reading on both cards: RTX 2060 SUPER 8 GB 417 tok/s on a cold 4k prompt (9.7 s), cold 64k 309 tok/s, cold 128k 241 tok/s (529 s), cold 245k 164 tok/s (1,489 s); RTX 4070 12 GB 1,294 tok/s at 4k (3.1 s) and 477 tok/s from 32k to 245k (445 s)](img/prefill.png)
+
+![Cache positions in VRAM out of 262,144: 8 GB q3_0 80,640 (9.8 tok/s at 245k), 8 GB q4_0 61,696; 12 GB q4_0 260,352 with the display on the iGPU (61.0 tok/s) and 242,176 with the display on the card (45.7), 12 GB q8_0 129,024 (15.4)](img/vram.png)
+
+![Saved conversations on the RTX 2060 SUPER: a ~199k document 1,069 s cold, 5.3 s after a restart; a 131k document 561 s cold, 6.25 s; a 245k conversation 1,689 s cold, 5.2 s](../agents-layer/img/saved.png)
 
 ## What is new since bundle-20261010 (updated 2026-10-18)
 
@@ -48,6 +90,10 @@ All on the same RTX 2060 SUPER (display on the card), the zip's own launcher wit
   wrong values on long-document lookups; `docs/research/t5-release-20261017`), query-dependent token selection (T4:
   `docs/research/t4-20261017`), and a CUDA pool reserve against the squeeze (it does not help with the display on the
   card; #171).
+
+## Earlier measurements (2026-10-06 to 10-10, q4_0 K/V)
+
+The sections below keep the measurements of the q4_0 era. The defaults and numbers above replace them.
 
 Measured 2026-10-06/07 on an RTX 2060 SUPER 8 GB (Turing sm_75, PCIe 3.0 x16, stock clocks, power limit 175 W, fan
 100%) that also draws the Windows desktop at 1280x1024 (idle 323-404 MiB), Ryzen 5 2600, 32 GB. Bonsai 2 27B `PTQ1_0`,
@@ -274,5 +320,5 @@ llama-bench, plain decode: +500 MHz +4.2 %, +1000 MHz +7.7 %. With the drafting 
 +2.4-2.7 % at 4k-32k, and in a 60-minute soak the server stayed up with byte-identical text (the soak did not query
 the Windows event log). +1250 MHz faulted the GPU
 after about 10 minutes of load, and +1500 MHz stopped the PC (bugcheck). Set the clock before the server starts:
-switching it while a server runs stopped the server twice. Clocks are the owner's choice; the launcher does not touch
+switching it while a server runs stopped the server twice. Clocks are the user's choice; the launcher does not touch
 them.

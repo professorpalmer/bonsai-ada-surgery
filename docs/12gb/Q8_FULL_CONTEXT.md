@@ -1,5 +1,8 @@
 # q8_0 at the full 262,144-token window on a 12 GB card
 
+This page records the q8_0 recipe of September 2026. Since bundle-20261016 the 12 GB default is q4_0 (`BONSAI_CTK=q8_0`
+keeps this recipe). Current setup and numbers: [README.md](README.md).
+
 Measured 2026-09-26/27 on an RTX 4070 12 GB (PCIe 4.0 x16, Windows WDDM, GDDR6X +1500 MHz as in every number
 since #221), i7-13700K with 32 GB, Bonsai 2 27B `PTQ1_0` with the ProCreations MTP head, served by
 `start-server.ps1`, one slot, genuine prefill (no slot restore) unless noted. Runtime: branch
