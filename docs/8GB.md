@@ -11,7 +11,7 @@ Needs `bundle-20261007-8gb` or later (patches 0036-0038: the Turing one-column d
 engine ignores the switches; the measured fixed costs then do not hold, and the launcher warns before the start.
 `BONSAI_8GB=0` turns the preset off.
 
-**Recommended now: `bundle-20261018d` or later.** The rest of this page keeps the measurements from 10-06 to 10-10; the
+**Recommended now: `bundle-20261018e` or later.** The rest of this page keeps the measurements from 10-06 to 10-10; the
 section below lists what changed for 8 GB cards since then.
 
 ## What is new since bundle-20261010 (updated 2026-10-18)
