@@ -22,7 +22,8 @@ One entry per run. Receipts: `receipts/he_template_ab.log` (the runner's log lin
 - G2 FAIL: the long tail grew (22 tasks over 4k against 18; at most 13 was required).
 - G3 pass.
 - Verdict: **not adopted, and not recommended.** On this model a presence penalty of 1.5 makes the thinking longer:
-  the penalty pushes the model away from words it already used, and in long reasoning it then writes more, not less.
+  a likely cause (not measured) is that the penalty pushes the model away from words it already used, so long
+  reasoning takes more words to say the same steps.
   The docs keep the launcher's sampling and say so. For thinking that repeats in agent work, the measured tool stays the
   thinking budget (`BONSAI_THINK_BUDGET`), which stops a loop at a fixed length.
 - Limits: HumanEval answers rarely loop, so this measures the length of normal thinking, not the loops of issue #7.
