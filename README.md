@@ -117,6 +117,10 @@ the tiered-KV runtime are detected and get the previous 96k all-VRAM recipe.
 
 ### Upgrading from an older bundle
 
+`bundle-20261018e` (no engine change): after 8 deltas the full save of a conversation runs when the layer has been idle
+for 30 s (`BONSAI_SLOT_CACHE_IDLE`), not right after an answer, so a slow drive never holds up the next turn; after 32
+deltas (`BONSAI_SLOT_CACHE_CHAIN_MAX`) it is forced. Gates: `docs/research/release-20261018e`.
+
 `bundle-20261018d` (no engine change): the save before the request (a conversation whose answer the next turn renders
 differently, or `BONSAI_SLOT_CACHE_AFTER=0`) is now also a delta of the last save. There the answer waits for the save:
 30 turns with restarts, mean wait 53.2 -> 14.2 s (-73 %), the same answers. Gates: `docs/research/release-20261018d`.
