@@ -9,6 +9,14 @@ launcher prints `layer on` when the runtime is present and falls back to the pla
 
 ## What each bundle changed (newest first)
 
+`bundle-20261019b` (engine `810d93e5aa`, patches 0070-0071): on **8 GB cards** the launcher now turns on replay rollback
+and drafts 2 tokens below and past the VRAM line (was 1 / 1). Replay keeps one recurrent-state plane instead of one per
+draft token, so a draft token costs ~7 MiB of VRAM instead of ~150 MiB: the VRAM line holds ~10k more positions, and the
+deeper draft is affordable. RTX 2060 SUPER: decode at 128k 26.1 -> 31.8 tok/s; the 245k code-set check gives the same
+answers as 1 / 1 (#138, P213-P217). `BONSAI_RS_REPLAY=0` keeps the previous 1 / 1 recipe; other cards are unchanged
+(`BONSAI_RS_REPLAY=1` turns replay on there). Patch 0071: past the VRAM line the server no longer writes the CUDA graph
+line at every step (issue #7). Gates: `docs/research/release-20261019b`.
+
 `bundle-20261019a` (no engine change): through the layer, a reply that `max_tokens` cut inside the layer's own Python tool call came back empty; the layer now asks once more without its tool, so the reply has text (such a reply can use up to twice `max_tokens`). Gates: `docs/research/release-20261019a`; details: `docs/research/cut-retry-20261019`.
 
 `bundle-20261018f` (no engine change): the layer saves after every answer of a long conversation (a delta), so the next
