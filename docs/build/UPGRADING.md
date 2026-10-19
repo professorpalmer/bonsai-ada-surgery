@@ -12,7 +12,7 @@ launcher prints `layer on` when the runtime is present and falls back to the pla
 `bundle-20261019b` (engine `810d93e5aa`, patches 0070-0071): on **8 GB cards** the launcher now turns on replay rollback
 and drafts 2 tokens below and past the VRAM line (was 1 / 1). Replay keeps one recurrent-state plane instead of one per
 draft token, so a draft token costs ~7 MiB of VRAM instead of ~150 MiB: the VRAM line holds ~10k more positions, and the
-deeper draft is affordable. RTX 2060 SUPER: decode at 128k 26.1 -> 31.8 tok/s; the 245k code-set check gives the same
+deeper draft is affordable. RTX 2060 SUPER: decode at 128k 23.0 -> 31.8 tok/s (+38 %, the previous default against the new one); the 245k code-set check gives the same
 answers as 1 / 1 (#138, P213-P217). `BONSAI_RS_REPLAY=0` keeps the previous 1 / 1 recipe; other cards are unchanged
 (`BONSAI_RS_REPLAY=1` turns replay on there). Patch 0071: past the VRAM line the server no longer writes the CUDA graph
 line at every step (issue #7). Gates: `docs/research/release-20261019b`.
