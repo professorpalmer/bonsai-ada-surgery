@@ -14,7 +14,7 @@ changes against 1 / 1 and the rounding null); RTX 4070 with the 8 GB split: `../
 
 | Gate | Condition |
 |---|---|
-| R1 zip | the same entries as bundle-20261019a, plus `patches/0070` and `patches/0071`; changed: the engine `bin/` files, `start-server.ps1`, docs; the CUDA runtime DLLs identical; 0 text files with control bytes; `--version` reports `810d93e5aa` |
+| R1 zip | the same entries as bundle-20261019a (bundles carry no `patches/`); changed: the engine `bin/` files, `start-server.ps1`, docs; the CUDA runtime DLLs identical; 0 text files with control bytes; `--version` reports `810d93e5aa` |
 | R2 launcher | default (12 GB): spec 2 / 4, replay off (RS 299.25 MiB). `BONSAI_8GB=1` (layer on, slot folder): spec 2 / 2, replay on (RS 156.77 MiB). `BONSAI_8GB=1 BONSAI_RS_REPLAY=0`: spec 1 / 1, RS 299.25 MiB. `BONSAI_TOTAL_MIB=24576`: health. Each: health ok, a short greedy answer, 0 CUDA errors |
 | R3 graph line | `BONSAI_8GB=1`, the line pinned at 32,768, a 40k request: the `ggml_cuda_graph_check_compability` warning appears at most twice (once per state); 0 CUDA errors |
 | R4 saved conversations | `BONSAI_8GB=1` (replay on by default), layer, slot folder: 3 turns of a 20k conversation (slot files 1, 2, 3), then two conversations that take turns (each turn 2 restores its own save); 0 CUDA errors |
