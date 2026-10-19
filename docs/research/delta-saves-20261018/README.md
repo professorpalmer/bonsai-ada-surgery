@@ -236,7 +236,7 @@ Setup: the soak again (three interleaved ~30k conversations, 45 turns, restarts 
 | E3 | mean wall time per turn not more than 10 % above the first soak's |
 | E4 | no save before the request in the layer logs (every conversation passes the exact test) |
 
-All pass: ships in the next bundles (Bonsai, Mirai). Any fail: not shipped; log why.
+All pass: ships in the next bundles. Any fail: not shipped; log why.
 
 ### Run 5 result: E1 E2 E4 PASS, E3 FAIL — not shipped yet (`soak2/`)
 
@@ -328,7 +328,7 @@ design at 3 GB (`soak6/`). H1 does not change: at the default budget the soak ne
 | J3 | answers = cache-off at no fewer than the old design's minus 1 per conversation (old: A 5, B 13, C 0) |
 
 J1-J3 pass: H2's question is answered for the design with the guard, and with H1 the save after every answer + chain
-replacement + the guard ship in the next bundles (Bonsai, Mirai). Any fail: not shipped; log why.
+replacement + the guard ship in the next bundles. Any fail: not shipped; log why.
 
 ### Run 9 result: J1 J2 J3 PASS — ships (`soak7/`)
 
@@ -344,5 +344,5 @@ cache-off at 7 turns (run 7 without the guard: 11): a restore of an older save r
 splits than cache-off, which can flip a near tie (the same cause as run 4's S5); B and C matched at all 15.
 
 With H1 (run 8) this answers the run-8 question: save after every answer + chain replacement + the guard ship in the
-next bundles (Bonsai 1018f, Mirai 1018d). A later improvement: let a conversation replace its own old chain under the
+next bundle (1018f). A later improvement: let a conversation replace its own old chain under the
 guard (today a frozen save means a growing re-read per turn).
