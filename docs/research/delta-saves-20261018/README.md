@@ -237,3 +237,20 @@ Setup: the soak again (three interleaved ~30k conversations, 45 turns, restarts 
 | E4 | no save before the request in the layer logs (every conversation passes the exact test) |
 
 All pass: ships in the next bundles (Bonsai, Mirai). Any fail: not shipped; log why.
+
+### Run 5 result: E1 E2 E4 PASS, E3 FAIL — not shipped yet (`soak2/`)
+
+| Gate | Result |
+|---|---|
+| E1 | PASS: S1-S4 (45/45, 0 errors, 0 orphans, folder 5.80 GiB, 27 evictions, 32 chain restores) |
+| E2 | PASS: answers equal to the cache-off reference A 14, B 15, C 15 of 15 (first soak: 5, 13, 0) |
+| E3 | **FAIL**: mean wall 12.5 s vs 9.4 s (+33.4 %) |
+| E4 | PASS: 0 saves before the request, 0 failed exact tests |
+
+Why E3 fails: four turns (A9, B11, A14, B15) read the whole conversation again (58-72k tokens, 59-78 s) because its
+chain had been evicted: a save after every answer fills the 6 GB budget faster (27 evictions vs 7). Every other turn is
+as fast or faster (no prefill-only splits: the 6-8 s turns of the first soak are 3.6-5 s now).
+
+Next (run 6, declared before its run below): keep chains short under budget pressure: when the folder is above 80 % of
+the budget and a conversation's chain holds twice its base's bytes, the next save is full and the old chain is removed;
+the idle full save also removes the chain it replaces.
