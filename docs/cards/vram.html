@@ -1,0 +1,65 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Bonsai cache placement</title>
+<!-- How much of the 262,144-position K/V cache sits in VRAM, per card and cache type, and decode at 245k. Every
+     number is in DATA below, each with its source. Edit DATA, then run bench/render_cards.ps1. null = not measured. -->
+<script>
+var DATA = {
+  window: 262144,
+  rig: {
+    '12gb': '12 GB: RTX 4070, bundle-20261015c bins, 2026-10-15: D29 (display on the iGPU, margin 1000 MiB), D29b (display on the card, margin 1300 MiB) (docs/research/depth-20261010)',
+    '8gb': '8 GB: RTX 2060 SUPER, display on the card: q3_0 line P163 (2026-10-16), 245k decode P150 (bundle-20261016, line 80,384); q4_0 line S04 (docs/research/release-20261014b)'
+  },
+  rows: {
+    '12gb': [
+      { label: 'q4_0, display on the iGPU', note: 'the 12 GB default', cells: 260352, decode245k: 61.0 },   // D29 q4_0
+      { label: 'q4_0, display on the card', note: 'the 12 GB default', cells: 242176, decode245k: 45.7 },   // D29b
+      { label: 'q8_0', note: 'BONSAI_CTK=q8_0', cells: 129024, decode245k: 15.4 }                         // D29 q8_0
+    ],
+    '8gb': [
+      { label: 'q3_0, display on the card', note: 'the 8 GB default', cells: 80640, decode245k: 9.8 },     // P163 line; P150 decode
+      { label: 'q4_0, display on the card', note: 'BONSAI_CTK=q4_0', cells: 61696, decode245k: null }      // S04 line; no 245k run on the same build
+    ]
+  }
+};
+</script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<link rel="stylesheet" href="card.css">
+<div class="card" id="card"></div>
+<script src="card.js"></script>
+<script>
+(function () {
+  var D = DATA;
+  var body = card({
+    eyebrow: 'Where the K/V cache lives',
+    title: 'How much of the 262k window fits in VRAM',
+    sub: 'Solid: cache positions in VRAM. Light: positions in pinned system RAM, read over PCIe at each step.',
+    foot: ORDER.map(function (t) { return D.rig[t]; })
+  });
+  var W = 1104, LW = 340, R = 190, rowH = 62, groupGap = 16, barH = 30;
+  var n = 0; ORDER.forEach(function (t) { n += D.rows[t].length; });
+  var H = 34 + n * rowH + groupGap * (ORDER.length - 1);
+  var s = svg(W, H);
+  var x = function (v) { return LW + v / D.window * (W - LW - R); };
+  s.appendChild(el('text', { x: W - R + 14, y: 20, style: 'font-size:15px' }, 'decode at 245k'));
+  var y = 34;
+  ORDER.forEach(function (t, gi) {
+    if (gi) y += groupGap;
+    D.rows[t].forEach(function (r) {
+      var c = TIER[t].color, yy = y + (rowH - barH) / 2;
+      s.appendChild(el('text', { class: 'cat', x: 0, y: y + rowH / 2 - 3, style: 'font-weight:600;fill:' + c }, TIER[t].name + ' · ' + r.label.split(',')[0]));
+      s.appendChild(el('text', { x: 0, y: y + rowH / 2 + 19, style: 'font-family:var(--body);font-size:15.5px' }, (r.label.indexOf(',') > 0 ? r.label.slice(r.label.indexOf(',') + 2) + ' · ' : '') + r.note));
+      s.appendChild(el('rect', { x: LW, y: yy, width: x(D.window) - LW, height: barH, rx: 3, fill: TIER[t].soft }));
+      s.appendChild(el('rect', { x: LW, y: yy, width: x(r.cells) - LW, height: barH, rx: 3, fill: c }));
+      var inside = x(r.cells) - LW > 230;
+      s.appendChild(el('text', { class: 'val', x: inside ? x(r.cells) - 10 : x(r.cells) + 10, y: yy + barH / 2 + 8,
+        'text-anchor': inside ? 'end' : 'start', style: 'font-size:20px;fill:' + (inside ? '#fff' : c) }, fmt(r.cells) + ' in VRAM'));
+      if (r.decode245k === null) s.appendChild(el('text', { class: 'nm', x: W - R + 14, y: yy + barH / 2 + 7 }, NM));
+      else s.appendChild(el('text', { class: 'val', x: W - R + 14, y: yy + barH / 2 + 9, style: 'fill:' + c }, fmt(r.decode245k, 1) + ' tok/s'));
+      y += rowH;
+    });
+  });
+  s.appendChild(el('text', { x: x(D.window), y: 20, 'text-anchor': 'end', style: 'font-size:15px' }, fmt(D.window) + ' positions'));
+  body.appendChild(s);
+})();
+</script>

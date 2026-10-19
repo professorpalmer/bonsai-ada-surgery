@@ -1,0 +1,63 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Bonsai saved conversations</title>
+<!-- Saved conversations: time to the answer with and without a saved state. Every number is in DATA below, each with
+     its source. Edit DATA, then run bench/render_cards.ps1. A tier with no rows shows "not measured". -->
+<script>
+var DATA = {
+  rig: {
+    '12gb': '12 GB: RTX 4070 with the 12 GB default (q4_0): not measured. RTX 4070 runs with the 8 GB layout are not 12 GB numbers (docs/agents-layer/SAVED_CONVERSATIONS.md)',
+    '8gb': '8 GB: RTX 2060 SUPER, q3_0, display on the card: P165 (bundle-20261017, 2026-10-17), P162 (2026-10-16), P153 (2026-10-16) (docs/research/depth-8gb-20261006, coldread-20261016)'
+  },
+  // without = seconds without a saved state (a cold read); with = seconds after a server restart with the saved state.
+  rows: {
+    '12gb': [],
+    '8gb': [
+      { label: '~199k document, first answer after a restart', without: 1069, with: 5.3 },   // P165: read ahead 1,068.59 s; first token 5.3 s
+      { label: '131k document, question after a restart', without: 560.7, with: 6.25 },     // P162: cold control 560.68 s; ask after restart 6.25 s
+      { label: '245k conversation, next turn after a restart', without: 1689, with: 5.2 }   // P153: restore 3.41 s + 1.82 s, against a 1,689 s read
+    ]
+  }
+};
+</script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<link rel="stylesheet" href="card.css">
+<div class="card" id="card"></div>
+<script src="card.js"></script>
+<script>
+(function () {
+  var D = DATA;
+  var max = 0; ORDER.forEach(function (t) { D.rows[t].forEach(function (r) { max = Math.max(max, r.without); }); });
+  var body = card({
+    eyebrow: 'Saved conversations · BONSAI_SLOT_SAVE_PATH',
+    title: 'A long conversation comes back in seconds',
+    sub: 'Seconds to the answer after a server restart: a cold read of the whole prompt, or a restore of the saved state.',
+    foot: ORDER.map(function (t) { return D.rig[t]; })
+  });
+  var W = 1104, BX = 130, R = 110, rowH = 96, nmH = 44, barH = 24;
+  var H = 0; ORDER.forEach(function (t) { H += 36 + (D.rows[t].length ? D.rows[t].length * rowH : nmH); });
+  var s = svg(W, H), y = 0;
+  var x = function (v) { return BX + v / max * (W - BX - R); };
+  ORDER.forEach(function (t) {
+    var c = TIER[t].color;
+    s.appendChild(el('text', { class: 'cat', x: 0, y: y + 26, style: 'font-weight:600;fill:' + c }, TIER[t].name + ' · ' + TIER[t].gpu));
+    y += 36;
+    if (!D.rows[t].length) {
+      s.appendChild(el('text', { class: 'nm', x: 0, y: y + 22 }, NM + ' with the 12 GB default recipe'));
+      y += nmH; return;
+    }
+    D.rows[t].forEach(function (r) {
+      s.appendChild(el('text', { x: 0, y: y + 18, style: 'font-family:var(--body);font-size:19px;fill:var(--ink)' }, r.label));
+      [['cold read', r.without, TIER[t].soft, 'var(--muted)'], ['restored', r.with, c, c]].forEach(function (b, j) {
+        var yy = y + 30 + j * (barH + 6), w = Math.max(x(b[1]) - BX, 5);
+        s.appendChild(el('text', { x: BX - 10, y: yy + barH / 2 + 6, 'text-anchor': 'end', style: 'font-size:15px' }, b[0]));
+        s.appendChild(el('rect', { x: BX, y: yy, width: w, height: barH, rx: 3, fill: b[2], stroke: j ? 'none' : c, 'stroke-width': 1 }));
+        s.appendChild(el('text', { class: 'val', x: BX + w + 10, y: yy + barH / 2 + 8, style: 'font-size:21px;fill:' + b[3] },
+          fmt(b[1], b[1] < 100 ? (b[1] % 1 ? (String(b[1]).split('.')[1].length) : 0) : 0) + ' s'));
+      });
+      y += rowH;
+    });
+  });
+  body.appendChild(s);
+})();
+</script>

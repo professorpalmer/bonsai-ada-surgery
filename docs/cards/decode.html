@@ -1,0 +1,84 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Bonsai decode by depth</title>
+<!-- Decode speed by context depth, 12 GB and 8 GB. Every number is in DATA below, each with its source. Edit DATA,
+     then run bench/render_cards.ps1. Points are [context tokens, tok/s]; only measured points are drawn. -->
+<script>
+var DATA = {
+  rig: {
+    '12gb': '12 GB: RTX 4070, q4_0, display on the iGPU. 4k / 32k / 245k: release check U04, bundle-20261016, 2026-10-16 (docs/receipts/release_0059.log); 64k-192k: D29, bundle-20261015c bins, 2026-10-15 (docs/research/depth-20261010)',
+    '8gb': '8 GB: RTX 2060 SUPER, q3_0, display on the card. 4k / 64k / 128k: P163, bundle-20261017, 2026-10-16; 160k / 245k: P150, bundle-20261016, 2026-10-16 (docs/research/depth-8gb-20261006)'
+  },
+  // quick_tps.py: mean of code / prose / bash prompts, 400-token greedy answers, MTP + lookup drafting.
+  points: {
+    '12gb': [
+      [4000, 96.2],     // release_0059.log U04 r0059
+      [32000, 92.9],    // release_0059.log U04 r0059
+      [64000, 80.1],    // ktype12_d29.log / depth-20261010 D29 q4_0
+      [128000, 76.6],   // D29 q4_0
+      [192000, 64.2],   // D29 q4_0
+      [245000, 60.4]    // release_0059.log U04 r0059
+    ],
+    '8gb': [
+      [4000, 53.4],     // P163 sweep 4k (mean)
+      [64000, 41.2],    // P163 sweep 64k (mean)
+      [128000, 22.3],   // P163 cold 128k (mean of 3 prompts)
+      [160000, 16.7],   // P150
+      [245000, 9.8]     // P150
+    ]
+  },
+  // The VRAM line (positions in VRAM): 12 GB D29 (260,352); 8 GB P163 (80,640).
+  vramLine: { '12gb': 260352, '8gb': 80640 },
+  window: 262144
+};
+</script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<link rel="stylesheet" href="card.css">
+<div class="card" id="card"></div>
+<script src="card.js"></script>
+<script>
+(function () {
+  var D = DATA;
+  var body = card({
+    eyebrow: 'Decode speed by context depth',
+    title: 'Decode through the whole 262k window',
+    sub: 'Tokens per second, greedy, with drafting. Past the VRAM line the cache is read from system RAM over PCIe.',
+    legend: tierLegend(),
+    foot: ORDER.map(function (t) { return D.rig[t]; })
+  });
+  var W = 1104, H = 330, L = 62, R = 24, T = 18, B = 40;
+  var ymax = 0;
+  ORDER.forEach(function (t) { D.points[t].forEach(function (p) { ymax = Math.max(ymax, p[1]); }); });
+  ymax = Math.ceil(ymax / 20) * 20;
+  var x = function (v) { return L + v / D.window * (W - L - R); };
+  var y = function (v) { return T + (1 - v / ymax) * (H - T - B); };
+  var s = svg(W, H);
+  for (var g = 0; g <= ymax; g += 20) {
+    s.appendChild(el('line', { x1: L, x2: W - R, y1: y(g), y2: y(g), stroke: 'var(--grid)' }));
+    s.appendChild(el('text', { x: L - 10, y: y(g) + 6, 'text-anchor': 'end' }, g));
+  }
+  [0, 32000, 64000, 128000, 192000, 262144].forEach(function (v, i, a) {
+    s.appendChild(el('text', { x: x(v), y: H - B + 26, 'text-anchor': i === a.length - 1 ? 'end' : 'middle' }, v === 0 ? '0' : Math.round(v / 1000) + 'k'));
+  });
+  // VRAM lines, labelled at the top
+  ORDER.forEach(function (t, i) {
+    var v = D.vramLine[t], c = TIER[t].color;
+    s.appendChild(el('line', { x1: x(v), x2: x(v), y1: T, y2: H - B, stroke: c, 'stroke-dasharray': '6 5', 'stroke-width': 1.6 }));
+    var right = x(v) > W - 260;
+    s.appendChild(el('text', { x: x(v) + (right ? -8 : 8), y: T + 14, 'text-anchor': right ? 'end' : 'start', style: 'fill:' + c + ';font-size:15px' },
+      TIER[t].name + ' VRAM line ' + fmt(v)));
+  });
+  ['8gb', '12gb'].forEach(function (t) {   // 12 GB drawn last (on top)
+    var pts = D.points[t], c = TIER[t].color, above = t === '12gb';
+    s.appendChild(el('path', { d: pts.map(function (p, i) { return (i ? 'L' : 'M') + x(p[0]) + ' ' + y(p[1]); }).join(' '),
+      fill: 'none', stroke: c, 'stroke-width': 3.2, 'stroke-linejoin': 'round' }));
+    pts.forEach(function (p, i) {
+      s.appendChild(el('circle', { cx: x(p[0]), cy: y(p[1]), r: 5.5, fill: c }));
+      var anchor = i === 0 ? 'start' : (i === pts.length - 1 ? 'end' : 'middle');
+      var dx = i === 0 ? -4 : (i === pts.length - 1 ? 4 : 0);
+      s.appendChild(el('text', { class: 'val', x: x(p[0]) + dx, y: y(p[1]) + (above || (i === pts.length - 1) ? -13 : 30), 'text-anchor': anchor, style: 'fill:' + c }, fmt(p[1], 1)));
+    });
+  });
+  body.appendChild(s);
+})();
+</script>
