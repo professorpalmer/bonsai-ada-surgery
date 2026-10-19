@@ -1,8 +1,8 @@
 # Adaptive MTP draft depth on the 8 GB preset, with replay rollback (2026-10-19)
 
 **Result: not adopted.** Gates G1 and G2 fail (code +2.3 % against +5 % required; story -9.4 % / -5.6 % at 64k against
--3 % allowed). Deeper drafts past the VRAM line help at 128k; arm F2 (a fixed draft of 2 / 2) tells whether a fixed
-size gets that gain without the story loss. Entries: [EXPERIMENTS.md](EXPERIMENTS.md). Receipts: [receipts/](receipts/).
+-3 % allowed). A fixed draft of 2 / 2 (AD2) is the best balance: code +4.6 %, story +1.4 %, quote +11.6 % over all
+depths, 128k code +19.6 %; its weak depth is 64k (story -3.1 %). It supports 2 / 2 as the 8 GB default with replay. Entries: [EXPERIMENTS.md](EXPERIMENTS.md). Receipts: [receipts/](receipts/).
 
 ## Idea
 

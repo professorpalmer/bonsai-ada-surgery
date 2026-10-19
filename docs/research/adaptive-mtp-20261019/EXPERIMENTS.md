@@ -52,5 +52,23 @@ Quote (copy a record from the context):
   verbosity 4 does not print it. The server log shows `adaptive MTP draft depth: 1 .. 4`, and A4 drafts more tokens per
   request than F1 (first request 311 against 179).
 
-Next: arm F2 (fixed 2 / 2 at the P215 line) on the same bins, to see whether a fixed size keeps the 128k gain without
-the story loss.
+## AD2: fixed draft 2 / 2 (F2) on the same bins
+
+- When: 2026-10-19 11:15-11:54, 0.65 GPU-h. Line 90,112 (the P215 line on the RTX 2060 SUPER). 0 CUDA errors; every
+  request answered. Receipts: the same `receipts/ab.log` / `ab.jsonl` (tag F2).
+
+| depth | code F1 | code F2 | story F1 | story F2 | quote F1 | quote F2 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 4k | 82.7 | 89.0 (+7.6 %) | 75.6 | 78.8 (+4.2 %) | 111.5 | 115.6 (+3.7 %) |
+| 32k | 77.7 | 81.0 (+4.2 %) | 69.0 | 69.9 (+1.3 %) | 101.1 | 116.2 (+14.9 %) |
+| 64k | 73.3 | 69.6 (-5.0 %) | 63.6 | 61.6 (-3.1 %) | 87.2 | 97.6 (+11.9 %) |
+| 128k | 33.6 | 40.2 (+19.6 %) | 29.7 | 30.8 (+3.7 %) | 37.3 | 46.7 (+25.2 %) |
+| all depths | 66.8 | 69.9 (+4.6 %) | 59.5 | 60.3 (+1.4 %) | 84.3 | 94.0 (+11.6 %) |
+
+- F2 is the best balance of the four arms: no prompt type loses over all depths, and the 128k gain matches P215 on
+  the 2060 (code at 128k +21.8 % there, +19.6 % here). The weak depth is 64k (code -5.0 %, story -3.1 %).
+- Greedy text equal to F1: 3 / 12 (the rounding effect, as in AD1).
+- Verdict: supports P215's proposal (2 / 2 as the 8 GB default with replay). The default change waits on the quality
+  gate on the 2060 (P164 / G1 and the P170 code set, in #138).
+- Consequence for the draft vocab shortlist: with 2 / 2, each token takes two MTP draft steps, and each step reads the
+  full 248k-row output head. A shortlist head saves that read twice per token, so the shortlist is the next item.
