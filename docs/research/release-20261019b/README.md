@@ -22,3 +22,9 @@ changes against 1 / 1 and the rounding null); RTX 4070 with the 8 GB split: `../
 | R6 speed, 12 GB | default, fresh server per depth, 4k and 32k quick_tps mean decode within 5 % of bundle-20261019a's fresh table (96.5 and 86.8) |
 
 All pass: publish as the latest release. Any fail: no publish; log why.
+
+Amendment (2026-10-19 17:50, after the first zip build, before any gate run): R1's link check stopped the build on 3
+links into repo-only folders (`../../patches/`, `../../surgery/ADA4070_PTQ1.md`, `../../.github/workflows/linux-cuda.yml`).
+No bundle carries those folders (the upgrade steps are `git pull`, then unzip over the repository), the same as
+`docs/research/` and `docs/receipts/`, which the check already exempted. The check now also exempts links into
+`patches/`, `surgery/` and `.github/`; every other relative link must still resolve inside the zip.
