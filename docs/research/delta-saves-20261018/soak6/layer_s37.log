@@ -1,0 +1,41 @@
+[proxy] "GET /health HTTP/1.1" 503 -
+[proxy] "GET /health HTTP/1.1" 503 -
+[proxy] "GET /health HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[slots] saved f66d495e725d 67209 tokens: prefill 70.05 s, save 0.95 s
+[slots] evicted 98cc3a188dd4 64790 tokens
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.02}
+[slots] saved f76a004a4015 67208 tokens: prefill 70.71 s, save 0.93 s
+[slots] evicted a77f2bf0fa28 64795 tokens
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.0}
+[slots] saved 2985fe983de5 67211 tokens: prefill 70.77 s, save 0.99 s
+[slots] evicted f66d495e725d 67209 tokens
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.0}
+[slots] saved ce1b82e2b4a5 69647 tokens: prefill 74.02 s, save 0.97 s
+[slots] evicted f76a004a4015 67208 tokens
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.02}
+[slots] saved 29c25097a140 69645 tokens: prefill 74.07 s, save 0.98 s
+[slots] evicted 2985fe983de5 67211 tokens
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.01}
+[slots] saved 5ce7618b051e 69646 tokens: prefill 74.12 s, save 1.04 s
+[slots] evicted ce1b82e2b4a5 69647 tokens
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.0}
+[slots] saved 6e5efce16021 72073 tokens: prefill 77.49 s, save 1.01 s
+[slots] evicted 29c25097a140 69645 tokens
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.0}
+[slots] saved 9980241b47d2 72072 tokens: prefill 77.58 s, save 1.07 s
+[slots] evicted 5ce7618b051e 69646 tokens
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.01}
+[slots] saved 8643601336a9 72069 tokens: prefill 77.5 s, save 1.03 s
+[slots] evicted 6e5efce16021 72073 tokens
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.01}
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -

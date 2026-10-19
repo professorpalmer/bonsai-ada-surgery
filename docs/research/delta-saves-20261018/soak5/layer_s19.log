@@ -1,0 +1,43 @@
+[proxy] "GET /health HTTP/1.1" 503 -
+[proxy] "GET /health HTTP/1.1" 503 -
+[proxy] "GET /health HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[slots] delta saves on
+[slots] restored 424ab7f7a009 50568 tokens in 0.97 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] saved after the answer 5d31e9410669 53012 tokens: 0.19 s, n_saved 53012
+[proxy] slot cache after the answer: {"delta_of": 50568, "saved": 53012, "save_s": 0.19, "s": 0.21}
+[slots] restored 8d631011b923 50249 tokens in 1.01 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] saved after the answer 52a8c58c86c7 52691 tokens: 0.19 s, n_saved 52691
+[proxy] slot cache after the answer: {"delta_of": 50249, "saved": 52691, "save_s": 0.19, "s": 0.19}
+[slots] restored a18eeb267bdd 50623 tokens in 1.03 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] saved after the answer 6ae10a530d56 53094 tokens: 0.19 s, n_saved 53094
+[proxy] slot cache after the answer: {"delta_of": 50623, "saved": 53094, "save_s": 0.19, "s": 0.22}
+[slots] restored 5d31e9410669 53012 tokens in 1.1 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] saved after the answer 0efff29046da 55542 tokens: 0.19 s, n_saved 55542
+[proxy] slot cache after the answer: {"delta_of": 53012, "saved": 55542, "save_s": 0.19, "s": 0.19}
+[slots] restored 52a8c58c86c7 52691 tokens in 1.07 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] saved after the answer 22a12a0968f7 55119 tokens: 0.2 s, n_saved 55119
+[proxy] slot cache after the answer: {"delta_of": 52691, "saved": 55119, "save_s": 0.2, "s": 0.2}
+[slots] restored 6ae10a530d56 53094 tokens in 1.09 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] saved after the answer f29356397b2b 55624 tokens: 0.17 s, n_saved 55624
+[proxy] slot cache after the answer: {"delta_of": 53094, "saved": 55624, "save_s": 0.17, "s": 0.18}
+[slots] restored 0efff29046da 55542 tokens in 1.17 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] saved after the answer 07b5ffbb0c2c 58040 tokens: 0.18 s, n_saved 58040
+[proxy] slot cache after the answer: {"delta_of": 55542, "saved": 58040, "save_s": 0.18, "s": 0.18}
+[slots] restored 22a12a0968f7 55119 tokens in 1.21 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] saved after the answer 51877843b290 57542 tokens: 0.19 s, n_saved 57542
+[proxy] slot cache after the answer: {"delta_of": 55119, "saved": 57542, "save_s": 0.19, "s": 0.21}
+[slots] restored f29356397b2b 55624 tokens in 1.15 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[slots] saved after the answer e3cb5bc6e5d5 58098 tokens: 0.19 s, n_saved 58098
+[proxy] slot cache after the answer: {"delta_of": 55624, "saved": 58098, "save_s": 0.19, "s": 0.21}
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -

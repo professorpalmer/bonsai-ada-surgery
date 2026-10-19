@@ -1,0 +1,45 @@
+{"arm": "soak", "conv": "A", "turn": 1, "wall_s": 35.79, "prompt_n": 7, "cache_n": 38122, "answer": "4190, 9834, 6876, 8653"}
+{"arm": "soak", "conv": "B", "turn": 1, "wall_s": 36.2, "prompt_n": 7, "cache_n": 38122, "answer": "7316, 8683, 7708, 4245"}
+{"arm": "soak", "conv": "C", "turn": 1, "wall_s": 36.2, "prompt_n": 7, "cache_n": 38122, "answer": "1518, 4935, 4193, 2505"}
+{"arm": "soak", "conv": "A", "turn": 2, "wall_s": 3.49, "prompt_n": 2445, "cache_n": 38122, "answer": "7, 4514"}
+{"arm": "soak", "conv": "B", "turn": 2, "wall_s": 3.49, "prompt_n": 2441, "cache_n": 38122, "answer": "7: 7520"}
+{"arm": "soak", "conv": "C", "turn": 2, "wall_s": 3.45, "prompt_n": 2443, "cache_n": 38122, "answer": "7, 7525"}
+{"arm": "soak", "conv": "A", "turn": 3, "wall_s": 6.51, "prompt_n": 7, "cache_n": 42971, "answer": "14024"}
+{"arm": "soak", "conv": "B", "turn": 3, "wall_s": 6.46, "prompt_n": 7, "cache_n": 42979, "answer": "15999"}
+{"arm": "soak", "conv": "C", "turn": 3, "wall_s": 6.47, "prompt_n": 7, "cache_n": 42984, "answer": "6453"}
+{"arm": "soak", "conv": "A", "turn": 4, "wall_s": 3.74, "prompt_n": 2427, "cache_n": 42971, "answer": "9249"}
+{"arm": "soak", "conv": "B", "turn": 4, "wall_s": 3.67, "prompt_n": 2423, "cache_n": 42979, "answer": "7520"}
+{"arm": "soak", "conv": "C", "turn": 4, "wall_s": 3.64, "prompt_n": 2429, "cache_n": 42984, "answer": "9458"}
+{"arm": "soak", "conv": "A", "turn": 5, "wall_s": 6.86, "prompt_n": 7, "cache_n": 47812, "answer": "1, 3, 5"}
+{"arm": "soak", "conv": "B", "turn": 5, "wall_s": 6.92, "prompt_n": 7, "cache_n": 47820, "answer": "3, 4"}
+{"arm": "soak", "conv": "C", "turn": 5, "wall_s": 47.2, "prompt_n": 7, "cache_n": 47827, "answer": "1, 3, 4"}
+{"arm": "soak", "conv": "A", "turn": 6, "wall_s": 50.15, "prompt_n": 7, "cache_n": 50238, "answer": "12830"}
+{"arm": "soak", "conv": "B", "turn": 6, "wall_s": 3.97, "prompt_n": 2423, "cache_n": 47820, "answer": "55044"}
+{"arm": "soak", "conv": "C", "turn": 6, "wall_s": 3.76, "prompt_n": 2434, "cache_n": 47827, "answer": "17047"}
+{"arm": "soak", "conv": "A", "turn": 7, "wall_s": 3.99, "prompt_n": 2433, "cache_n": 50238, "answer": "4190, 9834, 6876, 8653"}
+{"arm": "soak", "conv": "B", "turn": 7, "wall_s": 7.18, "prompt_n": 7, "cache_n": 52661, "answer": "7316, 8683, 7708, 4245"}
+{"arm": "soak", "conv": "C", "turn": 7, "wall_s": 7.09, "prompt_n": 7, "cache_n": 52673, "answer": "1518, 4935, 4193, 2505"}
+{"arm": "soak", "conv": "A", "turn": 8, "wall_s": 56.14, "prompt_n": 7, "cache_n": 55098, "answer": "7, 4514"}
+{"arm": "soak", "conv": "B", "turn": 8, "wall_s": 56.21, "prompt_n": 7, "cache_n": 55104, "answer": "7: 7520"}
+{"arm": "soak", "conv": "C", "turn": 8, "wall_s": 4.05, "prompt_n": 2441, "cache_n": 52673, "answer": "7, 7525"}
+{"arm": "soak", "conv": "A", "turn": 9, "wall_s": 4.01, "prompt_n": 2428, "cache_n": 55098, "answer": "14024"}
+{"arm": "soak", "conv": "B", "turn": 9, "wall_s": 3.93, "prompt_n": 2432, "cache_n": 55104, "answer": "15999"}
+{"arm": "soak", "conv": "C", "turn": 9, "wall_s": 7.4, "prompt_n": 7, "cache_n": 57534, "answer": "6453"}
+{"arm": "soak", "conv": "A", "turn": 10, "wall_s": 61.95, "prompt_n": 7, "cache_n": 59938, "answer": "9249"}
+{"arm": "soak", "conv": "B", "turn": 10, "wall_s": 62.47, "prompt_n": 7, "cache_n": 59943, "answer": "7520"}
+{"arm": "soak", "conv": "C", "turn": 10, "wall_s": 62.46, "prompt_n": 7, "cache_n": 59947, "answer": "9458"}
+{"arm": "soak", "conv": "A", "turn": 11, "wall_s": 4.17, "prompt_n": 2429, "cache_n": 59938, "answer": "1, 3, 5"}
+{"arm": "soak", "conv": "B", "turn": 11, "wall_s": 4.1, "prompt_n": 2433, "cache_n": 59943, "answer": "3, 4"}
+{"arm": "soak", "conv": "C", "turn": 11, "wall_s": 4.15, "prompt_n": 2433, "cache_n": 59947, "answer": "1, 3, 4"}
+{"arm": "soak", "conv": "A", "turn": 12, "wall_s": 7.66, "prompt_n": 7, "cache_n": 64788, "answer": "44995"}
+{"arm": "soak", "conv": "B", "turn": 12, "wall_s": 26.43, "prompt_n": 7, "cache_n": 64790, "answer": "71814"}
+{"arm": "soak", "conv": "C", "turn": 12, "wall_s": 68.7, "prompt_n": 7, "cache_n": 64795, "answer": "76855"}
+{"arm": "soak", "conv": "A", "turn": 13, "wall_s": 71.73, "prompt_n": 7, "cache_n": 67209, "answer": "4190, 9834, 6876, 8653"}
+{"arm": "soak", "conv": "B", "turn": 13, "wall_s": 72.23, "prompt_n": 7, "cache_n": 67208, "answer": "7316, 8683, 7708, 4245"}
+{"arm": "soak", "conv": "C", "turn": 13, "wall_s": 72.4, "prompt_n": 7, "cache_n": 67211, "answer": "1518, 4935, 4193, 2505"}
+{"arm": "soak", "conv": "A", "turn": 14, "wall_s": 75.5, "prompt_n": 7, "cache_n": 69647, "answer": "7, 4514"}
+{"arm": "soak", "conv": "B", "turn": 14, "wall_s": 75.55, "prompt_n": 7, "cache_n": 69645, "answer": "7: 7520"}
+{"arm": "soak", "conv": "C", "turn": 14, "wall_s": 75.73, "prompt_n": 7, "cache_n": 69646, "answer": "7, 7525"}
+{"arm": "soak", "conv": "A", "turn": 15, "wall_s": 79.02, "prompt_n": 7, "cache_n": 72073, "answer": "14024"}
+{"arm": "soak", "conv": "B", "turn": 15, "wall_s": 79.23, "prompt_n": 7, "cache_n": 72072, "answer": "15999"}
+{"arm": "soak", "conv": "C", "turn": 15, "wall_s": 79.09, "prompt_n": 7, "cache_n": 72069, "answer": "6453"}

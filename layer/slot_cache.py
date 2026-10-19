@@ -37,7 +37,15 @@ thousand tokens instead of the whole conversation. A restore loads the chain: th
 ("append"). After BONSAI_SLOT_CACHE_CHAIN deltas (8) the layer writes a full save of the conversation the next time it
 has been idle for BONSAI_SLOT_CACHE_IDLE seconds (30; a full save can take minutes on a slow drive, and the user does
 not wait for it then); after BONSAI_SLOT_CACHE_CHAIN_MAX deltas (32) the next save is full in any case. Eviction removes
-whole chains.
+whole chains. A save after an answer that would evict another conversation's save used in the last
+BONSAI_SLOT_CACHE_PROTECT seconds (600; 0 = off) is skipped, so conversations that take turns under a small budget do
+not evict each other's saves before each next use.
+Every answer (a delta server, BONSAI_SLOT_CACHE_EVERY=1, the default): the layer saves after every answer of a long
+conversation, as a delta, so a restore lands exactly on the last answer and the next request reads only the new turn:
+the same computation as a session that never left memory, also when several conversations take turns. The test is
+exact: at the next turn of the conversation, its last save after an answer must be a token prefix of the new prompt.
+When it is not (the template or the client rewrites the answer), the conversation goes back to the save before the
+request. Without delta support the cached-token test above is used.
 Read ahead (T1-d): a chat request with "prefill_only": true reads and saves its prompt and returns no text; the later real
 request then restores it.
 Any failure here only logs and lets the request run as before.
@@ -102,12 +110,16 @@ def has_media(body):
 
 class SlotCache:
     def __init__(self, upstream, folder, min_tokens=16384, grow=8192, budget_gb=20.0, log=None, min_gain=2048, after=False,
-                 chain=0, chain_max=None, idle_s=30.0):
+                 chain=0, chain_max=None, idle_s=30.0, every=True, protect_s=600.0):
         self.upstream, self.folder = upstream.rstrip("/"), os.path.abspath(folder)
         self.after_on = bool(after)   # save after the answer when the conversation passed the prefix test (see the top)
         self.chain = int(chain)        # delta saves: a full save when idle after this many deltas (0: deltas off)
         self.chain_max = int(chain_max) if chain_max is not None else 4 * self.chain   # ... and in any case after this many
         self.idle_s = float(idle_s)    # the idle time before a full save of a long chain
+        self.every = bool(every)       # with a delta server: save after every answer, test by exact token match
+        self.protect_s = float(protect_s)   # a save after an answer does not evict a save used this recently (0: off)
+        self.last_after = {}           # conversation key -> its last saves after an answer (up to 4, newest last): sessions
+                                       # that share their first BONSAI_SLOT_CACHE_MIN tokens share a key
         self.compact = None            # (conversation key, auth) of a chain that wants a full save when idle
         self.t_active = time.time()    # the end of the last chat request
         self.delta_ok = None           # the server takes "pos_min" / "append" (GET /props slot_save_delta); None: not asked
@@ -126,6 +138,8 @@ class SlotCache:
         os.makedirs(self.folder, exist_ok=True)
         self.conv_path = os.path.join(self.folder, PREFIX + "conv.json")
         self.conv = {}                 # conversation key -> True / False: the last prefix test passed / failed
+        self.fails = {}                # conversation key -> failed exact tests in a row (every-answer mode)
+        self.skips = {}                # conversation key -> saves after the answer skipped since the last try
         try:
             self.conv = {k: bool(v) for k, v in json.load(open(self.conv_path, encoding="utf-8")).items()}
         except FileNotFoundError:
@@ -153,7 +167,9 @@ class SlotCache:
                        os.environ.get("BONSAI_SLOT_CACHE_AFTER", "1") not in ("", "0"),
                        int(os.environ.get("BONSAI_SLOT_CACHE_CHAIN", 8)),
                        int(os.environ["BONSAI_SLOT_CACHE_CHAIN_MAX"]) if os.environ.get("BONSAI_SLOT_CACHE_CHAIN_MAX") else None,
-                       float(os.environ.get("BONSAI_SLOT_CACHE_IDLE", 30)))
+                       float(os.environ.get("BONSAI_SLOT_CACHE_IDLE", 30)),
+                       os.environ.get("BONSAI_SLOT_CACHE_EVERY", "1") not in ("", "0"),
+                       float(os.environ.get("BONSAI_SLOT_CACHE_PROTECT", 600)))
         except Exception as e:
             (log or (lambda *a: sys.stderr.write("[slots] " + " ".join(str(x) for x in a) + "\n")))(
                 "saved conversations OFF: cannot start the cache:", repr(e))
@@ -244,7 +260,17 @@ class SlotCache:
                         pass
                 self.log("idle full save skipped: the slot holds another conversation")
                 return {"skipped": True}
+            tip = (self._tips(key) or [None])[-1]
+            old_chain = self._chain(tip) if tip in self.index else None
+            tipn = self.index[tip]["n"] if old_chain else 0
+            try:
+                tipt = self._toks_of(tip) if old_chain else []
+            except Exception:   # an unreadable token list: keep the old chain (eviction removes it later)
+                old_chain, tipt = None, []
             sha, size = self._store(tmp, saved)
+            if old_chain and (tip == sha or saved[:tipn] == tipt):   # the full save holds every token of the old chain
+                self._drop([x for x in old_chain if x != sha], "replaced (idle full save)")
+            self._add_tip(key, sha)
             self.held = saved
             info = {"saved": len(saved), "save_s": round(time.time() - t1, 2)}
             self.log("idle full save", sha[:12], len(saved), "tokens:", info["save_s"], "s")
@@ -314,6 +340,77 @@ class SlotCache:
     def _root(self, sha):
         c = self._chain(sha)
         return c[0] if c else sha
+
+    def _tips(self, key):
+        """The conversation's saves after an answer that are still in the index, newest last."""
+        return [x for x in self.last_after.get(key, []) if x in self.index]
+
+    def _add_tip(self, key, sha):
+        self.last_after[key] = ([x for x in self._tips(key) if x != sha] + [sha])[-4:]
+
+    def _drop(self, shas, why):
+        """Remove these saves (files and index entries), deepest first, so no delta is left without its parent."""
+        for sha in sorted(shas, key=lambda x: -self.index.get(x, {"depth": 0})["depth"]):
+            if sha not in self.index:
+                continue
+            if any(e.get("parent") == sha for e in self.index.values()):
+                continue   # another save still builds on it (also its parent stays)
+            for f in self._files(sha):
+                try:
+                    if os.path.exists(f):
+                        os.remove(f)
+                except OSError:
+                    pass
+            e = self.index.pop(sha)
+            self._note({"sha": sha, "drop": True})
+            self.log(why, sha[:12], e["n"], "tokens")
+
+    def _replace_chain(self, parent):
+        """Budget pressure (the folder above 80 % of the budget) and a chain that holds twice its full save's bytes: the
+        next save of this conversation is full, and the old chain goes (it holds only prefixes of the new save)."""
+        chain = self._chain(parent) or []
+        if len(chain) < 2:
+            return None
+        total = sum(e["bytes"] for e in self.index.values())
+        cbytes = sum(self.index[x]["bytes"] for x in chain)
+        if total > 0.8 * self.budget and cbytes >= 2 * self.index[chain[0]]["bytes"]:
+            return chain
+        return None
+
+    def _evicts_recent(self, parent, own_sha, n, old_chain):
+        """Would a save after an answer (a delta on parent, or full; n tokens) make _evict remove another
+        conversation's save that was used in the last protect_s seconds? Several conversations that take turns under
+        a budget that cannot hold them all would then evict each other's saves before each next use (run 7: every turn
+        read its whole conversation again). Skipping the save keeps the others; this conversation's earlier save stays a
+        prefix of its next prompt, so its next turn reads only the turns since that save."""
+        if self.protect_s <= 0 or not self.index:
+            return False
+        own = self._root(own_sha) if own_sha in self.index else None   # this conversation's chain is never a victim
+        fulls = sorted((e for e in self.index.values() if not e.get("parent")), key=lambda e: -e["last"])
+        ref = self.index[own] if own in self.index else (fulls[0] if fulls else None)
+        if not ref or ref["n"] <= 0:
+            return False
+        rate = ref["bytes"] / ref["n"]   # bytes per token of a full save (with its fixed part: an over-estimate)
+        est = rate * (n - self.index[parent]["n"]) + 160 * 2**20 if parent else rate * n
+        total = sum(e["bytes"] for e in self.index.values())
+        if old_chain:
+            total -= sum(self.index[x]["bytes"] for x in old_chain)
+        need = total + est - self.budget
+        if need <= 0:
+            return False
+        groups = {}
+        for sha in self.index:
+            r = self._root(sha)
+            if r != own:
+                groups.setdefault(r, []).append(sha)
+        now = time.time()
+        for root, members in sorted(groups.items(), key=lambda kv: max(self.index[x]["last"] for x in kv[1])):
+            if need <= 0:
+                break
+            if now - max(self.index[x]["last"] for x in members) < self.protect_s:
+                return True
+            need -= sum(self.index[x]["bytes"] for x in members)
+        return False
 
     def _evict(self):
         """Remove the least recently used saves until the folder fits the budget. A chain (a full save and its deltas)
@@ -488,7 +585,20 @@ class SlotCache:
         if not force_save:
             self.probe = None
             self.wait = (key, probe[1]) if (probe and self.after_on) else None
-        after_mode = self.after_on and not force_save and self.conv.get(key) is True
+        every = self.after_on and self.every and not force_save and self._delta_ok(auth)
+        if every:
+            tips = self._tips(key)
+            if tips:   # the exact test: was the state after one of its last answers a prefix of this prompt?
+                chain = (self._chain(best_sha) or []) if best_sha in self.index else []
+                ok = any(la == best_sha or la in chain for la in tips)
+                if self.conv.get(key) is not ok:
+                    self.log("after-answer test", key[:12], "pass" if ok else "fail", "(exact)")
+                self._set_conv(key, ok)
+                self.fails[key] = 0 if ok else self.fails.get(key, 0) + 1
+                if len(self.fails) > 1000:
+                    self.fails.pop(next(iter(self.fails)))
+            self.wait = None   # no cached-token test in this mode
+        after_mode = self.after_on and not force_save and (self.conv.get(key) is True or (every and self.conv.get(key) is not False))
         if after_mode:
             info["slot_cache_after"] = "on"   # this conversation saves after the answer: no save before the request
         need = (1 if best_n == 0 else self.grow) if force_save else self.grow
@@ -542,7 +652,7 @@ class SlotCache:
                 self.held = toks[:info["slot_cache_restored"]]   # a restore-only read-ahead (re-review: blocking)
         else:
             self.held = toks
-            self.last = {"key": key, "toks": toks, "best": max(best_n, int(info.get("slot_cache_saved") or 0)),
+            self.last = {"key": key, "toks": toks, "every": every, "best": max(best_n, int(info.get("slot_cache_saved") or 0)),
                          "best_sha": best_sha if (info.get("slot_cache_restored") or info.get("slot_cache_saved")
                                                   or (best_sha and best_n <= common)) else None}
         info["slot_cache_s"] = round(time.time() - t0, 2)
@@ -575,12 +685,31 @@ class SlotCache:
         self.wait = None   # a reply without timings: no result for this test
         n = self._slot_tokens(auth)
         toks = last["toks"]
-        self.probe = (last["key"], n) if n > len(toks) else None
-        if self.conv.get(last["key"]) is True and n - last["best"] >= self.grow:
+        every = last.get("every")
+        self.probe = (last["key"], n) if (n > len(toks) and not every) else None
+        # every answer: also after one failed exact test (the next turn tests the new save and can pass again); after 2
+        # or more failures in a row (a template that rewrites every answer, e.g. it drops the reasoning) only every 4th
+        # turn tries again, so unused deltas do not fill the budget
+        key = last["key"]
+        backoff = bool(every) and self.fails.get(key, 0) >= 2 and self.skips.get(key, 0) < 3
+        if backoff:
+            self.skips[key] = self.skips.get(key, 0) + 1
+        else:
+            self.skips.pop(key, None)
+        want = (n > len(toks) and not backoff) if every else \
+            (self.conv.get(last["key"]) is True and n - last["best"] >= self.grow)
+        if want:
             tmp = self._tmp()
             parent = last.get("best_sha")
             if not (parent in self.index and self.index[parent]["depth"] < self.chain_max and self._delta_ok(auth)):
                 parent = None
+            old_chain = self._replace_chain(parent) if parent else None
+            if old_chain:
+                parent = None   # a full save; the old chain goes after it is stored
+            if self._evicts_recent(parent, last.get("best_sha"), n, old_chain):
+                self.log("save after the answer skipped: it would evict a save used in the last", int(self.protect_s), "s")
+                info.update(skipped="protect", s=round(time.time() - t0, 2))
+                return info
             try:
                 t1 = time.time()
                 body = {"filename": tmp}
@@ -595,6 +724,10 @@ class SlotCache:
                 sha, size = self._store(tmp, saved, parent)
                 if parent:
                     info["delta_of"] = self.index[parent]["n"]
+                if old_chain:
+                    self._drop([x for x in old_chain if x != sha], "replaced (budget)")
+                    info["replaced_chain"] = len(old_chain)
+                self._add_tip(last["key"], sha)
                 self.held = saved
                 info.update(saved=len(saved), save_s=round(time.time() - t1, 2))
                 self.log("saved after the answer", sha[:12], len(saved), "tokens:", info["save_s"], "s, n_saved", r.get("n_saved"))

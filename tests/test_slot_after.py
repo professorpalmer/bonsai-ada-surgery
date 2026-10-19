@@ -478,6 +478,150 @@ def test_idle_full_save():
     print("idle full save: after the soft cap, only when idle, skipped for another conversation: ok")
 
 
+def conv_msgs(tag, answers, n, rewrite=False):
+    doc = {"role": "user", "content": tag * 120 + "Q1?"}
+    msgs = [doc]
+    for k in range(1, n):
+        a = answers[k - 1]
+        msgs.append({"role": "assistant", "content": ("x" + a) if rewrite else a})
+        msgs.append({"role": "user", "content": "T%d" % k + tag.lower() * 25 + "?"})
+    return msgs
+
+
+def test_every_answer_interleaved():
+    reset()
+    S["delta"] = True
+    c = cache(chain=8)
+    ans = {"D": [], "E": []}
+    exact = []
+    for k in range(1, 6):
+        for tag in ("D", "E"):
+            S["calls"].clear()
+            a, info = chat(c, conv_msgs(tag, ans[tag], k))
+            if k > 1:   # the slot held the other conversation: a restore of this one's state after its last answer
+                assert info.get("slot_cache_restored"), (tag, k, info, LOG[-3:])
+                exact.append(S["cached"] == info["slot_cache_restored"])
+            assert "/completion" not in S["calls"], (tag, k, S["calls"])   # never a save before the request
+            ans[tag].append(a)
+    assert all(exact) and len(exact) == 8, exact
+    keyd = c._conv_key(toks(render(conv_msgs("D", ans["D"], 5))))
+    assert c.conv.get(keyd) is True, (c.conv, LOG[-4:])
+    print("save after every answer: interleaved conversations restore exactly to the last answer, no save before: ok")
+
+
+def test_every_answer_rewritten():
+    reset()
+    S["delta"] = True
+    c = cache(chain=8)
+    ans = []
+    calls = []
+    for k in range(1, 5):
+        S["calls"].clear()
+        a, info = chat(c, conv_msgs("F", ans, k, rewrite=True))
+        calls.append(S["calls"].count("/completion"))
+        ans.append(a)
+        chat(c, conv_msgs("G", [], 1))   # another conversation in between: the next F turn must restore
+    keyf = c._conv_key(toks(render(conv_msgs("F", ans, 2, rewrite=True))))
+    assert c.conv.get(keyf) is False, (c.conv, LOG[-4:])
+    assert calls[0] == 0 and sum(calls[2:]) >= 1, calls   # back to the save before the request after the failed test
+    print("save after every answer: a rewritten answer fails the exact test, the save before the request comes back: ok")
+
+
+def test_budget_replaces_chain():
+    reset()
+    S["delta"] = True
+    c = cache(chain=8)
+    ans = run_turns(c, [], 1, 6)   # a full save + deltas after each answer
+    assert max(e["depth"] for e in c.index.values()) >= 3, c.index
+    c.budget = sum(e["bytes"] for e in c.index.values()) * 1.05   # the folder is now above 80 % of the budget
+    run_turns(c, ans, 6, 8)
+    assert any("replaced (budget)" in l for l in LOG), LOG[-6:]
+    roots = [x for x, e in c.index.items() if not e["parent"]]
+    tip = max(c.index, key=lambda x: c.index[x]["n"])
+    assert c.index[c._chain(tip)[0]]["n"] > 200, c.index   # the chain now starts at the new full save
+    assert not [x for x, e in c.index.items() if e["parent"] and e["parent"] not in c.index]
+    print("budget pressure: a full save replaces a long chain, no orphans: ok")
+
+
+def test_protect_recent():
+    for protect in (600, 0):
+        reset()
+        S["delta"] = True
+        c = cache(chain=8, protect_s=protect)
+        ans = {"D": [], "E": [], "F": []}
+        for k in range(1, 3):
+            for tag in "DEF":
+                a, info = chat(c, conv_msgs(tag, ans[tag], k))
+                ans[tag].append(a)
+        c.budget = sum(e["bytes"] for e in c.index.values()) * 1.02   # three conversations that take turns no longer fit
+        n0 = len(LOG)
+        restored = []
+        for k in range(3, 6):
+            for tag in "DEF":
+                a, info = chat(c, conv_msgs(tag, ans[tag], k))
+                ans[tag].append(a)
+                restored.append(bool(info.get("slot_cache_restored")))
+        new = LOG[n0:]
+        skipped = [l for l in new if "skipped" in l]
+        evicted = [l for l in new if l.startswith("evicted")]
+        if protect:
+            assert skipped and not evicted and all(restored), (skipped, evicted, restored)   # a save of each is kept
+        else:
+            assert evicted and not skipped and not all(restored), (skipped, evicted, restored)   # the saves evict each other
+        assert not [x for x, e in c.index.items() if e["parent"] and e["parent"] not in c.index]
+    print("small budget, conversations that take turns: saves used in the last 600 s are not evicted; 0 = off: ok")
+
+
+def shared_msgs(tag, answers, n):
+    doc = {"role": "user", "content": "S" * 60 + tag * 60 + "Q1?"}   # the same first 60 tokens: one conversation key
+    msgs = [doc]
+    for k in range(1, n):
+        msgs.append({"role": "assistant", "content": answers[k - 1]})
+        msgs.append({"role": "user", "content": "T%d" % k + tag.lower() * 25 + "?"})
+    return msgs
+
+
+def test_shared_key_and_branch_drop():
+    reset()
+    S["delta"] = True
+    c = cache(chain=8)
+    ans = {"D": [], "E": []}
+    for k in range(1, 5):
+        for tag in "DE":
+            S["calls"].clear()
+            a, info = chat(c, shared_msgs(tag, ans[tag], k))
+            if k > 1:   # sessions that share their start each restore exactly to their own last answer
+                assert info.get("slot_cache_restored") and S["cached"] == info["slot_cache_restored"], (tag, k, info, LOG[-3:])
+                assert "/completion" not in S["calls"], (tag, k, S["calls"])
+            ans[tag].append(a)
+    # a branched chain: F -> D1 -> D2 and B on D1; dropping [F, D1, D2] keeps D1 and F (B builds on them)
+    c.index = {}
+    for sha, parent, depth in (("f", None, 0), ("d1", "f", 1), ("d2", "d1", 2), ("b", "d1", 2)):
+        c.index[sha] = {"n": 100 * (depth + 1), "last": 0.0, "bytes": 10, "parent": parent, "depth": depth}
+    c._drop(["f", "d1", "d2"], "test")
+    assert set(c.index) == {"f", "d1", "b"}, c.index
+    assert not [x for x, e in c.index.items() if e["parent"] and e["parent"] not in c.index]
+    print("shared conversation key: both sessions restore exactly; a branched chain drop leaves no orphan: ok")
+
+
+def test_rewritten_backoff():
+    reset()
+    S["delta"] = True
+    c = cache(chain=8)
+    ans = []
+    n0 = len(LOG)
+    for k in range(1, 13):
+        a, info = chat(c, conv_msgs("F", ans, k, rewrite=True))
+        ans.append(a)
+        chat(c, conv_msgs("G", [], 1))   # another conversation in between
+    keyf = c._conv_key(toks(render(conv_msgs("F", ans, 2, rewrite=True))))
+    gn = len(toks(render(conv_msgs("G", [], 1)))) + 10
+    f_saves = [l for l in LOG[n0:] if l.startswith("saved after the answer") and int(l.split()[5]) > gn]
+    assert c.fails.get(keyf, 0) >= 2, c.fails
+    assert 3 <= len(f_saves) <= 5, f_saves   # 12 turns: turns 1 and 2, then one try every 4th turn (12 without the back-off)
+    print("rewritten answers: saves after the answer back off (%d of 12 turns), a try every 4th turn: ok" % len(f_saves))
+
+
 if __name__ == "__main__":
     test_read_tokens()
     test_review_fixes()
@@ -492,4 +636,10 @@ if __name__ == "__main__":
     test_delta_eviction()
     test_delta_before_request()
     test_idle_full_save()
+    test_every_answer_interleaved()
+    test_every_answer_rewritten()
+    test_budget_replaces_chain()
+    test_protect_recent()
+    test_shared_key_and_branch_drop()
+    test_rewritten_backoff()
     print("ALL OK")

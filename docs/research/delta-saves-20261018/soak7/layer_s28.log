@@ -1,0 +1,42 @@
+[proxy] "GET /health HTTP/1.1" 503 -
+[proxy] "GET /health HTTP/1.1" 503 -
+[proxy] "GET /health HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[slots] delta saves on
+[slots] restored 3395aa5ef9cb 43174 tokens in 0.64 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] save after the answer skipped: it would evict a save used in the last 600 s
+[proxy] slot cache after the answer: {"skipped": "protect", "s": 0.02}
+[slots] restored 4722472f08eb 42992 tokens in 0.61 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] save after the answer skipped: it would evict a save used in the last 600 s
+[proxy] slot cache after the answer: {"skipped": "protect", "s": 0.02}
+[slots] restored 70741ffe29a0 40718 tokens in 0.5 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] save after the answer skipped: it would evict a save used in the last 600 s
+[proxy] slot cache after the answer: {"skipped": "protect", "s": 0.0}
+[slots] restored 3395aa5ef9cb 43174 tokens in 0.63 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] save after the answer skipped: it would evict a save used in the last 600 s
+[proxy] slot cache after the answer: {"skipped": "protect", "s": 0.02}
+[slots] restored 4722472f08eb 42992 tokens in 0.59 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] save after the answer skipped: it would evict a save used in the last 600 s
+[proxy] slot cache after the answer: {"skipped": "protect", "s": 0.02}
+[slots] restored 70741ffe29a0 40718 tokens in 0.5 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] save after the answer skipped: it would evict a save used in the last 600 s
+[proxy] slot cache after the answer: {"skipped": "protect", "s": 0.02}
+[slots] restored 3395aa5ef9cb 43174 tokens in 0.62 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] save after the answer skipped: it would evict a save used in the last 600 s
+[proxy] slot cache after the answer: {"skipped": "protect", "s": 0.0}
+[slots] restored 4722472f08eb 42992 tokens in 0.62 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] save after the answer skipped: it would evict a save used in the last 600 s
+[proxy] slot cache after the answer: {"skipped": "protect", "s": 0.0}
+[slots] restored 70741ffe29a0 40718 tokens in 0.5 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] save after the answer skipped: it would evict a save used in the last 600 s
+[proxy] slot cache after the answer: {"skipped": "protect", "s": 0.0}
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -

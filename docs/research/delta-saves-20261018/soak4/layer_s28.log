@@ -1,0 +1,47 @@
+[proxy] "GET /health HTTP/1.1" 503 -
+[proxy] "GET /health HTTP/1.1" 503 -
+[proxy] "GET /health HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[slots] restored 3185d63355b6 58062 tokens in 0.52 s
+[slots] delta saves on
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] saved after the answer 18ab8df93a21 60479 tokens: 0.2 s, n_saved 60479
+[slots] evicted 51877843b290 57542 tokens
+[slots] evicted 22a12a0968f7 55119 tokens
+[proxy] slot cache after the answer: {"delta_of": 58062, "saved": 60479, "save_s": 0.2, "s": 0.29}
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] saved after the answer c29a5aae1316 59954 tokens: 0.86 s, n_saved 59954
+[slots] evicted e3cb5bc6e5d5 58098 tokens
+[proxy] slot cache after the answer: {"saved": 59954, "save_s": 0.86, "s": 0.95}
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] saved after the answer 63ee47c0c010 60548 tokens: 0.84 s, n_saved 60548
+[slots] evicted 18ab8df93a21 60479 tokens
+[slots] evicted 3185d63355b6 58062 tokens
+[proxy] slot cache after the answer: {"saved": 60548, "save_s": 0.84, "s": 0.93}
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] saved after the answer 4ae8a7e2c8bd 63016 tokens: 0.87 s, n_saved 63016
+[proxy] slot cache after the answer: {"saved": 63016, "save_s": 0.87, "s": 0.88}
+[slots] restored c29a5aae1316 59954 tokens in 0.57 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] saved after the answer b646f1636f13 62381 tokens: 0.19 s, n_saved 62381
+[slots] evicted 63ee47c0c010 60548 tokens
+[proxy] slot cache after the answer: {"delta_of": 59954, "saved": 62381, "save_s": 0.19, "s": 0.26}
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] saved after the answer 085a938ecba6 63089 tokens: 0.89 s, n_saved 63089
+[slots] evicted 4ae8a7e2c8bd 63016 tokens
+[proxy] slot cache after the answer: {"saved": 63089, "save_s": 0.89, "s": 0.95}
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] saved after the answer 58083513560a 65481 tokens: 0.94 s, n_saved 65481
+[slots] evicted b646f1636f13 62381 tokens
+[slots] evicted c29a5aae1316 59954 tokens
+[proxy] slot cache after the answer: {"saved": 65481, "save_s": 0.94, "s": 1.06}
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] saved after the answer 613a3ec65b03 64803 tokens: 0.97 s, n_saved 64803
+[slots] evicted 085a938ecba6 63089 tokens
+[proxy] slot cache after the answer: {"saved": 64803, "save_s": 0.97, "s": 1.07}
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[slots] saved after the answer f7c4d1cd254c 65522 tokens: 0.93 s, n_saved 65522
+[slots] evicted 58083513560a 65481 tokens
+[proxy] slot cache after the answer: {"saved": 65522, "save_s": 0.93, "s": 1.01}
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -

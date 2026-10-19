@@ -1,0 +1,57 @@
+[proxy] "GET /health HTTP/1.1" 503 -
+[proxy] "GET /health HTTP/1.1" 503 -
+[proxy] "GET /health HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[slots] delta saves on
+[slots] restored 2ce5613051aa 65437 tokens in 1.08 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] saved after the answer 2ce88775703b 67874 tokens: 0.19 s, n_saved 67874
+[proxy] slot cache after the answer: {"delta_of": 65437, "saved": 67874, "save_s": 0.19, "s": 0.19}
+[slots] restored 613a3ec65b03 64803 tokens in 0.67 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] saved after the answer 4ecee8aaa8b3 67238 tokens: 0.18 s, n_saved 67238
+[proxy] slot cache after the answer: {"delta_of": 64803, "saved": 67238, "save_s": 0.18, "s": 0.18}
+[slots] restored f7c4d1cd254c 65522 tokens in 0.98 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] saved after the answer 6148ae38726d 67989 tokens: 0.19 s, n_saved 67989
+[proxy] slot cache after the answer: {"delta_of": 65522, "saved": 67989, "save_s": 0.19, "s": 0.21}
+[slots] restored 2ce88775703b 67874 tokens in 1.2 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] replaced (budget) 2ce88775703b 67874 tokens
+[slots] replaced (budget) 2ce5613051aa 65437 tokens
+[slots] replaced (budget) 3fe7629bb39f 62994 tokens
+[slots] replaced (budget) 589986590797 60457 tokens
+[slots] replaced (budget) 07b5ffbb0c2c 58040 tokens
+[slots] replaced (budget) 0efff29046da 55542 tokens
+[slots] replaced (budget) 5d31e9410669 53012 tokens
+[slots] saved after the answer 934a72c2d3b6 70409 tokens: 1.13 s, n_saved 70409
+[proxy] slot cache after the answer: {"replaced_chain": 7, "saved": 70409, "save_s": 1.13, "s": 1.14}
+[slots] restored 4ecee8aaa8b3 67238 tokens in 0.77 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] saved after the answer aa92f97efbc5 69660 tokens: 0.19 s, n_saved 69660
+[proxy] slot cache after the answer: {"delta_of": 67238, "saved": 69660, "save_s": 0.19, "s": 0.19}
+[slots] restored 6148ae38726d 67989 tokens in 1.12 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] saved after the answer 63c01c2b7f74 70520 tokens: 0.2 s, n_saved 70520
+[proxy] slot cache after the answer: {"delta_of": 67989, "saved": 70520, "save_s": 0.2, "s": 0.22}
+[slots] restored 934a72c2d3b6 70409 tokens in 0.6 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] saved after the answer d972c2dc8657 72911 tokens: 0.2 s, n_saved 72911
+[proxy] slot cache after the answer: {"delta_of": 70409, "saved": 72911, "save_s": 0.2, "s": 0.2}
+[slots] restored aa92f97efbc5 69660 tokens in 0.88 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] saved after the answer 78bc35fbbb8e 72085 tokens: 0.19 s, n_saved 72085
+[proxy] slot cache after the answer: {"delta_of": 69660, "saved": 72085, "save_s": 0.19, "s": 0.21}
+[slots] restored 63c01c2b7f74 70520 tokens in 1.24 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[slots] replaced (budget) 63c01c2b7f74 70520 tokens
+[slots] replaced (budget) 6148ae38726d 67989 tokens
+[slots] replaced (budget) f7c4d1cd254c 65522 tokens
+[slots] replaced (budget) 085a938ecba6 63089 tokens
+[slots] replaced (budget) 63ee47c0c010 60548 tokens
+[slots] replaced (budget) e3cb5bc6e5d5 58098 tokens
+[slots] replaced (budget) f29356397b2b 55624 tokens
+[slots] saved after the answer d8fc76fc7886 72990 tokens: 1.17 s, n_saved 72990
+[proxy] slot cache after the answer: {"replaced_chain": 7, "saved": 72990, "save_s": 1.17, "s": 1.18}
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
