@@ -1,0 +1,7 @@
+14:22 === depth table dflash12-128000 (<r-1019az root>): health=1; kv     tiered: cells 0..185088 in VRAM, 185088..262144 in system RAM (VRAM margin 2202 MiB); packed KQ mask (240 MiB saved)
+128000: code   depth 128000 (evaluated 127340): prefill   720.4 tok/s  ttft 176.75s  decode   72.1 tok/s (400 tok)
+128000: prose  depth 128000 (evaluated 512): prefill   418.9 tok/s  ttft   1.22s  decode   58.6 tok/s (400 tok)
+128000: bash   depth 128000 (evaluated 516): prefill   432.6 tok/s  ttft   1.19s  decode   66.8 tok/s (400 tok)
+128000: mean decode 65.8 tok/s
+cumulative prefill at 128000:  723 tok/s (127336 tokens in 176.2 s)
+14:25 === done

@@ -1,0 +1,13 @@
+14:16:56 === DFlash 12 GB: drafter 6c11956fde5f5286
+probe C: code   depth   4000 (evaluated 4048): prefill  1288.8 tok/s  ttft   3.14s  decode  102.8 tok/s (400 tok)
+probe C: prose  depth   4000 (evaluated 512): prefill   977.0 tok/s  ttft   0.52s  decode   86.0 tok/s (400 tok)
+probe C: bash   depth   4000 (evaluated 516): prefill   994.0 tok/s  ttft   0.52s  decode   95.0 tok/s (400 tok)
+probe C: mean decode 94.6 tok/s
+14:17:28 probe C: lowest free 374 MiB; kv     tiered: cells 0..260352 in VRAM, 260352..262144 in system RAM (VRAM margin 1000 MiB spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to  ; CUDA errors 0; dflash 0 lines
+probe D: code   depth   4000 (evaluated 4048): prefill  1186.5 tok/s  ttft   3.41s  decode   92.0 tok/s (400 tok)
+probe D: prose  depth   4000 (evaluated 512): prefill   929.7 tok/s  ttft   0.55s  decode   72.0 tok/s (400 tok)
+probe D: bash   depth   4000 (evaluated 516): prefill   950.1 tok/s  ttft   0.54s  decode   84.6 tok/s (400 tok)
+probe D: mean decode 82.9 tok/s
+14:18:12 probe D: lowest free 572 MiB; pool   separate draft model: shared CUDA pool off (it supports the MTP draft head only) kv     tiered: cells 0..173056 in VRAM, 173056..262144 in system RAM (VRAM margin 2400 MiB spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); types ngram-mod,draft- ; CUDA errors 0; dflash 5 lines
+14:18:23 D0: free C 374, D 572 (margin 2400) -> drafter cost 1202 MiB -> D margin 2202
+14:45:10 === DFlash 12 GB done
