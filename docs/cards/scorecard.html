@@ -7,7 +7,7 @@
 var DATA = {
   // Small print under the card, one line per tier.
   rig: {
-    '12gb': 'RTX 4070, display on the iGPU: decode 2026-10-15/16, HumanEval 2026-10-16 (bundle-20261016)',
+    '12gb': 'RTX 4070, display on the iGPU: speed 2026-10-19 (bundle-20261019a), HumanEval 2026-10-16 (bundle-20261016)',
     '8gb': 'RTX 2060 SUPER, display on the card: decode 2026-10-16 (bundle-20261016/17), HumanEval 2026-10-14'
   },
   // Window and K/V cache type: start-server.ps1 defaults (12 GB band: q4_0; 8 GB preset: q3_0, 262k with >= 24 GB RAM).
@@ -17,13 +17,13 @@ var DATA = {
   // 8 GB docs/research/depth-8gb-20261006/experiments/P163.md (launcher line, display on the card).
   vramCells: { '12gb': 260352, '8gb': 80640 },
   // Decode, tok/s, quick_tps mean of code / prose / bash, 400-token greedy answers, MTP + lookup drafting.
-  // 12 GB: 4k and 245k docs/receipts/release_0059.log U04 (2026-10-16); 128k docs/research/depth-20261010 D29 (2026-10-15).
+  // 12 GB: docs/receipts/depth_table_bundle-20261019a-12gb-fresh.log (2026-10-19, a fresh server for each depth).
   // 8 GB: 4k and 128k P163.md (2026-10-16); 245k P150.md (2026-10-16).
-  decode4k: { '12gb': 96.2, '8gb': 53.4 },
-  decode128k: { '12gb': 76.6, '8gb': 22.3 },
+  decode4k: { '12gb': 96.5, '8gb': 53.4 },
+  decode128k: { '12gb': 72.0, '8gb': 22.3 },
   decode245k: { '12gb': 60.4, '8gb': 9.8 },
-  // Prefill of a fresh 4,048-token code prompt, tok/s. 12 GB release_0059.log U04 r0059; 8 GB P163.md sweep 4k.
-  prefill4k: { '12gb': 1294, '8gb': 417 },
+  // Prefill of a fresh 4,048-token code prompt, tok/s. 12 GB the same 2026-10-19 log; 8 GB P163.md sweep 4k.
+  prefill4k: { '12gb': 1297, '8gb': 417 },
   // HumanEval 164 at medium, default cache. 12 GB docs/research/release-20261016 U03 (q4_0);
   // 8 GB docs/research/release-20261014b S04 / P131 (q3_0).
   humaneval: { '12gb': 158, '8gb': 163 }
