@@ -1,5 +1,8 @@
 # Presence penalty and runaway thinking (2026-10-19)
 
+**Result: not adopted.** With `presence_penalty` 1.5 the thinking is longer, not shorter (tasks over 4,096 tokens
+18 -> 22, p90 4,455 -> 6,694 tokens); the score is the same within noise (159 -> 162). See [EXPERIMENTS.md](EXPERIMENTS.md).
+
 Plan written before the runs. One entry per run goes to `EXPERIMENTS.md`, one line per run to `runs.jsonl`.
 
 ## Question
