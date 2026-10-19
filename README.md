@@ -120,7 +120,7 @@ the tiered-KV runtime are detected and get the previous 96k all-VRAM recipe.
 `bundle-20261018f` (no engine change): the layer saves after every answer of a long conversation (a delta), so the next
 turn restores exactly the state after the last answer and reads only the new turn, also when several conversations take
 turns. A save that would evict another conversation's save used in the last 10 minutes is skipped
-(`BONSAI_SLOT_CACHE_PROTECT`). Three interleaved conversations with restarts: mean wait 9.4 -> 7.0 s, answers equal to
+(`BONSAI_SLOT_CACHE_PROTECT`). Three interleaved conversations with restarts, 6 GB budget: mean wait 9.4 -> 6.7 s, answers equal to
 cache-off at 45 of 45 turns; under a 3 GB budget -35 % against the previous design. `BONSAI_SLOT_CACHE_EVERY=0` keeps the
 previous behaviour. Gates: `docs/research/release-20261018f`.
 
