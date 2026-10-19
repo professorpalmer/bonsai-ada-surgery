@@ -118,7 +118,8 @@ class SlotCache:
         self.idle_s = float(idle_s)    # the idle time before a full save of a long chain
         self.every = bool(every)       # with a delta server: save after every answer, test by exact token match
         self.protect_s = float(protect_s)   # a save after an answer does not evict a save used this recently (0: off)
-        self.last_after = {}           # conversation key -> sha of its last save after an answer
+        self.last_after = {}           # conversation key -> its last saves after an answer (up to 4, newest last): sessions
+                                       # that share their first BONSAI_SLOT_CACHE_MIN tokens share a key
         self.compact = None            # (conversation key, auth) of a chain that wants a full save when idle
         self.t_active = time.time()    # the end of the last chat request
         self.delta_ok = None           # the server takes "pos_min" / "append" (GET /props slot_save_delta); None: not asked
@@ -257,14 +258,17 @@ class SlotCache:
                         pass
                 self.log("idle full save skipped: the slot holds another conversation")
                 return {"skipped": True}
-            tip = self.last_after.get(key)
+            tip = (self._tips(key) or [None])[-1]
             old_chain = self._chain(tip) if tip in self.index else None
             tipn = self.index[tip]["n"] if old_chain else 0
-            tipt = self._toks_of(tip) if old_chain else []
+            try:
+                tipt = self._toks_of(tip) if old_chain else []
+            except Exception:   # an unreadable token list: keep the old chain (eviction removes it later)
+                old_chain, tipt = None, []
             sha, size = self._store(tmp, saved)
             if old_chain and (tip == sha or saved[:tipn] == tipt):   # the full save holds every token of the old chain
                 self._drop([x for x in old_chain if x != sha], "replaced (idle full save)")
-            self.last_after[key] = sha
+            self._add_tip(key, sha)
             self.held = saved
             info = {"saved": len(saved), "save_s": round(time.time() - t1, 2)}
             self.log("idle full save", sha[:12], len(saved), "tokens:", info["save_s"], "s")
@@ -335,13 +339,20 @@ class SlotCache:
         c = self._chain(sha)
         return c[0] if c else sha
 
+    def _tips(self, key):
+        """The conversation's saves after an answer that are still in the index, newest last."""
+        return [x for x in self.last_after.get(key, []) if x in self.index]
+
+    def _add_tip(self, key, sha):
+        self.last_after[key] = ([x for x in self._tips(key) if x != sha] + [sha])[-4:]
+
     def _drop(self, shas, why):
         """Remove these saves (files and index entries), deepest first, so no delta is left without its parent."""
         for sha in sorted(shas, key=lambda x: -self.index.get(x, {"depth": 0})["depth"]):
             if sha not in self.index:
                 continue
-            if any(e.get("parent") == sha for k, e in self.index.items() if k not in shas):
-                continue   # another save still builds on it
+            if any(e.get("parent") == sha for e in self.index.values()):
+                continue   # another save still builds on it (also its parent stays)
             for f in self._files(sha):
                 try:
                     if os.path.exists(f):
@@ -574,9 +585,10 @@ class SlotCache:
             self.wait = (key, probe[1]) if (probe and self.after_on) else None
         every = self.after_on and self.every and not force_save and self._delta_ok(auth)
         if every:
-            la = self.last_after.get(key)
-            if la in self.index:   # the exact test: was the state after its last answer a prefix of this prompt?
-                ok = la == best_sha or (best_sha in self.index and la in (self._chain(best_sha) or []))
+            tips = self._tips(key)
+            if tips:   # the exact test: was the state after one of its last answers a prefix of this prompt?
+                chain = (self._chain(best_sha) or []) if best_sha in self.index else []
+                ok = any(la == best_sha or la in chain for la in tips)
                 if self.conv.get(key) is not ok:
                     self.log("after-answer test", key[:12], "pass" if ok else "fail", "(exact)")
                 self._set_conv(key, ok)
@@ -670,7 +682,8 @@ class SlotCache:
         toks = last["toks"]
         every = last.get("every")
         self.probe = (last["key"], n) if (n > len(toks) and not every) else None
-        want = (n > len(toks) and self.conv.get(last["key"]) is not False) if every else \
+        # every answer: also after a failed exact test (the next turn tests the new save and can pass again)
+        want = n > len(toks) if every else \
             (self.conv.get(last["key"]) is True and n - last["best"] >= self.grow)
         if want:
             tmp = self._tmp()
@@ -701,7 +714,7 @@ class SlotCache:
                 if old_chain:
                     self._drop([x for x in old_chain if x != sha], "replaced (budget)")
                     info["replaced_chain"] = len(old_chain)
-                self.last_after[last["key"]] = sha
+                self._add_tip(last["key"], sha)
                 self.held = saved
                 info.update(saved=len(saved), save_s=round(time.time() - t1, 2))
                 self.log("saved after the answer", sha[:12], len(saved), "tokens:", info["save_s"], "s, n_saved", r.get("n_saved"))

@@ -572,6 +572,38 @@ def test_protect_recent():
     print("small budget, conversations that take turns: saves used in the last 600 s are not evicted; 0 = off: ok")
 
 
+def shared_msgs(tag, answers, n):
+    doc = {"role": "user", "content": "S" * 60 + tag * 60 + "Q1?"}   # the same first 60 tokens: one conversation key
+    msgs = [doc]
+    for k in range(1, n):
+        msgs.append({"role": "assistant", "content": answers[k - 1]})
+        msgs.append({"role": "user", "content": "T%d" % k + tag.lower() * 25 + "?"})
+    return msgs
+
+
+def test_shared_key_and_branch_drop():
+    reset()
+    S["delta"] = True
+    c = cache(chain=8)
+    ans = {"D": [], "E": []}
+    for k in range(1, 5):
+        for tag in "DE":
+            S["calls"].clear()
+            a, info = chat(c, shared_msgs(tag, ans[tag], k))
+            if k > 1:   # sessions that share their start each restore exactly to their own last answer
+                assert info.get("slot_cache_restored") and S["cached"] == info["slot_cache_restored"], (tag, k, info, LOG[-3:])
+                assert "/completion" not in S["calls"], (tag, k, S["calls"])
+            ans[tag].append(a)
+    # a branched chain: F -> D1 -> D2 and B on D1; dropping [F, D1, D2] keeps D1 and F (B builds on them)
+    c.index = {}
+    for sha, parent, depth in (("f", None, 0), ("d1", "f", 1), ("d2", "d1", 2), ("b", "d1", 2)):
+        c.index[sha] = {"n": 100 * (depth + 1), "last": 0.0, "bytes": 10, "parent": parent, "depth": depth}
+    c._drop(["f", "d1", "d2"], "test")
+    assert set(c.index) == {"f", "d1", "b"}, c.index
+    assert not [x for x, e in c.index.items() if e["parent"] and e["parent"] not in c.index]
+    print("shared conversation key: both sessions restore exactly; a branched chain drop leaves no orphan: ok")
+
+
 if __name__ == "__main__":
     test_read_tokens()
     test_review_fixes()
@@ -590,4 +622,5 @@ if __name__ == "__main__":
     test_every_answer_rewritten()
     test_budget_replaces_chain()
     test_protect_recent()
+    test_shared_key_and_branch_drop()
     print("ALL OK")
