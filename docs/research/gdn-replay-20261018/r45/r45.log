@@ -1,0 +1,26 @@
+02:24:29 === R4/R5: engine commit c5e73e7d81; clock 405 MHz
+02:24:42 server S1 (BONSAI_KV_VRAM_CELLS=80640): health=1; kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; shared CUDA pool on (BONSAI_SHARED_POOL=0 |kv     sparse host-tail reads: auto (dense line 80640; past it the engine times dense vs sparse per 16k band a|spec   draft 1 (1 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI_LOOKUP=0 |
+{"tag": "S1", "depth": 4000, "prompt_n": 3874, "pp": 1249.722167471158, "tg": 80.76669473241778, "n": 300, "draft_n": 179, "draft_acc": 119, "wall": 6.8, "sha": "4f81b471346c2042"}
+{"tag": "S1", "depth": 64000, "prompt_n": 63579, "pp": 977.4871994131541, "tg": 70.06621374366358, "n": 300, "draft_n": 205, "draft_acc": 124, "wall": 69.5, "sha": "38c1a774f4bd5547"}
+{"tag": "S1", "depth": 128000, "prompt_n": 128119, "pp": 754.657487025851, "tg": 42.364782312320834, "n": 300, "draft_n": 231, "draft_acc": 128, "wall": 176.9, "sha": "77b2f0c7a08c8c6b"}
+{"tag": "S1", "depth": 200000, "prompt_n": 200758, "pp": 593.8994780980909, "tg": 20.09144631871283, "n": 300, "draft_n": 185, "draft_acc": 113, "wall": 353.0, "sha": "ec1fb141fb828490"}
+02:34:48 S1 CUDA errors 0; RS: 
+02:35:06 server R1 (BONSAI_KV_VRAM_CELLS=90880 LLAMA_RS_REPLAY=1): health=1; kv     tiered: cells 0..90880 in VRAM, 90880..262144 in system RAM; shared CUDA pool on (BONSAI_SHARED_POOL=0 |kv     sparse host-tail reads: auto (dense line 90880; past it the engine times dense vs sparse per 16k band a|spec   draft 1 (1 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI_LOOKUP=0 |
+{"tag": "R1", "depth": 4000, "prompt_n": 3874, "pp": 1260.0340866216516, "tg": 81.80079945918456, "n": 300, "draft_n": 179, "draft_acc": 119, "wall": 6.8, "sha": "4f81b471346c2042"}
+{"tag": "R1", "depth": 64000, "prompt_n": 63579, "pp": 977.8151958347186, "tg": 70.4772132319907, "n": 300, "draft_n": 205, "draft_acc": 124, "wall": 69.4, "sha": "38c1a774f4bd5547"}
+{"tag": "R1", "depth": 128000, "prompt_n": 128119, "pp": 755.8394287423424, "tg": 46.730571374227324, "n": 300, "draft_n": 235, "draft_acc": 124, "wall": 176.0, "sha": "7acfe441c069c9c1"}
+{"tag": "R1", "depth": 200000, "prompt_n": 200758, "pp": 595.2322501018392, "tg": 21.295117784436005, "n": 300, "draft_n": 187, "draft_acc": 111, "wall": 351.4, "sha": "9acf037dd7467413"}
+02:45:10 R1 CUDA errors 0; RS: 
+02:45:28 server R2t (BONSAI_KV_VRAM_CELLS=90624 LLAMA_RS_REPLAY=1 BONSAI_SPEC_DEEP=2): health=1; kv     tiered: cells 0..90624 in VRAM, 90624..262144 in system RAM; shared CUDA pool on (BONSAI_SHARED_POOL=0 |kv     sparse host-tail reads: auto (dense line 90624; past it the engine times dense vs sparse per 16k band a|spec   draft 1 (2 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI_LOOKUP=0 |
+{"tag": "R2t", "depth": 4000, "prompt_n": 3874, "pp": 1249.3405004327865, "tg": 80.9545379350528, "n": 300, "draft_n": 180, "draft_acc": 119, "wall": 6.8, "sha": "caf6cf34473a6bdf"}
+{"tag": "R2t", "depth": 64000, "prompt_n": 63579, "pp": 975.7773355896377, "tg": 70.30263757156351, "n": 300, "draft_n": 202, "draft_acc": 126, "wall": 69.6, "sha": "06d1697eed7cc281"}
+{"tag": "R2t", "depth": 128000, "prompt_n": 128119, "pp": 755.1768641615956, "tg": 48.48557181272634, "n": 300, "draft_n": 325, "draft_acc": 151, "wall": 175.9, "sha": "9396f8e33745aa15"}
+{"tag": "R2t", "depth": 200000, "prompt_n": 200758, "pp": 595.1902115648342, "tg": 21.19766374805322, "n": 300, "draft_n": 329, "draft_acc": 133, "wall": 351.5, "sha": "96bf1524bb6b02e1"}
+02:55:32 R2t CUDA errors 0; RS: 
+02:55:50 server R3t (BONSAI_KV_VRAM_CELLS=90624 LLAMA_RS_REPLAY=1 BONSAI_SPEC_DEEP=3): health=1; kv     tiered: cells 0..90624 in VRAM, 90624..262144 in system RAM; shared CUDA pool on (BONSAI_SHARED_POOL=0 |kv     sparse host-tail reads: auto (dense line 90624; past it the engine times dense vs sparse per 16k band a|spec   draft 1 (3 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI_LOOKUP=0 |
+{"tag": "R3t", "depth": 4000, "prompt_n": 3874, "pp": 1253.587804538674, "tg": 77.56917406211346, "n": 300, "draft_n": 184, "draft_acc": 115, "wall": 7.0, "sha": "a6a2f3c76441cfb6"}
+{"tag": "R3t", "depth": 64000, "prompt_n": 63579, "pp": 976.1275187111451, "tg": 70.76502674042322, "n": 300, "draft_n": 199, "draft_acc": 129, "wall": 69.5, "sha": "14d548ec8a16f26b"}
+{"tag": "R3t", "depth": 128000, "prompt_n": 128119, "pp": 755.1712823118885, "tg": 44.87498414742408, "n": 300, "draft_n": 445, "draft_acc": 159, "wall": 176.4, "sha": "0d5358cc6e3f37d8"}
+{"tag": "R3t", "depth": 200000, "prompt_n": 200758, "pp": 594.770970159152, "tg": 21.44559675277803, "n": 300, "draft_n": 466, "draft_acc": 142, "wall": 351.6, "sha": "162e5828356deb30"}
+03:05:55 R3t CUDA errors 0; RS: 
+03:06:01 === done

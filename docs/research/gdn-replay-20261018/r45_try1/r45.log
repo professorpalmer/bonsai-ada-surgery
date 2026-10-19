@@ -1,0 +1,10 @@
+02:15:10 === R4/R5: engine commit c5e73e7d81; clock 405 MHz
+02:15:23 server S1 (BONSAI_KV_VRAM_CELLS=80640): health=1; kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; shared CUDA pool on (BONSAI_SHARED_POOL=0 |kv     sparse host-tail reads: auto (dense line 80640; past it the engine times dense vs sparse per 16k band a|spec   draft 1 (1 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI_LOOKUP=0 |
+{"tag": "S1", "depth": 4000, "prompt_n": 5295, "pp": 1282.1975049090365, "tg": 80.24895964872962, "n": 300, "draft_n": 180, "draft_acc": 119, "wall": 7.9}
+{"tag": "S1", "depth": 64000, "prompt_n": 87681, "pp": 884.7505030523191, "tg": 58.52492907522391, "n": 300, "draft_n": 212, "draft_acc": 116, "wall": 104.4}
+{"tag": "S1", "depth": 128000, "prompt_n": 176337, "pp": 639.9562792896849, "tg": 23.69996009053543, "n": 300, "draft_n": 189, "draft_acc": 110, "wall": 288.2}
+urllib.error.HTTPError: HTTP Error 400: Bad Request
+02:22:04 S1 CUDA errors 0; RS: 
+02:22:21 server R1 (BONSAI_KV_VRAM_CELLS=90880 LLAMA_RS_REPLAY=1): health=1; kv     tiered: cells 0..90880 in VRAM, 90880..262144 in system RAM; shared CUDA pool on (BONSAI_SHARED_POOL=0 |kv     sparse host-tail reads: auto (dense line 90880; past it the engine times dense vs sparse per 16k band a|spec   draft 1 (1 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI_LOOKUP=0 |
+{"tag": "R1", "depth": 4000, "prompt_n": 5295, "pp": 1279.8956552679008, "tg": 81.04997395015887, "n": 300, "draft_n": 180, "draft_acc": 119, "wall": 7.8}
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
