@@ -279,3 +279,20 @@ of the 6 GiB budget, so no eviction happened. The declared rule holds: not shipp
 
 Run 7 (declared now, before its run): the same with `BONSAI_SLOT_CACHE_GB=3`, so that replacement and eviction both
 happen; gates G1-G4 = F1-F4 (S4 still needs at least 3 evictions and 3 chain restores).
+
+### Run 7 result: G1 G2 G3 FAIL (the 3 GB budget thrashes) (`soak4/`)
+
+S1 PASS (45/45, 0 CUDA errors); S2 FAIL on one traceback, which is the known `/health` client time-out while the server
+loads (`do_GET /health`, the client gave up before the 503 was written), not the cache; S3 PASS (0 orphans); S4 PASS (43
+evictions, 6 chain restores); G2 FAIL (answers = cache-off A 11, B 15, C 15); G3 FAIL (mean wall 36.5 s, +289 %); G4 PASS.
+A 3 GB budget holds less than the three conversations' full saves (1.2-2 GB each from turn 4), so from turn 4 almost every
+turn read its conversation again (43-80 s). This shows what a too-small budget does; it does not compare designs.
+
+## Run 8 (declared before the run): the default budget, and the old design under the same thrash
+
+| Gate | Condition |
+|---|---|
+| H1 | the soak at the default budget (no `BONSAI_SLOT_CACHE_GB`, 20 GB): S1, S2 (a traceback in `do_GET` for `/health` while the server loads is the harness's own time-out and does not count), S3; answers = cache-off at 14 of 15 or more per conversation; mean wall not more than 10 % above the first soak's; no save before the request |
+| H2 | the old design (`BONSAI_SLOT_CACHE_EVERY=0`) at 3 GB, the same soak, against run 7 (the new design at 3 GB): run 7's mean wall not more than 10 % above the old design's, and run 7's answers = cache-off at no fewer than the old design's minus 1 per conversation |
+
+H1 and H2 pass: save after every answer + chain replacement ship. Any fail: not shipped; log why.

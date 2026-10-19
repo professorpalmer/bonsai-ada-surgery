@@ -1,0 +1,64 @@
+[proxy] "GET /health HTTP/1.1" 503 -
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 59239)
+Traceback (most recent call last):
+  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 436, in handle
+    self.handle_one_request()
+  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 424, in handle_one_request
+    method()
+  File "C:\Users\pwall\AppData\Local\Temp\r-1018ez\layer\bonsai_layer.py", line 674, in do_GET
+    self._reply(*self._forward("GET"))
+  File "C:\Users\pwall\AppData\Local\Temp\r-1018ez\layer\bonsai_layer.py", line 667, in _reply
+    self.wfile.write(data)
+  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 845, in write
+    self._sock.sendall(b)
+ConnectionAbortedError: [WinError 10053] An established connection was aborted by the software in your host machine
+----------------------------------------
+[proxy] "GET /health HTTP/1.1" 503 -
+[proxy] "GET /health HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[slots] delta saves on
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] saved after the answer 91daefa32cb9 67919 tokens: 1.02 s, n_saved 67919
+[slots] evicted 613a3ec65b03 64803 tokens
+[proxy] slot cache after the answer: {"saved": 67919, "save_s": 1.02, "s": 1.12}
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] saved after the answer 4ecee8aaa8b3 67238 tokens: 1.21 s, n_saved 67238
+[slots] evicted f7c4d1cd254c 65522 tokens
+[proxy] slot cache after the answer: {"saved": 67238, "save_s": 1.21, "s": 1.3}
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] saved after the answer 6148ae38726d 67989 tokens: 0.97 s, n_saved 67989
+[slots] evicted 91daefa32cb9 67919 tokens
+[proxy] slot cache after the answer: {"saved": 67989, "save_s": 0.97, "s": 1.04}
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] saved after the answer fcc424eb0940 70454 tokens: 1.03 s, n_saved 70454
+[slots] evicted 4ecee8aaa8b3 67238 tokens
+[proxy] slot cache after the answer: {"saved": 70454, "save_s": 1.03, "s": 1.12}
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] saved after the answer aa92f97efbc5 69660 tokens: 0.99 s, n_saved 69660
+[slots] evicted 6148ae38726d 67989 tokens
+[proxy] slot cache after the answer: {"saved": 69660, "save_s": 0.99, "s": 1.06}
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] saved after the answer 63c01c2b7f74 70520 tokens: 1.02 s, n_saved 70520
+[slots] evicted fcc424eb0940 70454 tokens
+[proxy] slot cache after the answer: {"saved": 70520, "save_s": 1.02, "s": 1.12}
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] saved after the answer 57ebe89032b6 72956 tokens: 1.06 s, n_saved 72956
+[slots] evicted aa92f97efbc5 69660 tokens
+[proxy] slot cache after the answer: {"saved": 72956, "save_s": 1.06, "s": 1.14}
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[slots] saved after the answer 78bc35fbbb8e 72085 tokens: 1.01 s, n_saved 72085
+[slots] evicted 63c01c2b7f74 70520 tokens
+[proxy] slot cache after the answer: {"saved": 72085, "save_s": 1.01, "s": 1.12}
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[slots] saved after the answer d8fc76fc7886 72990 tokens: 1.03 s, n_saved 72990
+[slots] evicted 57ebe89032b6 72956 tokens
+[proxy] slot cache after the answer: {"saved": 72990, "save_s": 1.03, "s": 1.12}
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
