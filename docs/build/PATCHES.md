@@ -1,6 +1,6 @@
 # The patch stack
 
-Everything is submitted upstream to PrismML; this repo ships the combined stack now: 70 commits on
+Everything is submitted upstream to PrismML; this repo ships the combined stack now: 71 commits on
 `prism@adfffbe`, as `git am`-able patches in [`patches/`](../../patches/), as the branch
 [`bonsai-q8-product`](https://github.com/professorpalmer/llama.cpp-ada-ternary/tree/bonsai-q8-product), and as
 Windows binaries on [Releases](https://github.com/professorpalmer/bonsai-ada-surgery/releases). Merged upstream already: #214 (branch-free PTQ1_0 MMQ tile loader,
@@ -64,6 +64,7 @@ Hadamard-embedding fix of sudoingX's #217 landed through #205. #285 was split at
 | 0068 | server + llama: delta slot saves. A slot save with `"pos_min": n` writes only the attention cells at or after n (the recurrent state in full); a restore with `"append": true` adds them after the slot's cells; `/props` reports `slot_save_delta`. The layer saves after the answer as a delta of its last save (a full save every 8). 173k tokens on the dev drive: a full save 70.6 s, a delta 0.08 s; a chain restore equals a full-file restore (the same answer, `prompt_n`, `cache_n`); G1 with think time: mean wait -44 %, normal turns -56 % (`docs/research/delta-saves-20261018/`) | this repo |
 | 0069 | delta saves, review fixes: the draft sidecar always full; deltas only without SWA / mtmd; the slot must end where the delta starts; the n_ctx check counts the total | this repo |
 | 0070 | Replay rollback (`LLAMA_RS_REPLAY=1`, launcher `BONSAI_RS_REPLAY=1`, off by default): the recurrent state keeps one plane instead of one per draft token, plus the inputs of the last tokens, so each rollback token costs ~142 MiB less VRAM (`docs/research/gdn-replay-20261018/`). Not in a published bundle yet | this repo |
+| 0071 | cuda: the tiered-KV CUDA graph line (`attention reads / does not read the host tail ...`) is a warning the first time for each state only; later switches are debug lines. Past the VRAM line the target graph reads the host tail and the MTP draft graph does not, so the state switched at every decode step and the line filled the log (issue #7: 7,399 of 7,869 lines). No change in what runs | this repo |
 
 How each cut was found (CUPTI traces, L1 wavefront counts, what did not work):
 [`surgery/ADA4070_PTQ1.md`](../../surgery/ADA4070_PTQ1.md) and [`docs/Q8_FULL_CONTEXT.md`](../12gb/Q8_FULL_CONTEXT.md).

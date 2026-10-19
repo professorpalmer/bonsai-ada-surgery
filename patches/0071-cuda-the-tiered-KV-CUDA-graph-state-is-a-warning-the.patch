@@ -1,0 +1,45 @@
+From 810d93e5aa54761f737c1356ff0532eeb851e4d6 Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Mon, 19 Oct 2026 09:37:10 -0400
+Subject: [PATCH] cuda: the tiered-KV CUDA graph state is a warning the first
+ time only; later switches (target vs MTP draft at every step past the tier
+ line) are debug lines
+
+---
+ ggml/src/ggml-cuda/ggml-cuda.cu | 16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
+
+diff --git a/ggml/src/ggml-cuda/ggml-cuda.cu b/ggml/src/ggml-cuda/ggml-cuda.cu
+index d344636202..db0eaa1d2b 100644
+--- a/ggml/src/ggml-cuda/ggml-cuda.cu
++++ b/ggml/src/ggml-cuda/ggml-cuda.cu
+@@ -4012,13 +4012,23 @@ static bool ggml_cuda_is_view_or_noop(const ggml_tensor * t) {
+ static bool ggml_cuda_graph_check_compability(ggml_cgraph * cgraph) {
+ 
+     {
+-        // the tier prefetch pipeline instead (see ggml_cuda_tier_graph_wants_pipeline); one log line per switch
++        // the tier prefetch pipeline instead (see ggml_cuda_tier_graph_wants_pipeline). Past the tier line the target
++        // graph reads the host tail and the MTP draft graph does not, so the state switches at every decode step:
++        // each state is a warning the first time only, later switches are debug lines (bonsai-ada-surgery issue #7: 7,399 of 7,869 log lines)
+         static int last = -1;
++        static int seen = 0;
+         const bool pipe = ggml_cuda_tier_graph_wants_pipeline(cgraph);
+         if ((int) pipe != last) {
+             last = (int) pipe;
+-            GGML_LOG_WARN("%s: attention %s the host tail of the tiered KV cache: CUDA graphs %s\n", __func__,
+-                pipe ? "reads" : "does not read", pipe ? "off, tier prefetch pipeline on" : "on");
++            const int bit = 1 << (int) pipe;
++            if (!(seen & bit)) {
++                seen |= bit;
++                GGML_LOG_WARN("%s: attention %s the host tail of the tiered KV cache: CUDA graphs %s (later switches: debug log)\n", __func__,
++                    pipe ? "reads" : "does not read", pipe ? "off, tier prefetch pipeline on" : "on");
++            } else {
++                GGML_LOG_DEBUG("%s: attention %s the host tail of the tiered KV cache: CUDA graphs %s\n", __func__,
++                    pipe ? "reads" : "does not read", pipe ? "off, tier prefetch pipeline on" : "on");
++            }
+         }
+         if (pipe) {
+             return false;
+-- 
+2.55.0.windows.3
+
