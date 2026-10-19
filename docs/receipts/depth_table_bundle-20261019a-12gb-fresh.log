@@ -1,0 +1,40 @@
+08:56 === depth table bundle-20261019a-12gb-fresh-4000 (<bundle-20261019a root>): health=1; kv     tiered: cells 0..260352 in VRAM, 260352..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off); packed KQ mask (240 MiB saved)
+4000: code   depth   4000 (evaluated 4048): prefill  1297.3 tok/s  ttft   3.12s  decode  104.8 tok/s (400 tok)
+4000: prose  depth   4000 (evaluated 512): prefill   998.0 tok/s  ttft   0.51s  decode   87.4 tok/s (400 tok)
+4000: bash   depth   4000 (evaluated 516): prefill  1010.7 tok/s  ttft   0.51s  decode   97.2 tok/s (400 tok)
+4000: mean decode 96.5 tok/s
+08:56 === done
+08:56 === depth table bundle-20261019a-12gb-fresh-32000 (<bundle-20261019a root>): health=1; kv     tiered: cells 0..260352 in VRAM, 260352..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off); packed KQ mask (240 MiB saved)
+32000: code   depth  32000 (evaluated 32044): prefill  1151.3 tok/s  ttft  27.83s  decode   95.8 tok/s (400 tok)
+32000: prose  depth  32000 (evaluated 512): prefill   773.9 tok/s  ttft   0.66s  decode   75.1 tok/s (400 tok)
+32000: bash   depth  32000 (evaluated 516): prefill   781.3 tok/s  ttft   0.66s  decode   89.6 tok/s (400 tok)
+32000: mean decode 86.8 tok/s
+cumulative prefill at  32000: 1165 tok/s (31528 tokens in 27.1 s)
+08:57 === done
+08:57 === depth table bundle-20261019a-12gb-fresh-64000 (<bundle-20261019a root>): health=1; kv     tiered: cells 0..260352 in VRAM, 260352..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off); packed KQ mask (240 MiB saved)
+64000: code   depth  64000 (evaluated 64009): prefill   968.3 tok/s  ttft  66.11s  decode   88.4 tok/s (400 tok)
+64000: prose  depth  64000 (evaluated 512): prefill   604.7 tok/s  ttft   0.85s  decode   70.7 tok/s (400 tok)
+64000: bash   depth  64000 (evaluated 516): prefill   609.9 tok/s  ttft   0.85s  decode   78.7 tok/s (400 tok)
+64000: mean decode 79.2 tok/s
+cumulative prefill at  64000:  977 tok/s (63488 tokens in 65.0 s)
+08:59 === done
+08:59 === depth table bundle-20261019a-12gb-fresh-128000 (<bundle-20261019a root>): health=1; kv     tiered: cells 0..260352 in VRAM, 260352..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off); packed KQ mask (240 MiB saved)
+128000: code   depth 128000 (evaluated 127340): prefill   738.7 tok/s  ttft 172.38s  decode   77.1 tok/s (400 tok)
+128000: prose  depth 128000 (evaluated 512): prefill   432.8 tok/s  ttft   1.18s  decode   64.2 tok/s (400 tok)
+128000: bash   depth 128000 (evaluated 516): prefill   436.5 tok/s  ttft   1.18s  decode   74.6 tok/s (400 tok)
+128000: mean decode 72.0 tok/s
+cumulative prefill at 128000:  741 tok/s (127336 tokens in 171.9 s)
+09:02 === done
+09:03 === depth table bundle-20261019a-12gb-fresh-192000 (<bundle-20261019a root>): health=1; kv     tiered: cells 0..260352 in VRAM, 260352..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off); packed KQ mask (240 MiB saved)
+192000: code   depth 192000 (evaluated 191010): prefill   597.3 tok/s  ttft 319.76s  decode   63.9 tok/s (400 tok)
+192000: prose  depth 192000 (evaluated 512): prefill   330.7 tok/s  ttft   1.55s  decode   58.2 tok/s (400 tok)
+192000: bash   depth 192000 (evaluated 516): prefill   337.4 tok/s  ttft   1.53s  decode   63.4 tok/s (400 tok)
+192000: mean decode 61.8 tok/s
+cumulative prefill at 192000:  598 tok/s (191006 tokens in 319.1 s)
+09:08 === done
+09:09 === depth table bundle-20261019a-12gb-fresh-245000 (<bundle-20261019a root>): health=1; kv     tiered: cells 0..260352 in VRAM, 260352..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off); packed KQ mask (240 MiB saved)
+245000: code   depth 245000 (evaluated 243896): prefill   516.0 tok/s  ttft 472.71s  decode   65.7 tok/s (400 tok)
+245000: prose  depth 245000 (evaluated 512): prefill   281.7 tok/s  ttft   1.82s  decode   54.2 tok/s (400 tok)
+245000: bash   depth 245000 (evaluated 516): prefill   287.7 tok/s  ttft   1.79s  decode   61.4 tok/s (400 tok)
+245000: mean decode 60.4 tok/s
+09:17 === done

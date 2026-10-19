@@ -6,18 +6,18 @@
 <script>
 var DATA = {
   rig: {
-    '12gb': '12 GB: RTX 4070, q4_0, display on the iGPU. 4k / 32k / 245k: release check U04, bundle-20261016, 2026-10-16 (docs/receipts/release_0059.log); 64k-192k: D29, bundle-20261015c bins, 2026-10-15 (docs/research/depth-20261010)',
+    '12gb': '12 GB: RTX 4070, q4_0, display on the iGPU; bundle-20261019a, 2026-10-19, a fresh server for each depth (docs/receipts/depth_table_bundle-20261019a-12gb-fresh.log)',
     '8gb': '8 GB: RTX 2060 SUPER, q3_0, display on the card. 4k / 64k / 128k: P163, bundle-20261017, 2026-10-16; 160k / 245k: P150, bundle-20261016, 2026-10-16 (docs/research/depth-8gb-20261006)'
   },
   // quick_tps.py: mean of code / prose / bash prompts, 400-token greedy answers, MTP + lookup drafting.
   points: {
     '12gb': [
-      [4000, 96.2],     // release_0059.log U04 r0059
-      [32000, 92.9],    // release_0059.log U04 r0059
-      [64000, 80.1],    // ktype12_d29.log / depth-20261010 D29 q4_0
-      [128000, 76.6],   // D29 q4_0
-      [192000, 64.2],   // D29 q4_0
-      [245000, 60.4]    // release_0059.log U04 r0059
+      [4000, 96.5],     // depth_table_bundle-20261019a-12gb-fresh.log, each depth on a fresh server
+      [32000, 86.8],
+      [64000, 79.2],
+      [128000, 72.0],
+      [192000, 61.8],
+      [245000, 60.4]
     ],
     '8gb': [
       [4000, 53.4],     // P163 sweep 4k (mean)

@@ -1,6 +1,6 @@
 # Bonsai 2 27B on a 12 GB card
 
-![Decode by context depth on the RTX 4070 12 GB with q4_0: 96.2 / 92.9 / 80.1 / 76.6 / 64.2 / 60.4 tok/s at 4k / 32k / 64k / 128k / 192k / 245k; RTX 2060 SUPER 8 GB with q3_0: 53.4 / 41.2 / 22.3 / 16.7 / 9.8 tok/s at 4k / 64k / 128k / 160k / 245k](img/decode.png)
+![Decode by context depth on the RTX 4070 12 GB with q4_0: 96.5 / 86.8 / 79.2 / 72.0 / 61.8 / 60.4 tok/s at 4k / 32k / 64k / 128k / 192k / 245k; RTX 2060 SUPER 8 GB with q3_0: 53.4 / 41.2 / 22.3 / 16.7 / 9.8 tok/s at 4k / 64k / 128k / 160k / 245k](img/decode.png)
 
 On a 12 GB card the launcher serves the full 262,144-token window with a q4_0 K/V cache. On an RTX 4070 with the
 display on the CPU's iGPU, 260,352 of the 262,144 positions stay in VRAM. Decode at 245k is 60.4 tok/s.
@@ -23,27 +23,28 @@ of a code, a prose and a bash prompt, 400-token greedy answers, MTP and lookup d
 
 | depth | 4k | 32k | 64k | 128k | 192k | 245k |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| decode (tok/s) | 96.2 | 92.9 | 80.1 | 76.6 | 64.2 | 60.4 |
+| decode (tok/s) | 96.5 | 86.8 | 79.2 | 72.0 | 61.8 | 60.4 |
 
-4k, 32k and 245k: release check U04 of bundle-20261016, 2026-10-16 ([`docs/receipts/release_0059.log`](../receipts/release_0059.log),
-[release-20261016](../research/release-20261016/EXPERIMENTS.md)). 64k-192k: D29, bundle-20261015c bins with q4_0,
-2026-10-15 ([depth-20261010](../research/depth-20261010/EXPERIMENTS.md#d29-result-kv-type-on-the-12-gb-recipe-2026-10-15-1547-1742)).
-With the display on the card the VRAM line is 242,176 positions, and decode at 192k / 245k is 62.5 / 45.7 tok/s (D29b).
+bundle-20261019a, 2026-10-19, a fresh server for each depth ([`docs/receipts/depth_table_bundle-20261019a-12gb-fresh.log`](../receipts/depth_table_bundle-20261019a-12gb-fresh.log)).
+A fresh server matters: lookup drafting learns from earlier answers, so a table that asks the same prompts at each
+depth on one server shows too-high numbers at the later depths. With the display on the card the VRAM line is 242,176 positions, and decode at 192k / 245k is 62.5 / 45.7 tok/s (D29b).
 
 | prompt read (prefill), code prompt | tok/s | time to first token |
 | --- | ---: | ---: |
-| 4k, cold (4,048 tokens) | 1,294 | 3.1 s |
-| from 4k to 32k (28,512 new tokens) | 1,126 | 25.3 s |
-| from 32k to 245k (212,368 new tokens) | 477 | 445 s |
-| cold 64k, 128k, 245k with q4_0 | not measured | not measured |
+| 4k, cold (4,048 tokens) | 1,297 | 3.1 s |
+| 32k, cold (32,044 tokens) | 1,151 | 27.8 s |
+| 64k, cold (64,009 tokens) | 968 | 66.1 s |
+| 128k, cold (127,340 tokens) | 739 | 172 s |
+| 192k, cold (191,010 tokens) | 597 | 320 s |
+| 245k, cold (243,896 tokens) | 516 | 473 s |
 
-Same source: U04, 2026-10-16. Without the drafter, q4_0 decodes as fast as q8_0 at 4k and faster deeper (32k +3.8 %,
-128k +9.6 %, U04b).
+Same source. Without the drafter, q4_0 decodes as fast as q8_0 at 4k and faster deeper (32k +3.8 %,
+128k +9.6 %; U04b, bundle-20261016, [`release_0059.log`](../receipts/release_0059.log)).
 
 Quality with q4_0: HumanEval 164 158/164 (the q8_0 runs: 158); at 245k exact code copies 20/20 and needles 24/24
 (q8_0: 20/20, 23/24); perplexity +0.21 % (-c 2048). Details: [Quality](../quality/README.md).
 
-![Prompt reading on both cards: RTX 4070 12 GB 1,294 tok/s on a cold 4k prompt (3.1 s) and 477 tok/s from 32k to 245k (445 s); RTX 2060 SUPER 8 GB 417 tok/s at 4k (9.7 s), cold 64k 309 tok/s, cold 128k 241 tok/s (529 s), cold 245k 164 tok/s (1,489 s); cold 64k-245k reads with q4_0 on 12 GB not measured](img/prefill.png)
+![Prompt reading on both cards: RTX 4070 12 GB 1,297 tok/s on a cold 4k prompt (3.1 s), cold 64k 968 tok/s (66 s), cold 128k 739 tok/s (172 s), cold 245k 516 tok/s (473 s); RTX 2060 SUPER 8 GB 417 tok/s at 4k (9.7 s), cold 64k 309 tok/s, cold 128k 241 tok/s (529 s), cold 245k 164 tok/s (1,489 s)](img/prefill.png)
 
 ## Why q4_0
 

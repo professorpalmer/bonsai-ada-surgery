@@ -6,26 +6,23 @@
 <script>
 var DATA = {
   rig: {
-    '12gb': '12 GB: RTX 4070, q4_0, display on the iGPU; release check U04, bundle-20261016, 2026-10-16 (docs/receipts/release_0059.log). Cold 64k-245k reads with q4_0: not measured yet',
+    '12gb': '12 GB: RTX 4070, q4_0, display on the iGPU; bundle-20261019a, 2026-10-19, a fresh server for each prompt (docs/receipts/depth_table_bundle-20261019a-12gb-fresh.log)',
     '8gb': '8 GB: RTX 2060 SUPER, q3_0, display on the card; P163 / P168, bundle-20261017, 2026-10-16/17; P156c, bundle-20261016b, 2026-10-16 (docs/research/depth-8gb-20261006)'
   },
   // rate = prefill tok/s reported by the server; ttft = seconds to the first token where the record gives it.
   rows: [
     { label: '4k prompt, cold', note: '4,048 tokens',
-      '12gb': { rate: 1294, ttft: 3.13 },      // release_0059.log r0059 code depth 4000: 1293.7 tok/s, ttft 3.13 s
+      '12gb': { rate: 1297, ttft: 3.12 },      // fresh 4000 code: 1297.3 tok/s, ttft 3.12 s
       '8gb': { rate: 417, ttft: 9.71 } },       // P163 sweep 4k: 416.7 tok/s, TTFT 9.71 s
     { label: '64k prompt, cold', note: '~64,000 tokens',
-      '12gb': null,
+      '12gb': { rate: 968, ttft: 66.1 },       // fresh 64000 code: 968.3 tok/s, ttft 66.11 s (64,009 tokens)
       '8gb': { rate: 309, ttft: null } },       // P168 cold 64k: 309.3-309.6 tok/s (wall 208.9 s with the answer)
     { label: '128k prompt, cold', note: '127,340 tokens',
-      '12gb': null,
+      '12gb': { rate: 739, ttft: 172 },        // fresh 128000 code: 738.7 tok/s, ttft 172.38 s
       '8gb': { rate: 241, ttft: 529 } },        // P163 cold 128k: 240.6 tok/s, TTFT 529.28 s
     { label: '245k prompt, cold', note: '243,896 tokens',
-      '12gb': null,
-      '8gb': { rate: 164, ttft: 1489 } },       // P156c t2 (the default since bundle-20261016b): 163.8 tok/s, TTFT 1,488.61 s
-    { label: '32k read, then to 245k', note: '212,368 new tokens',
-      '12gb': { rate: 477, ttft: 445 },        // release_0059.log r0059 code depth 245000: 477.1 tok/s, ttft 445.14 s
-      '8gb': null }
+      '12gb': { rate: 516, ttft: 473 },        // fresh 245000 code: 516.0 tok/s, ttft 472.71 s
+      '8gb': { rate: 164, ttft: 1489 } }        // P156c t2 (the default since bundle-20261016b): 163.8 tok/s, TTFT 1,488.61 s
   ],
   max: 1300
 };

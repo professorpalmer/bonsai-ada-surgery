@@ -1,6 +1,6 @@
 # Bonsai 2 27B on an 8 GB card
 
-![Decode by context depth on the RTX 2060 SUPER 8 GB with q3_0: 53.4 / 41.2 / 22.3 / 16.7 / 9.8 tok/s at 4k / 64k / 128k / 160k / 245k; RTX 4070 12 GB with q4_0: 96.2 / 92.9 / 80.1 / 76.6 / 64.2 / 60.4 tok/s at 4k / 32k / 64k / 128k / 192k / 245k](img/decode.png)
+![Decode by context depth on the RTX 2060 SUPER 8 GB with q3_0: 53.4 / 41.2 / 22.3 / 16.7 / 9.8 tok/s at 4k / 64k / 128k / 160k / 245k; RTX 4070 12 GB with q4_0: 96.5 / 86.8 / 79.2 / 72.0 / 61.8 / 60.4 tok/s at 4k / 32k / 64k / 128k / 192k / 245k](img/decode.png)
 
 On an 8 GB card the launcher serves the full 262,144-token window with a q3_0 K/V cache. About 80,640 positions stay
 in VRAM; the rest of the cache is in pinned system RAM and is read over PCIe. The numbers on this page are from an
@@ -50,7 +50,7 @@ the next read after a restart take seconds: a ~199k document answered 5.3 s afte
 Quality with q3_0: HumanEval 164 163/164 (P131); at 245k exact code copies 20/20 and needles 23/24, equal to the dense
 read item by item (P148). Drift against an f16 cache: [Quality](../quality/README.md).
 
-![Prompt reading on both cards: RTX 2060 SUPER 8 GB 417 tok/s on a cold 4k prompt (9.7 s), cold 64k 309 tok/s, cold 128k 241 tok/s (529 s), cold 245k 164 tok/s (1,489 s); RTX 4070 12 GB 1,294 tok/s at 4k (3.1 s) and 477 tok/s from 32k to 245k (445 s)](img/prefill.png)
+![Prompt reading on both cards: RTX 2060 SUPER 8 GB 417 tok/s on a cold 4k prompt (9.7 s), cold 64k 309 tok/s, cold 128k 241 tok/s (529 s), cold 245k 164 tok/s (1,489 s); RTX 4070 12 GB 1,297 tok/s on a cold 4k prompt (3.1 s), cold 64k 968 tok/s (66 s), cold 128k 739 tok/s (172 s), cold 245k 516 tok/s (473 s)](img/prefill.png)
 
 ![Cache positions in VRAM out of 262,144: 8 GB q3_0 80,640 (9.8 tok/s at 245k), 8 GB q4_0 61,696; 12 GB q4_0 260,352 with the display on the iGPU (61.0 tok/s) and 242,176 with the display on the card (45.7), 12 GB q8_0 129,024 (15.4)](img/vram.png)
 
