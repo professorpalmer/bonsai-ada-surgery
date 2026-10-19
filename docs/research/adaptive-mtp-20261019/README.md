@@ -37,3 +37,17 @@ Requests (`receipts/r2.py`): story / code / quote, greedy and temperature 0.8, 3
 | G3 | 0 CUDA errors; every request answers |
 
 G1-G3 pass: the adaptive depth becomes the 8 GB default together with replay. Any fail: not adopted; log why.
+
+## AD3 (declared 2026-10-19 15:35): fixed 2 below the line, 4 past it
+
+AD1 / AD2 data: past the VRAM line the step is PCIe-bound, and A4 (draft 4 past the line) was ahead of F2 at 128k on
+story (+3.6 %) and quote (+15 %). Arm **F2T4**: `BONSAI_SPEC=2 BONSAI_SPEC_DEEP=4`, the same bins as AD1 / AD2, the line
+lowered by the two extra replay depths (2 x 7 MiB, rounded up: 90,112 - 1,024 = 89,088). Compared with F2 (AD2 data).
+
+| Gate | Condition |
+|---|---|
+| T1 | 128k: the mean of the code / story / quote means is at least 5 % above F2 |
+| T2 | 4k-64k (below the line, the same draft size): no prompt type more than 2 % below F2 per depth (a noise check) |
+| T3 | 0 CUDA errors; every request answers |
+
+T1-T3 pass: 2 / 4 replaces 2 / 2 in the proposal for the 8 GB default with replay (#138). Any fail: 2 / 2 stays.
