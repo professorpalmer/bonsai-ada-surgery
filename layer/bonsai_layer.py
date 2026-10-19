@@ -623,7 +623,7 @@ class Proxy(http.server.BaseHTTPRequestHandler):
                             continue
                         if ch.get("finish_reason") == "length":
                             truncated = True       # cut by max_tokens: any held call is half-written
-                        if ch.get("finish_reason") == "tool_calls" or (calls and not ev.get("choices")):
+                        if ch.get("finish_reason") == "tool_calls" or (calls and (ch.get("finish_reason") == "length" or not ev.get("choices"))):
                             held.append(line)      # the finish chunk (and a trailing usage chunk) of a tool round
                             continue
                         if isinstance(delta.get("content"), str):
@@ -636,7 +636,11 @@ class Proxy(http.server.BaseHTTPRequestHandler):
                 if (truncated and ours and len(ours) == len(ordered) and not "".join(content).strip() and not cut_retry
                         and rnd < self.max_rounds):
                     cut_retry = True               # cut inside our run_python call with no text sent: ask once more
-                    continue                       # without our tool (the held call and finish chunk are dropped)
+                    if reasoning:                  # without our tool (the held call and finish chunk are dropped);
+                        ev = dict(template or {"object": "chat.completion.chunk"},   # the cut round's reasoning went
+                                  choices=[{"index": 0, "delta": {"reasoning_content": "\n\n"}, "finish_reason": None}])
+                        send(b"data: " + json.dumps(ev).encode())   # out already: keep the two apart
+                    continue
                 if truncated or not ours or len(ours) != len(ordered) or rnd == self.max_rounds:
                     done = [l for l in held if l.strip() == b"data: [DONE]"]
                     our_idx = {i for i, c in calls.items() if c["function"]["name"] == TOOL_NAME}
@@ -831,7 +835,8 @@ class Proxy(http.server.BaseHTTPRequestHandler):
             calls = m.get("tool_calls") or []
             ours = [c for c in calls if c["function"]["name"] == TOOL_NAME]
             truncated = resp["choices"][0].get("finish_reason") == "length"   # half-written calls: hand back, never run
-            if truncated and ours and len(ours) == len(calls) and not (m.get("content") or "").strip() and not cut_retry:
+            if (truncated and ours and len(ours) == len(calls) and not (m.get("content") or "").strip() and not cut_retry
+                    and rnd < max_rounds):
                 # max_tokens cut the round inside our run_python call (the model was writing its answer into code):
                 # handing back would give the client nothing. Ask once more without our tool so the answer is text.
                 cut_retry = True

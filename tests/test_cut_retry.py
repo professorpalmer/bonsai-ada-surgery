@@ -98,7 +98,11 @@ def test_stream():
     assert "run_python" not in raw, raw            # the half-written call never reaches the client
     assert [c["tools"] for c in S["calls"]] == [["run_python"], []], S["calls"]
     assert raw.rstrip().endswith("data: [DONE]"), raw
-    print("stream: the same: ok")
+    evs = [json.loads(l[6:]) for l in raw.splitlines() if l.startswith("data: {")]
+    fins = [i for i, e in enumerate(evs) for c in e.get("choices") or [] if c.get("finish_reason")]
+    texts = [i for i, e in enumerate(evs) for c in e.get("choices") or [] if (c.get("delta") or {}).get("content")]
+    assert len(fins) == 1 and fins[0] > max(texts), raw   # one finish chunk, after the text (review)
+    print("stream: the same, one finish chunk after the text: ok")
 
 
 def test_text_round_unchanged():
