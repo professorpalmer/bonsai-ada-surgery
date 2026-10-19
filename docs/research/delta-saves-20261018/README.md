@@ -264,3 +264,18 @@ save also removes the chain it replaces.
 Setup and gates: the same as run 5 (`soak3/`), F1 = E1 (S1-S4), F2 = E2 (answers = cache-off at 14 of 15 or more per
 conversation), F3 = E3 (mean wall time not more than 10 % above the first soak's), F4 = E4 (no save before the request).
 All pass: save after every answer + chain replacement ship in the next bundles. Any fail: not shipped; log why.
+
+### Run 6 result: F2 F3 F4 PASS, F1 FAIL on S4 (no eviction happened) (`soak3/`)
+
+| Gate | Result |
+|---|---|
+| F1 | **FAIL**: S1-S3 PASS (45/45, 0 errors, 0 orphans, folder 4.20 GiB); S4 FAIL: 0 evictions (35 chain restores) |
+| F2 | PASS: answers equal to the cache-off reference A 15, B 15, C 15 of 15 |
+| F3 | PASS: mean wall 6.7 s vs 9.4 s (-28.5 %); no turn above 20 s after turn 1 |
+| F4 | PASS: 0 saves before the request, 0 failed exact tests |
+
+S4 asked for at least 3 evictions so that the run exercises eviction; with chain replacement the folder stayed at 4.2 GiB
+of the 6 GiB budget, so no eviction happened. The declared rule holds: not shipped from this run.
+
+Run 7 (declared now, before its run): the same with `BONSAI_SLOT_CACHE_GB=3`, so that replacement and eviction both
+happen; gates G1-G4 = F1-F4 (S4 still needs at least 3 evictions and 3 chain restores).
