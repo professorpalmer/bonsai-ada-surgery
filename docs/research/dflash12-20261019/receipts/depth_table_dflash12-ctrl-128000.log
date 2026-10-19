@@ -1,0 +1,7 @@
+14:41 === depth table dflash12-ctrl-128000 (<r-1019az root>): health=1; kv     tiered: cells 0..260352 in VRAM, 260352..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off); packed KQ mask (240 MiB saved)
+128000: code   depth 128000 (evaluated 127340): prefill   737.8 tok/s  ttft 172.60s  decode   77.6 tok/s (400 tok)
+128000: prose  depth 128000 (evaluated 512): prefill   431.8 tok/s  ttft   1.19s  decode   64.8 tok/s (400 tok)
+128000: bash   depth 128000 (evaluated 516): prefill   437.0 tok/s  ttft   1.18s  decode   74.5 tok/s (400 tok)
+128000: mean decode 72.3 tok/s
+cumulative prefill at 128000:  740 tok/s (127336 tokens in 172.1 s)
+14:45 === done

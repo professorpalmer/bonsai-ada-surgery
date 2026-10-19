@@ -1,5 +1,8 @@
 # A DFlash 2 drafter on the 12 GB preset (2026-10-19)
 
+**Result: rejected for 12 GB.** Decode is slower at every depth (mean -14.8 %, 245k -32.6 %); the drafter costs
+about 1.2 GB of VRAM plus a fixed ~722 MiB host-side part. See [EXPERIMENTS.md](EXPERIMENTS.md).
+
 Plan written before the runs. One entry per run goes to `EXPERIMENTS.md`, one line per run to `runs.jsonl`.
 
 ## Question
