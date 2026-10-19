@@ -253,7 +253,14 @@ class SlotCache:
                         pass
                 self.log("idle full save skipped: the slot holds another conversation")
                 return {"skipped": True}
+            tip = self.last_after.get(key)
+            old_chain = self._chain(tip) if tip in self.index else None
+            tipn = self.index[tip]["n"] if old_chain else 0
+            tipt = self._toks_of(tip) if old_chain else []
             sha, size = self._store(tmp, saved)
+            if old_chain and (tip == sha or saved[:tipn] == tipt):   # the full save holds every token of the old chain
+                self._drop([x for x in old_chain if x != sha], "replaced (idle full save)")
+            self.last_after[key] = sha
             self.held = saved
             info = {"saved": len(saved), "save_s": round(time.time() - t1, 2)}
             self.log("idle full save", sha[:12], len(saved), "tokens:", info["save_s"], "s")
@@ -323,6 +330,35 @@ class SlotCache:
     def _root(self, sha):
         c = self._chain(sha)
         return c[0] if c else sha
+
+    def _drop(self, shas, why):
+        """Remove these saves (files and index entries), deepest first, so no delta is left without its parent."""
+        for sha in sorted(shas, key=lambda x: -self.index.get(x, {"depth": 0})["depth"]):
+            if sha not in self.index:
+                continue
+            if any(e.get("parent") == sha for k, e in self.index.items() if k not in shas):
+                continue   # another save still builds on it
+            for f in self._files(sha):
+                try:
+                    if os.path.exists(f):
+                        os.remove(f)
+                except OSError:
+                    pass
+            e = self.index.pop(sha)
+            self._note({"sha": sha, "drop": True})
+            self.log(why, sha[:12], e["n"], "tokens")
+
+    def _replace_chain(self, parent):
+        """Budget pressure (the folder above 80 % of the budget) and a chain that holds twice its full save's bytes: the
+        next save of this conversation is full, and the old chain goes (it holds only prefixes of the new save)."""
+        chain = self._chain(parent) or []
+        if len(chain) < 2:
+            return None
+        total = sum(e["bytes"] for e in self.index.values())
+        cbytes = sum(self.index[x]["bytes"] for x in chain)
+        if total > 0.8 * self.budget and cbytes >= 2 * self.index[chain[0]]["bytes"]:
+            return chain
+        return None
 
     def _evict(self):
         """Remove the least recently used saves until the folder fits the budget. A chain (a full save and its deltas)
@@ -602,6 +638,9 @@ class SlotCache:
             parent = last.get("best_sha")
             if not (parent in self.index and self.index[parent]["depth"] < self.chain_max and self._delta_ok(auth)):
                 parent = None
+            old_chain = self._replace_chain(parent) if parent else None
+            if old_chain:
+                parent = None   # a full save; the old chain goes after it is stored
             try:
                 t1 = time.time()
                 body = {"filename": tmp}
@@ -616,6 +655,9 @@ class SlotCache:
                 sha, size = self._store(tmp, saved, parent)
                 if parent:
                     info["delta_of"] = self.index[parent]["n"]
+                if old_chain:
+                    self._drop([x for x in old_chain if x != sha], "replaced (budget)")
+                    info["replaced_chain"] = len(old_chain)
                 self.last_after[last["key"]] = sha
                 self.held = saved
                 info.update(saved=len(saved), save_s=round(time.time() - t1, 2))

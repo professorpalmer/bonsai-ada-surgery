@@ -254,3 +254,13 @@ as fast or faster (no prefill-only splits: the 6-8 s turns of the first soak are
 Next (run 6, declared before its run below): keep chains short under budget pressure: when the folder is above 80 % of
 the budget and a conversation's chain holds twice its base's bytes, the next save is full and the old chain is removed;
 the idle full save also removes the chain it replaces.
+
+## Run 6 (declared before the run): run 5 + chains replaced under budget pressure
+
+Change: when the folder is above 80 % of the budget and a conversation's chain holds twice its full save's bytes, the
+next save after an answer is full and the old chain is removed (it holds only prefixes of the new save); the idle full
+save also removes the chain it replaces.
+
+Setup and gates: the same as run 5 (`soak3/`), F1 = E1 (S1-S4), F2 = E2 (answers = cache-off at 14 of 15 or more per
+conversation), F3 = E3 (mean wall time not more than 10 % above the first soak's), F4 = E4 (no save before the request).
+All pass: save after every answer + chain replacement ship in the next bundles. Any fail: not shipped; log why.

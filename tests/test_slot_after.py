@@ -527,6 +527,22 @@ def test_every_answer_rewritten():
     print("save after every answer: a rewritten answer fails the exact test, the save before the request comes back: ok")
 
 
+def test_budget_replaces_chain():
+    reset()
+    S["delta"] = True
+    c = cache(chain=8)
+    ans = run_turns(c, [], 1, 6)   # a full save + deltas after each answer
+    assert max(e["depth"] for e in c.index.values()) >= 3, c.index
+    c.budget = sum(e["bytes"] for e in c.index.values()) * 1.05   # the folder is now above 80 % of the budget
+    run_turns(c, ans, 6, 8)
+    assert any("replaced (budget)" in l for l in LOG), LOG[-6:]
+    roots = [x for x, e in c.index.items() if not e["parent"]]
+    tip = max(c.index, key=lambda x: c.index[x]["n"])
+    assert c.index[c._chain(tip)[0]]["n"] > 200, c.index   # the chain now starts at the new full save
+    assert not [x for x, e in c.index.items() if e["parent"] and e["parent"] not in c.index]
+    print("budget pressure: a full save replaces a long chain, no orphans: ok")
+
+
 if __name__ == "__main__":
     test_read_tokens()
     test_review_fixes()
@@ -543,4 +559,5 @@ if __name__ == "__main__":
     test_idle_full_save()
     test_every_answer_interleaved()
     test_every_answer_rewritten()
+    test_budget_replaces_chain()
     print("ALL OK")
