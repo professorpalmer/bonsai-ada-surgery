@@ -1,0 +1,12 @@
+{"tag": "old", "case": "short40", "stream": false, "finish": "length", "content_len": 245, "cut_retry": null, "completion_tokens": 40, "head": "Warehouses maintain spare parts to minimize downtime and pro"}
+{"tag": "old", "case": "short40", "stream": true, "finish": "length", "content_len": 245, "head": "Warehouses maintain spare parts to minimize downtime and pro"}
+{"tag": "old", "case": "doc4k250", "stream": false, "finish": "length", "content_len": 0, "cut_retry": null, "completion_tokens": 250, "head": ""}
+{"tag": "old", "case": "doc4k250", "stream": true, "finish": "length", "content_len": 0, "head": ""}
+{"tag": "old", "case": "doc64k250", "stream": false, "finish": "length", "content_len": 0, "cut_retry": null, "completion_tokens": 250, "head": ""}
+{"tag": "old", "case": "doc64k250", "stream": true, "finish": "length", "content_len": 0, "head": ""}
+{"tag": "fixed", "case": "short40", "stream": false, "finish": "length", "content_len": 245, "cut_retry": null, "completion_tokens": 40, "head": "Warehouses maintain spare parts to minimize downtime and pro"}
+{"tag": "fixed", "case": "short40", "stream": true, "finish": "length", "content_len": 245, "head": "Warehouses maintain spare parts to minimize downtime and pro"}
+{"tag": "fixed", "case": "doc4k250", "stream": false, "finish": "length", "content_len": 1080, "cut_retry": true, "completion_tokens": 500, "head": "The inventory data reveals a highly fragmented and uneven di"}
+{"tag": "fixed", "case": "doc4k250", "stream": true, "finish": "length", "content_len": 1018, "head": "The inventory data reveals a highly fragmented and uneven di"}
+{"tag": "fixed", "case": "doc64k250", "stream": false, "finish": "length", "content_len": 1137, "cut_retry": true, "completion_tokens": 500, "head": "This inventory suggests a large-scale, multi-room storage fa"}
+{"tag": "fixed", "case": "doc64k250", "stream": true, "finish": "length", "content_len": 1177, "head": "This inventory suggests a large-scale, multi-room storage fa"}
