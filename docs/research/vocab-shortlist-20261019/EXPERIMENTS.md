@@ -10,7 +10,7 @@ One entry per run. Coverage = the share of held-out tokens (token-weighted) that
   Python 174,155, our docs 870,294, the engine's docs 241,371, thinking traces 112,998 (80 of 100 prompts).
 - Held out: one HumanEval run's answers (21,505 tokens), every fifth doc (176,086), 20 of the 100 traces (17,102).
 - Thinking traces: bundle-20261019a, 12 GB default, layer off, thinking on at medium; 40 HumanEval tasks, 40 general
-  prompts, 20 tool-call prompts; 100 answers, 0 errors, 313,236 characters of thinking. 0.3 GPU-h.
+  prompts, 20 tool-call prompts; 100 answers, 0 errors, 313,236 characters of thinking. 14:46-15:11, 0.42 GPU-h.
 - Weights: model output 3, every other category 1; always in the map: 289 control / byte / single-character tokens.
 
 ## S0: corpus ranking only (FAIL)
@@ -38,6 +38,6 @@ vocabulary the id follows the merge rank, a frequency prior that needs no corpus
 
 - FAIL: the best map covers 97.98 % of the thinking traces. 32,768 ids is the map format's limit.
 - Verdict: **not adopted; S1 (the speed A/B) did not run.** The model's thinking uses general English, and a 99 %
-  shortlist of it needs more than 32k of the 248k tokens. Each miss is a draft token that the target rejects, so a
-  2-3 % miss rate costs more acceptance than S1c allows (2 points). The engine change stays on the fork branch
+  shortlist of it needs more than 32k of the 248k tokens. Each miss is a draft token that the target rejects; an estimate (not
+  measured) is that a 2-3 % miss rate costs about as much acceptance as S1c allows (2 points), or more. The engine change stays on the fork branch
   `serve/draft-vocab` (3e8203a520) for later use (for example with a shortlist made from a large general corpus).
