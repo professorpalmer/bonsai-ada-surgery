@@ -170,3 +170,19 @@ save in the 45 s pause; turn 13 restores a chain of length 1 and equals the refe
 hard cap is 16). In the 45 s pause the layer wrote one idle full save (174,656 tokens, 50.0 s on this drive, with no
 request waiting). After the restart, turn 13 restored that full save alone (1.32 s) and read 3,982 tokens (I1: 7,967 from
 the depth-5 chain). 13/13 answers equal the run-7 reference; 0 CUDA errors.
+
+## Soak (declared before the run): three conversations, a small budget, restarts
+
+Not a release gate; a robustness check of the shipped layer (bundle-20261018e) under pressure: three ~30k-token
+conversations take turns (A, B, C, A, ...), 45 turns in total (15 each, ~2.5k new tokens per turn), the server and layer
+restarted before every 9th turn, 8 GB preset, `BONSAI_SLOT_CACHE_GB=6` (evictions), all other defaults.
+
+| Check | Condition |
+|---|---|
+| S1 | 45/45 turns answered; 0 CUDA errors |
+| S2 | no "restore failed", no "save ... failed" and no Python traceback in the layer logs |
+| S3 | after the run, every index entry's chain is complete (no delta without its parent) and the folder is at most the budget + one save |
+| S4 | at least 3 evictions and at least 3 chain restores (a restore of a delta chain) happened |
+| S5 | each conversation's answers equal the same conversation run alone with the cache off (no restarts), at 13 of 15 turns or more |
+
+Any fail: a bug to fix before more cache work.
