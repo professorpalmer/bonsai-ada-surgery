@@ -13,7 +13,7 @@ RTX 2060 SUPER 8 GB (Turing, PCIe 3.0 x16) that also draws the Windows desktop.
 2. Make the Q4_0 head file once (it is 214 MiB smaller on the card):
 
    ```powershell
-   .uild\make_mtp_q4head.ps1   # after make_mtp_procreations.ps1
+   .\build\make_mtp_q4head.ps1   # after make_mtp_procreations.ps1
    ```
 
 3. Run `.\start-server.ps1`. The launcher detects a card with up to 8.5 GB of VRAM and turns on the 8 GB preset
