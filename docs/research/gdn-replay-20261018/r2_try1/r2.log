@@ -20,141 +20,141 @@
 {"tag": "snap", "depth": 100000, "prompt": "quote", "temp": 0.8, "sha": "67dc06409d9245ec", "n": 300, "tg": 58.251954314102726, "draft_n": 192, "draft_acc": 166, "wall": 169.8, "head": "Record 3: the valve on line 7 read 557 units at 09:09.\nRecord 20: the val
 23:38:05 server replay (LLAMA_RS_REPLAY=1): health=0; 
 Traceback (most recent call last):
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 1344, in do_open
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 1344, in do_open
     h.request(req.get_method(), req.selector, req.data, headers,
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1338, in request
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1338, in request
     self._send_request(method, url, body, headers, encode_chunked)
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1384, in _send_request
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1384, in _send_request
     self.endheaders(body, encode_chunked=encode_chunked)
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1333, in endheaders
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1333, in endheaders
     self._send_output(message_body, encode_chunked=encode_chunked)
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1093, in _send_output
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1093, in _send_output
     self.send(msg)
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1037, in send
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1037, in send
     self.connect()
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1003, in connect
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1003, in connect
     self.sock = self._create_connection(
                 ^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 865, in create_connection
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 865, in create_connection
     raise exceptions[0]
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 850, in create_connection
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 850, in create_connection
     sock.connect(sa)
 ConnectionRefusedError: [WinError 10061] No connection could be made because the target machine actively refused it
 
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "C:\Users\pwall\AppData\Local\Temp\claude\C--\f82461a3-bd77-47cc-9ba0-91f08ffb7c39\scratchpad\replay\r2.py", line 28, in <module>
+  File "%USERPROFILE%\AppData\Local\Temp\claude\C--\f82461a3-bd77-47cc-9ba0-91f08ffb7c39\scratchpad\replay\r2.py", line 28, in <module>
     r = json.loads(urllib.request.urlopen(urllib.request.Request(BASE + "/v1/chat/completions", data=json.dumps(body).encode(),
                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 215, in urlopen
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 215, in urlopen
     return opener.open(url, data, timeout)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 515, in open
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 515, in open
     response = self._open(req, data)
                ^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 532, in _open
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 532, in _open
     result = self._call_chain(self.handle_open, protocol, protocol +
              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 492, in _call_chain
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 492, in _call_chain
     result = func(*args)
              ^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 1373, in http_open
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 1373, in http_open
     return self.do_open(http.client.HTTPConnection, req)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 1347, in do_open
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 1347, in do_open
     raise URLError(err)
 urllib.error.URLError: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
 Traceback (most recent call last):
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 1344, in do_open
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 1344, in do_open
     h.request(req.get_method(), req.selector, req.data, headers,
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1338, in request
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1338, in request
     self._send_request(method, url, body, headers, encode_chunked)
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1384, in _send_request
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1384, in _send_request
     self.endheaders(body, encode_chunked=encode_chunked)
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1333, in endheaders
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1333, in endheaders
     self._send_output(message_body, encode_chunked=encode_chunked)
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1093, in _send_output
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1093, in _send_output
     self.send(msg)
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1037, in send
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1037, in send
     self.connect()
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1003, in connect
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1003, in connect
     self.sock = self._create_connection(
                 ^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 865, in create_connection
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 865, in create_connection
     raise exceptions[0]
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 850, in create_connection
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 850, in create_connection
     sock.connect(sa)
 ConnectionRefusedError: [WinError 10061] No connection could be made because the target machine actively refused it
 
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "C:\Users\pwall\AppData\Local\Temp\claude\C--\f82461a3-bd77-47cc-9ba0-91f08ffb7c39\scratchpad\replay\r2.py", line 28, in <module>
+  File "%USERPROFILE%\AppData\Local\Temp\claude\C--\f82461a3-bd77-47cc-9ba0-91f08ffb7c39\scratchpad\replay\r2.py", line 28, in <module>
     r = json.loads(urllib.request.urlopen(urllib.request.Request(BASE + "/v1/chat/completions", data=json.dumps(body).encode(),
                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 215, in urlopen
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 215, in urlopen
     return opener.open(url, data, timeout)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 515, in open
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 515, in open
     response = self._open(req, data)
                ^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 532, in _open
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 532, in _open
     result = self._call_chain(self.handle_open, protocol, protocol +
              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 492, in _call_chain
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 492, in _call_chain
     result = func(*args)
              ^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 1373, in http_open
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 1373, in http_open
     return self.do_open(http.client.HTTPConnection, req)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 1347, in do_open
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 1347, in do_open
     raise URLError(err)
 urllib.error.URLError: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
 Traceback (most recent call last):
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 1344, in do_open
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 1344, in do_open
     h.request(req.get_method(), req.selector, req.data, headers,
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1338, in request
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1338, in request
     self._send_request(method, url, body, headers, encode_chunked)
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1384, in _send_request
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1384, in _send_request
     self.endheaders(body, encode_chunked=encode_chunked)
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1333, in endheaders
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1333, in endheaders
     self._send_output(message_body, encode_chunked=encode_chunked)
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1093, in _send_output
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1093, in _send_output
     self.send(msg)
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1037, in send
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1037, in send
     self.connect()
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1003, in connect
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1003, in connect
     self.sock = self._create_connection(
                 ^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 865, in create_connection
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 865, in create_connection
     raise exceptions[0]
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 850, in create_connection
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 850, in create_connection
     sock.connect(sa)
 ConnectionRefusedError: [WinError 10061] No connection could be made because the target machine actively refused it
 
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "C:\Users\pwall\AppData\Local\Temp\claude\C--\f82461a3-bd77-47cc-9ba0-91f08ffb7c39\scratchpad\replay\r2.py", line 28, in <module>
+  File "%USERPROFILE%\AppData\Local\Temp\claude\C--\f82461a3-bd77-47cc-9ba0-91f08ffb7c39\scratchpad\replay\r2.py", line 28, in <module>
     r = json.loads(urllib.request.urlopen(urllib.request.Request(BASE + "/v1/chat/completions", data=json.dumps(body).encode(),
                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 215, in urlopen
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 215, in urlopen
     return opener.open(url, data, timeout)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 515, in open
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 515, in open
     response = self._open(req, data)
                ^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 532, in _open
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 532, in _open
     result = self._call_chain(self.handle_open, protocol, protocol +
              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 492, in _call_chain
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 492, in _call_chain
     result = func(*args)
              ^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 1373, in http_open
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 1373, in http_open
     return self.do_open(http.client.HTTPConnection, req)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 1347, in do_open
+  File "%USERPROFILE%\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 1347, in do_open
     raise URLError(err)
 urllib.error.URLError: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
 23:38:11 CUDA errors 1

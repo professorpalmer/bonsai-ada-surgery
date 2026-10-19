@@ -3,9 +3,9 @@
 23:42:58   0.03.254.477 I llama_memory_recurrent: size =  155.25 MiB (     1 cells,  64 layers,  1 seqs  1 rs_seq), R (f32):   11.25 MiB, S (f32):  144.00 MiB
 23:42:59   0.03.254.479 I llama_memory_recurrent: replay rollback: one S plane + pending inputs of 1 tokens (8288 floats a token): P    1.52 MiB
 23:42:59   0.03.375.748 E CUDA error: an illegal memory access was encountered
-23:42:59   0.03.375.755 E   current device: 0, in function ggml_cuda_kernel_launch at C:\Users\pwall\Projects\wt-delta\ggml\src\ggml-cuda\common.cuh:1903
+23:42:59   0.03.375.755 E   current device: 0, in function ggml_cuda_kernel_launch at %USERPROFILE%\Projects\wt-delta\ggml\src\ggml-cuda\common.cuh:1903
 23:42:59   0.03.375.756 E   cudaGetLastError()
-23:42:59   C:\Users\pwall\Projects\wt-delta\ggml\src\ggml-cuda\ggml-cuda.cu:110: CUDA error
+23:42:59   %USERPROFILE%\Projects\wt-delta\ggml\src\ggml-cuda\ggml-cuda.cu:110: CUDA error
 23:43:11 nogather (CUDA_LAUNCH_BLOCKING=1 GGML_CUDA_GDN_GATHER_FUSION=0): health=1
 23:43:12   0.03.136.963 I llama_memory_recurrent:      CUDA0 RS buffer size =   156.77 MiB
 23:43:12   0.03.136.968 I llama_memory_recurrent: size =  155.25 MiB (     1 cells,  64 layers,  1 seqs  1 rs_seq), R (f32):   11.25 MiB, S (f32):  144.00 MiB

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # MTP speed and acceptance against temperature, bundle-20261018e root, 8 GB preset, layer off; spec on (default) and off.
-B=/c/Users/pwall/Projects/bonsai-2-27b-serve; SP=$(dirname "$(realpath "$0")")
+B=%USERPROFILE%/Projects/bonsai-2-27b-serve; SP=$(dirname "$(realpath "$0")")
 cd $B || exit 1; REPO="$(pwd -W)"; MODEL="$REPO\models\Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf"
-R=$TEMP/r-1018ez; RW="$(cygpath -w $R)"; D=/c/Users/pwall/Projects/bonsai-saa/docs/research/temp-spec-20261018; mkdir -p $D; LOG=$D/tempspec.log; OUT="$(cygpath -m $D)/tempspec.jsonl"
+R=$TEMP/r-1018ez; RW="$(cygpath -w $R)"; D=%USERPROFILE%/Projects/bonsai-saa/docs/research/temp-spec-20261018; mkdir -p $D; LOG=$D/tempspec.log; OUT="$(cygpath -m $D)/tempspec.jsonl"
 say() { echo "$(date '+%H:%M:%S') $*" | tee -a "$LOG"; }
 stopall() { powershell -NoProfile -ExecutionPolicy Bypass -File bench/stop_serve.ps1 >/dev/null 2>&1; }
 trap stopall EXIT
