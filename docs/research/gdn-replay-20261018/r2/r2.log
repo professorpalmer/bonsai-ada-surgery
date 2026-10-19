@@ -1,161 +1,41 @@
-23:07:47 === R2: engine commit c5e73e7d81
-23:08:00 server snap (): health=1; 
-{"tag": "snap", "depth": 4000, "prompt": "story", "temp": 0.0, "sha": "8ee0804906b9be8a", "n": 300, "tg": 80.1651133223694, "draft_n": 179, "draft_acc": 119, "wall": 7.5, "head": "The fog rolled in off the harbor like a slow, gray tide, erasing the world beyon
-{"tag": "snap", "depth": 4000, "prompt": "story", "temp": 0.8, "sha": "bff4df0112f4bb4d", "n": 300, "tg": 72.85653160024133, "draft_n": 226, "draft_acc": 103, "wall": 7.9, "head": "The fog rolled off the harbor like a wall of wet cotton, swallowing the lightho
-{"tag": "snap", "depth": 4000, "prompt": "code", "temp": 0.0, "sha": "412a86827412fed7", "n": 300, "tg": 85.35117011030567, "draft_n": 169, "draft_acc": 129, "wall": 7.3, "head": "```python\n\"\"\"A min-heap priority queue with O(log n) push/pop and O(log n) u
-{"tag": "snap", "depth": 4000, "prompt": "code", "temp": 0.8, "sha": "0a24599a6a16eb5e", "n": 300, "tg": 81.34274841640088, "draft_n": 203, "draft_acc": 126, "wall": 7.4, "head": "```python\n\"\"\"A min-heap priority queue module with a self-test.\n\nThe modul
-{"tag": "snap", "depth": 4000, "prompt": "quote", "temp": 0.0, "sha": "ea2fde93784fb910", "n": 104, "tg": 88.29333273899633, "draft_n": 83, "draft_acc": 51, "wall": 4.9, "head": "Record 3: the valve on line 7 read 557 units at 09:09.\nRecord 20: the valve on l
-{"tag": "snap", "depth": 4000, "prompt": "quote", "temp": 0.8, "sha": "ea2fde93784fb910", "n": 104, "tg": 134.71606953441864, "draft_n": 140, "draft_acc": 85, "wall": 4.5, "head": "Record 3: the valve on line 7 read 557 units at 09:09.\nRecord 20: the valve on
-{"tag": "snap", "depth": 32000, "prompt": "story", "temp": 0.0, "sha": "4671f738432e352d", "n": 300, "tg": 72.66360977259936, "draft_n": 235, "draft_acc": 124, "wall": 40.3, "head": "The fog rolled in off the harbor like a slow, gray tide, swallowing the light
-{"tag": "snap", "depth": 32000, "prompt": "story", "temp": 0.8, "sha": "6a1d56a39a179c58", "n": 300, "tg": 66.25031629540639, "draft_n": 251, "draft_acc": 107, "wall": 40.8, "head": "The fog rolled off the harbor like a wall of wet cotton, swallowing the light
-{"tag": "snap", "depth": 32000, "prompt": "code", "temp": 0.0, "sha": "269ac83f686c9947", "n": 300, "tg": 80.91558555957187, "draft_n": 165, "draft_acc": 133, "wall": 40.0, "head": "```python\n\"\"\"A min-heap priority queue with priority updates.\n\nThis modu
-{"tag": "snap", "depth": 32000, "prompt": "code", "temp": 0.8, "sha": "93e85ac524c78149", "n": 300, "tg": 76.4820507625951, "draft_n": 200, "draft_acc": 128, "wall": 40.2, "head": "```python\n\"\"\"A min-heap priority queue implementation with priority updates
-{"tag": "snap", "depth": 32000, "prompt": "quote", "temp": 0.0, "sha": "cef471243e881359", "n": 240, "tg": 76.85280372855075, "draft_n": 243, "draft_acc": 117, "wall": 39.4, "head": "Record 3: the valve on line 7 read 557 units at 09:09.\nRecord 20: the valve 
-{"tag": "snap", "depth": 32000, "prompt": "quote", "temp": 0.8, "sha": "edecaa7c4cfc82e7", "n": 214, "tg": 130.72994568876575, "draft_n": 196, "draft_acc": 169, "wall": 38.0, "head": "Record 3: the valve on line 7 read 557 units at 09:09.\nRecord 20: the valve
-{"tag": "snap", "depth": 100000, "prompt": "story", "temp": 0.0, "sha": "572c12b2ff5d27df", "n": 300, "tg": 43.16175597036072, "draft_n": 183, "draft_acc": 115, "wall": 171.8, "head": "The fog rolled in off the harbor like a living thing, swallowing the breakw
-{"tag": "snap", "depth": 100000, "prompt": "story", "temp": 0.8, "sha": "d5b57d2442b0151f", "n": 300, "tg": 41.937230765433, "draft_n": 194, "draft_acc": 104, "wall": 171.7, "head": "The fog rolled off the harbor like a wall of wet cotton, swallowing the light
-{"tag": "snap", "depth": 100000, "prompt": "code", "temp": 0.0, "sha": "340de0e547997f71", "n": 300, "tg": 48.356814421263536, "draft_n": 169, "draft_acc": 129, "wall": 170.8, "head": "```python\n\"\"\"Priority queue backed by a min-heap.\n\nThis module provid
-{"tag": "snap", "depth": 100000, "prompt": "code", "temp": 0.8, "sha": "af535b790895182c", "n": 300, "tg": 44.68663237503174, "draft_n": 183, "draft_acc": 115, "wall": 171.3, "head": "```python\n\"\"\"Priority queue backed by a min-heap.\n\nThis module provide
-{"tag": "snap", "depth": 100000, "prompt": "quote", "temp": 0.0, "sha": "a4025dec47b89ede", "n": 300, "tg": 52.12301939063484, "draft_n": 239, "draft_acc": 153, "wall": 170.1, "head": "Record 3: the valve on line 7 read 557 units at 09:09.\nRecord 20: the valv
-{"tag": "snap", "depth": 100000, "prompt": "quote", "temp": 0.8, "sha": "67dc06409d9245ec", "n": 300, "tg": 58.251954314102726, "draft_n": 192, "draft_acc": 166, "wall": 169.8, "head": "Record 3: the valve on line 7 read 557 units at 09:09.\nRecord 20: the val
-23:38:05 server replay (LLAMA_RS_REPLAY=1): health=0; 
-Traceback (most recent call last):
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 1344, in do_open
-    h.request(req.get_method(), req.selector, req.data, headers,
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1338, in request
-    self._send_request(method, url, body, headers, encode_chunked)
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1384, in _send_request
-    self.endheaders(body, encode_chunked=encode_chunked)
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1333, in endheaders
-    self._send_output(message_body, encode_chunked=encode_chunked)
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1093, in _send_output
-    self.send(msg)
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1037, in send
-    self.connect()
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1003, in connect
-    self.sock = self._create_connection(
-                ^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 865, in create_connection
-    raise exceptions[0]
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 850, in create_connection
-    sock.connect(sa)
-ConnectionRefusedError: [WinError 10061] No connection could be made because the target machine actively refused it
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "C:\Users\pwall\AppData\Local\Temp\claude\C--\f82461a3-bd77-47cc-9ba0-91f08ffb7c39\scratchpad\replay\r2.py", line 28, in <module>
-    r = json.loads(urllib.request.urlopen(urllib.request.Request(BASE + "/v1/chat/completions", data=json.dumps(body).encode(),
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 215, in urlopen
-    return opener.open(url, data, timeout)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 515, in open
-    response = self._open(req, data)
-               ^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 532, in _open
-    result = self._call_chain(self.handle_open, protocol, protocol +
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 492, in _call_chain
-    result = func(*args)
-             ^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 1373, in http_open
-    return self.do_open(http.client.HTTPConnection, req)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 1347, in do_open
-    raise URLError(err)
-urllib.error.URLError: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
-Traceback (most recent call last):
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 1344, in do_open
-    h.request(req.get_method(), req.selector, req.data, headers,
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1338, in request
-    self._send_request(method, url, body, headers, encode_chunked)
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1384, in _send_request
-    self.endheaders(body, encode_chunked=encode_chunked)
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1333, in endheaders
-    self._send_output(message_body, encode_chunked=encode_chunked)
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1093, in _send_output
-    self.send(msg)
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1037, in send
-    self.connect()
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1003, in connect
-    self.sock = self._create_connection(
-                ^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 865, in create_connection
-    raise exceptions[0]
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 850, in create_connection
-    sock.connect(sa)
-ConnectionRefusedError: [WinError 10061] No connection could be made because the target machine actively refused it
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "C:\Users\pwall\AppData\Local\Temp\claude\C--\f82461a3-bd77-47cc-9ba0-91f08ffb7c39\scratchpad\replay\r2.py", line 28, in <module>
-    r = json.loads(urllib.request.urlopen(urllib.request.Request(BASE + "/v1/chat/completions", data=json.dumps(body).encode(),
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 215, in urlopen
-    return opener.open(url, data, timeout)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 515, in open
-    response = self._open(req, data)
-               ^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 532, in _open
-    result = self._call_chain(self.handle_open, protocol, protocol +
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 492, in _call_chain
-    result = func(*args)
-             ^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 1373, in http_open
-    return self.do_open(http.client.HTTPConnection, req)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 1347, in do_open
-    raise URLError(err)
-urllib.error.URLError: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
-Traceback (most recent call last):
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 1344, in do_open
-    h.request(req.get_method(), req.selector, req.data, headers,
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1338, in request
-    self._send_request(method, url, body, headers, encode_chunked)
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1384, in _send_request
-    self.endheaders(body, encode_chunked=encode_chunked)
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1333, in endheaders
-    self._send_output(message_body, encode_chunked=encode_chunked)
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1093, in _send_output
-    self.send(msg)
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1037, in send
-    self.connect()
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1003, in connect
-    self.sock = self._create_connection(
-                ^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 865, in create_connection
-    raise exceptions[0]
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 850, in create_connection
-    sock.connect(sa)
-ConnectionRefusedError: [WinError 10061] No connection could be made because the target machine actively refused it
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "C:\Users\pwall\AppData\Local\Temp\claude\C--\f82461a3-bd77-47cc-9ba0-91f08ffb7c39\scratchpad\replay\r2.py", line 28, in <module>
-    r = json.loads(urllib.request.urlopen(urllib.request.Request(BASE + "/v1/chat/completions", data=json.dumps(body).encode(),
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 215, in urlopen
-    return opener.open(url, data, timeout)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 515, in open
-    response = self._open(req, data)
-               ^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 532, in _open
-    result = self._call_chain(self.handle_open, protocol, protocol +
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 492, in _call_chain
-    result = func(*args)
-             ^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 1373, in http_open
-    return self.do_open(http.client.HTTPConnection, req)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\urllib\request.py", line 1347, in do_open
-    raise URLError(err)
-urllib.error.URLError: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
-23:38:11 CUDA errors 1
-23:38:12 === done
+23:59:25 === R2: engine commit c5e73e7d81
+23:59:37 server snap (): health=1; 
+{"tag": "snap", "depth": 4000, "prompt": "story", "temp": 0.0, "sha": "8ee0804906b9be8a", "n": 300, "tg": 78.06258582968258, "draft_n": 179, "draft_acc": 119, "wall": 7.7, "head": "The fog rolled in off the harbor like a slow, gray tide, erasing the world beyo
+{"tag": "snap", "depth": 4000, "prompt": "story", "temp": 0.8, "sha": "bff4df0112f4bb4d", "n": 300, "tg": 70.3368381779889, "draft_n": 226, "draft_acc": 103, "wall": 8.0, "head": "The fog rolled off the harbor like a wall of wet cotton, swallowing the lighthou
+{"tag": "snap", "depth": 4000, "prompt": "code", "temp": 0.0, "sha": "412a86827412fed7", "n": 300, "tg": 82.2997693404458, "draft_n": 169, "draft_acc": 129, "wall": 7.4, "head": "```python\n\"\"\"A min-heap priority queue with O(log n) push/pop and O(log n) up
+{"tag": "snap", "depth": 4000, "prompt": "code", "temp": 0.8, "sha": "0a24599a6a16eb5e", "n": 300, "tg": 79.3365869294167, "draft_n": 203, "draft_acc": 126, "wall": 7.6, "head": "```python\n\"\"\"A min-heap priority queue module with a self-test.\n\nThe module
+{"tag": "snap", "depth": 4000, "prompt": "quote", "temp": 0.0, "sha": "ea2fde93784fb910", "n": 104, "tg": 86.62632515149093, "draft_n": 83, "draft_acc": 51, "wall": 5.0, "head": "Record 3: the valve on line 7 read 557 units at 09:09.\nRecord 20: the valve on l
+{"tag": "snap", "depth": 4000, "prompt": "quote", "temp": 0.8, "sha": "ea2fde93784fb910", "n": 104, "tg": 136.46884866664635, "draft_n": 140, "draft_acc": 85, "wall": 4.5, "head": "Record 3: the valve on line 7 read 557 units at 09:09.\nRecord 20: the valve on
+{"tag": "snap", "depth": 32000, "prompt": "story", "temp": 0.0, "sha": "4671f738432e352d", "n": 300, "tg": 70.47153232922791, "draft_n": 235, "draft_acc": 124, "wall": 40.6, "head": "The fog rolled in off the harbor like a slow, gray tide, swallowing the light
+{"tag": "snap", "depth": 32000, "prompt": "story", "temp": 0.8, "sha": "6a1d56a39a179c58", "n": 300, "tg": 64.48764565526889, "draft_n": 251, "draft_acc": 107, "wall": 41.1, "head": "The fog rolled off the harbor like a wall of wet cotton, swallowing the light
+{"tag": "snap", "depth": 32000, "prompt": "code", "temp": 0.0, "sha": "269ac83f686c9947", "n": 300, "tg": 79.2939181564774, "draft_n": 165, "draft_acc": 133, "wall": 40.2, "head": "```python\n\"\"\"A min-heap priority queue with priority updates.\n\nThis modul
+{"tag": "snap", "depth": 32000, "prompt": "code", "temp": 0.8, "sha": "93e85ac524c78149", "n": 300, "tg": 74.37855350380201, "draft_n": 200, "draft_acc": 128, "wall": 40.5, "head": "```python\n\"\"\"A min-heap priority queue implementation with priority update
+{"tag": "snap", "depth": 32000, "prompt": "quote", "temp": 0.0, "sha": "cef471243e881359", "n": 240, "tg": 74.94047092717355, "draft_n": 243, "draft_acc": 117, "wall": 39.6, "head": "Record 3: the valve on line 7 read 557 units at 09:09.\nRecord 20: the valve 
+{"tag": "snap", "depth": 32000, "prompt": "quote", "temp": 0.8, "sha": "edecaa7c4cfc82e7", "n": 214, "tg": 129.33861212989726, "draft_n": 196, "draft_acc": 169, "wall": 38.1, "head": "Record 3: the valve on line 7 read 557 units at 09:09.\nRecord 20: the valve
+{"tag": "snap", "depth": 100000, "prompt": "story", "temp": 0.0, "sha": "572c12b2ff5d27df", "n": 300, "tg": 43.011711700696026, "draft_n": 183, "draft_acc": 115, "wall": 171.9, "head": "The fog rolled in off the harbor like a living thing, swallowing the break
+{"tag": "snap", "depth": 100000, "prompt": "story", "temp": 0.8, "sha": "d5b57d2442b0151f", "n": 300, "tg": 42.3596807241777, "draft_n": 194, "draft_acc": 104, "wall": 172.0, "head": "The fog rolled off the harbor like a wall of wet cotton, swallowing the ligh
+{"tag": "snap", "depth": 100000, "prompt": "code", "temp": 0.0, "sha": "340de0e547997f71", "n": 300, "tg": 47.79294879776757, "draft_n": 169, "draft_acc": 129, "wall": 171.2, "head": "```python\n\"\"\"Priority queue backed by a min-heap.\n\nThis module provide
+{"tag": "snap", "depth": 100000, "prompt": "code", "temp": 0.8, "sha": "af535b790895182c", "n": 300, "tg": 44.93127843612704, "draft_n": 183, "draft_acc": 115, "wall": 171.6, "head": "```python\n\"\"\"Priority queue backed by a min-heap.\n\nThis module provide
+{"tag": "snap", "depth": 100000, "prompt": "quote", "temp": 0.0, "sha": "a4025dec47b89ede", "n": 300, "tg": 51.998824374405444, "draft_n": 239, "draft_acc": 153, "wall": 170.7, "head": "Record 3: the valve on line 7 read 557 units at 09:09.\nRecord 20: the val
+{"tag": "snap", "depth": 100000, "prompt": "quote", "temp": 0.8, "sha": "67dc06409d9245ec", "n": 300, "tg": 57.75938406474614, "draft_n": 192, "draft_acc": 166, "wall": 170.2, "head": "Record 3: the valve on line 7 read 557 units at 09:09.\nRecord 20: the valv
+00:21:43 server replay (LLAMA_RS_REPLAY=1): health=1; 
+{"tag": "replay", "depth": 4000, "prompt": "story", "temp": 0.0, "sha": "32c3531df468d13c", "n": 300, "tg": 73.6150944919906, "draft_n": 182, "draft_acc": 117, "wall": 8.0, "head": "The fog rolled in off the harbor like a slow, gray tide, erasing the world bey
+{"tag": "replay", "depth": 4000, "prompt": "story", "temp": 0.8, "sha": "5431ff9f739d49e1", "n": 300, "tg": 69.07238786247987, "draft_n": 219, "draft_acc": 110, "wall": 8.2, "head": "The fog rolled off the harbor like a second tide, erasing the world beyond th
+{"tag": "replay", "depth": 4000, "prompt": "code", "temp": 0.0, "sha": "95a60a70ed1e505a", "n": 300, "tg": 78.85699034252417, "draft_n": 171, "draft_acc": 127, "wall": 7.6, "head": "```python\n\"\"\"A min-heap priority queue with priority updates.\n\nThis modu
+{"tag": "replay", "depth": 4000, "prompt": "code", "temp": 0.8, "sha": "354e4d5cb1350a0b", "n": 300, "tg": 77.08782314042384, "draft_n": 201, "draft_acc": 128, "wall": 7.7, "head": "```python\n\"\"\"A min-heap priority queue implemented as a list-based binary 
+{"tag": "replay", "depth": 4000, "prompt": "quote", "temp": 0.0, "sha": "ea2fde93784fb910", "n": 104, "tg": 80.64743447200203, "draft_n": 83, "draft_acc": 51, "wall": 5.2, "head": "Record 3: the valve on line 7 read 557 units at 09:09.\nRecord 20: the valve on
+{"tag": "replay", "depth": 4000, "prompt": "quote", "temp": 0.8, "sha": "ea2fde93784fb910", "n": 104, "tg": 128.40267077555214, "draft_n": 140, "draft_acc": 85, "wall": 4.7, "head": "Record 3: the valve on line 7 read 557 units at 09:09.\nRecord 20: the valve 
+{"tag": "replay", "depth": 32000, "prompt": "story", "temp": 0.0, "sha": "a4b71eb14c91927f", "n": 300, "tg": 65.37280976490494, "draft_n": 239, "draft_acc": 119, "wall": 41.4, "head": "The fog rolled in off the harbor like a slow, gray tide, swallowing the lig
+{"tag": "replay", "depth": 32000, "prompt": "story", "temp": 0.8, "sha": "b61f47ec5b0126a0", "n": 300, "tg": 61.19007951231303, "draft_n": 253, "draft_acc": 105, "wall": 41.7, "head": "The fog rolled off the harbor like a spilled milk carton, erasing the world
+{"tag": "replay", "depth": 32000, "prompt": "code", "temp": 0.0, "sha": "67bb151ce192baa4", "n": 300, "tg": 76.2655100836268, "draft_n": 165, "draft_acc": 134, "wall": 40.7, "head": "```python\n\"\"\"A min-heap priority queue with priority updates.\n\nThis mod
+{"tag": "replay", "depth": 32000, "prompt": "code", "temp": 0.8, "sha": "117d467c603de787", "n": 300, "tg": 71.41601476663445, "draft_n": 199, "draft_acc": 129, "wall": 41.1, "head": "```python\n\"\"\"A min-heap priority queue implementation with priority upda
+{"tag": "replay", "depth": 32000, "prompt": "quote", "temp": 0.0, "sha": "cef471243e881359", "n": 240, "tg": 70.39088440992116, "draft_n": 242, "draft_acc": 118, "wall": 40.3, "head": "Record 3: the valve on line 7 read 557 units at 09:09.\nRecord 20: the valv
+{"tag": "replay", "depth": 32000, "prompt": "quote", "temp": 0.8, "sha": "cef471243e881359", "n": 240, "tg": 123.42739809364059, "draft_n": 228, "draft_acc": 193, "wall": 38.8, "head": "Record 3: the valve on line 7 read 557 units at 09:09.\nRecord 20: the val
+{"tag": "replay", "depth": 100000, "prompt": "story", "temp": 0.0, "sha": "f1cb5c36679c381b", "n": 300, "tg": 41.831866396573645, "draft_n": 180, "draft_acc": 118, "wall": 173.3, "head": "The fog rolled in off the harbor like a living thing, swallowing the bre
+{"tag": "replay", "depth": 100000, "prompt": "story", "temp": 0.8, "sha": "2dde79e1eb024ba2", "n": 300, "tg": 41.01390206675774, "draft_n": 194, "draft_acc": 104, "wall": 173.4, "head": "The fog rolled off the harbor like a spilled milk bath, erasing the world
+{"tag": "replay", "depth": 100000, "prompt": "code", "temp": 0.0, "sha": "128fc36aecfc3cbc", "n": 300, "tg": 47.39516791204472, "draft_n": 166, "draft_acc": 132, "wall": 172.5, "head": "```python\n\"\"\"Priority queue backed by a min-heap.\n\nThis module provi
+{"tag": "replay", "depth": 100000, "prompt": "code", "temp": 0.8, "sha": "9578e16213c47976", "n": 300, "tg": 41.86127844344366, "draft_n": 185, "draft_acc": 113, "wall": 173.5, "head": "```python\n\"\"\"Priority queue backed by a min-heap.\n\nThis module provi
+{"tag": "replay", "depth": 100000, "prompt": "quote", "temp": 0.0, "sha": "b0fe04952fdd79f4", "n": 300, "tg": 49.82326903298866, "draft_n": 234, "draft_acc": 154, "wall": 172.4, "head": "Record 3: the valve on line 7 read 557 units at 09:09.\nRecord 20: the va
+{"tag": "replay", "depth": 100000, "prompt": "quote", "temp": 0.8, "sha": "8f91f3228994d6c2", "n": 300, "tg": 54.08308282977883, "draft_n": 192, "draft_acc": 166, "wall": 171.9, "head": "Record 3: the valve on line 7 read 557 units at 09:09.\nRecord 20: the va
+00:43:46 CUDA errors 0
+00:43:52 === done
