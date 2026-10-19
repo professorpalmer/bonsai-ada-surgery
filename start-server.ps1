@@ -181,7 +181,8 @@ $SpecDeep = if ($env:BONSAI_SPEC_DEEP) { [int]$env:BONSAI_SPEC_DEEP } elseif ($S
 $LlamaDll = ''
 try { $LlamaDll = [Text.Encoding]::ASCII.GetString([IO.File]::ReadAllBytes((Join-Path $Bin 'llama.dll'))) } catch { }
 $Replay = $Spec -gt 0 -and $env:BONSAI_RS_REPLAY -eq '1' -and $LlamaDll.Contains('LLAMA_RS_REPLAY')
-if ($Replay) { $env:LLAMA_RS_REPLAY = '1' } elseif ($env:BONSAI_RS_REPLAY -eq '1') { Write-Host "note   BONSAI_RS_REPLAY=1 needs an engine with replay rollback; off" }
+if ($Replay) { $env:LLAMA_RS_REPLAY = '1' }
+elseif ($env:BONSAI_RS_REPLAY -eq '1') { Write-Host "note   BONSAI_RS_REPLAY=1 is off: $(if ($Spec -le 0) { 'drafting is off (BONSAI_SPEC=0 or no MTP head)' } else { 'this engine has no replay rollback' })" }
 $Ubatch = if ($env:BONSAI_UBATCH) { [int]$env:BONSAI_UBATCH } elseif ($Small -and $Spec -eq 0) { 1024 } else { 512 }
 # 12 GB recipe: one CUDA pool for the main and the MTP draft context and a 256-token draft micro-batch, as the Mirai S
 # serve does. Measured on the RTX 4070 (docs/receipts/pool_ab.log): 74 MiB less VRAM after a 32k request, so the VRAM line
@@ -532,7 +533,7 @@ if ($Spec -gt 0) {
 # older launcher can still hold them, so they are not listed as the user's settings either.
 $LauncherVars = @('BONSAI_LAYER_KEY', 'LLAMA_ARG_CHAT_TEMPLATE_KWARGS', 'GGML_CUDA_BATCH_INVARIANT',
                   'GGML_CUDA_SHARED_POOL', 'LLAMA_MTP_DRAFT_UBATCH', 'GGML_CUDA_FA_PREFILL_F16',
-                  'LLAMA_ARG_CHECKPOINT_EVERY_NT', 'LLAMA_ARG_KQ_MASK_PACKED', 'GGML_CUDA_KV_TIER_STAGING_FRAC', 'GGML_CUDA_FA_CHUNK')
+                  'LLAMA_ARG_CHECKPOINT_EVERY_NT', 'LLAMA_ARG_KQ_MASK_PACKED', 'GGML_CUDA_KV_TIER_STAGING_FRAC', 'GGML_CUDA_FA_CHUNK', 'LLAMA_RS_REPLAY')
 $Listed = @($UserEnv | Where-Object { $_.Name -notin $LauncherVars -and $_.Value })
 if ($Listed.Count -gt 0) {
     Write-Host ("env    set in this window, these change the defaults: " + (($Listed | ForEach-Object { "$($_.Name)=$($_.Value)" }) -join '  '))
