@@ -1,0 +1,36 @@
+[proxy] "GET /health HTTP/1.1" 503 -
+[proxy] "GET /health HTTP/1.1" 503 -
+[proxy] "GET /health HTTP/1.1" 200 -
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -
+[slots] saved 0cb6b56adb64 38122 tokens: prefill 34.76 s, save 0.47 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.02}
+[slots] saved 20fd4efb4617 38122 tokens: prefill 35.17 s, save 0.49 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.02}
+[slots] saved 1a3433eb5d8c 38122 tokens: prefill 35.2 s, save 0.49 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.01}
+[slots] restored 0cb6b56adb64 38122 tokens in 0.41 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.0}
+[slots] restored 20fd4efb4617 38122 tokens in 0.38 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.0}
+[slots] restored 1a3433eb5d8c 38122 tokens in 0.36 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.0}
+[slots] restored 0cb6b56adb64 38122 tokens in 0.37 s
+[slots] delta saves on
+[slots] saved cd079822b1fb 42971 tokens: prefill 5.51 s, save 0.23 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.0}
+[slots] restored 20fd4efb4617 38122 tokens in 0.34 s
+[slots] saved 34272363632c 42979 tokens: prefill 5.5 s, save 0.2 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.02}
+[slots] restored 1a3433eb5d8c 38122 tokens in 0.38 s
+[slots] saved 3c7107660e8a 42984 tokens: prefill 5.52 s, save 0.21 s
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] slot cache after the answer: {"s": 0.01}
+[proxy] "GET /layer/slot-cache HTTP/1.1" 200 -

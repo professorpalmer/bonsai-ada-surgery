@@ -1,0 +1,100 @@
+20:37:10 === soak: engine commit a6d4fc698f; disk 63%
+20:37:25 server s1: health=1; {"on": true, "after": true, "busy": false}
+{"arm": "soak", "conv": "A", "turn": 1, "wall_s": 35.84, "prompt_n": 7, "cache_n": 38122}
+{"arm": "soak", "conv": "B", "turn": 1, "wall_s": 36.28, "prompt_n": 7, "cache_n": 38122}
+{"arm": "soak", "conv": "C", "turn": 1, "wall_s": 36.29, "prompt_n": 7, "cache_n": 38122}
+{"arm": "soak", "conv": "A", "turn": 2, "wall_s": 3.51, "prompt_n": 2445, "cache_n": 38122}
+{"arm": "soak", "conv": "B", "turn": 2, "wall_s": 3.48, "prompt_n": 2441, "cache_n": 38122}
+{"arm": "soak", "conv": "C", "turn": 2, "wall_s": 3.46, "prompt_n": 2443, "cache_n": 38122}
+{"arm": "soak", "conv": "A", "turn": 3, "wall_s": 6.52, "prompt_n": 7, "cache_n": 42971}
+{"arm": "soak", "conv": "B", "turn": 3, "wall_s": 6.38, "prompt_n": 7, "cache_n": 42979}
+{"arm": "soak", "conv": "C", "turn": 3, "wall_s": 6.52, "prompt_n": 7, "cache_n": 42984}
+20:40:03 server s10: health=1; {"on": true, "after": true, "busy": false}
+{"arm": "soak", "conv": "A", "turn": 4, "wall_s": 3.79, "prompt_n": 2427, "cache_n": 42971}
+{"arm": "soak", "conv": "B", "turn": 4, "wall_s": 3.62, "prompt_n": 2423, "cache_n": 42979}
+{"arm": "soak", "conv": "C", "turn": 4, "wall_s": 3.7, "prompt_n": 2429, "cache_n": 42984}
+{"arm": "soak", "conv": "A", "turn": 5, "wall_s": 6.85, "prompt_n": 7, "cache_n": 47812}
+{"arm": "soak", "conv": "B", "turn": 5, "wall_s": 6.75, "prompt_n": 7, "cache_n": 47820}
+{"arm": "soak", "conv": "C", "turn": 5, "wall_s": 6.84, "prompt_n": 7, "cache_n": 47827}
+{"arm": "soak", "conv": "A", "turn": 6, "wall_s": 3.92, "prompt_n": 2433, "cache_n": 47812}
+{"arm": "soak", "conv": "B", "turn": 6, "wall_s": 3.93, "prompt_n": 2423, "cache_n": 47820}
+{"arm": "soak", "conv": "C", "turn": 6, "wall_s": 3.96, "prompt_n": 2437, "cache_n": 47827}
+20:41:06 server s19: health=1; {"on": true, "after": true, "busy": false}
+{"arm": "soak", "conv": "A", "turn": 7, "wall_s": 7.28, "prompt_n": 7, "cache_n": 52664}
+{"arm": "soak", "conv": "B", "turn": 7, "wall_s": 7.12, "prompt_n": 7, "cache_n": 52661}
+{"arm": "soak", "conv": "C", "turn": 7, "wall_s": 7.23, "prompt_n": 7, "cache_n": 52676}
+{"arm": "soak", "conv": "A", "turn": 8, "wall_s": 4.23, "prompt_n": 2441, "cache_n": 52664}
+{"arm": "soak", "conv": "B", "turn": 8, "wall_s": 4.18, "prompt_n": 2450, "cache_n": 52661}
+{"arm": "soak", "conv": "C", "turn": 8, "wall_s": 4.26, "prompt_n": 2441, "cache_n": 52676}
+{"arm": "soak", "conv": "A", "turn": 9, "wall_s": 7.52, "prompt_n": 7, "cache_n": 57519}
+{"arm": "soak", "conv": "B", "turn": 9, "wall_s": 7.53, "prompt_n": 7, "cache_n": 57529}
+{"arm": "soak", "conv": "C", "turn": 9, "wall_s": 7.52, "prompt_n": 7, "cache_n": 57537}
+20:42:22 server s28: health=1; {"on": true, "after": true, "busy": false}
+{"arm": "soak", "conv": "A", "turn": 10, "wall_s": 4.53, "prompt_n": 2426, "cache_n": 57519}
+{"arm": "soak", "conv": "B", "turn": 10, "wall_s": 4.4, "prompt_n": 2421, "cache_n": 57529}
+{"arm": "soak", "conv": "C", "turn": 10, "wall_s": 4.45, "prompt_n": 2420, "cache_n": 57537}
+{"arm": "soak", "conv": "A", "turn": 11, "wall_s": 7.99, "prompt_n": 7, "cache_n": 62360}
+{"arm": "soak", "conv": "B", "turn": 11, "wall_s": 7.92, "prompt_n": 7, "cache_n": 62369}
+{"arm": "soak", "conv": "C", "turn": 11, "wall_s": 7.95, "prompt_n": 7, "cache_n": 62376}
+{"arm": "soak", "conv": "A", "turn": 12, "wall_s": 4.67, "prompt_n": 2435, "cache_n": 62360}
+{"arm": "soak", "conv": "B", "turn": 12, "wall_s": 4.64, "prompt_n": 2428, "cache_n": 62369}
+{"arm": "soak", "conv": "C", "turn": 12, "wall_s": 4.67, "prompt_n": 2432, "cache_n": 62376}
+20:43:33 server s37: health=1; {"on": true, "after": true, "busy": false}
+{"arm": "soak", "conv": "A", "turn": 13, "wall_s": 8.52, "prompt_n": 7, "cache_n": 67209}
+{"arm": "soak", "conv": "B", "turn": 13, "wall_s": 8.35, "prompt_n": 7, "cache_n": 67208}
+{"arm": "soak", "conv": "C", "turn": 13, "wall_s": 8.42, "prompt_n": 7, "cache_n": 67217}
+{"arm": "soak", "conv": "A", "turn": 14, "wall_s": 75.17, "prompt_n": 7, "cache_n": 69647}
+{"arm": "soak", "conv": "B", "turn": 14, "wall_s": 5.02, "prompt_n": 2444, "cache_n": 67208}
+{"arm": "soak", "conv": "C", "turn": 14, "wall_s": 5.12, "prompt_n": 2442, "cache_n": 67217}
+{"arm": "soak", "conv": "A", "turn": 15, "wall_s": 4.44, "prompt_n": 2433, "cache_n": 69647}
+{"arm": "soak", "conv": "B", "turn": 15, "wall_s": 8.65, "prompt_n": 7, "cache_n": 72072}
+{"arm": "soak", "conv": "C", "turn": 15, "wall_s": 8.58, "prompt_n": 7, "cache_n": 72075}
+20:45:47 soak done: folder 5719 MiB; files 17; CUDA errors 0
+20:46:05 server ref: health=1; {"on": false, "after": false, "busy": false}
+{"arm": "ref", "conv": "A", "turn": 1, "wall_s": 35.0, "prompt_n": 38129, "cache_n": 0}
+{"arm": "ref", "conv": "A", "turn": 2, "wall_s": 4.26, "prompt_n": 2416, "cache_n": 38151}
+{"arm": "ref", "conv": "A", "turn": 3, "wall_s": 3.9, "prompt_n": 2405, "cache_n": 40686}
+{"arm": "ref", "conv": "A", "turn": 4, "wall_s": 3.04, "prompt_n": 2414, "cache_n": 43174}
+{"arm": "ref", "conv": "A", "turn": 5, "wall_s": 3.9, "prompt_n": 2417, "cache_n": 45592}
+{"arm": "ref", "conv": "A", "turn": 6, "wall_s": 3.3, "prompt_n": 2420, "cache_n": 48128}
+{"arm": "ref", "conv": "A", "turn": 7, "wall_s": 3.27, "prompt_n": 2421, "cache_n": 50568}
+{"arm": "ref", "conv": "A", "turn": 8, "wall_s": 3.72, "prompt_n": 2411, "cache_n": 53012}
+{"arm": "ref", "conv": "A", "turn": 9, "wall_s": 3.75, "prompt_n": 2415, "cache_n": 55542}
+{"arm": "ref", "conv": "A", "turn": 10, "wall_s": 3.35, "prompt_n": 2413, "cache_n": 58040}
+{"arm": "ref", "conv": "A", "turn": 11, "wall_s": 4.06, "prompt_n": 2418, "cache_n": 60457}
+{"arm": "ref", "conv": "A", "turn": 12, "wall_s": 3.66, "prompt_n": 2422, "cache_n": 62994}
+{"arm": "ref", "conv": "A", "turn": 13, "wall_s": 3.75, "prompt_n": 2415, "cache_n": 65437}
+{"arm": "ref", "conv": "A", "turn": 14, "wall_s": 3.95, "prompt_n": 2416, "cache_n": 67874}
+{"arm": "ref", "conv": "A", "turn": 15, "wall_s": 4.2, "prompt_n": 2420, "cache_n": 70409}
+{"arm": "ref", "conv": "B", "turn": 1, "wall_s": 35.78, "prompt_n": 38008, "cache_n": 121}
+{"arm": "ref", "conv": "B", "turn": 2, "wall_s": 2.96, "prompt_n": 2412, "cache_n": 38151}
+{"arm": "ref", "conv": "B", "turn": 3, "wall_s": 2.97, "prompt_n": 2416, "cache_n": 40570}
+{"arm": "ref", "conv": "B", "turn": 4, "wall_s": 3.02, "prompt_n": 2410, "cache_n": 42992}
+{"arm": "ref", "conv": "B", "turn": 5, "wall_s": 3.08, "prompt_n": 2421, "cache_n": 45406}
+{"arm": "ref", "conv": "B", "turn": 6, "wall_s": 3.14, "prompt_n": 2411, "cache_n": 47832}
+{"arm": "ref", "conv": "B", "turn": 7, "wall_s": 3.21, "prompt_n": 2419, "cache_n": 50249}
+{"arm": "ref", "conv": "B", "turn": 8, "wall_s": 3.28, "prompt_n": 2420, "cache_n": 52691}
+{"arm": "ref", "conv": "B", "turn": 9, "wall_s": 3.31, "prompt_n": 2417, "cache_n": 55119}
+{"arm": "ref", "conv": "B", "turn": 10, "wall_s": 3.37, "prompt_n": 2408, "cache_n": 57542}
+{"arm": "ref", "conv": "B", "turn": 11, "wall_s": 3.45, "prompt_n": 2422, "cache_n": 59954}
+{"arm": "ref", "conv": "B", "turn": 12, "wall_s": 3.5, "prompt_n": 2416, "cache_n": 62381}
+{"arm": "ref", "conv": "B", "turn": 13, "wall_s": 3.59, "prompt_n": 2412, "cache_n": 64803}
+{"arm": "ref", "conv": "B", "turn": 14, "wall_s": 3.63, "prompt_n": 2414, "cache_n": 67238}
+{"arm": "ref", "conv": "B", "turn": 15, "wall_s": 3.67, "prompt_n": 2419, "cache_n": 69660}
+{"arm": "ref", "conv": "C", "turn": 1, "wall_s": 36.4, "prompt_n": 38008, "cache_n": 121}
+{"arm": "ref", "conv": "C", "turn": 2, "wall_s": 4.14, "prompt_n": 2413, "cache_n": 38186}
+{"arm": "ref", "conv": "C", "turn": 3, "wall_s": 3.34, "prompt_n": 2419, "cache_n": 40718}
+{"arm": "ref", "conv": "C", "turn": 4, "wall_s": 3.42, "prompt_n": 2417, "cache_n": 43191}
+{"arm": "ref", "conv": "C", "turn": 5, "wall_s": 3.95, "prompt_n": 2417, "cache_n": 45650}
+{"arm": "ref", "conv": "C", "turn": 6, "wall_s": 3.35, "prompt_n": 2420, "cache_n": 48186}
+{"arm": "ref", "conv": "C", "turn": 7, "wall_s": 3.45, "prompt_n": 2414, "cache_n": 50623}
+{"arm": "ref", "conv": "C", "turn": 8, "wall_s": 3.8, "prompt_n": 2411, "cache_n": 53094}
+{"arm": "ref", "conv": "C", "turn": 9, "wall_s": 3.55, "prompt_n": 2420, "cache_n": 55624}
+{"arm": "ref", "conv": "C", "turn": 10, "wall_s": 3.65, "prompt_n": 2408, "cache_n": 58098}
+{"arm": "ref", "conv": "C", "turn": 11, "wall_s": 3.86, "prompt_n": 2422, "cache_n": 60548}
+{"arm": "ref", "conv": "C", "turn": 12, "wall_s": 3.65, "prompt_n": 2415, "cache_n": 63089}
+{"arm": "ref", "conv": "C", "turn": 13, "wall_s": 3.95, "prompt_n": 2410, "cache_n": 65522}
+{"arm": "ref", "conv": "C", "turn": 14, "wall_s": 4.0, "prompt_n": 2412, "cache_n": 67989}
+{"arm": "ref", "conv": "C", "turn": 15, "wall_s": 3.87, "prompt_n": 2416, "cache_n": 70520}
+20:50:29 ref done: CUDA errors 0
+20:50:35 === soak done
