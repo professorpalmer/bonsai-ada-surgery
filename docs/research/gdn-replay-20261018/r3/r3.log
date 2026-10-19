@@ -1,0 +1,19 @@
+02:07:17 === R3
+02:07:29 server replay_b20000 (LLAMA_RS_REPLAY=1): health=1
+{"a1_sha": "e2be9f5b06fa5e98", "n_saved": 27404, "draft1": [114, 85], "a2_sha": "d69a8f37fcc17b26", "a2_cache_n": 27404, "a2_prompt_n": 30, "a2": "```python\ndef count_pump_entries(log_entries):\n    \"\"\"\n    Count the number of pump entries in a shift log.\n\n    Args:\n ", "tag": "replay_20000"
+02:08:18 server replay_r20000 (LLAMA_RS_REPLAY=1): health=1
+{"n_restored": 27404, "a2_sha": "d69a8f37fcc17b26", "a2_cache_n": 27404, "a2_prompt_n": 30, "a2": "```python\ndef count_pump_entries(log_entries):\n    \"\"\"\n    Count the number of pump entries in a shift log.\n\n    Args:\n ", "tag": "replay_20000", "phase": "restore"}
+02:08:38 server snap_b20000 (): health=1
+{"a1_sha": "e2be9f5b06fa5e98", "n_saved": 27404, "draft1": [114, 85], "a2_sha": "d69a8f37fcc17b26", "a2_cache_n": 27404, "a2_prompt_n": 30, "a2": "```python\ndef count_pump_entries(log_entries):\n    \"\"\"\n    Count the number of pump entries in a shift log.\n\n    Args:\n ", "tag": "snap_20000", 
+02:09:27 server snap_r20000 (): health=1
+{"n_restored": 27404, "a2_sha": "d69a8f37fcc17b26", "a2_cache_n": 27404, "a2_prompt_n": 30, "a2": "```python\ndef count_pump_entries(log_entries):\n    \"\"\"\n    Count the number of pump entries in a shift log.\n\n    Args:\n ", "tag": "snap_20000", "phase": "restore"}
+02:09:47 server replay_b60000 (LLAMA_RS_REPLAY=1): health=1
+{"a1_sha": "0135223af9201214", "n_saved": 83682, "draft1": [119, 80], "a2_sha": "1360e2e2aa207bd1", "a2_cache_n": 83682, "a2_prompt_n": 31, "a2": "```python\ndef count_pump_entries(log):\n    \"\"\"\n    Count the number of pump entries in a shift log.\n\n    Args:\n        l", "tag": "replay_60000"
+02:12:21 server replay_r60000 (LLAMA_RS_REPLAY=1): health=1
+{"n_restored": 83682, "a2_sha": "1360e2e2aa207bd1", "a2_cache_n": 83682, "a2_prompt_n": 31, "a2": "```python\ndef count_pump_entries(log):\n    \"\"\"\n    Count the number of pump entries in a shift log.\n\n    Args:\n        l", "tag": "replay_60000", "phase": "restore"}
+02:12:41 server snap_b60000 (): health=1
+{"a1_sha": "0135223af9201214", "n_saved": 83682, "draft1": [119, 80], "a2_sha": "1360e2e2aa207bd1", "a2_cache_n": 83682, "a2_prompt_n": 31, "a2": "```python\ndef count_pump_entries(log):\n    \"\"\"\n    Count the number of pump entries in a shift log.\n\n    Args:\n        l", "tag": "snap_60000", 
+02:14:55 server snap_r60000 (): health=1
+{"n_restored": 83682, "a2_sha": "1360e2e2aa207bd1", "a2_cache_n": 83682, "a2_prompt_n": 31, "a2": "```python\ndef count_pump_entries(log):\n    \"\"\"\n    Count the number of pump entries in a shift log.\n\n    Args:\n        l", "tag": "snap_60000", "phase": "restore"}
+02:14:58 CUDA errors 0
+02:15:04 === done

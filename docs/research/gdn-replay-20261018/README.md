@@ -100,3 +100,74 @@ extra source and the rows / skip counts as an extra input; the CUDA kernel:
 
 Gates: R2' = R2 (4k / 32k / 100k, MMA on, the gather fusion on in both arms): identical text and draft counts in all 18;
 R2'' speed: no request slower than the snapshot design by more than 3 %; then R3-R6 as declared above.
+
+### R2' result (design 2): PASS (`r2p/`)
+
+The in-kernel replay build (`serve/gdn-replay`), both arms with production settings (MMA chunks on, the CUDA state-
+gather fusion on: design 2 keeps the production graph form, so the fusion fault of the graph form does not arise):
+identical text and identical draft counts in 18 of 18 requests (4k / 32k / 100k, story / code / quote, T 0 and 0.8).
+Speed at the same VRAM line (80,640): replay -0.8 % to +1.3 % (worst 4k quote T 0.8, 139.1 -> 137.9); R2'' PASS. The
+recurrent buffer is 157 MiB instead of 299 MiB; this run does not yet use the freed VRAM.
+
+## R4 / R5 (declared before the runs)
+
+The 142 MiB buys 142 MiB / 14,336 B = 10,386 q3_0 cells: the replay VRAM line is 80,640 + 10,240 = 90,880 (whole 256
+blocks). Arms on the 8 GB preset (`BONSAI_8GB=1`, layer off, `BONSAI_KV_VRAM_CELLS` pinned so that the split matches
+the 8 GB card): S1 snapshot design, line 80,640, tail 1 (today's default); R1 replay, line 90,880, tail 1; R2t replay,
+line 90,624, tail 2; R3t replay, line 90,624, tail 3. Decode of a 300-token greedy story (no prompt cache) at 4k, 64k,
+128k and 200k; tok/s from the server timings.
+
+| Gate | Condition |
+|---|---|
+| R4 | R1 vs S1: no depth slower by more than 3 %; 128k and 200k faster |
+| R5 | a tail > 1 default only if R2t or R3t beats R1 by 5 % at 128k and at 200k and loses no more than 3 % at 4k and 64k |
+
+The VRAM accounting on a real 8 GB card (the launcher's sizing with `BONSAI_RS_REPLAY=1`) is checked in R6 on the
+RTX 2060 path before any default change.
+
+### R3 result: PASS (`r3/`)
+
+Turn 1 (a 20k or 60k log + a 150-word story, greedy, drafting on), a full slot save, turn 2 in memory; restart,
+restore, turn 2 again. Replay: the restored turn 2 equals the in-memory turn 2 at 20k (27,404 tokens restored, 30
+read) and at 60k (83,682 restored, 31 read). The snapshot design gives the same text in all four runs (the two designs
+match each other too). 0 CUDA errors. The replay slot file (`s_trans` 2) holds the S plane, the pending rows with their
+valid count, and the rejected count of the save.
+
+### Peer review of design 2 (2026-10-19)
+
+No blocker for one sequence per context (the server's one slot): no race in the kernel's pending writes; P > 1,
+n < P, L < P, fresh cells, save/restore with several cells, the cache and gather fusions and the MMA tail all check
+out. Found and fixed: (1) blocker for several sequences: when find_slot relocates cells, only their S rows move, not
+their pending rows -> replay now turns on only with one sequence per context (`n_seq_max == 1`); (2) partial offload:
+the op is CUDA only -> replay turns on only when every recurrent layer sits on a GPU device; (3) unused pending slots
+(fewer than P combined tokens) held old memory -> the kernel writes zeros there. Kept as is: a rollback deeper than
+the valid pending count clamps to 0 (the snapshot design reads stale planes in the same case).
+
+R4 first try (`r45_try1/`, void): the depth prompts were mis-sized (20.6 tokens a record, not 15): the "64k" request
+held 87,681 tokens, "128k" 176,337, and "200k" was over the window (HTTP 400). Stopped; the review fixes were built
+first. R4/R5 run again on the fixed build with calibrated prompts (same arms and gates). Partial data from the void
+try: S1 / R1 at 5.3k 80.2 / 81.0 tok/s; S1 at 88k 58.5, at 176k 23.7.
+
+Default path check: the snapshot arm of R2' (design-2 kernel, `LLAMA_RS_REPLAY` unset) and the snapshot arm of the
+first R2 try (the production kernel; both with the gather fusion on) give identical text and draft counts in 18 of 18
+requests. The kernel change does not touch the default path.
+
+### R4 / R5 results (`r45/`): R4 PASS; R5: tail 1 stays
+
+Decode tok/s, 300-token greedy story, prompts of 3,874 / 63,579 / 128,119 / 200,758 tokens; 0 CUDA errors.
+
+| depth | S1 snapshot, line 80,640 | R1 replay, line 90,880 | R2t replay tail 2 | R3t replay tail 3 |
+|---|---|---|---|---|
+| 4k | 80.8 | 81.8 (+1.3 %) | 81.0 | 77.6 |
+| 64k | 70.1 | 70.5 (+0.6 %) | 70.3 | 70.8 |
+| 128k | 42.4 | **46.7 (+10.3 %)** | 48.5 (+3.8 % vs R1) | 44.9 |
+| 200k | 20.1 | **21.3 (+6.0 %)** | 21.2 (-0.5 % vs R1) | 21.4 (+0.7 % vs R1) |
+
+R4 PASS: no depth slower, 128k and 200k faster. R5: no tail beats R1 by 5 % at both 128k and 200k (tail 3 also loses
+5.2 % at 4k), so tail 1 stays. One run per cell (about +-1 % between runs). Text: identical across all arms at 4k and
+64k (inside both lines; tail 2/3 change the MMA chunking at 4k, so those texts differ, as with the snapshot design);
+past the line the arms differ because the sparse host-tail reads depend on where the line sits.
+
+Decision: replay ships as an opt-in (`BONSAI_RS_REPLAY=1`, engine + launcher) in the next bundle; it becomes the 8 GB
+default only after R6 on the RTX 2060 (the launcher's own sizing on a real 8 GB card, soak, release gate), since this
+machine has only the RTX 4070.
