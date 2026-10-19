@@ -5,7 +5,7 @@ fresh server for each depth. Receipts: `receipts/depth_table_dflash12-*.log`, `r
 
 ## DF1: DFlash 2 drafter (naklitechie r3 Q4_K_M) against the 12 GB default
 
-- When: 2026-10-19 14:16-14:52, 0.6 GPU-h. RTX 4070, display on the iGPU, bundle-20261019a root.
+- When: 2026-10-19 14:16-14:45, 0.48 GPU-h. RTX 4070, display on the iGPU, bundle-20261019a root.
 - D0 probe at 4k: lowest free VRAM 374 MiB for C (margin 1000), 572 MiB for D (margin 2400) -> drafter cost
   1,202 MiB -> D margin 2,202 MiB -> VRAM line 185,088 positions (C: 260,352).
 - D1 (D = `ngram-mod,draft-dflash`, the drafter on the GPU) against C (the fresh-server table of the same morning):
