@@ -163,3 +163,10 @@ rest held: 13/13 answers equal the reference, turn 13 restored the 5-delta chain
 
 I1' (declared now, before its run): the same with `BONSAI_SLOT_CACHE_CHAIN=4` (soft cap 4, hard cap 16): one idle full
 save in the 45 s pause; turn 13 restores a chain of length 1 and equals the reference; 0 CUDA errors.
+
+### Run 4, I1': PASS
+
+`run4/i1b.*` (soft cap 4). The chain reached depth 5 during the turns (the 30 s idle never came between turns, and the
+hard cap is 16). In the 45 s pause the layer wrote one idle full save (174,656 tokens, 50.0 s on this drive, with no
+request waiting). After the restart, turn 13 restored that full save alone (1.32 s) and read 3,982 tokens (I1: 7,967 from
+the depth-5 chain). 13/13 answers equal the run-7 reference; 0 CUDA errors.
