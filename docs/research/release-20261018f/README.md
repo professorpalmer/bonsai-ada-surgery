@@ -17,3 +17,15 @@ skipped (`docs/research/delta-saves-20261018` runs 5-9).
 | R4 interleaved | two conversations that take turns (2 turns each): turns A2 and B2 each restore their own conversation's last save (cache_n at least 95 % of that conversation's previous prompt + answer); 0 CUDA errors |
 
 All pass: publish as the latest release. Any fail: no publish; log why.
+
+## Results (`release_1018f.log`)
+
+Zip `bonsai-bundle-win-x64-20261018f.zip`, 616684472 bytes, SHA-256
+`b31859f3bc3cca670a11b58f08758096e35014e0026b07310c1fe1b17c165540`.
+
+| Gate | Result |
+|---|---|
+| R1 zip | PASS: 67 entries; every `bin/` file identical to 1018e; changed `README.md`, `docs/8GB.md`, `layer/slot_cache.py`; 0 control-byte files |
+| R2 launcher | PASS: default, 8 GB (layer on), 24 GB each answer; 0 CUDA errors |
+| R3 every answer | PASS: slot files 1, 2, 3 after turns 1-3; the index holds the full save (21,156 tokens) and 2 deltas (28,275 / 35,404); 0 CUDA errors |
+| R4 interleaved | PASS: A2 read 25 new tokens (cache_n 25,971), B2 read 24 (cache_n 25,985): each restored its own last save; 0 CUDA errors |
