@@ -478,6 +478,55 @@ def test_idle_full_save():
     print("idle full save: after the soft cap, only when idle, skipped for another conversation: ok")
 
 
+def conv_msgs(tag, answers, n, rewrite=False):
+    doc = {"role": "user", "content": tag * 120 + "Q1?"}
+    msgs = [doc]
+    for k in range(1, n):
+        a = answers[k - 1]
+        msgs.append({"role": "assistant", "content": ("x" + a) if rewrite else a})
+        msgs.append({"role": "user", "content": "T%d" % k + tag.lower() * 25 + "?"})
+    return msgs
+
+
+def test_every_answer_interleaved():
+    reset()
+    S["delta"] = True
+    c = cache(chain=8)
+    ans = {"D": [], "E": []}
+    exact = []
+    for k in range(1, 6):
+        for tag in ("D", "E"):
+            S["calls"].clear()
+            a, info = chat(c, conv_msgs(tag, ans[tag], k))
+            if k > 1:   # the slot held the other conversation: a restore of this one's state after its last answer
+                assert info.get("slot_cache_restored"), (tag, k, info, LOG[-3:])
+                exact.append(S["cached"] == info["slot_cache_restored"])
+            assert "/completion" not in S["calls"], (tag, k, S["calls"])   # never a save before the request
+            ans[tag].append(a)
+    assert all(exact) and len(exact) == 8, exact
+    keyd = c._conv_key(toks(render(conv_msgs("D", ans["D"], 5))))
+    assert c.conv.get(keyd) is True, (c.conv, LOG[-4:])
+    print("save after every answer: interleaved conversations restore exactly to the last answer, no save before: ok")
+
+
+def test_every_answer_rewritten():
+    reset()
+    S["delta"] = True
+    c = cache(chain=8)
+    ans = []
+    calls = []
+    for k in range(1, 5):
+        S["calls"].clear()
+        a, info = chat(c, conv_msgs("F", ans, k, rewrite=True))
+        calls.append(S["calls"].count("/completion"))
+        ans.append(a)
+        chat(c, conv_msgs("G", [], 1))   # another conversation in between: the next F turn must restore
+    keyf = c._conv_key(toks(render(conv_msgs("F", ans, 2, rewrite=True))))
+    assert c.conv.get(keyf) is False, (c.conv, LOG[-4:])
+    assert calls[0] == 0 and sum(calls[2:]) >= 1, calls   # back to the save before the request after the failed test
+    print("save after every answer: a rewritten answer fails the exact test, the save before the request comes back: ok")
+
+
 if __name__ == "__main__":
     test_read_tokens()
     test_review_fixes()
@@ -492,4 +541,6 @@ if __name__ == "__main__":
     test_delta_eviction()
     test_delta_before_request()
     test_idle_full_save()
+    test_every_answer_interleaved()
+    test_every_answer_rewritten()
     print("ALL OK")

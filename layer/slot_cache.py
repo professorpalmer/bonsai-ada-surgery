@@ -38,6 +38,12 @@ thousand tokens instead of the whole conversation. A restore loads the chain: th
 has been idle for BONSAI_SLOT_CACHE_IDLE seconds (30; a full save can take minutes on a slow drive, and the user does
 not wait for it then); after BONSAI_SLOT_CACHE_CHAIN_MAX deltas (32) the next save is full in any case. Eviction removes
 whole chains.
+Every answer (a delta server, BONSAI_SLOT_CACHE_EVERY=1, the default): the layer saves after every answer of a long
+conversation, as a delta, so a restore lands exactly on the last answer and the next request reads only the new turn:
+the same computation as a session that never left memory, also when several conversations take turns. The test is
+exact: at the next turn of the conversation, its last save after an answer must be a token prefix of the new prompt.
+When it is not (the template or the client rewrites the answer), the conversation goes back to the save before the
+request. Without delta support the cached-token test above is used.
 Read ahead (T1-d): a chat request with "prefill_only": true reads and saves its prompt and returns no text; the later real
 request then restores it.
 Any failure here only logs and lets the request run as before.
@@ -102,12 +108,14 @@ def has_media(body):
 
 class SlotCache:
     def __init__(self, upstream, folder, min_tokens=16384, grow=8192, budget_gb=20.0, log=None, min_gain=2048, after=False,
-                 chain=0, chain_max=None, idle_s=30.0):
+                 chain=0, chain_max=None, idle_s=30.0, every=True):
         self.upstream, self.folder = upstream.rstrip("/"), os.path.abspath(folder)
         self.after_on = bool(after)   # save after the answer when the conversation passed the prefix test (see the top)
         self.chain = int(chain)        # delta saves: a full save when idle after this many deltas (0: deltas off)
         self.chain_max = int(chain_max) if chain_max is not None else 4 * self.chain   # ... and in any case after this many
         self.idle_s = float(idle_s)    # the idle time before a full save of a long chain
+        self.every = bool(every)       # with a delta server: save after every answer, test by exact token match
+        self.last_after = {}           # conversation key -> sha of its last save after an answer
         self.compact = None            # (conversation key, auth) of a chain that wants a full save when idle
         self.t_active = time.time()    # the end of the last chat request
         self.delta_ok = None           # the server takes "pos_min" / "append" (GET /props slot_save_delta); None: not asked
@@ -153,7 +161,8 @@ class SlotCache:
                        os.environ.get("BONSAI_SLOT_CACHE_AFTER", "1") not in ("", "0"),
                        int(os.environ.get("BONSAI_SLOT_CACHE_CHAIN", 8)),
                        int(os.environ["BONSAI_SLOT_CACHE_CHAIN_MAX"]) if os.environ.get("BONSAI_SLOT_CACHE_CHAIN_MAX") else None,
-                       float(os.environ.get("BONSAI_SLOT_CACHE_IDLE", 30)))
+                       float(os.environ.get("BONSAI_SLOT_CACHE_IDLE", 30)),
+                       os.environ.get("BONSAI_SLOT_CACHE_EVERY", "1") not in ("", "0"))
         except Exception as e:
             (log or (lambda *a: sys.stderr.write("[slots] " + " ".join(str(x) for x in a) + "\n")))(
                 "saved conversations OFF: cannot start the cache:", repr(e))
@@ -488,7 +497,16 @@ class SlotCache:
         if not force_save:
             self.probe = None
             self.wait = (key, probe[1]) if (probe and self.after_on) else None
-        after_mode = self.after_on and not force_save and self.conv.get(key) is True
+        every = self.after_on and self.every and not force_save and self._delta_ok(auth)
+        if every:
+            la = self.last_after.get(key)
+            if la in self.index:   # the exact test: was the state after its last answer a prefix of this prompt?
+                ok = la == best_sha or (best_sha in self.index and la in (self._chain(best_sha) or []))
+                if self.conv.get(key) is not ok:
+                    self.log("after-answer test", key[:12], "pass" if ok else "fail", "(exact)")
+                self._set_conv(key, ok)
+            self.wait = None   # no cached-token test in this mode
+        after_mode = self.after_on and not force_save and (self.conv.get(key) is True or (every and self.conv.get(key) is not False))
         if after_mode:
             info["slot_cache_after"] = "on"   # this conversation saves after the answer: no save before the request
         need = (1 if best_n == 0 else self.grow) if force_save else self.grow
@@ -542,7 +560,7 @@ class SlotCache:
                 self.held = toks[:info["slot_cache_restored"]]   # a restore-only read-ahead (re-review: blocking)
         else:
             self.held = toks
-            self.last = {"key": key, "toks": toks, "best": max(best_n, int(info.get("slot_cache_saved") or 0)),
+            self.last = {"key": key, "toks": toks, "every": every, "best": max(best_n, int(info.get("slot_cache_saved") or 0)),
                          "best_sha": best_sha if (info.get("slot_cache_restored") or info.get("slot_cache_saved")
                                                   or (best_sha and best_n <= common)) else None}
         info["slot_cache_s"] = round(time.time() - t0, 2)
@@ -575,8 +593,11 @@ class SlotCache:
         self.wait = None   # a reply without timings: no result for this test
         n = self._slot_tokens(auth)
         toks = last["toks"]
-        self.probe = (last["key"], n) if n > len(toks) else None
-        if self.conv.get(last["key"]) is True and n - last["best"] >= self.grow:
+        every = last.get("every")
+        self.probe = (last["key"], n) if (n > len(toks) and not every) else None
+        want = (n > len(toks) and self.conv.get(last["key"]) is not False) if every else \
+            (self.conv.get(last["key"]) is True and n - last["best"] >= self.grow)
+        if want:
             tmp = self._tmp()
             parent = last.get("best_sha")
             if not (parent in self.index and self.index[parent]["depth"] < self.chain_max and self._delta_ok(auth)):
@@ -595,6 +616,7 @@ class SlotCache:
                 sha, size = self._store(tmp, saved, parent)
                 if parent:
                     info["delta_of"] = self.index[parent]["n"]
+                self.last_after[last["key"]] = sha
                 self.held = saved
                 info.update(saved=len(saved), save_s=round(time.time() - t1, 2))
                 self.log("saved after the answer", sha[:12], len(saved), "tokens:", info["save_s"], "s, n_saved", r.get("n_saved"))

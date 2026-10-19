@@ -217,3 +217,23 @@ Findings and open items:
 - With interleaved conversations the prefix test never completes (the slot holds another conversation at the next
   turn), so save after the answer never turns on there. With deltas now cheap (~0.2 s), a simpler design would always
   save after the answer as a delta and use the next request's exact token match as the test.
+
+## Run 5 (declared before the run): save after every answer, exact test
+
+Change (layer only): with a delta server the layer saves after every answer of a long conversation (a delta), so a
+restore lands exactly on the last answer and the next request reads only the new turn, the same computation as a
+session that never left memory, also when conversations take turns. The test is exact: the conversation's last save
+after an answer must be a token prefix of its next prompt (works across interleaving). A conversation that fails it
+goes back to the save before the request. `BONSAI_SLOT_CACHE_EVERY=0` keeps the old behaviour.
+
+Setup: the soak again (three interleaved ~30k conversations, 45 turns, restarts before every 9th turn, 6 GB budget,
+8 GB preset), the 1018e root with this layer; the reference is the soak's cache-off run (`soak/soak.jsonl`, arm `ref`).
+
+| Gate | Condition |
+|---|---|
+| E1 | the soak checks S1-S4 |
+| E2 | each conversation's answers equal the cache-off reference at 14 of 15 turns or more |
+| E3 | mean wall time per turn not more than 10 % above the first soak's |
+| E4 | no save before the request in the layer logs (every conversation passes the exact test) |
+
+All pass: ships in the next bundles (Bonsai, Mirai). Any fail: not shipped; log why.
