@@ -18,6 +18,7 @@ GitHub posts of all sessions use the same account; "2060" and "release session" 
 - [E114 GPU time in this range](#e114-gpu-time-in-this-range)
 - [E115 Corrections in this range](#e115-corrections-in-this-range)
 - [E116 Lessons recorded in this range](#e116-lessons-recorded-in-this-range)
+- Continued in [`events-p224-p225.md`](events-p224-p225.md) (E117-E121)
 
 ## E108 Records PR #215 and the corrections post
 

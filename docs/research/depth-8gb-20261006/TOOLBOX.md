@@ -12,7 +12,8 @@ name their P numbers. Rows added for P162-P168 (2026-10-16 to 2026-10-17,
 `experiments/index-p162-p168.md`) name their P numbers. Rows added for P169-P182 (2026-10-17, `experiments/index-p169-p182.md`) name
 their P numbers. Rows added for P183-P188 (2026-10-17, `experiments/index-p183-p188.md`) name their P numbers. Rows added for P200-P219
 (2026-10-18 to 2026-10-19, `experiments/index-p200-p219.md`) name their P numbers. Rows added for P220-P223
-(2026-10-19 to 2026-10-20, `experiments/index-p220-p223.md`) name their P numbers.
+(2026-10-19 to 2026-10-20, `experiments/index-p220-p223.md`) name their P numbers. Rows added for P224-P225
+(2026-10-20, `experiments/index-p224-p225.md`) name their P numbers.
 
 Sources: the lab notebook `NOTEBOOK.md` (the rig's DECISIONS.md, unchanged), the receipts
 (`results-raw.zip`, paths `receipts/pNN/...`), the rig scripts (`scripts/...`), and the repo docs `docs/8GB.md`,
@@ -350,6 +351,7 @@ The 8 GB preset lives in `start-server.ps1` (`$Small` block). It sizes everythin
 | Prompt-progress timeline of a long read | Read the server's "prompt processing, n_tokens = N ... t = T s" lines at fixed N (63,488 / 79,872 / 124,928 / 186,368 / 217,088) to see where an arm gains or loses | grep in the server's `.err.log` | P202, P207, P208 | Slot 4 leads to ~125k and loses after it; stock varies ~6 % in the deep part between runs | Copy the lines into the receipt (these runs kept them only in `logs/`) | General |
 | The "evaluated" count of a det read | det_answer prints "evaluated N": requests in one server share the filler prefix, so a later depth reads only its new part | Read the count; use a fresh server per depth for cold reads (P215) | P213 A, P215 | P213 A's 128k read evaluated 95,812 tokens (a warm 32k prefix) | - | General |
 | Speed gate on several prompt types | quick_tps decodes 400 tokens after a code, a prose and a bash prompt and gives each and the mean; a draft change can help one type and cost another | `bench/quick_tps.py --depth N` through `run_arm.sh`, a fresh server per arm and depth, the old recipe in the same block (ABAB x2 in P221) | P221, P222 (P215 used det_answer: code only) | 2 / 2 against 1 / 1 at 4k: code +2.8 %, prose -4.5 %, bash -8.5 % (P221 r1); the repeats agree within 0.1 tok/s. det_answer at 4k showed only the code gain (P215: 55.6 against 53.3) | Read the acceptance of each arm (`acceptance mean` in the receipt) with the speed; card numbers from other days are not a reference (P220) | General |
+| Question types at ~200k | At ~200k the model answers retrieval questions right (list the codes, repeat a code), but comparison and sum questions wrong (the largest code, a sum of codes), with and without a restore | Grade each answer against the true values in the document (`scripts/p224_turn.py` writes them to `turns.jsonl`); to tell a restore fault from a model error, run the same conversation on one server with no restart | P224, P225; the P220 / P200 soak answers | Q1 (list 8 codes) and Q4 (repeat 2 codes) right at 4k and ~200k; Q2 (the largest of 8 codes) right at 4k, wrong at 131k (P220) and ~200k; Q3 (the sum of 3 codes) wrong at 4k and ~200k (21442, true 25442); on one server with no restart the same answers (P225) | "Answered" and "byte-equal" gates do not find a wrong answer that repeats | Model-specific (re-test per model) |
 
 ---
 

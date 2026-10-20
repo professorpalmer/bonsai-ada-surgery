@@ -3773,3 +3773,17 @@ Zip SHA = digest e84d8c6d...; bins = 19b (0 bytes differ); launcher, layer (#7 i
 try 2 on the extract release_1019c/x (repo key). serve-1019c built (Mac key, models junction, empty slots); the private serve note (not in this repo) points
 to it. I stalled ~10 h after the release (no watcher on the release): memory note feedback-wait-with-watcher. Queue empty; fillers.
 Open: records PR P220-P223; the 8 GB week card; the 200k demo clip (exact restore shipped in 18f, so no longer blocked).
+
+## 2026-10-20 14:03 CDT P224 (deep-session check on bundle-20261019c): speed gates PASS, the all-correct gate FAILS; records #220 and the card #221 merged
+Arm F (4k, 4 turns, one server): walls 11.9 / 10.6 / 11.2 / 11.7 s; Q1 8/8, Q2 right, Q3 sum WRONG (21442, true 25442), Q4 right.
+Arm D (~200k, 199,107 prompt tokens): D1 cold 1,063.1 s, Q1 8/8; restart -> D2 short Q2 6.05 s (restore 2.87 s, prompt_n 30) but
+WRONG ("vault 4: 9320", true vault 7 9387); restart -> D3 tool + Q3 40.3 s, the same wrong sum 21442; D4 warm short Q4 3.28 s,
+right. Saves: 5.79 s full, then 0.32-0.39 s deltas. 0 CUDA errors; window 262144 / q3_0; spec draft 1 (2 past the line).
+Q3 is a model error (the same at 4k). Q2 at 200k: model or restore? P225 queued: the same arm D on one server, no restart.
+Records PR #220 (P220-P223, agent) merged 24a4f49. Card PR #221 (docs/cards/week8gb.html -> docs/8gb/img/week.png) merged b6cc8e6.
+
+## 2026-10-20 14:22 CDT P225 (in-memory reference for P224 D): the restore is exact in content; the Q2 / Q3 errors are the model at 200k
+One server, no restart, the same arm D: M = P224 D byte for byte on turns 1-3 (Q1 8/8, Q2 "vault 4: 9320" wrong, Q3 21442
+wrong); turn 4 "4111 9387" vs D "4111 / 9387" (newline vs space: the whitespace form known at line ~90k, P213). Declared gate
+4/4 byte-equal: 3/4, FAIL by the letter; the content is equal. Walls M: 1,065.0 / 8.14 / 37.8 / 3.18 s (D after restarts:
+1,063.1 / 6.05 / 40.3 / 3.28). 0 CUDA errors. [A private note: not in this repo.]
