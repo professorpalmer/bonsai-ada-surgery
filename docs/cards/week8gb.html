@@ -1,0 +1,94 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Bonsai 8 GB two weeks</title>
+<!-- The 8 GB mission card: the RTX 2060 SUPER at the start (2026-10-06 / 07) and with bundle-20261019c. Every number is in
+     DATA below, each with its source. Before = the stronger of the community 8 GB recipe and our stock start in each row.
+     Edit DATA, then run bench/render_cards.ps1 week8gb. Rendered at 1200 x 675, device scale 2. -->
+<script>
+var DATA = {
+  foot: [
+    'RTX 2060 SUPER 8 GB, PCIe 3.0, display on the card, stock clocks. Before: the community 64k recipe (q4_0, all in VRAM; P13 / P20) or our stock start (window 131k, 16,384 positions in VRAM, q8_0; P2). Decode: bench/quick_tps.py, the same 3 prompts on both sides.',
+    'Now: the bundle-20261019c defaults (q3_0, replay, draft 1 / tail 2). 4k-128k P222, 245k P220 (the same bins; P223 checked the 19c zip: 52.6 at 4k, 29.1 at 128k). Restart: P165 (bundle-20261017); on the 19c zip a full answer in 6.1 s (P224). HumanEval: P31 (q4_0), P131 (q3_0; another run 160).',
+    'Not better: a cold 4k read (417 against 427 tok/s). q3_0 drifts more than q8_0 (mean KL 0.008 against 0.0002 at 16k, RTX 4070). The 262k window needs 24 GB of RAM or more.'
+  ],
+  heads: { before: 'the start, 2026-10-06', after: 'bundle-20261019c, 2026-10-20' },
+  rows: [
+    { label: 'Context window', note: 'tokens',
+      before: { v: '65,536', unit: 'community recipe' },                   // P013.md: -c 65536 -ctk q4_0 -ctv q4_0, all in VRAM
+      after: { v: '262,144', unit: '92,160 in VRAM' },                     // docs/8gb/README.md; P220 line 92,160
+      gain: '4x' },
+    { label: 'Decode at 4k', note: 'tok/s',
+      before: { v: '37.2', unit: 'community recipe' },                     // P20 table (NB): 4k 37.2 dec (three-prompt mean)
+      after: { v: '52.4', unit: '' },                                      // P222 d12 (the 19c default); P223 on the 19c zip: 52.6
+      gain: '+41 %' },
+    { label: 'Decode at 64k', note: 'tok/s',
+      before: { v: '17.5', unit: 'at 60k, recipe window end' },            // P20 table: 60k 17.5 (the recipe has no 64k point)
+      after: { v: '39.9', unit: 'at 64k' },                                // P222 d12
+      gain: '2.3x' },
+    { label: 'Decode at 128k', note: 'tok/s',
+      before: { v: '3.0', unit: 'at 120k, our stock start' },              // P2: 120k 3.0 (the recipe window ends at 64k)
+      after: { v: '29.6', unit: 'at 128k' },                               // P222 d12; P223 on the 19c zip: 29.1
+      gain: '9.9x' },
+    { label: 'Decode at 245k', note: 'tok/s',
+      before: { v: 'n/a', unit: 'the window ended at 131k' },               // P2 window 131,072
+      after: { v: '11.4', unit: '' },                                      // P220 (past the VRAM line the 1 / 2 default also drafts 2)
+      gain: 'new' },
+    { label: '199k chat after a restart', note: 'first token',
+      before: { v: 'n/a', unit: 'did not fit, no save' },                   // windows 64k / 131k; no saved conversations
+      after: { v: '5.3 s', unit: 'one cold read: 1,069 s' },               // P165 (bundle-20261017): restart + Q1 first token 5.3 s
+      gain: 'new' },
+    { label: 'HumanEval 164', note: 'pass@1',
+      before: { v: '157', unit: '/ 164, q4_0' },                           // P31 (2026-10-07): 157/164
+      after: { v: '163', unit: '/ 164, q3_0' },                            // P131 (2026-10-15): 163/164
+      gain: '+6' }
+  ]
+};
+</script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<link rel="stylesheet" href="card.css">
+<style>
+  :root { --before: #8C4A3A; }
+  .tt { grid-template-columns: 1.2fr 1.05fr 1.05fr 0.42fr; }
+  h1 { font-size: 38px; }
+  .tt .lb { font-size: 20px; }
+  .tt .v { font-size: 31px; }
+  .tt .v small { font-size: 15.5px; }
+  .tt .v.before { color: var(--before); }
+  .tt .v.before.none { color: var(--nm); font-style: italic; font-weight: 600; }
+  .tt .v.after { background: var(--surface); color: var(--t8); }
+  .tt .g { font-family: var(--display); font-size: 25px; font-weight: 700; color: var(--t8); display: flex; align-items: center;
+           justify-content: flex-end; padding: 0 6px; border-bottom: 1px solid var(--line); }
+  .tt .g span { background: var(--t8-soft); border-radius: 8px; padding: 2px 10px; }
+  .foot { font-size: 12.6px; line-height: 1.36; }
+</style>
+<div class="card" id="card"></div>
+<script src="card.js"></script>
+<script>
+(function () {
+  var D = DATA;
+  var body = card({
+    eyebrow: 'Ternary Bonsai 2 27B · RTX 2060 SUPER 8 GB · two weeks',
+    title: '8 GB in two weeks: 4x the window, faster decode at every depth.',
+    foot: D.foot
+  });
+  var cols = [['before', 'Before', 'var(--before)'], ['after', 'Now', 'var(--t8)']];
+  var h = '<div class="tt"><div></div>';
+  cols.forEach(function (c) {
+    h += '<div class="hd" style="color:' + c[2] + '">' + c[1] + '<small>' + esc(D.heads[c[0]]) + '</small></div>';
+  });
+  h += '<div class="hd" style="color:var(--t8);text-align:right">Gain<small>&nbsp;</small></div>';
+  D.rows.forEach(function (r) {
+    h += '<div class="lb">' + esc(r.label) + (r.note ? '<small>' + esc(r.note) + '</small>' : '') + '</div>';
+    cols.forEach(function (c) {
+      var x = r[c[0]];
+      var none = x.v === 'n/a' ? ' none' : '';
+      h += '<div class="v ' + c[0] + none + '"><span>' + esc(x.v) + (x.unit ? '<small>' + esc(x.unit) + '</small>' : '') + '</span></div>';
+    });
+    h += '<div class="g"><span>' + esc(r.gain) + '</span></div>';
+  });
+  body.innerHTML = h + '</div>';
+  var tt = body.firstChild;
+  tt.style.gridTemplateRows = 'auto repeat(' + D.rows.length + ', minmax(0, 1fr))';
+  tt.style.alignContent = 'stretch';
+})();
+</script>

@@ -60,6 +60,16 @@ read item by item (P148). Drift against an f16 cache: [Quality](../quality/READM
 
 ![Saved conversations on the RTX 2060 SUPER: a ~199k document 1,069 s cold, 5.3 s after a restart; a 131k document 561 s cold, 6.25 s; a 245k conversation 1,689 s cold, 5.2 s](../agents-layer/img/saved.png)
 
+## Two weeks on 8 GB (2026-10-06 to 2026-10-20)
+
+![8 GB in two weeks on the RTX 2060 SUPER, before (2026-10-06) and with bundle-20261019c: window 65,536 to 262,144 tokens (4x); decode 37.2 to 52.4 tok/s at 4k (+41 %); 17.5 at 60k to 39.9 at 64k (2.3x); 3.0 at 120k to 29.6 at 128k (9.9x); 11.4 at 245k (new); a 199k conversation back 5.3 s after a restart (new); HumanEval 157 to 163 of 164](img/week.png)
+
+Before = the stronger of the community 64k recipe (q4_0, all in VRAM) and our stock start (a 131k window with 16,384
+positions in VRAM, q8_0) in each row. The same `bench/quick_tps.py` prompts on both sides. Two things did not get
+better: a cold 4k read (417 against 427 tok/s), and the q3_0 cache drifts more than q8_0 (mean KL 0.008 against
+0.0002 at 16k, measured on the RTX 4070). Every number and its record is in the `DATA` object of
+[`docs/cards/week8gb.html`](../cards/week8gb.html).
+
 ## What is new since bundle-20261010 (updated 2026-10-20)
 
 All on the same RTX 2060 SUPER (display on the card), the zip's own launcher with its defaults unless named. Records:
