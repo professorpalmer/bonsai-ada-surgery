@@ -16,6 +16,7 @@ State at the time of writing: 2026-10-19 19:11 CDT by the rig clock (2026-10-20 
 queue is empty and filler a runs (from 18:35:35). bundle-20261019b (replay on + draft 2 / tail 2 on 8 GB) was published at
 22:15:39Z (17:15 CDT); the formal R6 post-zip check on it and the quick_tps sweep that the release session asked for
 (22:16:16Z) have not run. Cary's wrap-up (22:46:32Z) closes #138 after R6 and P219; P219 is posted (22:46:41Z).
+Next range: [`index-p220-p223.md`](index-p220-p223.md) ([P220](P220.md): the formal R6 of bundle-20261019b).
 
 Decisions in this range: the 8 GB preset saves every 4096 tokens (PR #182, from P200); save after the answer is the
 default from bundle-20261018b (the release session, on the 4070's runs 7-8; P204 / P205 as the 8 GB data); slot 3 (215 W

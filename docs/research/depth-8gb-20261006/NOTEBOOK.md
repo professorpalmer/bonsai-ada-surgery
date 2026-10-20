@@ -3746,3 +3746,30 @@ PPL; V-only passes PPL but fails retrieval). Queue empty; GPU on fillers.
 ## 2026-10-19 18:39 CDT Cary: "do the records, then wait for the bundle". Records agent writes P200-P219 (worktree bas-rec6). Pushed the local test
 branches to the fork for the records: r6-0070, kv-fake2, kv-fake2v (turing-mmq was already there). Then: wait for the bundle with
 replay + draft 2 / 2 (formal R6 post-zip check, then the serve folder).
+
+## 2026-10-19 19:16 CDT Records PR #215 (P200-P219) merged (6105d94); corrections posted. bundle-20261019b (replay + draft 2 / 2 default on 8 GB)
+was out since 17:15 CDT (my 18:39 "wait for the bundle" was late). Zip SHA = GitHub digest d5a53c2b...; P220 (formal R6: the
+quick_tps sweep at 4k-245k, fresh server per depth, for the cards + a 30-turn soak) started. Cary's wrap-up: #138 closes after
+the R6 and P219 (P219 already posted: FAIL).
+
+## 2026-10-19 21:11 CDT P220 / P221 (R6 for bundle-20261019b): correctness + soak PASS; the speed gate fails narrowly below the line
+Launcher 0 control bytes, line 92,160, draft 2 / 2; 0 CUDA errors (15 logs); soak 30/30, 0 one-token, min free 127 MiB, total
+1,631 s (P200 GROW 4096: 1,842 s). Sweep (quick_tps mean): 4k 51.7, 64k 39.1, 128k 29.1, 160k 18.6, 245k 11.4 (cards 1 / 1: 53.4 /
+41.2 / 22.3 / 16.7 / 9.8). In-block P221 (ABAB x2): 4k 51.9 vs 53.65 (-3.3 %), 64k 39.1 vs 40.6 (-3.7 %): over the 3 % gate.
+P215 used only the code prompt. P222 queued: replay + SPEC 1 / SPEC_DEEP 2 vs default vs 1 / 1 at 4k / 64k / 128k.
+
+## 2026-10-19 22:04 CDT P222: replay + 1 / 2 FAILS the declared gate at 4k / 64k, but beats the 2 / 2 default at every depth
+d12 (SPEC 1 / DEEP 2) vs old 1 / 1 vs def 2 / 2 (quick_tps mean): 4k 52.4 / 53.7 / 51.9; 64k 39.9 / 40.6 / 39.0; 128k 29.6 / 22.4 /
+29.7. Gate (within 1 % of 1 / 1 at 4k / 64k): -2.4 %, -1.7 % FAIL; 128k within 3 % of 2 / 2: PASS. Per prompt: d12 = old acceptance
+(0.784 / 0.778) and a uniform ~2 % replay step cost; def acceptance 0.62 (draft 2 below the line hurts prose / bash, helps code).
+Load VRAM d12 = def 7,488 MiB. Posted to #138 (6282336929): option A keep 2 / 2 (release fail branch), option B (my suggestion)
+1 / 2 with the cost vs 1 / 1 stated. Both #138 reports done. serve-1019b built (zip SHA = digest, 0 files differ, models junction,
+same key, empty slots); the private serve note (not in this repo) points to it, with BONSAI_SPEC=1 as the optional tune. Next: bundle-20261019c.
+
+## 2026-10-20 08:57 CDT bundle-20261019c (release 22:41 CDT; option B on #138, issue closed): P223 post-zip check PASS
+Zip SHA = digest e84d8c6d...; bins = 19b (0 bytes differ); launcher, layer (#7 image note) and docs changed. No env vars: spec
+"draft 1 (2 past the VRAM line)" at both depths; 4k 52.6 (P222 d12 52.4), 128k 29.1 (29.6, -1.7 %); acceptance 0.784 / 0.689;
+0 CUDA errors; gate within 2 %: PASS. Try 1 ran on serve-1019c (Mac key) and got HTTP 401 in quick_tps (receipts/p223_try1_401);
+try 2 on the extract release_1019c/x (repo key). serve-1019c built (Mac key, models junction, empty slots); the private serve note (not in this repo) points
+to it. I stalled ~10 h after the release (no watcher on the release): memory note feedback-wait-with-watcher. Queue empty; fillers.
+Open: records PR P220-P223; the 8 GB week card; the 200k demo clip (exact restore shipped in 18f, so no longer blocked).

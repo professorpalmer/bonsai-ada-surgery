@@ -22,6 +22,7 @@ name the session.
 - [E105 GPU time in this range](#e105-gpu-time-in-this-range)
 - [E106 Corrections in this range](#e106-corrections-in-this-range)
 - [E107 Lessons recorded in this range](#e107-lessons-recorded-in-this-range)
+- Continued in [`events-p220-p223.md`](events-p220-p223.md) (E108-E116)
 
 ## E96 Records PR #177 and the corrections post
 
