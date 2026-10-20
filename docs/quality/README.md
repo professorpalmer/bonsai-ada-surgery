@@ -2,6 +2,8 @@
 
 ![Quality on both cards. HumanEval 164 at medium with the default cache: RTX 4070 12 GB 158 (q4_0), RTX 2060 SUPER 8 GB 163 (q3_0). At 245k: exact copies 20/20 on both, needles 24/24 (12 GB) and 23/24 (8 GB). RTX 4070 only: AppWorld 70.8 %, AIME 2025 52 to 56 of 60 and MMLU-Pro 71 to 76 of 100 with the layer; not measured on 8 GB](img/quality.png)
 
+![Quality on the same weights, before and after the runtime fixes. Apps that send effort "high": HTTP 500 (0 of 20 answered) to HumanEval 160/164. Apps with a 4096-token cap: 148 to 157/164. SVG drawings with the template default xhigh: 0/4 (4 empty) to 4/4 at medium. Tool calls parsed: 1/9 (JSON in content) to 9/9 (native XML and a grammar). AIME 2025: 52 to 56 of 60 with the layer. Voxel pagoda page: 3/6 first try to 6/6 after render and repair](../img/fixed.png)
+
 ## Summary
 
 The complaint about Bonsai 2 is code and agentic work, and most of that gap is runtime, not compression.

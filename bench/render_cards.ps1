@@ -20,7 +20,8 @@ $Jobs = @(
     @('vram',      '?focus=8gb',   'docs\8gb\img\vram.png'),
     @('saved',     '',             'docs\agents-layer\img\saved.png'),
     @('agentic',   '',             'docs\agents-layer\img\agentic.png'),
-    @('quality',   '',             'docs\quality\img\quality.png')
+    @('quality',   '',             'docs\quality\img\quality.png'),
+    @('fixed',     '',             'docs\img\fixed.png')
 )
 $ErrorActionPreference = 'Continue'   # the browser reports "bytes written" on stderr
 $Profile = Join-Path $env:TEMP 'bonsai-render-cards'
