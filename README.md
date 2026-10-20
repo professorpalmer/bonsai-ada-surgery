@@ -26,7 +26,7 @@ Hugging Face, Linux and builds from source: [docs/build](docs/build/README.md).
 | Directory | What |
 | --- | --- |
 | [docs/12gb](docs/12gb/README.md) | 12 GB cards: setup, the q4_0 cache, decode and prefill by depth |
-| [docs/8gb](docs/8gb/README.md) | 8 GB cards: setup, the q3_0 cache, choosing the window, numbers |
+| [docs/8gb](docs/8gb/README.md) | 8 GB cards: setup, the q3_0 cache, choosing the window, numbers, [two weeks on 8 GB](docs/8gb/README.md#two-weeks-on-8-gb-2026-10-06-to-2026-10-20) |
 | [docs/quality](docs/quality/README.md) | KV precision, reasoning effort, tool calls, HumanEval; benchmark your own model |
 | [docs/agents-layer](docs/agents-layer/README.md) | the Bonsai layer (API cards, sandboxed Python), agent use, saved conversations |
 | [docs/build](docs/build/README.md) | install, Linux, build from source, launcher settings, vision, the patch stack, upgrading |

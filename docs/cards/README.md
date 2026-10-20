@@ -21,6 +21,7 @@ The script uses headless Edge (or Chrome) at 1200 x 675 CSS pixels and device sc
 | agent work | `agentic.html` | `docs/agents-layer/img/agentic.png` |
 | quality | `quality.html` | `docs/quality/img/quality.png` |
 | fixed (before and after the runtime fixes) | `fixed.html` | `docs/img/fixed.png` |
+| 8 GB in two weeks (before and after, RTX 2060 SUPER) | `week8gb.html` | `docs/8gb/img/week.png` |
 
 `card.css` and `card.js` hold the shared style and drawing code; they hold no numbers. A value of `null` in `DATA`
 prints "not measured". `legacy/` keeps the cards and figures used before 2026-10-19 (12 GB only, q8_0 era); the
