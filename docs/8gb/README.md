@@ -60,7 +60,7 @@ read item by item (P148). Drift against an f16 cache: [Quality](../quality/READM
 
 ![Saved conversations on the RTX 2060 SUPER: a ~199k document 1,069 s cold, 5.3 s after a restart; a 131k document 561 s cold, 6.25 s; a 245k conversation 1,689 s cold, 5.2 s](../agents-layer/img/saved.png)
 
-## What is new since bundle-20261010 (updated 2026-10-18)
+## What is new since bundle-20261010 (updated 2026-10-20)
 
 All on the same RTX 2060 SUPER (display on the card), the zip's own launcher with its defaults unless named. Records:
 `docs/research/depth-8gb-20261006/experiments/` (P-numbers below) and #138.
@@ -182,14 +182,16 @@ in this read), so its deep end should be faster than the table; not measured on 
 
 ### Sessions that stay deep (150k and more)
 
-At 250k this card moves about 11 of its ~13 GB/s over PCIe for each decode step, so decode there (5.7 tok/s) is set by
-the link. What helps:
+At 250k this card moves about 11 of its ~13 GB/s over PCIe for each decode step, so the link sets the decode speed there
+(5.7 tok/s with the q4_0 cache in this section; 11.4 tok/s at 245k with the q3_0 default and replay rollback, P222). What
+helps:
 
 - **Lookup drafting** (on by default) verifies up to 32 drafted tokens per read of the host part. For copy-heavy work
   (file rewrites, edits, quoted logs) that is x2-x3 at depth.
-- **Tail draft 2** (`BONSAI_SPEC_DEEP=2`, with `BONSAI_VRAM_MARGIN=375` for the extra rollback plane) verifies one more
-  MTP token per read. RTX 2060 SUPER, 262k: decode at 200k 7.5 -> 8.8 tok/s (+17 %), but at 64k 31.5 -> 28.2 (-10 %),
-  because the plane takes ~8,400 positions from VRAM. It is set at start, so use it for sessions that stay past ~150k.
+- **Tail draft 2** verifies one more MTP token per read past the VRAM line. It is the default since bundle-20261019c
+  (with replay rollback, draft 1 below the line and 2 past it): 128k +32 % against the old 1 / 1, at the same VRAM line
+  (P222). Before replay rollback (this section, q4_0) it needed `BONSAI_VRAM_MARGIN=375` for an extra rollback plane:
+  200k 7.5 -> 8.8 tok/s (+17 %), but 64k 31.5 -> 28.2 (-10 %), because the plane took ~8,400 positions from VRAM.
 
 What does not help, measured on this card:
 
