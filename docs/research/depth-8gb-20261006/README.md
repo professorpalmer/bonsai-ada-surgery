@@ -45,6 +45,14 @@ dense rerun as the 2060's off-vs-off; T5 and #171 held) are in
 [`experiments/events-p183-p188.md`](experiments/events-p183-p188.md), E88-E95. `REPORT.md` is not updated for this
 range yet.
 
+P200 to P219 (2026-10-18 to 2026-10-19: the layer cache save step 4096 on 8 GB (G1, adopted), power and core clock tests
+(slot 3 as an optional serve step, slot 4 out), save after the answer at GROW 8192 (my mistake) and 4096, the post-zip
+checks of bundle-20261018 to 20261018f with delta saves and the exact restore against a cache-off reference, replay
+rollback (patch 0070) and draft 2 / tail 2 up to their 8 GB default in bundle-20261019b, and a 2-bit KV probe that
+closes KV below 3 bits) are in [`experiments/index-p200-p219.md`](experiments/index-p200-p219.md) and
+[`experiments/events-p200-p219.md`](experiments/events-p200-p219.md), E96-E107. P189-P199 do not exist in this series
+(the 4070 kernel session used P188-P191). `REPORT.md` is not updated for this range yet.
+
 | Path | What |
 | --- | --- |
 | `REPORT.md` | Bottom line, what shipped, what was rejected, results by day, open items |
@@ -55,7 +63,8 @@ range yet.
 | [`experiments/index-p156-p161.md`](experiments/index-p156-p161.md) | P156-P161 (events: [`experiments/events-p156-p161.md`](experiments/events-p156-p161.md), E57-E66) |
 | [`experiments/index-p162-p168.md`](experiments/index-p162-p168.md) | P162-P168 (events: [`experiments/events-p162-p168.md`](experiments/events-p162-p168.md), E67-E75) |
 | [`experiments/index-p169-p182.md`](experiments/index-p169-p182.md) | P169-P182 (events: [`experiments/events-p169-p182.md`](experiments/events-p169-p182.md), E76-E87) |
-| [`experiments/index-p183-p188.md`](experiments/index-p183-p188.md) | The latest range: P183-P188 (events: [`experiments/events-p183-p188.md`](experiments/events-p183-p188.md), E88-E95) |
+| [`experiments/index-p183-p188.md`](experiments/index-p183-p188.md) | P183-P188 (events: [`experiments/events-p183-p188.md`](experiments/events-p183-p188.md), E88-E95) |
+| [`experiments/index-p200-p219.md`](experiments/index-p200-p219.md) | The latest range: P200-P219 (events: [`experiments/events-p200-p219.md`](experiments/events-p200-p219.md), E96-E107) |
 | `runs.jsonl` | One JSON line per experiment: id, date, card, engine commit, script, env, metrics, verdict, receipts (same fields as `../depth-20261010/runs.jsonl`, for comparing future models and engines) |
 | `experiments/events-*.md` | Entries that are not experiments: incidents, rig baseline changes, releases, PRs, coordination, decisions |
 | `NOTEBOOK.md` | The full lab notebook, in time order, unchanged (plans, results, corrections, incidents) |

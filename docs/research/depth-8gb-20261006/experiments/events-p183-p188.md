@@ -19,6 +19,7 @@ name the session.
 - [E93 GPU time in this range](#e93-gpu-time-in-this-range)
 - [E94 Corrections in this range](#e94-corrections-in-this-range)
 - [E95 Lessons recorded in this range](#e95-lessons-recorded-in-this-range)
+- Continued in [`events-p200-p219.md`](events-p200-p219.md) (E96-E107)
 
 ## E88 Records PR #173 and the corrections post
 

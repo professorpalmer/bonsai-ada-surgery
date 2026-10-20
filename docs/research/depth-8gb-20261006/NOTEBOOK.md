@@ -3559,3 +3559,190 @@ relabel). Posted.
 Null: 0 confident wrong where off is right, 1 change (prose 9 gained). Window 32k: 3 wrong, 7 changes; 32k + 8 dense: 3, 7. Net
 the window is neutral (same ok, fewer wrong in all) but moves which items are right. The kernel session works on a fix gated on
 the 4070's deterministic baseline. 2060: nothing asked; T5 work paused; GPU on fillers.
+
+## 2026-10-17 22:30 CDT Kernel session P189 plan (4070): a drift score (max KL vs window off, top-20 logprobs) to map window settings
+Arms: off, rounding null, window 32k, 64k, 32k + sink 8k; candidate = drift <= 2x null, <= 1 lost item, >= 1.4x at 245k.
+Numbering: the kernel session uses P188 / P189 for 4070 runs; my next 2060 experiment is P190 (records stay unique).
+
+## 2026-10-17 22:51 CDT Records PR #177 (P183-P188) merged (d065a60); CORRECTIONS posted on #138
+P183 dense ran bin-t5r3 + BONSAI_SPARSE=0; P170 / P188 ran zip + sparse auto (sparse engaged at 224-240k): the P183 flips are the
+decode mode, NOT the rig drift (my 02:28Z / 03:22Z claims withdrawn). All 2060 T5 arms ran SPARSE=0 vs a sparse-auto reference:
+unmatched. Matched (vs P183): P187 has 2 wrong prose (22, 23): fails the clause here too. P187 prose 21 = wrong ("leather").
+Weights = 63-64 % of a T5 245k read. P185 "162 OK" = log interleave (176 OK both; mmqv2 = illegal memory access). P184 line 86,528
+vs ~80k, MMQ builds on the CPU in turns 1-13: speed comparison approximate. Rule: same bins + same BONSAI_SPARSE, in-block.
+
+## 2026-10-17 23:44 CDT Kernel session P189 (4070): no T5 candidate. 32k 1.77x lost 3; 64k 1.44x lost 2; 32k + sink 8k lost 5. Next (theirs):
+a far-context summary design (each windowed query also sees one mean K/V per far block + log(block) bias), gate declared first.
+The windowed read is deterministic too (48/48 = #174). Nothing asked of the 2060.
+
+## 2026-10-18 00:55 CDT Kernel session P190 / P191 (4070): far-context sampling for T5 (every 8th far 256-block visible, then + log(8) bias)
+Numbering: the kernel session now uses P188-P191; my next 2060 experiment is P200 (unique records). Nothing asked of the 2060.
+
+## 2026-10-18 01:33 CDT Kernel session P190 / P191: lead 2 (T5 window) CLOSED. Stride 8: 1.44x, lost 1 (packed) or 3 (f16, rounding only);
+log(8) bias hurts (median drift 2.2x). No setting reaches the null drift band. T5 stays on the fork, held. Future window rounds
+must gate on drift median / p90 vs a null arm, declared first. Cold read status: exact floor ~8.6 min at 245k on the 2060; the
+shipped answer stays "read once (read ahead) + restore in seconds".
+
+## 2026-10-18 05:04 CDT Release session plan G1 (4070): layer cache save step BONSAI_SLOT_CACHE_GROW 8192 (shipped) vs 4096 in the P164 session
+(my suggestion from P164: restart turns re-read up to ~12k tokens). Gates: restart turns >= 25 % faster, normal turns <= 10 %
+slower, total lower, answers equal >= 28/30. Nothing asked of the 2060 yet.
+
+## 2026-10-18 05:15 CDT Cary: "keep grinding, think of something to experiment on the 2060". P200 (G1 on the 2060) running; P201 (power) queued
+P200: the release session's G1 (layer cache save step 8192 vs 4096) on the 2060, both arms in one block, P164 session, the
+serve-1017b bundle + its own launcher. P201: during a cold read the card is power-capped (05:10 sample: sw_power_cap active,
+util 100 %, 144-160 W of a 175 W limit, SM 1,845-1,890 of 2,100 MHz; max limit 215 W). Afterburner slot 1 restaged = power 122
+(215 W), fan 100, no offsets (staged.cfg; installed inside P201 with no server up). Arms S/W alternate (det 4k identity + cold
+64k), then W/S cold 245k-class (heat). Gates: identity, applied power.limit, speed > S1-S2 spread, max temp < 85 C, 0 CUDA errors.
+Earlier: P4 / P9 (10-06, decode, old engine) +3-5 %, heat-limited at 86 C; prefill never tested at 215 W.
+
+## 2026-10-18 06:32 CDT P200 (G1 on the 2060): GROW 4096 PASSES all four gates (opposite of the 4070)
+8192 vs 4096: restart mean 109.8 -> 56.5 s (-48.5 %), normal 35.6 -> 38.7 s (+8.8 %), total 2,266 -> 1,842 s (-18.7 %), answers
+30/30 identical; 0 CUDA errors. Proposed: the 8 GB preset sets BONSAI_SLOT_CACHE_GROW=4096 when unset (12 / 24 GB keep 8192).
+4070 G1 (same day): 4096 worse there (+50 % total). P201 (power) started 06:32.
+
+## 2026-10-18 06:39 CDT P200 ADOPTED (release session, PR #182): the 8 GB preset sets BONSAI_SLOT_CACHE_GROW=4096 when unset
+Next from them: save after the answer (branch cache/save-after-answer, BONSAI_SLOT_CACHE_AFTER=1; gates A-F in
+docs/research/save-after-answer-20261018); 4070 first, then a 2060 run of the same A/B (on top of GROW 4096) if it passes.
+SERVE_FOR_MAC.md: optional BONSAI_SLOT_CACHE_GROW=4096 line added for Cary's current serve.
+
+## 2026-10-18 07:38 CDT P201: 215 W gives +1.3-1.8 % on prefill (+30 W, +7 C); not worth a default. P202 (215 W + core +100, slot 3) queued
+64k: S 308.0 / 307.1, W 313.4 / 313.1 tok/s; 240k cold: S 1,418.3 s (169.6 tok/s), W 1,400.3 s (171.8). Power median S 168-170 W,
+W 194-202 W; temp max S 70-72, W 77-79 C; SM median 1,845-1,875 either way (the clock sits on the V-F curve; 215 W removes only
+the cap dips). Identity PASS (d72631aab936fc4e x4), 0 CUDA errors, card back on slot 5 (175 W confirmed).
+
+## 2026-10-18 08:43 CDT P202: slot 3 (215 W + core +100) gives +5.9 % (64k) / +5.1 % (240k) prefill, +3 % decode; all gates PASS; P203 soak queued
+64k: S 307.4 / 306.5, W 325.3 / 324.7 tok/s; 240k cold: S 1,416.8 s, W 1,348.4 s (178.4 vs 169.8 tok/s). SM median 1,965 vs
+1,845-1,860 MHz; power median W 194-206 W; temp max W 78-79 C (gate < 85). Identity d72631aab936fc4e x4 PASS; 0 CUDA errors; card
+back on slot 5. P203: P200's 30-turn session (g8192) on slot 3, gate 30/30 answers = P200 stock, 0 CUDA errors, temp < 85 C.
+
+## 2026-10-18 09:15 CDT bundle-20261018 published (engine c5e73e7d81 = product + 0067; #182 GROW 4096 on 8 GB; #184 save after the answer opt-in)
+Zip f8347f4e... (616,677,417 B) downloaded, SHA MATCH, extracted to release_1018/x. 4070 save-after A/B: A, B (-56 %), D, E, F
+pass, C FAIL (+94 %: the next turn waits for the post-answer save). Their request for the 2060 (named "P201" there) = my P204:
+the same A/B on bundle-20261018 defaults, after=1 first, wait for /layer/slot-cache busy false before each restart; queued after
+P203 (slot-3 soak, turn ~22 of 30). p204_layer.py = p164_layer with the 18 layer.
+
+## 2026-10-18 09:26 CDT P203 PASS: slot 3 (215 W + core +100) in the 30-turn agent session: 30/30 answers = P200 stock, 0 CUDA errors, max 77 C
+Total 2,173 s vs 2,266 s stock (-4.1 %); SM max 2,025 MHz, power max 214 W. Card back on slot 5 (175 W). SERVE_FOR_MAC.md: an
+optional "schtasks /run /tn BonsaiAB_P3" before the start and BonsaiAB_P5 after the stop. Not a default (cards differ). P204
+started 09:25.
+
+## 2026-10-18 10:51 CDT P204 = save-after A/B at GROW 8192 (NOT the requested 4096: my layer runner sat outside the launcher); P205 = rerun at 4096
+P204: A 30/30; B -6.2 % FAIL; C +6.9 %; D -0.6 %; E 20/20 tests, 9 saves after + 1 before vs 10 before; F 0 errors. Lesson: an
+external layer runner must get the launcher's layer env (GROW, AFTER, SAVE_PATH) explicitly. P205 queued (GROW=4096 exported).
+
+## 2026-10-18 12:03 CDT P205 (save after the answer, GROW 4096, bundle-20261018): A / C / D / E / F PASS, B FAIL (-5.4 %)
+Restart 54.1 vs 57.2 s; normal 37.5 vs 38.2 s; total 1,798 vs 1,840 s (-2.3 %); 30/30 answers; 20/20 prefix tests; 14 after-saves.
+On the 2060: GROW 4096 is the lever; save-after is safe and ~2 % faster but not a restart win. Posted.
+
+## 2026-10-18 12:09 CDT P206 PASS (bundle-20261018 post-zip, not asked): cold 64k 308.2 tok/s, det 4k = 17b (d72631aab936fc4e), 0 CUDA errors
+4k decode 53.9 = 53.9 (17b); the 64k summary decode 36.1 vs ~39.5 is a 64-token answer (0067 stops drafts at the end). Save after
+the answer became the default in bundle-20261018b (release session, with P204 / P205 as the 8 GB data). 18b zip SHA match
+(7220a737...), 16/16 bins = 1018. C:/bonsai/serve-1018b built from it (0 files differ, same key); SERVE_FOR_MAC.md now points to
+it (GROW 4096 + save-after are defaults; slot 3 stays an optional step).
+
+## 2026-10-18 12:10 CDT P207 queued: slot 4 (215 W + core +150) on prefill, same design as P202 (S/W alternating + one long W); heat gate < 85 C
+
+## 2026-10-18 15:25 CDT P207: slot 4 (215 W + core +150): 64k +8.3 % (332.9 / 332.4 vs 307.7 / 306.5) but the 240k read 1,937.5 s (stock ~1,417)
+Identity PASS (x4), 0 CUDA errors, max 80 C. The long read falls behind past ~80k (the VRAM line) and from ~125k runs at ~108 W
+with throttle reason 0x1 (GPU idle) at 100 % util: the GPU waits on the host side. PCIe Gen3 x16, 0 replays. Possible outside
+cause (a Defender scan after the 18b copy at ~12:10). Not attributable yet: P208 repeats the long read, slot 4 then stock, with
+CPU load logged. Slot 3 (P202 / P203) stays the tested option.
+
+## 2026-10-18 16:18 CDT P208: slot 4 falls behind past ~125k again (1,574.3 s vs stock 1,505.8 s in-block); slot 4 OUT, slot 3 stays the option
+Timeline (s at 63k / 125k / 186k / 217k): W4 189 / 497 / 987 / 1,302; S4 205 / 523 / 983 / 1,265. Stock is itself 6 % slower in
+the deep part than P202's stock (1,416.8 s): the host-side path past the VRAM line varies run to run (CPU mean 9 %, max 17 %, so
+not CPU contention). Slot 4 loses past ~125k in both runs; slot 3 (P202 W3) led at every depth. Card back on slot 5.
+
+## 2026-10-18 16:20 CDT bundle-20261018c (delta saves, engine a6d4fc698f, patches 0068-0069) published; P209 post-zip check running (asked)
+Zip SHA match (6111693d...). P209: det 4k 18b vs 18c in-block; cold 64k on 18c; 12 turns of the P164 session through the 18c
+launcher + layer (save after + delta saves default, GROW 4096 exported), restarts before 4 / 7 / 10, vs P205 after=1 answers.
+
+## 2026-10-18 16:44 CDT P209 PASS (bundle-20261018c post-zip): det 4k = 18b, 64k 307.4 tok/s, 12/12 answers = P205, delta saves 0.45-0.49 s
+(~271 MB files vs ~4.5 s full saves), 3/3 chain restores 2.4-3.2 s, 0 CUDA errors, 0 lc-saving left. Posted.
+C:/bonsai/serve-1018c built from the 18c zip (0 files differ, same key); SERVE_FOR_MAC.md points to it.
+
+## 2026-10-18 18:56 CDT bundle-20261018d (layer only, bins = 18c; the save before the request is a delta too); P210 = optional 18d check
+Zip SHA match (63f3af82...), bins = 18c. P210: 12 session turns with AFTER=0 through the 18d layer vs P205 after=0. First try
+FAILED at once (a cut-paste error in the script; the preempt watcher runs a pending file within 20 s): rebuilt in the scratchpad,
+bash -n, then queued. Lesson in memory.
+
+## 2026-10-18 19:14 CDT P210 PASS (18d, AFTER=0): 12/12 answers = P205 after=0; saves before the request = deltas (271 MB, 0.45-0.49 s after one
+full 2.03 GB / 4.01 s save); chain restores 2.36-3.18 s; 0 CUDA errors. serve-1018d built (0 files differ); SERVE_FOR_MAC -> 1018d.
+
+## 2026-10-18 20:34 CDT bundle-20261018e (layer only: the full save after 8 deltas runs at 30 s idle, BONSAI_SLOT_CACHE_IDLE; forced after 32)
+No 2060 check asked. Zip SHA match (ebc7c4da...), bins = 18c, launcher 0 control bytes. serve-1018e built (0 files differ, same
+key); SERVE_FOR_MAC.md -> serve-1018e.
+
+## 2026-10-19 01:08 CDT bundle-20261018f (layer: save after every answer as a delta, exact restore, interleaved conversations); P211 queued
+Not asked. Zip SHA match (b31859f3...), bins = 18c. P211: 12 turns of the P164 session through the 18f launcher + layer with
+defaults, GROW 4096, restarts before 4 / 7 / 10: vs P205 after=1 answers; deltas; restores; 0 CUDA errors.
+
+## 2026-10-19 01:26 CDT P211 (18f, 12 turns, defaults): 10/12 answers byte-equal to P205 after=1; turns 4 and 10 (restart turns) differ only as
+"4111 9387" vs "4111\n9387" (the same codes; a space vs a newline). Deltas after every answer 0.37-0.41 s; restores 2.6-4.2 s;
+turn 7 (restart) 34.1 s vs P205 60.1 s; 0 CUDA errors. P212 queued: the 2060 cache-off reference (same 12 turns, no cache, no
+restarts) to test 18f's "answers equal to cache-off" claim here.
+
+## 2026-10-19 01:43 CDT P212 (2060 cache-off reference, 12 turns, no restarts): P211 (18f) = cache-off 12/12; P205 (old path) 10/12 (4, 10)
+So 18f's "answers equal to cache-off" holds on the 2060. serve-1018f built (0 files differ, same key); SERVE_FOR_MAC -> 1018f.
+
+## 2026-10-19 06:13 CDT Cary: "keep grinding, check back in a few hrs". Plan: R6 groundwork for replay rollback (patch 0070) on the 2060
+#201 (merged): LLAMA_RS_REPLAY=1 keeps one recurrent plane instead of one per draft token (-142 MiB on the 8 GB preset, ~+10k
+VRAM cells; 4070 decode +10.3 % at 128k); "default-on waits for R6 on the RTX 2060". No product-0070 branch: git am of
+patches/0070 onto product-0069 (a6d4fc698) -> r6-0070 64b85111e; full 75-real build running (507 objects). r6test/ = the 18f
+zip tree + main's launcher + these bins. P213 (A identity pinned line off vs on 4k / 32k / 128k; B default sizing off vs on;
+C 12-turn soak replay on) first queued too early: it failed at start (receipt deleted by me, cause not kept); it is requeued
+after the build finishes.
+
+## 2026-10-19 07:42 CDT P213 PASS (R6 groundwork, replay rollback 0070 on the 2060): op tests 0 FAIL; A identity off = on at 4k / 32k / 128k
+(pinned 80,640); B default: line 80,128 -> 90,624 (+10,496), 128k prefill 237.7 -> 238.0, decode at 128k 23.0 -> 26.2 tok/s
+(+13.9 %), min free 83 -> 95 MiB, 0 spill; C 12-turn soak replay on: 0 CUDA errors, 0 one-token, min free 95 MiB, answers =
+P212 10/12 (turns 4 / 10 space vs newline, report only). Posted; formal R6 on the release zip when a 0070 bundle ships.
+
+## 2026-10-19 08:21 CDT P214: replay at 200k: decode 12.6 -> 12.9 tok/s (+2.4 %), prefill 187.2 -> 188.2 tok/s, min free 95 -> 109 MiB, 0 errors
+The gain falls with depth (the host tail is cut 22 % at 128k, 9 % at 200k). Posted as an addendum to P213.
+
+## 2026-10-19 08:22 CDT P215 queued: draft size with replay on (8 GB preset): BONSAI_SPEC / SPEC_DEEP 1/1, 2/1, 2/2, 3/3; decode at 4k / 64k / 128k
+With replay the launcher charges +7 MiB per extra draft token (FixedMiB -142 + 7 x (max(spec, deep) - 1)), not a 144 MiB plane,
+so a larger draft on 8 GB is cheap for the first time. A fresh server per depth (the det filler shares its prefix across depths).
+
+## 2026-10-19 08:46 CDT Research pass 2 (Cary: "another research pass across arxiv / experimental githubs"); P216 (2-bit KV quality) queued
+Top nuggets (agent, cited): (1) lossless self-speculation with a sparse draft KV kept in VRAM (TriForce / MagicDec / Vegas):
+exact; est. 1.45x decode at 245k if acceptance ~0.9; medium-large. (2) KV below 3 bits (TurboQuant 2.5-bit after rotation;
+KIVI): ~127k VRAM cells, est. +20-35 % decode at 200-245k; lossy. (3) int8 KQ in the Turing prefill FA (SageAttention idea):
+est. 1.15-1.25x cold read; large. (4) SuffixDecoding lookup; (5) tree verification at depth (EAGLE / STree); (6) draft length by
+depth via --spec-draft-p-min. Not worth it: ShadowKV / InfiniGen / Quest-class as the main path (P98: attention is spread),
+MagicPIG / CPU attention (P95 / P97), BitBLAS-class matmul (25 % of the read), GDN kernels (4 %), training-based methods.
+P216 = the recommended first probe: fork kv-fake2 c05e7bb89 (product-0069 + 0070 + P100 hook + mode 20 = 2-bit Lloyd-Max on
+the q4_0 grid); llama-perplexity wikitext-2 16k / 64k; arms q3_0 / q4_0 / 2-bit LM rot / 2-bit uniform rot / 2-bit uniform no
+rot; G1: 64k PPL within +1 % of q3_0. Build running.
+
+## 2026-10-19 09:23 CDT P215: replay on + draft 2 / tail 2 = decode 55.6 / 41.3 / 31.8 tok/s at 4k / 64k / 128k (1 / 1: 53.3 / 41.2 / 26.1; +21.8 %
+at 128k; +38 % vs today's replay-off draft-1 default 23.0); line -512 cells; draft 3 / 3 worse shallow (51.1 / 38.6); 0 errors.
+Greedy text differs between draft sizes (drafting rounding; 12 GB already drafts 2). Proposed for the 0070 release with a quality
+gate. P216 (2-bit KV quality) started 09:21.
+
+## 2026-10-19 10:39 CDT P216 64k: a full 2-bit KV fails G1: uniform rot on 7.3417 (+1.83 % vs q3_0 7.2098); rot off 7.6116 (+5.6 %); Lloyd-Max
+rot on 7.6819 (+6.5 %; no zero level); q4_0 7.2074. Rotation matters (5.6 -> 1.83 %). P100's 2-bit 7.3417 is identical, so P100
+already ran with rotation (the research note's "no rotation" was wrong). Next: P218 V-only 2-bit (kv-fake2v 37a51194f, a
+separate bin folder because P216 holds bin-fake2), queued before P217.
+
+## 2026-10-19 11:34 CDT P216 16k: q3 7.9491; q4 7.9050; 2-bit uniform rot 8.1931 (+3.07 %); no rot 8.5215 (+7.2 %); Lloyd-Max 8.9126 (+12.1 %)
+Full 2-bit KV CLOSED (fails 16k and 64k). 4070 AD1 / AD2 (#209): fixed 2 / 2 best (code 128k +19.6 %, all-depth code +4.6 %;
+64k code -5.0 %); adaptive 1-4 / 1-3 not adopted; the 2 / 2 default waits on my quality gate P217. P218 (V-only) running.
+
+## 2026-10-19 12:27 CDT P218: V-only 2-bit KV (K real q4_0) PASSES G1: 64k PPL 7.2491 (+0.55 % vs q3_0 7.2098); 16k 8.0413 (+1.16 %); V 3-bit
+control 7.2126 / 7.9039. K 3.5 + V ~2.5 bits = ~-14 % KV bytes (~+15k VRAM cells at today's line). P219 queued (G2 retrieval:
+n24 at 245k + the P170 code set; arms q4 real, V fake 2-bit, rounding null; the confident-wrong clause), after P217.
+
+## 2026-10-19 14:56 CDT P217 PASS (draft 2 / tail 2 quality, replay on, P170 code set): d11 21/24; null 21/24, 0 wrong, 0 changes; d22 21/24, 0 wrong,
+0 changes; cold 1,447.9 s (d22) vs 1,456.8 s (null). Posted: the 2060 data supports replay on + 2 / 2 as 8 GB defaults. 4070 AD3:
+2 below / 4 past the line no better; 2 / 2 stays; only the 128k gains stand out of the run noise. P219 (V-only 2-bit G2) running:
+q4 reference n24 24/24, code 15/24 (line 61,184 with q4_0); v2 arm line 63,232.
+
+## 2026-10-19 17:46 CDT P219: V-only 2-bit KV FAILS G2: 2 confident wrong where q4_0 is right (needle 14, code 15) vs 0 for the rounding null
+q4 n24 24/24, code 15/24; null 24/24, 16/24, 0 wrong; v2 23/24, 16/24, wrong [n14, c15]. Sub-3-bit KV CLOSED (full 2-bit fails
+PPL; V-only passes PPL but fails retrieval). Queue empty; GPU on fillers.
+
+## 2026-10-19 18:39 CDT Cary: "do the records, then wait for the bundle". Records agent writes P200-P219 (worktree bas-rec6). Pushed the local test
+branches to the fork for the records: r6-0070, kv-fake2, kv-fake2v (turing-mmq was already there). Then: wait for the bundle with
+replay + draft 2 / 2 (formal R6 post-zip check, then the serve folder).

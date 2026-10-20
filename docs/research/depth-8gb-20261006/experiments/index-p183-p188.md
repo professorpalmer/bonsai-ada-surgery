@@ -13,6 +13,7 @@ next entry, "22:30 CDT Kernel session P189 plan (4070) ...", is outside this ran
 is P190 (the kernel session uses P188 / P189 for 4070 runs). The queue is empty and filler c runs (from 22:21:50). T5 is held (Cary, #138 00:23:31Z) and stays on the fork
 (`t5-window-emu` d1cc7a4bd; `release/t5-candidate` a6bfcb1a4f); the kernel session plans its P189 (a drift score) on
 the 4070. PR #171 (the 8 GB pool reserve) is held as a draft (Cary, 02:03:35Z). No bundle is planned.
+Next range: [`index-p200-p219.md`](index-p200-p219.md) ([P200](P200.md); P189-P199 do not exist in this series).
 
 Decisions in this range: T5 does not ship (the R2 wrong-answer clause failed on the 4070: 3 confident wrong answers,
 limit 1); #171 does not ship (G3 failed on the 2060: with the display on the card the squeeze is WDDM demotion, not
