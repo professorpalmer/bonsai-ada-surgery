@@ -7,7 +7,7 @@
 var DATA = {
   rig: {
     '12gb': '12 GB: RTX 4070, q4_0, display on the iGPU; bundle-20261019a, 2026-10-19, a fresh server for each depth (docs/receipts/depth_table_bundle-20261019a-12gb-fresh.log)',
-    '8gb': '8 GB: RTX 2060 SUPER, q3_0, display on the card. 4k / 64k / 128k: P163, bundle-20261017, 2026-10-16; 160k / 245k: P150, bundle-20261016, 2026-10-16 (docs/research/depth-8gb-20261006)'
+    '8gb': '8 GB: RTX 2060 SUPER, q3_0, display on the card; bundle-20261019b, the zip launcher with the 1 / 2 draft (BONSAI_SPEC=1, BONSAI_SPEC_DEEP=2, the bundle-20261019c default), a fresh server per depth, 2026-10-19 (#138): 4k / 64k / 128k P222, 160k / 245k P220 (past the line both draft 2)'
   },
   // quick_tps.py: mean of code / prose / bash prompts, 400-token greedy answers, MTP + lookup drafting.
   points: {
@@ -20,15 +20,15 @@ var DATA = {
       [245000, 60.4]
     ],
     '8gb': [
-      [4000, 53.4],     // P163 sweep 4k (mean)
-      [64000, 41.2],    // P163 sweep 64k (mean)
-      [128000, 22.3],   // P163 cold 128k (mean of 3 prompts)
-      [160000, 16.7],   // P150
-      [245000, 9.8]     // P150
+      [4000, 52.4],     // P222 d12 (1 / 2; 1 / 1 was 53.7)
+      [64000, 39.9],    // P222 d12 (1 / 1: 40.6)
+      [128000, 29.6],   // P222 d12 (1 / 1: 22.4)
+      [160000, 18.6],   // P220 (past the line: draft 2, the same step as 1 / 2)
+      [245000, 11.4]    // P220
     ]
   },
-  // The VRAM line (positions in VRAM): 12 GB D29 (260,352); 8 GB P163 (80,640).
-  vramLine: { '12gb': 260352, '8gb': 80640 },
+  // The VRAM line (positions in VRAM): 12 GB D29 (260,352); 8 GB P220 (92,160, replay on).
+  vramLine: { '12gb': 260352, '8gb': 92160 },
   window: 262144
 };
 </script>

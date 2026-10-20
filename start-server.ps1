@@ -181,10 +181,11 @@ $LlamaDll = ''
 try { $LlamaDll = [Text.Encoding]::ASCII.GetString([IO.File]::ReadAllBytes((Join-Path $Bin 'llama.dll'))) } catch { }
 $HasReplay = $LlamaDll.Contains('LLAMA_RS_REPLAY')
 $ReplayWant = if ($env:BONSAI_RS_REPLAY) { $env:BONSAI_RS_REPLAY -eq '1' } else { [bool]$Small }
-$Spec = if ($env:BONSAI_SPEC) { [int]$env:BONSAI_SPEC } elseif ((Split-Path $Model -Leaf) -match '-mtp') { if ($Small) { if ($ReplayWant -and $HasReplay) { 2 } else { 1 } } else { 2 } } else { 0 }
-# 8 GB: draft 2 / tail 2 with replay (the rollback ring then costs ~7 MiB per token; RTX 2060 SUPER P215: 128k decode
-# 26.1 -> 31.8 tok/s, P217: the code-set gate passes; RTX 4070 with the 8 GB split, docs/research/adaptive-mtp-20261019
-# AD2: 128k code +19.6 %). Without replay: draft 1 / tail 1 (each extra token held a 150 MiB plane).
+$Spec = if ($env:BONSAI_SPEC) { [int]$env:BONSAI_SPEC } elseif ((Split-Path $Model -Leaf) -match '-mtp') { if ($Small) { 1 } else { 2 } } else { 0 }
+# 8 GB: draft 1 below the VRAM line, tail 2 past it with replay (the rollback ring then costs ~7 MiB per token). RTX 2060
+# SUPER (#138 P222, a fresh server per arm and depth): against 2 / 2, 4k +1.0 %, 64k +2.3 %, 128k the same (29.6 tok/s):
+# below the line a draft of 2 lowers acceptance (0.78 -> 0.62) on prose and bash; past it the PCIe-bound step makes the
+# second draft token nearly free (128k +32 % against 1 / 1). Without replay: draft 1 / tail 1 (a 150 MiB plane per token).
 $SpecDeep = if ($env:BONSAI_SPEC_DEEP) { [int]$env:BONSAI_SPEC_DEEP } elseif ($Small) { if ($ReplayWant -and $HasReplay) { 2 } else { 1 } } else { 4 }
 $Replay = $Spec -gt 0 -and $ReplayWant -and $HasReplay
 if ($Replay) { $env:LLAMA_RS_REPLAY = '1' }
