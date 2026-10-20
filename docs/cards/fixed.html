@@ -1,0 +1,71 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Bonsai quality fixes</title>
+<!-- What the runtime fixes on the same weights: before and after. Every number is in DATA below, each with its source.
+     Edit DATA, then run bench/render_cards.ps1. Rendered at 1200 x 675, device scale 2. -->
+<script>
+var DATA = {
+  foot: [
+    'Same weights (Ternary-Bonsai-2-27B-PTQ1_0) in each row. Effort "high" and the 4096 cap: this server with harness-proofing off and on, Killy\'s plates replayed, docs/12gb/Q8_FULL_CONTEXT.md (2026-09-27).',
+    'SVG: the template default xhigh against medium, 4096 cap, bench/reason_ab.py (docs/quality, section 2). Tool calls: bench/toolcall_stress.py. AIME: raw against the layer, docs/research/quality-20260929.',
+    'Pagoda: 6 samples at medium, bench/pagoda_plate.py --repair. HumanEval 164 at medium with the defaults today: 158 (12 GB, q4_0) and 163 (8 GB, q3_0).'
+  ],
+  heads: { before: 'the stock setup, no fixes', after: 'the bundle defaults and the layer' },
+  rows: [
+    { label: 'Apps that send effort "high"', note: 'HumanEval',
+      before: { v: 'HTTP 500', unit: '0 of 20 answered' },           // Q8_FULL_CONTEXT.md: BONSAI_HARNESS_PROOF=0, 0 of 20 (HTTP 500)
+      after: { v: '160', unit: '/ 164' } },                   // Q8_FULL_CONTEXT.md: the default server
+    { label: 'Apps with a 4096-token cap', note: 'HumanEval',
+      before: { v: '148', unit: '/ 164' },                    // Q8_FULL_CONTEXT.md: harness-proofing off (medium already on)
+      after: { v: '157', unit: '/ 164' } },                   // Q8_FULL_CONTEXT.md: the default server (the cap floor)
+    { label: 'SVG drawings', note: 'template default',
+      before: { v: '0 / 4', unit: 'xhigh: 4 empty' },         // docs/quality/README.md section 2, reason_ab.py xhigh
+      after: { v: '4 / 4', unit: 'medium' } },                // reason_ab.py medium
+    { label: 'Tool calls parsed', note: '9 requests',
+      before: { v: '1 / 9', unit: 'JSON in content' },        // docs/12gb/README.md, toolcall_stress.py
+      after: { v: '9 / 9', unit: 'native XML + grammar' } },
+    { label: 'AIME 2025', note: '30 problems x 2 seeds',
+      before: { v: '52', unit: '/ 60' },                      // quality-20260929 REPORT.md, pooled raw
+      after: { v: '56', unit: '/ 60, sandboxed Python' } },  // pooled layer (6 rescues, 2 losses)
+    { label: 'Voxel pagoda page', note: '6 samples',
+      before: { v: '3 / 6', unit: 'first try' },              // docs/quality/README.md, pagoda_plate.py
+      after: { v: '6 / 6', unit: 'render, then repair' } }
+  ]
+};
+</script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<link rel="stylesheet" href="card.css">
+<style>
+  :root { --before: #8C4A3A; --after: #2E7550; }
+  .tt .v.before { color: var(--before); }
+  .tt .v.after { background: var(--surface); color: var(--after); }
+  .tt .v small { color: var(--muted); }
+</style>
+<div class="card" id="card"></div>
+<script src="card.js"></script>
+<script>
+(function () {
+  var D = DATA;
+  var body = card({
+    eyebrow: 'Ternary Bonsai 2 27B · quality · the same weights',
+    title: 'Same weights. The runtime fixes bring the scores back.',
+    foot: D.foot
+  });
+  var cols = [['before', 'Before', 'var(--before)'], ['after', 'This serve', 'var(--after)']];
+  var h = '<div class="tt"><div></div>';
+  cols.forEach(function (c) {
+    h += '<div class="hd" style="color:' + c[2] + '">' + c[1] + '<small>' + esc(D.heads[c[0]]) + '</small></div>';
+  });
+  D.rows.forEach(function (r) {
+    h += '<div class="lb">' + esc(r.label) + (r.note ? '<small>' + esc(r.note) + '</small>' : '') + '</div>';
+    cols.forEach(function (c) {
+      var x = r[c[0]];
+      h += '<div class="v ' + c[0] + '"><span>' + esc(x.v) + (x.unit ? '<small>' + esc(x.unit) + '</small>' : '') + '</span></div>';
+    });
+  });
+  body.innerHTML = h + '</div>';
+  var tt = body.firstChild;
+  tt.style.gridTemplateRows = 'auto repeat(' + D.rows.length + ', minmax(0, 1fr))';
+  tt.style.alignContent = 'stretch';
+})();
+</script>

@@ -7,6 +7,12 @@ Ternary Bonsai 2 27B is PrismML's 1.58-bit ternary model (`PTQ1_0`, 5.9 GB). Thi
 a launcher that sizes the K/V cache for the card (q4_0 on 12 GB, q3_0 on 8 GB), MTP drafting, and an optional layer
 for agents. The weights are not changed.
 
+![Quality on the same weights, before and after the runtime fixes. Apps that send effort "high": HTTP 500 (0 of 20 answered) to HumanEval 160/164. Apps with a 4096-token cap: 148 to 157/164. SVG drawings with the template default xhigh: 0/4 (4 empty) to 4/4 at medium. Tool calls parsed: 1/9 (JSON in content) to 9/9 (native XML and a grammar). AIME 2025: 52 to 56 of 60 with the layer. Voxel pagoda page: 3/6 first try to 6/6 after render and repair](docs/img/fixed.png)
+
+Most of the code and agent losses people report on this model come from the runtime, not from the compression. With
+the same weights, the server fixes them: effort words that the template rejects, output caps that end the thinking,
+the `xhigh` template default (runaway thinking), and tool calls in JSON. Details: [docs/quality](docs/quality/README.md).
+
 ## Quick start (Windows, NVIDIA)
 
 1. Download `bonsai-bundle-win-x64.zip` from [Releases](https://github.com/professorpalmer/bonsai-ada-surgery/releases) and unzip it into this repo.
