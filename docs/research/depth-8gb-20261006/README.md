@@ -60,6 +60,13 @@ bundle-20261019c, and the close of #138) are in [`experiments/index-p220-p223.md
 [`experiments/events-p220-p223.md`](experiments/events-p220-p223.md), E108-E116. `REPORT.md` is not updated for this
 range yet.
 
+P224 to P225 (2026-10-20: a deep-session check on bundle-20261019c with fresh 4k turns and a ~200k conversation across
+restarts (fast turns, but wrong comparison and sum answers), and the same conversation on one server with no restart,
+which shows that the wrong answers are the model at depth, not the restore) are in
+[`experiments/index-p224-p225.md`](experiments/index-p224-p225.md) and
+[`experiments/events-p224-p225.md`](experiments/events-p224-p225.md), E117-E121. `REPORT.md` is not updated for this
+range yet.
+
 | Path | What |
 | --- | --- |
 | `REPORT.md` | Bottom line, what shipped, what was rejected, results by day, open items |
@@ -72,7 +79,8 @@ range yet.
 | [`experiments/index-p169-p182.md`](experiments/index-p169-p182.md) | P169-P182 (events: [`experiments/events-p169-p182.md`](experiments/events-p169-p182.md), E76-E87) |
 | [`experiments/index-p183-p188.md`](experiments/index-p183-p188.md) | P183-P188 (events: [`experiments/events-p183-p188.md`](experiments/events-p183-p188.md), E88-E95) |
 | [`experiments/index-p200-p219.md`](experiments/index-p200-p219.md) | P200-P219 (events: [`experiments/events-p200-p219.md`](experiments/events-p200-p219.md), E96-E107) |
-| [`experiments/index-p220-p223.md`](experiments/index-p220-p223.md) | The latest range: P220-P223 (events: [`experiments/events-p220-p223.md`](experiments/events-p220-p223.md), E108-E116) |
+| [`experiments/index-p220-p223.md`](experiments/index-p220-p223.md) | P220-P223 (events: [`experiments/events-p220-p223.md`](experiments/events-p220-p223.md), E108-E116) |
+| [`experiments/index-p224-p225.md`](experiments/index-p224-p225.md) | The latest range: P224-P225 (events: [`experiments/events-p224-p225.md`](experiments/events-p224-p225.md), E117-E121) |
 | `runs.jsonl` | One JSON line per experiment: id, date, card, engine commit, script, env, metrics, verdict, receipts (same fields as `../depth-20261010/runs.jsonl`, for comparing future models and engines) |
 | `experiments/events-*.md` | Entries that are not experiments: incidents, rig baseline changes, releases, PRs, coordination, decisions |
 | `NOTEBOOK.md` | The full lab notebook, in time order, unchanged (plans, results, corrections, incidents) |

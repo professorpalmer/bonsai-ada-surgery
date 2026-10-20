@@ -7,8 +7,9 @@ The previous range is `index-p200-p219.md`.
 
 State at the time of writing: 2026-10-20 13:45 CDT by the rig clock (18:45Z). The last notebook entry in this range is
 "2026-10-20 08:57 CDT bundle-20261019c (release 22:41 CDT; option B on #138, issue closed): P223 post-zip check PASS".
-#138 is closed (03:41:33Z). bundle-20261019c is the latest release. The queue runs 69jeci (P224, a demo dry run) from
+#138 is closed (03:41:33Z). bundle-20261019c is the latest release. The queue runs 69jeci (P224, a deep-session check) from
 13:39:59; it is in the next range.
+Next range: [`index-p224-p225.md`](index-p224-p225.md) ([P224](P224.md): the deep-session check on bundle-20261019c).
 
 Decisions in this range: the formal R6 of bundle-20261019b passes on correctness and the soak but fails the speed gate
 below the VRAM line (P220, P221); the release session chose option B on P222 (replay + draft 1 / tail 2 as the 8 GB
