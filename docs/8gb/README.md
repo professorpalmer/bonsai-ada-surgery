@@ -1,8 +1,8 @@
 # Bonsai 2 27B on an 8 GB card
 
-![Decode by context depth on the RTX 2060 SUPER 8 GB with q3_0: 53.4 / 41.2 / 22.3 / 16.7 / 9.8 tok/s at 4k / 64k / 128k / 160k / 245k; RTX 4070 12 GB with q4_0: 96.5 / 86.8 / 79.2 / 72.0 / 61.8 / 60.4 tok/s at 4k / 32k / 64k / 128k / 192k / 245k](img/decode.png)
+![Decode by context depth on the RTX 2060 SUPER 8 GB with q3_0: 52.4 / 39.9 / 29.6 / 18.6 / 11.4 tok/s at 4k / 64k / 128k / 160k / 245k; RTX 4070 12 GB with q4_0: 96.5 / 86.8 / 79.2 / 72.0 / 61.8 / 60.4 tok/s at 4k / 32k / 64k / 128k / 192k / 245k](img/decode.png)
 
-On an 8 GB card the launcher serves the full 262,144-token window with a q3_0 K/V cache. About 80,640 positions stay
+On an 8 GB card the launcher serves the full 262,144-token window with a q3_0 K/V cache. About 92,160 positions stay
 in VRAM; the rest of the cache is in pinned system RAM and is read over PCIe. The numbers on this page are from an
 RTX 2060 SUPER 8 GB (Turing, PCIe 3.0 x16) that also draws the Windows desktop.
 
@@ -31,9 +31,13 @@ RTX 2060 SUPER 8 GB, driver 610.88, stock clocks, the display on the card, the z
 
 | depth | 4k | 64k | 128k | 160k | 245k |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| decode (tok/s) | 53.4 | 41.2 | 22.3 | 16.7 | 9.8 |
+| decode (tok/s) | 52.4 | 39.9 | 29.6 | 18.6 | 11.4 |
 
-4k, 64k, 128k: P163, bundle-20261017, 2026-10-16. 160k, 245k: P150, bundle-20261016, 2026-10-16. Records:
+The default since bundle-20261019c: replay rollback, draft 1 below the VRAM line and 2 past it. Measured on
+bundle-20261019b with that setting, 2026-10-19 (#138): 4k, 64k, 128k P222; 160k, 245k P220 (past the line the step is
+the same). The previous recipe (1 / 1, no replay) in the same block: 53.7 / 40.6 / 22.4 at 4k / 64k / 128k, so the new
+default costs 2.4 % at 4k and 1.7 % at 64k and gains 32 % at 128k. Cold reads did not change (P220: 64k 305, 128k
+237.8, 245k 164.8 tok/s). Older records:
 [`docs/research/depth-8gb-20261006/experiments/`](../research/depth-8gb-20261006/experiments/P163.md).
 
 | prompt read (prefill) | tok/s | time to first token | record |
@@ -52,7 +56,7 @@ read item by item (P148). Drift against an f16 cache: [Quality](../quality/READM
 
 ![Prompt reading on both cards: RTX 2060 SUPER 8 GB 417 tok/s on a cold 4k prompt (9.7 s), cold 64k 309 tok/s, cold 128k 241 tok/s (529 s), cold 245k 164 tok/s (1,489 s); RTX 4070 12 GB 1,297 tok/s on a cold 4k prompt (3.1 s), cold 64k 968 tok/s (66 s), cold 128k 739 tok/s (172 s), cold 245k 516 tok/s (473 s)](img/prefill.png)
 
-![Cache positions in VRAM out of 262,144: 8 GB q3_0 80,640 (9.8 tok/s at 245k), 8 GB q4_0 61,696; 12 GB q4_0 260,352 with the display on the iGPU (61.0 tok/s) and 242,176 with the display on the card (45.7), 12 GB q8_0 129,024 (15.4)](img/vram.png)
+![Cache positions in VRAM out of 262,144: 8 GB q3_0 92,160 (11.4 tok/s at 245k), 8 GB q4_0 61,696; 12 GB q4_0 260,352 with the display on the iGPU (61.0 tok/s) and 242,176 with the display on the card (45.7), 12 GB q8_0 129,024 (15.4)](img/vram.png)
 
 ![Saved conversations on the RTX 2060 SUPER: a ~199k document 1,069 s cold, 5.3 s after a restart; a 131k document 561 s cold, 6.25 s; a 245k conversation 1,689 s cold, 5.2 s](../agents-layer/img/saved.png)
 
@@ -61,10 +65,10 @@ read item by item (P148). Drift against an f16 cache: [Quality](../quality/READM
 All on the same RTX 2060 SUPER (display on the card), the zip's own launcher with its defaults unless named. Records:
 `docs/research/depth-8gb-20261006/experiments/` (P-numbers below) and #138.
 
-- **Defaults on 8 GB:** a 262,144-token window with a q3_0 K/V cache, the VRAM line at about 80,640 positions, and sparse
+- **Defaults on 8 GB:** a 262,144-token window with a q3_0 K/V cache, the VRAM line at about 92,160 positions (replay on), and sparse
   reads of the system-RAM part switched on by the engine where they are faster (bundle-20261015b / 20261016). Measured on
-  bundle-20261017: decode 53.4 tok/s at 4k and 41.2 at 64k; a cold 128k read 529 s (241 tok/s); a cold 64k read 309
-  tok/s (P163, P168).
+  bundle-20261019b with the 1 / 2 draft: decode 52.4 tok/s at 4k, 39.9 at 64k, 29.6 at 128k (P222); a cold 128k read
+  237.8 tok/s, a cold 64k read 305 tok/s (P220).
 - **How much q3_0 drifts** (measured 10-18, `docs/research/kv-kl-20261018`): against an f16 K/V cache, mean KL 0.008 at
   16k (q4_0 0.0021, q8_0 0.00024), the top token the same as f16 96 % of the time (q4_0 97.9 %), perplexity +0.45 % at
   16k and within noise at 32k. No task loss measured (HumanEval 160/164; copies and needles equal to q4_0).

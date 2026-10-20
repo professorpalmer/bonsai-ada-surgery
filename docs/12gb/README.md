@@ -1,6 +1,6 @@
 # Bonsai 2 27B on a 12 GB card
 
-![Decode by context depth on the RTX 4070 12 GB with q4_0: 96.5 / 86.8 / 79.2 / 72.0 / 61.8 / 60.4 tok/s at 4k / 32k / 64k / 128k / 192k / 245k; RTX 2060 SUPER 8 GB with q3_0: 53.4 / 41.2 / 22.3 / 16.7 / 9.8 tok/s at 4k / 64k / 128k / 160k / 245k](img/decode.png)
+![Decode by context depth on the RTX 4070 12 GB with q4_0: 96.5 / 86.8 / 79.2 / 72.0 / 61.8 / 60.4 tok/s at 4k / 32k / 64k / 128k / 192k / 245k; RTX 2060 SUPER 8 GB with q3_0: 52.4 / 39.9 / 29.6 / 18.6 / 11.4 tok/s at 4k / 64k / 128k / 160k / 245k](img/decode.png)
 
 On a 12 GB card the launcher serves the full 262,144-token window with a q4_0 K/V cache. On an RTX 4070 with the
 display on the CPU's iGPU, 260,352 of the 262,144 positions stay in VRAM. Decode at 245k is 60.4 tok/s.
@@ -48,7 +48,7 @@ Quality with q4_0: HumanEval 164 158/164 (the q8_0 runs: 158); at 245k exact cod
 
 ## Why q4_0
 
-![Cache positions in VRAM out of 262,144: 12 GB q4_0 260,352 with the display on the iGPU (61.0 tok/s at 245k) and 242,176 with the display on the card (45.7), 12 GB q8_0 129,024 (15.4); 8 GB q3_0 80,640 (9.8 tok/s at 245k), 8 GB q4_0 61,696](img/vram.png)
+![Cache positions in VRAM out of 262,144: 12 GB q4_0 260,352 with the display on the iGPU (61.0 tok/s at 245k) and 242,176 with the display on the card (45.7), 12 GB q8_0 129,024 (15.4); 8 GB q3_0 92,160 (11.4 tok/s at 245k), 8 GB q4_0 61,696](img/vram.png)
 
 q4_0 uses 18,432 B per position, q8_0 34,816 B. With q4_0 a 12 GB card holds ~99 % of the window in VRAM, so decode
 does not fall off past ~129k: 245k is 4x the q8_0 speed. Per token, q8_0 is more precise (1 flipped top token in 160

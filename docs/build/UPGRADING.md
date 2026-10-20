@@ -9,6 +9,14 @@ launcher prints `layer on` when the runtime is present and falls back to the pla
 
 ## What each bundle changed (newest first)
 
+`bundle-20261019c` (no engine change): on **8 GB cards** the draft below the VRAM line is 1 again (it was 2 in
+bundle-20261019b); past the line it stays 2, with replay. Below the line a draft of 2 lowered draft acceptance (0.78 ->
+0.62) on prose and bash. RTX 2060 SUPER, against bundle-20261019b's 2 / 2: 4k +1.0 %, 64k +2.3 %, 128k the same
+(29.6 tok/s); against the old 1 / 1 recipe: 4k -2.4 %, 64k -1.7 %, 128k +32 % (#138, P222). The layer: when the server
+has no vision projector (no mmproj), an image in a request (for example a screenshot that a client's tool returned)
+becomes a short text note, so the conversation goes on; before, every later turn failed with HTTP 500 (#7, #216).
+Gates: `docs/research/release-20261019c`.
+
 `bundle-20261019b` (engine `810d93e5aa`, patches 0070-0071): on **8 GB cards** the launcher now turns on replay rollback
 and drafts 2 tokens below and past the VRAM line (was 1 / 1). Replay keeps one recurrent-state plane instead of one per
 draft token, so a draft token costs ~7 MiB of VRAM instead of ~150 MiB: the VRAM line holds ~10k more positions, and the

@@ -1,6 +1,6 @@
 # Bonsai 2 27B: the full 262k window on 12 GB and 8 GB cards
 
-![Scorecard. RTX 4070 12 GB with q4_0 K/V: 262,144-token window, 260,352 positions in VRAM, decode 96.5 / 72.0 / 60.4 tok/s at 4k / 128k / 245k, a 4k prompt read at 1,297 tok/s, HumanEval 158/164. RTX 2060 SUPER 8 GB with q3_0 K/V: 262,144-token window, 80,640 positions in VRAM, decode 53.4 / 22.3 / 9.8 tok/s, 417 tok/s, HumanEval 163/164](docs/img/scorecard.png)
+![Scorecard. RTX 4070 12 GB with q4_0 K/V: 262,144-token window, 260,352 positions in VRAM, decode 96.5 / 72.0 / 60.4 tok/s at 4k / 128k / 245k, a 4k prompt read at 1,297 tok/s, HumanEval 158/164. RTX 2060 SUPER 8 GB with q3_0 K/V: 262,144-token window, 92,160 positions in VRAM, decode 52.4 / 29.6 / 11.4 tok/s, 417 tok/s, HumanEval 163/164](docs/img/scorecard.png)
 
 Ternary Bonsai 2 27B is PrismML's 1.58-bit ternary model (`PTQ1_0`, 5.9 GB). This repo serves it with the full
 262,144-token window on 12 GB and 8 GB NVIDIA cards. It has a patched [PrismML llama.cpp](https://github.com/PrismML-Eng/llama.cpp),
