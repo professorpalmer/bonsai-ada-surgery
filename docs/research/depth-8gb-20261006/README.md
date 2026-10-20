@@ -53,6 +53,13 @@ closes KV below 3 bits) are in [`experiments/index-p200-p219.md`](experiments/in
 [`experiments/events-p200-p219.md`](experiments/events-p200-p219.md), E96-E107. P189-P199 do not exist in this series
 (the 4070 kernel session used P188-P191). `REPORT.md` is not updated for this range yet.
 
+P220 to P223 (2026-10-19 to 2026-10-20: the formal R6 of the bundle-20261019b zip (correctness and the soak pass; the
+speed gate fails below the VRAM line, also in one block), replay with draft 1 / tail 2 against 2 / 2 and 1 / 1 (its
+declared gate fails at 4k / 64k; the release session ships it as option B in bundle-20261019c), the post-zip check of
+bundle-20261019c, and the close of #138) are in [`experiments/index-p220-p223.md`](experiments/index-p220-p223.md) and
+[`experiments/events-p220-p223.md`](experiments/events-p220-p223.md), E108-E116. `REPORT.md` is not updated for this
+range yet.
+
 | Path | What |
 | --- | --- |
 | `REPORT.md` | Bottom line, what shipped, what was rejected, results by day, open items |
@@ -64,7 +71,8 @@ closes KV below 3 bits) are in [`experiments/index-p200-p219.md`](experiments/in
 | [`experiments/index-p162-p168.md`](experiments/index-p162-p168.md) | P162-P168 (events: [`experiments/events-p162-p168.md`](experiments/events-p162-p168.md), E67-E75) |
 | [`experiments/index-p169-p182.md`](experiments/index-p169-p182.md) | P169-P182 (events: [`experiments/events-p169-p182.md`](experiments/events-p169-p182.md), E76-E87) |
 | [`experiments/index-p183-p188.md`](experiments/index-p183-p188.md) | P183-P188 (events: [`experiments/events-p183-p188.md`](experiments/events-p183-p188.md), E88-E95) |
-| [`experiments/index-p200-p219.md`](experiments/index-p200-p219.md) | The latest range: P200-P219 (events: [`experiments/events-p200-p219.md`](experiments/events-p200-p219.md), E96-E107) |
+| [`experiments/index-p200-p219.md`](experiments/index-p200-p219.md) | P200-P219 (events: [`experiments/events-p200-p219.md`](experiments/events-p200-p219.md), E96-E107) |
+| [`experiments/index-p220-p223.md`](experiments/index-p220-p223.md) | The latest range: P220-P223 (events: [`experiments/events-p220-p223.md`](experiments/events-p220-p223.md), E108-E116) |
 | `runs.jsonl` | One JSON line per experiment: id, date, card, engine commit, script, env, metrics, verdict, receipts (same fields as `../depth-20261010/runs.jsonl`, for comparing future models and engines) |
 | `experiments/events-*.md` | Entries that are not experiments: incidents, rig baseline changes, releases, PRs, coordination, decisions |
 | `NOTEBOOK.md` | The full lab notebook, in time order, unchanged (plans, results, corrections, incidents) |
