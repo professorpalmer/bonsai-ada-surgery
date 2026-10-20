@@ -8,7 +8,7 @@
 var DATA = {
   foot: [
     'RTX 2060 SUPER 8 GB, PCIe 3.0, display on the card, stock clocks. Before: the community 64k recipe (q4_0, all in VRAM; P13 / P20) or our stock start (window 131k, 16,384 positions in VRAM, q8_0; P2). Decode: bench/quick_tps.py, the same 3 prompts on both sides.',
-    'Now: the bundle-20261019c defaults (q3_0, replay, draft 1 / tail 2). 4k-128k P222, 245k P220 (the same bins; P223 checked the 19c zip: 52.6 at 4k, 29.1 at 128k). Restart: P165 (bundle-20261017); on the 19c zip a full answer in 6.1 s (P224). HumanEval: P31 (q4_0), P131 (q3_0; another run 160).',
+    'Now: the bundle-20261019c defaults (q3_0, replay, draft 1 / tail 2). 4k-128k P222, 245k P220 (the same bins; P223 checked the 19c zip: 52.6 at 4k, 29.1 at 128k). Restart: P165 (bundle-20261017); on the 19c zip a short turn after a restart in 6.1 s (P224). HumanEval: P31 (q4_0), P131 (q3_0; another run 160).',
     'Not better: a cold 4k read (417 against 427 tok/s). q3_0 drifts more than q8_0 (mean KL 0.008 against 0.0002 at 16k, RTX 4070). The 262k window needs 24 GB of RAM or more.'
   ],
   heads: { before: 'the start, 2026-10-06', after: 'bundle-20261019c, 2026-10-20' },

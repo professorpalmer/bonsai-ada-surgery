@@ -88,8 +88,8 @@ card; #138).
 
 With the layer on, saving and restoring is automatic (`layer/slot_cache.py`): for prompts of 16k tokens or more the
 layer saves the conversation and, after a restart or when conversations alternate, restores the longest saved prefix
-before the request (RTX 2060 SUPER: a 199k conversation answers in ~6 s after a restart, P160). Since
-bundle-20261018b the layer saves after the answer instead of before the request (needs patch 0067;
+before the request (RTX 2060 SUPER, a 199k conversation after a restart: the first token in 5.3 s on bundle-20261017,
+P165; a short turn in 6.05 s on bundle-20261019c, P224). Since bundle-20261018b the layer saves after the answer instead of before the request (needs patch 0067;
 `BONSAI_SLOT_CACHE_AFTER=0` goes back to the save before the request), when the next turn renders the answer with the
 same tokens (thinking off, or a client that sends the reasoning back; the layer tests this per conversation and falls
 back): no prefill-only call, and the client has the answer before the save starts. 4070 with the 8 GB layout, G1
