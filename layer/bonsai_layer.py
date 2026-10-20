@@ -61,6 +61,32 @@ def tool_spec(with_input):
     return t
 
 
+NO_VISION_NOTE = ("[An image was here. This server runs without a vision model (no mmproj), so the image is not shown "
+                  "to you. If you need what it shows, ask the user to describe it in text.]")
+
+
+def strip_images(obj):
+    """Replace every image part (chat: "image_url"; Responses: "input_image") with a text note, in place. A server
+    without a vision projector refuses any request with an image (HTTP 500), and a client that sends the whole
+    conversation again then fails on every later turn too (issue #7: a tool returned a screenshot). Returns the count."""
+    n = 0
+
+    def walk(x):
+        nonlocal n
+        if isinstance(x, list):
+            for i, p in enumerate(x):
+                if isinstance(p, dict) and p.get("type") in ("image_url", "input_image"):
+                    x[i] = {"type": "input_text" if p["type"] == "input_image" else "text", "text": NO_VISION_NOTE}
+                    n += 1
+                else:
+                    walk(p)
+        elif isinstance(x, dict):
+            for v in x.values():
+                walk(v)
+    walk(obj)
+    return n
+
+
 def client_runs_code(msgs):
     """A conversation that already carries fenced code blocks and offers no tools is a client that executes code
     itself (ReAct-style code agents, notebooks, IDE loops). Measured (AW1, AppWorld): offering run_python to such a
@@ -247,6 +273,31 @@ class Proxy(http.server.BaseHTTPRequestHandler):
     input_file = True     # default for "input_file": the user's text as input.txt for run_python (E12: adopted)
     slots = None          # slot_cache.SlotCache when BONSAI_SLOT_SAVE_PATH is set (saved conversations on disk)
     protocol_version = "HTTP/1.1"
+    _vision = None        # the server's /props modalities.vision; None = not asked yet
+    _vision_at = 0.0
+
+    def _has_vision(self):
+        """Ask the server once a minute whether it takes images; if the answer cannot be read, assume yes (no change)."""
+        now = time.time()
+        if Proxy._vision is None or now - Proxy._vision_at > 60:
+            headers = {"Authorization": "Bearer " + self.api_key} if self.api_key else {}
+            try:
+                with urllib.request.urlopen(urllib.request.Request(self.upstream + "/props", headers=headers), timeout=5) as r:
+                    Proxy._vision = bool(((json.loads(r.read()) or {}).get("modalities") or {}).get("vision", True))
+            except Exception:   # noqa: BLE001
+                Proxy._vision = True
+            Proxy._vision_at = now
+        return Proxy._vision
+
+    def _drop_images(self, body):
+        """Strip the images from a request when the server has no vision projector; returns the count (0 = unchanged)."""
+        s = json.dumps(body)
+        if not ('"image_url"' in s or '"input_image"' in s) or self._has_vision():
+            return 0
+        n = strip_images(body)
+        if n:
+            self.log_message("no vision projector: %d image part(s) replaced with a text note", n)
+        return n
 
     def log_message(self, fmt, *a):
         sys.stderr.write("[proxy] " + (fmt % a) + "\n")
@@ -725,6 +776,13 @@ class Proxy(http.server.BaseHTTPRequestHandler):
         self._prefill_only = False
         self._slot_send = False
         raw = self.rfile.read(int(self.headers.get("Content-Length", 0)))
+        if self.path.rstrip("/").endswith("/responses"):
+            try:   # the Responses API: the same image handling as chat (see strip_images)
+                rb = json.loads(raw)
+                if self._drop_images(rb):
+                    raw = json.dumps(rb).encode()
+            except Exception:   # noqa: BLE001  (not JSON: the server answers it)
+                pass
         if not self.path.rstrip("/").endswith("/chat/completions"):
             return self._reply(*self._forward("POST", raw))
         try:
@@ -735,6 +793,7 @@ class Proxy(http.server.BaseHTTPRequestHandler):
             given = self.headers.get("Authorization", "")
             if not hmac.compare_digest(given.encode("utf-8", "replace"), ("Bearer " + self.api_key).encode()):
                 return self._reply(*self._forward("POST", raw))   # let the server produce its own 401; do no work here
+        images_removed = self._drop_images(body)   # no vision projector: images become a text note (issue #7)
         # Read ahead (#138 T1-d): "prefill_only": true reads the prompt into the server and saves it (the saved-conversation
         # cache), and answers with a short JSON object instead of generating. The request takes the normal path (cards,
         # notes, tools), so the saved tokens are the ones the later real request will render. It answers when the read is
@@ -755,7 +814,7 @@ class Proxy(http.server.BaseHTTPRequestHandler):
             return self._with_slots(body, lambda: self._reply(*self._forward("POST", json.dumps(body).encode())))
         # server-side preprocessing for every chat request (streamed or not, with or without client tools)
         msgs0 = list(body.get("messages") or [])
-        info = {}
+        info = {"images_removed": images_removed} if images_removed else {}
         want_input = body.pop("input_file", None)
         with_input = self.input_file if want_input is None else bool(want_input)
         extra = {INPUT_FILE: user_text(msgs0)} if with_input else None
