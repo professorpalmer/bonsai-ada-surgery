@@ -9,6 +9,13 @@ launcher prints `layer on` when the runtime is present and falls back to the pla
 
 ## What each bundle changed (newest first)
 
+`bundle-20261021` (no engine change): a chat request without tools whose first user message asks for prose or
+verse (a story, poem, chapter, essay, article, letter...) no longer gets the layer's `run_python` tool. With it, the
+model counted the words of its text in the sandbox, up to 5 rounds: a 1,500-word story took 341 s instead of 61 s,
+with no quality gain (`docs/research/story-think-20261021`). Requests with counting or data words (count, how many,
+table, average...) and code requests keep the tool; `"code_interpreter": true` still offers it (#227). Gates:
+`docs/research/release-20261021`.
+
 `bundle-20261020` (no engine change): the layer writes one line to `logs\layer.log` when a request does not repeat
 the previous one up to its end: the tool list changed (with the tool names), a message changed, or its reasoning was
 left out. Such a change makes the server read the conversation again from that point (issue #7: an MCP server that
