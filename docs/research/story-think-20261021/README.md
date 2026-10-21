@@ -54,3 +54,23 @@ arm passes, nothing changes, and the reason is logged here.
 
 Noise: one sample for each cell (8 prompts x 5 arms). The A/B noise of this rig is up to 5 % for speed; text length and
 the judge vary more. G1 asks for a 40 % cut, which is far above that noise.
+
+## Amendment (2026-10-21 08:12, after one cell, before any other result)
+
+**Observation O1** (the only cell run under the first plan, p1 / M): without client tools the layer offers its own
+`run_python` tool. The model used it to count the story's words, over several rounds: 34,577 completion tokens and
+332 s for a 1,599-word story, and the returned reasoning is the last round only (709 tokens). So the `dup` measure
+cannot see the earlier rounds, and this cost hides the thinking cost that the study measures. The record is kept as
+`observations.jsonl` (not in the gated set).
+
+Changes:
+
+- On the five chat-only prompts, arms M, L, O, B and N send `"code_interpreter": false` (the layer forwards the request
+  without its tool). The three `write_file` prompts are unchanged (with client tools the layer does not offer its tool).
+- New arm **I** on the five chat-only prompts: M as shipped (the layer's `run_python` offered). Recorded: rounds
+  (`interpreter_trace`), completion tokens, wall time. The judge compares I with M too.
+- New gate **G5**: if I's median wall time on the five chat prompts is at least 1.5x M's and the judge shows no gain for
+  I (wins below 55 % against M over both orders), the layer stops offering `run_python` to writing requests (its own
+  PR with tests and a bundle with gates).
+
+G1-G4 are unchanged and apply to L, O, B and N against the new M.

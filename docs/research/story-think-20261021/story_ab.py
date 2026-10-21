@@ -12,7 +12,7 @@ BASE, INNER, KEYFILE, OUT = sys.argv[1:5]
 KEY = open(KEYFILE).read().strip()
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROMPTS = json.load(open(os.path.join(HERE, "prompts.json"), encoding="utf-8"))
-ARMS = ["M", "L", "O", "B", "N"]
+ARMS = ["M", "L", "O", "B", "N", "I"]   # I: chat-only prompts only (amendment 08:12)
 NOTE = "Plan briefly in your thinking. Do not write the text itself in your thinking: write it once, in your answer."
 WRITE_FILE = {"type": "function", "function": {
     "name": "write_file", "description": "Write a text file in the workspace.",
@@ -54,6 +54,8 @@ def request(p, arm):
             "seed": 1}
     if p["tools"]:
         body["tools"] = [WRITE_FILE]
+    elif arm != "I":
+        body["code_interpreter"] = False   # amendment 08:12: the layer forwards without its run_python tool
     if arm == "L":
         body["reasoning_effort"] = "low"
     if arm == "O":
@@ -82,7 +84,7 @@ if os.path.exists(rpath):   # resume: keep finished cells
         runs[(e["prompt"], e["arm"])] = e
 for p in PROMPTS:
     for arm in ARMS:
-        if (p["id"], arm) in runs:
+        if (p["id"], arm) in runs or (arm == "I" and p["tools"]):
             continue
         t0 = time.time()
         try:
@@ -99,7 +101,8 @@ for p in PROMPTS:
              "think_tokens": ntok(think), "completion_tokens": (out.get("usage") or {}).get("completion_tokens"),
              "words": words(text), "requested_words": p["words"], "via_write_file": via_tool,
              "budget_closed": "Now produce the complete answer" in think,
-             "dup": dup(text, think), "empty": not text.strip()}
+             "dup": dup(text, think), "empty": not text.strip(),
+             "interpreter_rounds": len(out.get("interpreter_trace") or [])}
         open(os.path.join(OUT, "texts", f"{p['id']}_{arm}.md"), "w", encoding="utf-8").write(
             "## thinking\n\n" + think + "\n\n## final text\n\n" + text + "\n")
         open(rpath, "a", encoding="utf-8").write(json.dumps(e) + "\n")
@@ -123,6 +126,8 @@ def text_of(pid, arm):
 for p in PROMPTS:
     for arm in ARMS[1:]:
         for order in ("arm_first", "M_first"):
+            if arm == "I" and p["tools"]:
+                continue
             if (p["id"], arm, order) in done:
                 continue
             x, y = (text_of(p["id"], arm), text_of(p["id"], "M"))
