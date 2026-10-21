@@ -1,0 +1,18 @@
+[
+  {"id": "p1_story", "words": 1500, "tools": false,
+   "text": "Write a 1,500-word short story about a lighthouse keeper who receives letters from someone who does not exist yet."},
+  {"id": "p2_chapter", "words": 2000, "tools": false,
+   "text": "Write the first chapter of a mystery novel, about 2,000 words. The detective is a retired train conductor in a small mountain town."},
+  {"id": "p3_poem", "words": 300, "tools": false,
+   "text": "Write a 40-line poem about the last day of a summer job at a fruit orchard."},
+  {"id": "p4_blog", "words": 800, "tools": false,
+   "text": "Write an 800-word blog post for beginners about how to start a vegetable garden on a small balcony."},
+  {"id": "p5_long", "words": 1500, "tools": false,
+   "text": "Tell me a long story."},
+  {"id": "p6_save_story", "words": 1500, "tools": true,
+   "text": "Write a 1,500-word science-fiction short story about a ship's cook on a generation ship, and save it to story.md."},
+  {"id": "p7_save_essay", "words": 1200, "tools": true,
+   "text": "Write a 1,200-word essay on why people keep diaries, and save it to essay.md."},
+  {"id": "p8_save_chapter", "words": 1000, "tools": true,
+   "text": "Write a 1,000-word opening chapter for a fantasy novel about a city built on the back of a giant turtle, and save it to chapter1.md."}
+]
