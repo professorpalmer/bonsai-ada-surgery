@@ -22,6 +22,10 @@ change nothing. It does four things:
   available to the program as `input.txt`, so the model does not retype data. In a stream, the tool rounds appear
   as short notes in the reasoning stream; the answer streams as usual. Requests with client tools are passed
   through untouched (the model otherwise retypes paginated tool data into code and loses tasks).
+  Writing requests (the first user message asks for a story, poem, chapter, essay, article, letter and similar,
+  not for code) do not get the tool: offered it, the model counted the words of its text in the sandbox, up to 5
+  rounds, and a 1,500-word story took 341 s instead of 61 s, with no quality gain
+  ([story-think-20261021](../research/story-think-20261021/README.md)). `"code_interpreter": true` still offers it.
 - **Key check.** Requests with a wrong API key are rejected before any work is done.
 
 Enable it once with `layer\fetch_runtime.ps1` (downloads the checksummed WASI Python, installs `wasmtime`, runs the
