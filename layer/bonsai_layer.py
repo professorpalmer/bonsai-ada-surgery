@@ -287,6 +287,37 @@ def apply_repair_note(msgs):
 # near a noun like program/function/module/solution. Matches every suite coding prompt; not chat turns about code.
 CODE_TASK_RE = re.compile(r"```|\bdef \w+\(|\w\.py\b|\b(write|implement|fix|debug|refactor|complete|build|create)\b"
                           r"[^.\n]{0,80}?\b(code|program|function|script|module|solution|class|tests?|parser|library|cli|tool|app)\b", re.I)
+# A request for prose or verse: a story, poem, chapter, essay, article, letter... Measured
+# (docs/research/story-think-20261021, G5): offered run_python, the model counts the words of its text in the sandbox,
+# up to 5 rounds (a 1,500-word story: 341 s and 33,793 tokens against 61 s without the tool), with no quality gain.
+WRITING_RE = re.compile(r"\b(write|compose|draft|create|generate|produce)\b[^.\n]{0,60}?\b(story|stories|poem|poems|"
+                        r"poetry|chapter|chapters|novel|novella|essay|blog post|article|letter|lyrics|song|speech|fable|"
+                        r"tale|haiku|sonnet|limerick|screenplay|monologue|eulogy)\b"
+                        r"|\btell\b[^.\n]{0,30}?\b(story|stories|tale|fable)\b", re.I)
+# Counting and data words keep the tool: "how many times the letter r appears", "a letter frequency table",
+# "word counts", "grades". Without the tool the model gives such answers wrong and sure (review of #227).
+DATA_RE = re.compile(r"\b(count|counts|counting|how many|frequency|frequencies|table|sort|sorted|average|mean|median|sum|"
+                     r"total|statistics|grade|grades|percent|percentage|calculate|compute)\b", re.I)
+WRITING_HEAD = 300   # only the instruction part: a pasted article or CSV after it must not decide
+
+
+def writing_request(msgs):
+    """The first user message asks for prose or verse and not for code. The first message decides, as for the API cards:
+    a later message cannot change the tools of the conversation (a changed tool list makes the server read the whole
+    conversation again, #224)."""
+    for m in msgs:
+        if m.get("role") != "user":
+            continue
+        c = m.get("content")
+        if isinstance(c, list):
+            c = " ".join(x.get("text", "") for x in c if isinstance(x, dict))
+        if not isinstance(c, str):
+            return False
+        head = c[:WRITING_HEAD]
+        return bool(WRITING_RE.search(head)) and not CODE_TASK_RE.search(c) and not DATA_RE.search(head)
+    return False
+
+
 FINISH_NOTE = ("Before your final answer, run the program you wrote on the example given in the task and compare its "
                "output with the expected result; fix it if they differ.")
 
@@ -943,6 +974,9 @@ class Proxy(http.server.BaseHTTPRequestHandler):
         # 2 of 15 tasks (1 rescued). Clients with tools can opt in with "code_interpreter": true.
         wanted = body.pop("code_interpreter", None)
         enabled = (not client_tools) if wanted is None else bool(wanted)
+        if wanted is None and enabled and writing_request(body.get("messages") or []):
+            enabled = False                    # story-think-20261021 G5: no run_python for writing requests
+            info["writing_request"] = True
         ours_taken = any(t.get("function", {}).get("name") == TOOL_NAME for t in client_tools)
         if body.get("stream"):
             if enabled and not client_tools and not ours_taken:
