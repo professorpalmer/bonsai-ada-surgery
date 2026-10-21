@@ -55,3 +55,43 @@ nothing changes, and the reason is logged here.
 
 Noise: the M of the two seeds and the M and B of the first study give the noise of this setup; it is reported with the
 results.
+
+## Results (2026-10-21 09:20-10:17, `runs.jsonl`, `judge.jsonl`, `texts/`)
+
+64 cells, 96 judge pairs, 0 CUDA errors, no spill. Medians over 16 cells (8 prompts x 2 seeds), each against M on the
+same prompt and seed:
+
+| Arm | wall (s) | wall / M | thinking tokens | dup | words / asked | `write_file` cells: words / M | budget closed | empty | `write_file` called |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| M | 89.8 | 1.00 | 7,846 | **0.915** | 1.03 | 1.00 | 4 | 0 | 6 / 6 |
+| B2 (2048) | 33.8 | **0.41** | 1,484 | 0.062 | 1.05 | 0.82 | 7 | 0 | **5 / 6** |
+| B4 (4096) | 49.2 | 0.48 | 4,101 | 0.415 | 1.02 | 0.87 | 10 | 0 | 5 / 6 |
+| LB (low + 4096) | 52.5 | 0.50 | 3,984 | 0.161 | 1.08 | 0.96 | 8 | **1** | 6 / 6 |
+
+Judge, prompts and seeds where both orders agree (won / lost / even against M): B2 3 / 4 / 9, B4 4 / 0 / 12, LB 4 / 3 / 9.
+The position bias is there again: "A" in 76 of 96 pairs.
+
+M varies a lot between seeds: p2 40.1 s and dup 0.0 on seed 1, 228.2 s and dup 0.99 on seed 2 (the budget closed at
+20,485 thinking tokens); p8 87.2 s and 21.5 s. M closed the 20,480 budget in 4 of 16 cells.
+
+**The forced close breaks the `write_file` flow.** In all three failed cells the budget closed the thinking first:
+
+- B2, p6 seed 2: the thinking was counting the words of its draft when the budget closed it. The answer then says
+  "I've written the story and saved it to story.md", with **no `write_file` call**: it claims an action it did not do.
+- B4, p7 seed 2: the essay came as plain text (1,014 words), not as a `write_file` call.
+- LB, p6 seed 1: the reply ran to the 24,576-token cap (`finish: length`) and the `write_file` content is empty.
+
+| Gate | B2 | B4 | LB |
+|---|---|---|---|
+| G1 wall / M at most 0.6 | PASS 0.41 | PASS 0.48 | PASS 0.50 |
+| G2 dup below 0.15 | PASS 0.062 | FAIL 0.415 | FAIL 0.161 |
+| G3 lost at most won + 1 | PASS 4 <= 4 | PASS 0 <= 5 | PASS 3 <= 5 |
+| G4 length | PASS 1.05, 0.82 | PASS 1.02, 0.87 | PASS 1.08, 0.96 |
+| G5 health | FAIL (p6 s2: no call, claims a save) | FAIL (p7 s2: no call) | FAIL (p6 s1: empty) |
+
+**Decision: no arm is adopted.** B2 passes G1-G4 and is 2.4x faster than M, but in 1 of 6 `write_file` cells it says
+that it saved a file that it did not save. A setting that makes an agent claim work it did not do does not ship.
+
+**Next** (its own plan): the budget's close message per request. The server closes the thinking with "Now produce the
+complete answer.", and after it the model answers in text. A request can send its own `reasoning_budget_message`, so
+the next study tests B2 with a message that names the tool call, on new seeds, with a gate on every claim of a save.
