@@ -29,9 +29,22 @@ for p in PROMPTS:
     if not p["tools"]:
         check("writing: " + p["id"], bonsai_layer.writing_request([{"role": "user", "content": p["text"]}]))
 for text in ["Write a Python function that returns the n-th prime.", "Write a script that tells a story about a cat.",
-             "What is 17 * 23?", "Fix the bug in this code:\n```\nprint(x\n```", "Write a story about a phone app.",
-             "How many words are in this sentence?"]:
-    check("not writing: " + text[:40], not bonsai_layer.writing_request([{"role": "user", "content": text}]))
+             "What is 17 * 23?", "Fix the bug in this code:\n```\nprint(x\n```",
+             "How many words are in this sentence?",
+             # review of #227: counting and data tasks keep the tool
+             "Tell me how many times the letter r appears in strawberry.",
+             "Give each student a letter grade: Ann 87, Bo 72, Cy 95.",
+             "Write a letter frequency table for this text: the quick brown fox.",
+             "Make a song list sorted by duration: A 3:10, B 2:45, C 4:01.",
+             "Give me a summary of this article with the word counts.",
+             "Make a speech timer estimate: 130 wpm, 1,950 words.",
+             "Compute the mean of these numbers: 4, 8, 15.\n" + "x " * 200 + "She would tell her grandson the story again."]:
+    check("not writing: " + text[:40].replace("\n", " "), not bonsai_layer.writing_request([{"role": "user", "content": text}]))
+for text in ["Generate a short story about a fox.", "Produce a poem for my mother's birthday."]:
+    check("writing: " + text[:40], bonsai_layer.writing_request([{"role": "user", "content": text}]))
+# Known limitation (the safe direction: the old behaviour, the tool is offered): a code noun anywhere in the message.
+check("known limitation: 'app' keeps the tool", not bonsai_layer.writing_request(
+    [{"role": "user", "content": "Write a story about a phone app."}]))
 check("the first user message decides", bonsai_layer.writing_request([
     {"role": "system", "content": "You are helpful."}, {"role": "user", "content": "Write a poem about rain."},
     {"role": "assistant", "content": "..."}, {"role": "user", "content": "Now compute 2**100."}]))
