@@ -1,0 +1,1 @@
+{"prompt": "p1_story", "arm": "M", "wall_s": 332.0, "error": null, "finish": "stop", "think_tokens": 709, "completion_tokens": 34577, "words": 1599, "requested_words": 1500, "via_write_file": false, "budget_closed": false, "dup": 0.014, "empty": false}
