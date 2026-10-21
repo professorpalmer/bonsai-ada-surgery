@@ -17,3 +17,17 @@ with no quality gain.
 | R4 saved conversations | as release-20261020 R4 (8 GB defaults, slot folder, 3 turns, then two conversations that take turns); 0 CUDA errors |
 
 All pass: publish as the latest release. Any fail: no publish; log why.
+
+## Results (2026-10-21 11:04-11:10, RTX 4070, `release_1021.log`)
+
+Zip sha256 `27de291db6b76882...`, engine `810d93e5aa`. Scripts: `rel1021.sh`, `r3_writing.py`, `make_bundle_1021.py`
+(the prefix-log requests: `../release-20261020/e2e_req.py`).
+
+| Gate | Result |
+|---|---|
+| R1 zip | PASS: outside `docs/` the same entries as 1020, every `bin/` file identical; changed: `layer/bonsai_layer.py` only; 0 control-byte files; 0 broken relative links |
+| R2 launcher | PASS: 8 GB `draft 1 (2 past ...)` with the replay line; 8 GB replay off `draft 1 (1 past ...)`; default `draft 2 (4 past ...)`; each: the `layer log:` line, the answer, 0 CUDA errors |
+| R3 writing | PASS: the story request answered 200 with 300 words and no `interpreter_trace`; the primes request answered 200 with 1 `run_python` round and 3,682,913; the prefix-log requests gave the same lines as release-20261020 (plus one line for each of the two new conversations); 0 CUDA errors |
+| R4 saved conversations | PASS: 3 turns (18.8 / 8.3 / 8.8 s); two conversations that take turns: turn 2 restored its own save (25 and 24 new tokens); 0 CUDA errors |
+
+All gates pass: publish as the latest release.
