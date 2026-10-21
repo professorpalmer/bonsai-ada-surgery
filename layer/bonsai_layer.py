@@ -18,6 +18,7 @@ calls one of the client's own tools. The client sees one ordinary response.
 Everything else (other paths, auth header) is forwarded verbatim.
 """
 import argparse
+import hashlib
 import hmac
 import http.server
 import json
@@ -85,6 +86,87 @@ def strip_images(obj):
                 walk(v)
     walk(obj)
     return n
+
+
+REASONING_KEYS = ("reasoning_content", "reasoning", "thinking")
+
+
+def _part_hash(obj):
+    return hashlib.sha1(json.dumps(obj, sort_keys=True, ensure_ascii=False).encode("utf-8", "replace")).hexdigest()
+
+
+def _preserves_reasoning(body):
+    """The Bonsai template renders the reasoning of every earlier assistant turn unless the request sets
+    preserve_thinking (or preserve_reasoning) to false; the launcher leaves the server at the template default."""
+    kw = body.get("chat_template_kwargs") or {}
+    return not any(kw.get(k) is False for k in ("preserve_thinking", "preserve_reasoning"))
+
+
+def prompt_summary(body):
+    """The parts of a chat request in the order the chat template renders them (the leading system messages, the tool
+    list, then the other messages), each as (label, hash, reasoning hash), and a hash for each tool by name. The
+    reasoning hash is None when the template does not render earlier reasoning (preserve_thinking false)."""
+    msgs = body.get("messages") or []
+    keep = _preserves_reasoning(body)
+    lead = 0
+    while lead < len(msgs) and isinstance(msgs[lead], dict) and msgs[lead].get("role") in ("system", "developer"):
+        lead += 1
+
+    def part(i):
+        m = msgs[i]
+        if isinstance(m, dict):
+            r = {k: m[k] for k in REASONING_KEYS if m.get(k)}
+            return ("message %d (%s)" % (i, m.get("role")),
+                    _part_hash({k: v for k, v in m.items() if k not in REASONING_KEYS}), _part_hash(r) if keep else None)
+        return ("message %d" % i, _part_hash(m), None)
+    tools = body.get("tools") or []
+    names = {}
+    for k, t in enumerate(tools):
+        f = (t.get("function") or {}) if isinstance(t, dict) else {}
+        name = f.get("name") or (t.get("name") if isinstance(t, dict) else None) or "tool %d" % k
+        names[str(name)] = _part_hash(t)
+    parts = ([part(i) for i in range(lead)] + [("the tool list", _part_hash(tools), None)]
+             + [part(i) for i in range(lead, len(msgs))])
+    return {"parts": parts, "tools": names}
+
+
+def _names(xs, most=8):
+    xs = sorted(xs)
+    return ", ".join(xs[:most]) + (" and %d more" % (len(xs) - most) if len(xs) > most else "")
+
+
+def prefix_change(prev, cur):
+    """Where a chat request stops repeating the previous one, as text; None when it repeats all of the previous request
+    (a new turn only adds at the end) or there is no previous request. A change at part k makes the server read the
+    prompt again from that part (issue #7: a changed tool list made a 200k conversation read again, 6 minutes)."""
+    if not prev:
+        return None
+    p, c = prev["parts"], cur["parts"]
+    for i, (label, h, rh) in enumerate(p):
+        if i >= len(c):
+            return "the request has fewer parts (%d) than the previous one (%d); it ends before %s" % (len(c), len(p), label)
+        if c[i][1] == h:
+            if rh is None or c[i][2] is None or c[i][2] == rh:
+                continue
+            return ("the reasoning of %s changed or was left out (the template renders the reasoning of earlier turns; "
+                    "a client that sends it back unchanged keeps the cache)" % label)
+        if label == "the tool list" and c[i][0] == label:
+            a, b = prev["tools"], cur["tools"]
+            what = []
+            if set(b) - set(a):
+                what.append("added " + _names(set(b) - set(a)))
+            if set(a) - set(b):
+                what.append("removed " + _names(set(a) - set(b)))
+            changed = [n for n in set(a) & set(b) if a[n] != b[n]]
+            if changed:
+                what.append("changed " + _names(changed))
+            if not what:
+                what.append("the same tools in another order")
+            return "the tool list changed (%s)" % "; ".join(what)
+        if label != c[i][0]:
+            return "%s is now %s" % (label, c[i][0])
+        return "%s changed (%d of %d parts the same before it)" % (label, i, len(p))
+    return None
 
 
 def client_runs_code(msgs):
@@ -275,9 +357,12 @@ class Proxy(http.server.BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
     _vision = None        # the server's /props modalities.vision; None = not asked yet
     _vision_at = 0.0
+    prefix_log = True     # log where a request stops repeating the previous one (BONSAI_LAYER_PREFIX_LOG=0: off)
+    _prev_prompt = None
 
     def _has_vision(self):
-        """Ask the server once a minute whether it takes images; if the answer cannot be read, assume yes (no change)."""
+        """Ask the server once a minute whether it takes images. When the answer cannot be read (for example a busy
+        server misses the 5 s timeout), keep the last answer; with no answer yet, assume yes (no change)."""
         now = time.time()
         if Proxy._vision is None or now - Proxy._vision_at > 60:
             headers = {"Authorization": "Bearer " + self.api_key} if self.api_key else {}
@@ -285,7 +370,8 @@ class Proxy(http.server.BaseHTTPRequestHandler):
                 with urllib.request.urlopen(urllib.request.Request(self.upstream + "/props", headers=headers), timeout=5) as r:
                     Proxy._vision = bool(((json.loads(r.read()) or {}).get("modalities") or {}).get("vision", True))
             except Exception:   # noqa: BLE001
-                Proxy._vision = True
+                if Proxy._vision is None:
+                    Proxy._vision = True
             Proxy._vision_at = now
         return Proxy._vision
 
@@ -298,6 +384,19 @@ class Proxy(http.server.BaseHTTPRequestHandler):
         if n:
             self.log_message("no vision projector: %d image part(s) replaced with a text note", n)
         return n
+
+    def _log_prefix(self, body):
+        """One log line when a chat request does not repeat the previous one up to its end: what changed (a message
+        or the tool list, with the tool names). The server then reads the prompt again from that point."""
+        try:
+            cur = prompt_summary(body)
+            why = prefix_change(Proxy._prev_prompt, cur)
+            Proxy._prev_prompt = cur
+            if why:
+                self.log_message("prefix change against the previous request: %s. The server reads the prompt again "
+                                 "from there, unless it restores a saved copy.", why)
+        except Exception as e:   # noqa: BLE001  (a log line must never break a request)
+            self.log_message("prefix check failed: %r", e)
 
     def log_message(self, fmt, *a):
         sys.stderr.write("[proxy] " + (fmt % a) + "\n")
@@ -793,6 +892,8 @@ class Proxy(http.server.BaseHTTPRequestHandler):
             given = self.headers.get("Authorization", "")
             if not hmac.compare_digest(given.encode("utf-8", "replace"), ("Bearer " + self.api_key).encode()):
                 return self._reply(*self._forward("POST", raw))   # let the server produce its own 401; do no work here
+        if self.prefix_log:
+            self._log_prefix(body)
         images_removed = self._drop_images(body)   # no vision projector: images become a text note (issue #7)
         # Read ahead (#138 T1-d): "prefill_only": true reads the prompt into the server and saves it (the saved-conversation
         # cache), and answers with a short JSON object instead of generating. The request takes the normal path (cards,
@@ -936,6 +1037,7 @@ if __name__ == "__main__":
     ap.add_argument("--no-input-file", action="store_true", help="do not give run_python the user's text as input.txt")
     a = ap.parse_args()
     Proxy.api_key = os.environ.get("BONSAI_LAYER_KEY") or None
+    Proxy.prefix_log = os.environ.get("BONSAI_LAYER_PREFIX_LOG", "1") != "0"
     Proxy.upstream, Proxy.max_rounds = a.upstream, a.max_rounds
     Proxy.keepalive = a.keepalive
     Proxy.cards, Proxy.lint = not a.no_cards, not a.no_lint

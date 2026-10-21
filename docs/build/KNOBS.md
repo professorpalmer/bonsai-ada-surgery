@@ -27,4 +27,5 @@ every `BONSAI_*`, `LLAMA_ARG_*` and `GGML_*` variable that is set, and it says w
 | `BONSAI_CKPT_EVERY` | 8192 | context checkpoints also every N tokens inside a long message; 0 = only at user messages and prompt ends |
 | `BONSAI_RAM_BUDGET` | on | sizes the prompt cache and the checkpoints from the system RAM; 0 = the server defaults |
 | `BONSAI_LAYER` | 1 | 0 = no Bonsai layer: the plain server on the port ([the layer](../agents-layer/README.md)) |
+| `BONSAI_LAYER_PREFIX_LOG` | 1 | 1 = when a chat request does not repeat the previous one up to its end, one line in `logs\layer.log` says what changed (a message, or the tool list with the tool names). The server then reads the prompt again from that point (minutes at 200k). 0 = off |
 | `BONSAI_RS_REPLAY` | 8 GB: 1, other cards: 0 | replay rollback (patch 0070): one recurrent-state plane instead of one per draft token, so each draft token costs ~7 MiB of VRAM instead of ~150 MiB. 0 = off (the 8 GB preset then drafts 1 / 1; with replay it drafts 1 / 2), 1 = on for any card. Needs an engine with patch 0070 and drafting on |

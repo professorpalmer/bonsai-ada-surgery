@@ -60,6 +60,11 @@ Cards are proven on two library families and not on a third. Token cost through 
   leave the server default (medium).
 - Clients that cap `max_tokens` low are fine: with thinking on the server raises the cap (disable with
   `BONSAI_HARNESS_PROOF=0`).
+- Keep the tool list the same for the whole session. The chat template puts the tools near the start of the prompt,
+  so a tool that is added, removed or described differently (for example an MCP server that stops or starts) makes
+  the server read the conversation again from there: 6 minutes for 172k tokens in issue #7. Start the MCP
+  servers before the session. The layer writes one line to `logs/layer.log` for each such change, with the names
+  of the tools or the number of the message that changed (`BONSAI_LAYER_PREFIX_LOG=0` turns it off).
 
 What the server does for agent work, by card. "Not measured" means that no run on that card is published.
 

@@ -587,11 +587,19 @@ if ($Layer) {
     $InnerPort = if ($env:BONSAI_INNER_PORT) { [int]$env:BONSAI_INNER_PORT } else { $Port + 10000 }
     $ListenHost = '127.0.0.1'; $ListenPort = $InnerPort
     $env:BONSAI_LAYER_KEY = $ApiKey   # the layer rejects wrong keys before doing any work
-    $LayerProc = Start-Process python -PassThru -WindowStyle Hidden -ArgumentList @(
-        ('"' + (Join-Path $LayerDir 'bonsai_layer.py') + '"'), '--host', '0.0.0.0', '--port', "$Port",
+    # The layer's own log (image notes, prefix changes, saved conversations) goes to logs\layer.log: a hidden window
+    # has no console, so these lines were lost before (issue #7).
+    $LayerLogDir = Join-Path $Root 'logs'
+    New-Item -ItemType Directory -Force $LayerLogDir | Out-Null
+    $LayerLog = Join-Path $LayerLogDir 'layer.log'
+    if (Test-Path $LayerLog) { Move-Item -Force $LayerLog (Join-Path $LayerLogDir 'layer.prev.log') }   # keep the last run's log
+    $LayerProc = Start-Process python -PassThru -WindowStyle Hidden -RedirectStandardError $LayerLog `
+        -RedirectStandardOutput (Join-Path $LayerLogDir 'layer.out.log') -ArgumentList @(
+        '-X', 'utf8', ('"' + (Join-Path $LayerDir 'bonsai_layer.py') + '"'), '--host', '0.0.0.0', '--port', "$Port",
         '--upstream', "http://127.0.0.1:$InnerPort")
     Remove-Item Env:BONSAI_LAYER_KEY
     Write-Host "layer  on: clients use :$Port (API cards, API check, sandboxed Python); llama-server on 127.0.0.1:$InnerPort"
+    Write-Host "       layer log: $LayerLog"
 }
 # Another app busy on this GPU (rendering or computing on the card) slows the server even when it uses no VRAM:
 # Windows time-slices the GPU between them, and MTP drafting (many short kernels per token) loses the most. Measured
