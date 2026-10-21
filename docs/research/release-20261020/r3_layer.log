@@ -1,0 +1,12 @@
+[proxy] "GET /health HTTP/1.1" 503 -
+[proxy] "GET /health HTTP/1.1" 503 -
+[proxy] "GET /health HTTP/1.1" 200 -
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] prefix change against the previous request: the tool list changed (removed x64dbg_list). The server reads the prompt again from there, unless it restores a saved copy.
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] prefix change against the previous request: message 1 (user) changed (2 of 7 parts the same before it). The server reads the prompt again from there, unless it restores a saved copy.
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] prefix change against the previous request: message 1 (user) changed (2 of 7 parts the same before it). The server reads the prompt again from there, unless it restores a saved copy.
+[proxy] no vision projector: 1 image part(s) replaced with a text note
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -

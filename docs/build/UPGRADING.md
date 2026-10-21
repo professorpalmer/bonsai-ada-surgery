@@ -9,6 +9,14 @@ launcher prints `layer on` when the runtime is present and falls back to the pla
 
 ## What each bundle changed (newest first)
 
+`bundle-20261020` (no engine change): the layer writes one line to `logs\layer.log` when a request does not repeat
+the previous one up to its end: the tool list changed (with the tool names), a message changed, or its reasoning was
+left out. Such a change makes the server read the conversation again from that point (issue #7: an MCP server that
+stopped changed the tool list, and a 200k conversation was read again, 6 minutes). `BONSAI_LAYER_PREFIX_LOG=0` turns
+the line off. The launcher keeps the layer's log in `logs\layer.log` (the last run in `logs\layer.prev.log`); before,
+those lines were lost. A failed vision probe now keeps the last answer, so a busy server does not let an image through
+to a server without mmproj (#224). Gates: `docs/research/release-20261020`.
+
 `bundle-20261019c` (no engine change): on **8 GB cards** the draft below the VRAM line is 1 again (it was 2 in
 bundle-20261019b); past the line it stays 2, with replay. Below the line a draft of 2 lowered draft acceptance (0.78 ->
 0.62) on prose and bash. RTX 2060 SUPER, against bundle-20261019b's 2 / 2: 4k +1.0 %, 64k +2.3 %, 128k the same
