@@ -1017,6 +1017,8 @@ class Proxy(http.server.BaseHTTPRequestHandler):
             want_approx = body.pop("approx_note", None)
             if self.approx_note if want_approx is None else bool(want_approx):
                 msgs0, info["approx_notes"] = apply_approx_note(msgs0)
+                if info["approx_notes"]:
+                    self.log_message("approximate-length note on %d writing request(s)", info["approx_notes"])
             want_fin = body.pop("finish_note", None)
             if self.finish_note if want_fin is None else bool(want_fin):
                 msgs0, info["finish_note"] = apply_finish_note(body, msgs0)

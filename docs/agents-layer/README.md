@@ -26,6 +26,11 @@ change nothing. It does four things:
   not for code) do not get the tool: offered it, the model counted the words of its text in the sandbox, up to 5
   rounds, and a 1,500-word story took 341 s instead of 61 s, with no quality gain
   ([story-think-20261021](../research/story-think-20261021/README.md)). `"code_interpreter": true` still offers it.
+  A writing request that names a length ("a 1,500-word story", 200-10,000 words or tokens, no hard limit) also
+  gets one sentence at its end: the length is approximate, and the model must not count the words one by one.
+  Without it the model counted each word of its draft in its thinking: with it, writing requests took 0.48x the time,
+  with the same quality in blind judging ([approx-note-20261022](../research/approx-note-20261022/README.md)).
+  `BONSAI_APPROX_NOTE=0` or `"approx_note": false` turns it off.
 - **Key check.** Requests with a wrong API key are rejected before any work is done.
 
 Enable it once with `layer\fetch_runtime.ps1` (downloads the checksummed WASI Python, installs `wasmtime`, runs the
