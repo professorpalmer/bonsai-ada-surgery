@@ -92,3 +92,24 @@ P writes the text once (dup 0.000 in 29 of 30 cells) in a quarter of the time. C
 plan) gives P's plan a fixed last line in the model's voice that names that step. C is slower than P, overshoots the
 length, and fails at the cap; it is not taken further. The blind judges for P run now, as data for the next study (P
 is not adopted, so they decide nothing here).
+
+## The blind judges (12 Claude agents, `judges.jsonl`, `judges_tally.py`)
+
+Each agent judged 10 pairs (one arm, one seed, one order) with no arm names. A cell counts only when both orders
+agree. The judges show no position bias ("A" in 30 and 31 of 60 answers; the model as its own judge: ~80 %).
+
+| Arm | won | lost | even | G3 (lost at most won + 3) |
+|---|---:|---:|---:|---|
+| P | 3 | **25** | 2 | FAIL |
+| C | 11 | 14 | 5 | pass (at the limit) |
+
+The judges' reasons for M against P name the same faults again and again: broken plot logic ("confuses whose
+daughter died", "timeline contradicts itself"), the wrong length (a 40-line poem with 20 or 36 lines), generic prose.
+**The draft in the thinking is how this model checks and repairs its text**: without it (P) the text is clearly worse,
+even though P is 3.7x faster. C keeps the model's own plan and is near M, but it fails G5 (one reply at the cap) and
+overshoots the length.
+
+**What this changes:** "write the text once" is the wrong target. The time must come out of the parts of the thinking
+that do not improve the text. The largest such part is the word count: in the 54 M cells of this study and
+story-think2 / -think3, 18.3 % of all thinking words are numbered words ("He1 did2 not3"), and 29.9 % are in counting
+paragraphs (24 of 54 cells above 20 %; up to 84 %). The next study, `no-count-20261022`, removes only the counting.
