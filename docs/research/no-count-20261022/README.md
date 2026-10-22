@@ -57,3 +57,29 @@ K is adopted for writing requests when all pass, over the 30 cells:
 If it passes: the layer does this on writing requests (the last user message: nothing here changes the prompt of
 earlier turns), streamed and not streamed, with tests, a peer review and a bundle with gates; then a check on the RTX
 2060 SUPER. If it fails, nothing changes, and the reason is logged here.
+
+## What happened (2026-10-22 10:39-11:40)
+
+**K was stopped after its first cell.** p1 seed 5: 425.1 s against M's 233.9 s, 22 counts removed (9,762 words), and
+21,150 thinking words against M's 11,414. After each cut the model began to count again, in a new form ("I'll count
+manually ... Use a table", "Title: ... = 6? 'The' 1, 'Keeper'2"). A line that tells it not to count does not hold.
+(The runner also had a bug: the limit of 6 cuts was not applied; it does not change the finding.) `k_runs.jsonl`.
+
+**Exploration K2** (not gated, 3 cells, `k2_ab.py`, `count_oracle.py`, `k2_explore.jsonl`): instead of a refusal, the
+layer gives the number. When a count starts, it counts the paragraph itself and writes "Count: 60 words. Draft so far:
+60 words." in the model's format; the thinking goes on, open. The model takes the number ("Need around 800 total.
+Current 173. Need 627.") but does not stop counting ("Let's recount all draft precisely"), and some counts take forms
+the trigger does not see. Wall: p4 233.8 s (M 202.2), p1 156.1 s (M 233.9), p10 131.6 s (M 249.2).
+
+**Exploration R** (not gated, 3 cells, `r_explore.py`, `r_explore.jsonl`): a note on the user message.
+
+| cell | M | R1: " (The length can be approximate: do not count the words.)" | R2: a paragraph "About the length: an approximate length is fine. Do not count the words one by one, in your thinking or anywhere else." |
+|---|---|---|---|
+| p4 seed 5 | 202.2 s, 3,743 numbered words | 102.2 s, 1,856 | **23.1 s, 0** (842 -> 1,074 words for 800) |
+| p1 seed 5 | 233.9 s, 2,723 | 209.3 s, 2,143, budget closed | **124.1 s, 76** (1,508 words) |
+| p10 seed 5 | 249.2 s, 3,278 | 166.3 s, 110 | **75.6 s, 0** (3,432 words, `write_file` called) |
+
+The count comes from the length in the request, and the model asks itself if it is strict ("800-word blog post means
+approx 800?"). R2 answers that question. R2 goes to a gated study of its own: `approx-note-20261022`. The risk to test
+is quality: on p4 the thinking fell to 275 words, so the draft may be gone, and write-once-20261022 showed that the
+draft is the model's quality step.

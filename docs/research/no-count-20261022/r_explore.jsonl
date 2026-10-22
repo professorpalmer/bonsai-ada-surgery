@@ -1,0 +1,6 @@
+{"arm": "R1", "prompt": "p4_blog", "seed": 5, "wall_s": 102.2, "thinking_words": 4118, "numbered_tokens": 1856, "words": 842, "budget_closed": false, "tool": false}
+{"arm": "R1", "prompt": "p1_story", "seed": 5, "wall_s": 209.3, "thinking_words": 12763, "numbered_tokens": 2143, "words": 1712, "budget_closed": true, "tool": false}
+{"arm": "R1", "prompt": "p10_save_long", "seed": 5, "wall_s": 166.3, "thinking_words": 7126, "numbered_tokens": 110, "words": 2661, "budget_closed": false, "tool": true}
+{"arm": "R2", "prompt": "p4_blog", "seed": 5, "wall_s": 23.1, "thinking_words": 275, "numbered_tokens": 0, "words": 1074, "budget_closed": false, "tool": false}
+{"arm": "R2", "prompt": "p1_story", "seed": 5, "wall_s": 124.1, "thinking_words": 7044, "numbered_tokens": 76, "words": 1508, "budget_closed": false, "tool": false}
+{"arm": "R2", "prompt": "p10_save_long", "seed": 5, "wall_s": 75.6, "thinking_words": 924, "numbered_tokens": 0, "words": 3432, "budget_closed": false, "tool": true}
