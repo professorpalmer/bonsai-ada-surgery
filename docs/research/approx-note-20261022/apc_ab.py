@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "write-once-20261022"))
 import draft_detect  # noqa: E402
 
 PROMPTS = json.load(open(os.path.join(HERE, "prompts.json"), encoding="utf-8"))
-SEEDS = [8, 9]
+SEEDS = [int(s) for s in os.environ.get("APC_SEEDS", "8,9").split(",")]   # 10,11,12: the per-prompt gate run
 LENGTH_RE = re.compile(r"\b(\d[\d,.]*)\s*(k?)\s*-?\s*(words?|tokens?)\b", re.I)
 MAX_LEN = 10000
 NOTE = ("\n\nAbout the length: an approximate length is fine. Do not count the words one by one, in your thinking or "
