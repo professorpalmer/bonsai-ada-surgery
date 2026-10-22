@@ -1,0 +1,1 @@
+{"prompt": "p1_story", "arm": "K", "seed": 5, "wall_s": 425.1, "finish": "stop", "cuts": 22, "removed_words": 9762, "thinking_words": 21150, "kept_thinking_words": 11696, "words": 1548, "requested_words": 1500, "tools_prompt": false, "via_write_file": false, "empty": false, "budget_closed": false, "claims_save": false, "count_leak": false}
