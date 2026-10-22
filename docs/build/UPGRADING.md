@@ -9,6 +9,13 @@ launcher prints `layer on` when the runtime is present and falls back to the pla
 
 ## What each bundle changed (newest first)
 
+`bundle-20261022` (no engine change): a writing request that names a length ("a 1,500-word story", 200-10,000
+words or tokens, no hard limit such as "at most") gets one sentence at its end: the length is approximate, and the
+model must not count the words one by one. Without it, the model counted each word of its draft in its thinking: on
+writing requests, with the 8 GB preset, it took 0.48x the time, with 0 closes of the thinking budget against 8 and the
+same quality in blind judging (`docs/research/approx-note-20261022`, #235). `BONSAI_APPROX_NOTE=0` or
+`"approx_note": false` turns it off. Gates: `docs/research/release-20261022`.
+
 `bundle-20261021` (no engine change): a chat request without tools whose first user message asks for prose or
 verse (a story, poem, chapter, essay, article, letter...) no longer gets the layer's `run_python` tool. With it, the
 model counted the words of its text in the sandbox, up to 5 rounds: a 1,500-word story took 341 s instead of 61 s,
