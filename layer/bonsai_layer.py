@@ -320,7 +320,22 @@ def writing_text(c):
 # (docs/research/approx-note-20261022): the model then counts the words of its draft one by one in its thinking
 # (18-30 % of its thinking words, up to 80 %, and most closes of the thinking budget); one paragraph that says the length
 # is approximate stops it. Not for lengths in lines (a 40-line poem), where the count matters.
-LENGTH_RE = re.compile(r"\b\d[\d,.]*\s*k?\s*-?\s*(words?|tokens?)\b", re.I)
+LENGTH_RE = re.compile(r"\b(\d[\d,.]*)\s*(k?)\s*-?\s*(words?|tokens?)\b", re.I)
+# A length that one reply cannot hold gets no note: told that the length is approximate, the model then tries to write
+# all of it ("a 50k token story": 4,678-8,870 words, up to 15.9x the time; approx-note-20261022 amendment A').
+APPROX_MAX = 10000
+
+
+def note_length(text):
+    """True when text names a word or token length that the note is for (at most APPROX_MAX)."""
+    m = LENGTH_RE.search(text)
+    if not m:
+        return False
+    try:
+        n = float(m.group(1).replace(",", "")) * (1000 if m.group(2) else 1)
+    except ValueError:
+        return False
+    return n <= APPROX_MAX
 APPROX_NOTE = ("About the length: an approximate length is fine. Do not count the words one by one, in your thinking or "
                "anywhere else.")
 
@@ -332,7 +347,7 @@ def apply_approx_note(msgs):
     for m in msgs:
         if m.get("role") == "user" and isinstance(m.get("content"), str):
             c = m["content"]
-            if APPROX_NOTE not in c and writing_text(c) and LENGTH_RE.search(c[:WRITING_HEAD]):
+            if APPROX_NOTE not in c and writing_text(c) and note_length(c[:WRITING_HEAD]):
                 m = dict(m, content=c + chr(10) + chr(10) + APPROX_NOTE)
                 n += 1
         out.append(m)

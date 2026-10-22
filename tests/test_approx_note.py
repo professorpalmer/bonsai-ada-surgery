@@ -29,10 +29,11 @@ def noted(text):
 
 # 1. Which requests get the note.
 for t in ["Write a 1,500-word short story about a lighthouse keeper.", "Write an 800-word blog post about balcony gardens.",
-          "Great. tell me a 50k token story.", "Write a 3,000-word short story and save it to bakers.md.",
-          "Compose a 500 word essay on diaries."]:
+          "Write a 3,000-word short story and save it to bakers.md.", "Compose a 500 word essay on diaries.",
+          "Write a 10,000-word novella chapter.", "Tell me a 2k token story."]:
     check("note: " + t[:40], noted(t))
-for t in ["Write a 40-line poem about an orchard.", "Tell me a long story.", "Write a 200-word Python docstring for this function.",
+for t in ["Great. tell me a 50k token story.", "Write a 20,000-word novella.",   # more than one reply holds (A')
+          "Write a 40-line poem about an orchard.", "Tell me a long story.", "Write a 200-word Python docstring for this function.",
           "How many words are in a 1,500-word essay?", "Count the words in this 300-word text: ...",
           "Write a function that returns the first 100 words of a text."]:
     check("no note: " + t[:40], not noted(t))
