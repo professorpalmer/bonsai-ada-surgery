@@ -75,7 +75,7 @@ the trigger does not see. Wall: p4 233.8 s (M 202.2), p1 156.1 s (M 233.9), p10 
 
 | cell | M | R1: " (The length can be approximate: do not count the words.)" | R2: a paragraph "About the length: an approximate length is fine. Do not count the words one by one, in your thinking or anywhere else." |
 |---|---|---|---|
-| p4 seed 5 | 202.2 s, 3,743 numbered words | 102.2 s, 1,856 | **23.1 s, 0** (842 -> 1,074 words for 800) |
+| p4 seed 5 | 202.2 s, 3,743 numbered words | 102.2 s, 1,856 | **23.1 s, 0** (1,074 words for 800) |
 | p1 seed 5 | 233.9 s, 2,723 | 209.3 s, 2,143, budget closed | **124.1 s, 76** (1,508 words) |
 | p10 seed 5 | 249.2 s, 3,278 | 166.3 s, 110 | **75.6 s, 0** (3,432 words, `write_file` called) |
 
