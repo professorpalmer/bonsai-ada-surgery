@@ -1,0 +1,2 @@
+name, driver_version, power.limit [W], clocks.max.memory [MHz], clocks.max.graphics [MHz]
+NVIDIA GeForce RTX 2060 SUPER, 610.88, 175.00 W, 7001 MHz, 2100 MHz
