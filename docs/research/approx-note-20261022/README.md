@@ -49,3 +49,38 @@ If it passes: the layer adds the note to every user message that is such a writi
 messages get the same note each time, so the prompt of earlier turns does not change), streamed and not streamed,
 with tests, a peer review and a bundle with gates; then a check on the RTX 2060 SUPER. If it fails, nothing changes,
 and the reason is logged here.
+
+## Results of the runs (2026-10-22 11:12-11:41, `runs.jsonl`, `texts/`)
+
+24 cells, 0 errors, 0 CUDA errors, no spill. Against the M cells of write-once-20261022:
+
+| | A | M |
+|---|---:|---:|
+| total wall (24 cells) | 1,728 s (**0.522x**) | 3,308 s |
+| median wall / M, per cell | 0.51 (max **15.92**, p9) | 1.00 |
+| median thinking words | 1,252 | 6,015 |
+| median numbered words ("word12") in the thinking | **0** (max 1,669: p1 seed 7) | - |
+| words / asked (p9 left out) | median 1.04, 0.81-1.50 | |
+| budget closed | **0** | 8 |
+| `write_file` called | 12 / 12 | 12 / 12 |
+| empty / claims_save / count leak / at the cap | 0 / 0 / 0 / 0 | |
+
+| Gate | A |
+|---|---|
+| G1 time | **FAIL**: the total is 0.522x, but 3 cells are slower than 1.5x their M cell, all p9 ("Great. tell me a 50k token story."): 2.05x, 15.92x, 2.34x. With the note the model tries to write the 50k story (4,678 / 8,870 / 6,471 words); M answered that one reply cannot hold it (9.0-79.7 s) |
+| G3 length | PASS |
+| G4 health | PASS |
+| G5 budget | PASS (0 against 8) |
+| G2 quality | not run yet |
+
+**Decision: A is not adopted as tested** (G1).
+
+## Amendment A' (2026-10-22 11:50, after the G1 result above, before any quality result)
+
+A length that one reply cannot hold must not get the note: the note tells the model that the length is approximate,
+and it then tries to write all of it. **A'** = A, but no note when the length named is above 10,000 words or tokens
+(`k` counts as x1000). A' differs from A only on p9 (no note: the request of M). Because A' was made after seeing the
+data, it is tested on **new seeds 8 and 9**, with M run again on the same server for those seeds: the 7 prompts that
+get the note under A' (p1, p2, p4, p6, p7, p8, p10) x 2 seeds = 14 cells for each arm, in the order M, A' for each
+prompt. The gates G1-G5 apply to these 14 cells unchanged (G3: no p9). The blind judges compare A' with M on those 14
+cells, and also A with M on the 21 cells of seeds 5-7 without p9 (the same requests as A').
