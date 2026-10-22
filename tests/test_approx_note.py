@@ -38,6 +38,20 @@ for t in ["Great. tell me a 50k token story.", "Write a 20,000-word novella.",  
           "Write a function that returns the first 100 words of a text."]:
     check("no note: " + t[:40], not noted(t))
 
+# Review of the note PR: hard limits and short texts keep the count; decimal lengths are writing requests.
+for t in ["Write a 6-word story.", "Write a story in exactly 100 words (a drabble).",
+          "Write an essay of at most 650 words for my college application.",
+          "Write a cover letter, no more than 250 words.", "Write a 300-word poem, strictly 300 words."]:
+    check("no note (hard limit or short): " + t[:40], not noted(t))
+for t in ["Write a 1.5k word story about a fox.", "Tell me a 2.5k token story."]:
+    check("note (decimal length): " + t[:40], noted(t))
+check("decimal length is a writing request (no run_python)",
+      L.writing_request([{"role": "user", "content": "Write a 1.5k word story about a fox."}]))
+parts = [{"role": "user", "content": [{"type": "text", "text": "Write a 1,500-word story about a fox."}]}]
+pm, pn = L.apply_approx_note(parts)
+check("list content gets the note as a text part", pn == 1 and pm[0]["content"][-1]["text"].endswith(NOTE))
+check("list content: once", L.apply_approx_note(pm)[1] == 0)
+
 # 2. Once, and the same on every turn.
 m1 = [{"role": "system", "content": "s"}, {"role": "user", "content": "Write a 1,500-word story about a fox."}]
 a, n = L.apply_approx_note(m1)
