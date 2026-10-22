@@ -290,15 +290,79 @@ CODE_TASK_RE = re.compile(r"```|\bdef \w+\(|\w\.py\b|\b(write|implement|fix|debu
 # A request for prose or verse: a story, poem, chapter, essay, article, letter... Measured
 # (docs/research/story-think-20261021, G5): offered run_python, the model counts the words of its text in the sandbox,
 # up to 5 rounds (a 1,500-word story: 341 s and 33,793 tokens against 61 s without the tool), with no quality gain.
-WRITING_RE = re.compile(r"\b(write|compose|draft|create|generate|produce)\b[^.\n]{0,60}?\b(story|stories|poem|poems|"
+WRITING_RE = re.compile(r"\b(write|compose|draft|create|generate|produce)\b(?:[^.\n]|(?<=\d)\.(?=\d)){0,60}?\b(story|stories|poem|poems|"
                         r"poetry|chapter|chapters|novel|novella|essay|blog post|article|letter|lyrics|song|speech|fable|"
                         r"tale|haiku|sonnet|limerick|screenplay|monologue|eulogy)\b"
-                        r"|\btell\b[^.\n]{0,30}?\b(story|stories|tale|fable)\b", re.I)
+                        r"|\btell\b(?:[^.\n]|(?<=\d)\.(?=\d)){0,30}?\b(story|stories|tale|fable)\b", re.I)
 # Counting and data words keep the tool: "how many times the letter r appears", "a letter frequency table",
 # "word counts", "grades". Without the tool the model gives such answers wrong and sure (review of #227).
 DATA_RE = re.compile(r"\b(count|counts|counting|how many|frequency|frequencies|table|sort|sorted|average|mean|median|sum|"
                      r"total|statistics|grade|grades|percent|percentage|calculate|compute)\b", re.I)
 WRITING_HEAD = 300   # only the instruction part: a pasted article or CSV after it must not decide
+
+
+def _text_of(c):
+    if isinstance(c, list):
+        return " ".join(x.get("text", "") for x in c if isinstance(x, dict))
+    return c if isinstance(c, str) else None
+
+
+def writing_text(c):
+    """A message text that asks for prose or verse and not for code (the first WRITING_HEAD characters decide)."""
+    if not isinstance(c, str):
+        return False
+    c = c.replace(APPROX_NOTE, "")   # the layer's own note says "count": it must not decide
+    head = c[:WRITING_HEAD]
+    return bool(WRITING_RE.search(head)) and not CODE_TASK_RE.search(c) and not DATA_RE.search(head)
+
+
+# A writing request that names a length in words or tokens ("a 1,500-word story"). Measured
+# (docs/research/approx-note-20261022): the model then counts the words of its draft one by one in its thinking
+# (18-30 % of its thinking words, up to 80 %, and most closes of the thinking budget); one paragraph that says the length
+# is approximate stops it. Not for lengths in lines (a 40-line poem), where the count matters.
+LENGTH_RE = re.compile(r"\b(\d[\d,.]*)\s*(k?)\s*-?\s*(words?|tokens?)\b", re.I)
+# A length that one reply cannot hold gets no note: told that the length is approximate, the model then tries to write
+# all of it ("a 50k token story": 4,678-8,870 words, up to 15.9x the time; approx-note-20261022 amendment A').
+APPROX_MAX = 10000
+# A short text ("a 6-word story", "a 100-word drabble") or a hard limit ("at most 650 words", "no more than 250 words"):
+# the count is the point there, so no note (review of the note PR).
+APPROX_MIN = 200
+HARD_LIMIT_RE = re.compile(r"\b(exactly|at most|no more than|not more than|under|below|max(imum)?|limit(ed)?|or fewer|"
+                           r"or less|up to|word limit|strict(ly)?|precisely)\b", re.I)
+
+
+def note_length(text):
+    """True when text names a word or token length that the note is for: between APPROX_MIN and APPROX_MAX, and with no
+    limit word within 30 characters of it."""
+    m = LENGTH_RE.search(text)
+    if not m:
+        return False
+    try:
+        n = float(m.group(1).replace(",", "")) * (1000 if m.group(2) else 1)
+    except ValueError:
+        return False
+    near = text[max(0, m.start() - 30):m.end() + 30]
+    return APPROX_MIN <= n <= APPROX_MAX and not HARD_LIMIT_RE.search(near)
+APPROX_NOTE = ("About the length: an approximate length is fine. Do not count the words one by one, in your thinking or "
+               "anywhere else.")
+
+
+def apply_approx_note(msgs):
+    """Append APPROX_NOTE to every user message that is a writing request naming a word or token length. Every turn
+    gets the same note on the same messages, so the prompt of earlier turns does not change."""
+    out, n = [], 0
+    for m in msgs:
+        if m.get("role") == "user":
+            c = m.get("content")
+            t = _text_of(c)
+            if t is not None and APPROX_NOTE not in t and writing_text(t) and note_length(t[:WRITING_HEAD]):
+                if isinstance(c, str):
+                    m = dict(m, content=c + chr(10) + chr(10) + APPROX_NOTE)
+                else:
+                    m = dict(m, content=list(c) + [{"type": "text", "text": chr(10) + chr(10) + APPROX_NOTE}])
+                n += 1
+        out.append(m)
+    return out, n
 
 
 def writing_request(msgs):
@@ -308,13 +372,7 @@ def writing_request(msgs):
     for m in msgs:
         if m.get("role") != "user":
             continue
-        c = m.get("content")
-        if isinstance(c, list):
-            c = " ".join(x.get("text", "") for x in c if isinstance(x, dict))
-        if not isinstance(c, str):
-            return False
-        head = c[:WRITING_HEAD]
-        return bool(WRITING_RE.search(head)) and not CODE_TASK_RE.search(c) and not DATA_RE.search(head)
+        return writing_text(_text_of(m.get("content")))
     return False
 
 
@@ -389,6 +447,7 @@ class Proxy(http.server.BaseHTTPRequestHandler):
     _vision = None        # the server's /props modalities.vision; None = not asked yet
     _vision_at = 0.0
     prefix_log = True     # log where a request stops repeating the previous one (BONSAI_LAYER_PREFIX_LOG=0: off)
+    approx_note = True    # the approximate-length note on writing requests (BONSAI_APPROX_NOTE=0, "approx_note": false)
     _prev_prompt = None
 
     def _has_vision(self):
@@ -939,7 +998,7 @@ class Proxy(http.server.BaseHTTPRequestHandler):
         # a client that executes code blocks itself gets nothing changed (see client_runs_code)
         if not (body.get("tools") or []) and client_runs_code(body.get("messages") or []) \
                 and body.get("code_interpreter") is not True:
-            for k in ("code_interpreter", "input_file", "repair_note", "finish_note", "api_cards", "api_lint"):
+            for k in ("code_interpreter", "input_file", "repair_note", "finish_note", "api_cards", "api_lint", "approx_note"):
                 body.pop(k, None)
             if body.get("stream"):
                 return self._with_slots(body, lambda: self._stream("POST", json.dumps(body).encode()))
@@ -955,6 +1014,11 @@ class Proxy(http.server.BaseHTTPRequestHandler):
                 msgs0, info["lint_notes"] = apply_lint(msgs0)
             if self.cards and body.pop("api_cards", True) is not False:
                 msgs0, info["card_chars"] = apply_cards(body, msgs0)
+            want_approx = body.pop("approx_note", None)
+            if self.approx_note if want_approx is None else bool(want_approx):
+                msgs0, info["approx_notes"] = apply_approx_note(msgs0)
+                if info["approx_notes"]:
+                    self.log_message("approximate-length note on %d writing request(s)", info["approx_notes"])
             want_fin = body.pop("finish_note", None)
             if self.finish_note if want_fin is None else bool(want_fin):
                 msgs0, info["finish_note"] = apply_finish_note(body, msgs0)
@@ -1072,6 +1136,7 @@ if __name__ == "__main__":
     a = ap.parse_args()
     Proxy.api_key = os.environ.get("BONSAI_LAYER_KEY") or None
     Proxy.prefix_log = os.environ.get("BONSAI_LAYER_PREFIX_LOG", "1") != "0"
+    Proxy.approx_note = os.environ.get("BONSAI_APPROX_NOTE", "1") != "0"
     Proxy.upstream, Proxy.max_rounds = a.upstream, a.max_rounds
     Proxy.keepalive = a.keepalive
     Proxy.cards, Proxy.lint = not a.no_cards, not a.no_lint
