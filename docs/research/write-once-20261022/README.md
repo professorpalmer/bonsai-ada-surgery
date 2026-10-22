@@ -65,3 +65,30 @@ If both pass, the one with more cells won goes in (the faster one if equal). It 
 requests (`writing_request()`, applied to the last user message: nothing here changes the prompt of earlier turns),
 streamed and not streamed, with tests, a peer review and a bundle with gates; then a check on the RTX 2060 SUPER.
 If neither passes, nothing changes, and the reason is logged here.
+
+## Results of the runs (2026-10-22 08:47-10:32, `runs.jsonl`, `texts/`)
+
+90 cells, 0 errors, 0 CUDA errors, no spill. Medians over 30 cells, each against M on the same prompt and seed:
+
+| Arm | wall (s) | wall / M | thinking words | dup | words / asked | `write_file` cells: words / M | `write_file` called | claims_save | count leak | at the cap |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| M | 94.5 | 1.00 | 3,260 | 0.726 | 1.00 | 1.00 | 12 / 12 | 0 | 0 | 0 |
+| P | 24.2 | **0.273** | 266 | **0.000** | 0.94 | 0.88 | **10 / 12** | 0 | 0 | 0 |
+| C | 45.4 | 0.571 | 852 | 0.002 | 1.21 | 1.00 | 11 / 12 | 0 | 0 | **1** |
+
+On the 8 GB preset the default spends a median 94.5 s on these requests (p1 seed 5: 233.9 s, 11,414 thinking words).
+P writes the text once (dup 0.000 in 29 of 30 cells) in a quarter of the time. C cut the thinking in 21 of 30 cells
+(prose 9, labelled 5, heading 4, counting 3); in the other 9 the thinking ended on its own.
+
+**G5 fails for both arms**, before the quality step:
+
+- P, p6 seed 5: the answer was one sentence, "I need to write a 1,500-word science-fiction short story ... I'll create the
+  story and save it to story.md.", and then it ended: no text and no call. P, p10 seed 6: the whole story (2,497
+  words) came as chat text, not as a `write_file` call. In both, the plan said nothing about the next step.
+- C, p7 seed 6: the reply ran to the 24,576-token cap (13,672 words, 253 s), no call. C also overshoots the length
+  (up to 11.4x asked: p9 seed 6, 6,929 words, 12.2x the time of M).
+
+**Decision: neither arm is adopted as tested.** P fails only on the step after the plan, so the next study (its own
+plan) gives P's plan a fixed last line in the model's voice that names that step. C is slower than P, overshoots the
+length, and fails at the cap; it is not taken further. The blind judges for P run now, as data for the next study (P
+is not adopted, so they decide nothing here).
