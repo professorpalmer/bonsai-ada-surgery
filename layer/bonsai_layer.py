@@ -301,6 +301,44 @@ DATA_RE = re.compile(r"\b(count|counts|counting|how many|frequency|frequencies|t
 WRITING_HEAD = 300   # only the instruction part: a pasted article or CSV after it must not decide
 
 
+def _text_of(c):
+    if isinstance(c, list):
+        return " ".join(x.get("text", "") for x in c if isinstance(x, dict))
+    return c if isinstance(c, str) else None
+
+
+def writing_text(c):
+    """A message text that asks for prose or verse and not for code (the first WRITING_HEAD characters decide)."""
+    if not isinstance(c, str):
+        return False
+    c = c.replace(APPROX_NOTE, "")   # the layer's own note says "count": it must not decide
+    head = c[:WRITING_HEAD]
+    return bool(WRITING_RE.search(head)) and not CODE_TASK_RE.search(c) and not DATA_RE.search(head)
+
+
+# A writing request that names a length in words or tokens ("a 1,500-word story"). Measured
+# (docs/research/approx-note-20261022): the model then counts the words of its draft one by one in its thinking
+# (18-30 % of its thinking words, up to 80 %, and most closes of the thinking budget); one paragraph that says the length
+# is approximate stops it. Not for lengths in lines (a 40-line poem), where the count matters.
+LENGTH_RE = re.compile(r"\b\d[\d,.]*\s*k?\s*-?\s*(words?|tokens?)\b", re.I)
+APPROX_NOTE = ("About the length: an approximate length is fine. Do not count the words one by one, in your thinking or "
+               "anywhere else.")
+
+
+def apply_approx_note(msgs):
+    """Append APPROX_NOTE to every user message that is a writing request naming a word or token length. Every turn
+    gets the same note on the same messages, so the prompt of earlier turns does not change."""
+    out, n = [], 0
+    for m in msgs:
+        if m.get("role") == "user" and isinstance(m.get("content"), str):
+            c = m["content"]
+            if APPROX_NOTE not in c and writing_text(c) and LENGTH_RE.search(c[:WRITING_HEAD]):
+                m = dict(m, content=c + chr(10) + chr(10) + APPROX_NOTE)
+                n += 1
+        out.append(m)
+    return out, n
+
+
 def writing_request(msgs):
     """The first user message asks for prose or verse and not for code. The first message decides, as for the API cards:
     a later message cannot change the tools of the conversation (a changed tool list makes the server read the whole
@@ -308,13 +346,7 @@ def writing_request(msgs):
     for m in msgs:
         if m.get("role") != "user":
             continue
-        c = m.get("content")
-        if isinstance(c, list):
-            c = " ".join(x.get("text", "") for x in c if isinstance(x, dict))
-        if not isinstance(c, str):
-            return False
-        head = c[:WRITING_HEAD]
-        return bool(WRITING_RE.search(head)) and not CODE_TASK_RE.search(c) and not DATA_RE.search(head)
+        return writing_text(_text_of(m.get("content")))
     return False
 
 
@@ -389,6 +421,7 @@ class Proxy(http.server.BaseHTTPRequestHandler):
     _vision = None        # the server's /props modalities.vision; None = not asked yet
     _vision_at = 0.0
     prefix_log = True     # log where a request stops repeating the previous one (BONSAI_LAYER_PREFIX_LOG=0: off)
+    approx_note = True    # the approximate-length note on writing requests (BONSAI_APPROX_NOTE=0, "approx_note": false)
     _prev_prompt = None
 
     def _has_vision(self):
@@ -955,6 +988,9 @@ class Proxy(http.server.BaseHTTPRequestHandler):
                 msgs0, info["lint_notes"] = apply_lint(msgs0)
             if self.cards and body.pop("api_cards", True) is not False:
                 msgs0, info["card_chars"] = apply_cards(body, msgs0)
+            want_approx = body.pop("approx_note", None)
+            if self.approx_note if want_approx is None else bool(want_approx):
+                msgs0, info["approx_notes"] = apply_approx_note(msgs0)
             want_fin = body.pop("finish_note", None)
             if self.finish_note if want_fin is None else bool(want_fin):
                 msgs0, info["finish_note"] = apply_finish_note(body, msgs0)
@@ -1072,6 +1108,7 @@ if __name__ == "__main__":
     a = ap.parse_args()
     Proxy.api_key = os.environ.get("BONSAI_LAYER_KEY") or None
     Proxy.prefix_log = os.environ.get("BONSAI_LAYER_PREFIX_LOG", "1") != "0"
+    Proxy.approx_note = os.environ.get("BONSAI_APPROX_NOTE", "1") != "0"
     Proxy.upstream, Proxy.max_rounds = a.upstream, a.max_rounds
     Proxy.keepalive = a.keepalive
     Proxy.cards, Proxy.lint = not a.no_cards, not a.no_lint
