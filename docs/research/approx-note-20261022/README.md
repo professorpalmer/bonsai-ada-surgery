@@ -84,3 +84,39 @@ data, it is tested on **new seeds 8 and 9**, with M run again on the same server
 get the note under A' (p1, p2, p4, p6, p7, p8, p10) x 2 seeds = 14 cells for each arm, in the order M, A' for each
 prompt. The gates G1-G5 apply to these 14 cells unchanged (G3: no p9). The blind judges compare A' with M on those 14
 cells, and also A with M on the 21 cells of seeds 5-7 without p9 (the same requests as A').
+
+## Results of the A' confirmation (2026-10-22 11:43-12:43, seeds 8 and 9, `confirm/`)
+
+28 cells (14 M, 14 A2), 0 errors, 0 CUDA errors, no spill.
+
+| | A2 (A') | M |
+|---|---:|---:|
+| total wall (14 cells) | 1,304 s (**0.575x**) | 2,266 s |
+| median thinking words | 2,768 | 9,442 |
+| median numbered words in the thinking | **0** | 443 |
+| budget closed | **0** | 6 |
+| `write_file` called | 8 / 8 | 8 / 8 |
+| empty / claims_save / count leak / at the cap | 0 / 0 / 0 / 0 | 0 / 0 / 0 / 0 |
+| words / asked | median 1.01, 0.79-1.23 | |
+
+| Gate | A' |
+|---|---|
+| G1 time | **FAIL**: the total is 0.575x, but 2 cells are slower than 1.5x their M cell: p8 seed 9 (21.5 -> 40.5 s, 1.88x) and p2 seed 9 (84.3 -> 140.6 s, 1.67x). In both, M did not count (0 and 1 numbered words): there was no count to remove, and the model took another path. |
+| G3 length | PASS |
+| G4 health | PASS |
+| G5 budget | PASS (0 against 6) |
+| G2 quality | the blind judges run now |
+
+**Decision: A' is not adopted on this run** (G1 as declared).
+
+**Why the cell rule fails here, and what replaces it (declared 2026-10-22 12:45, before any further run).** The M arm
+alone varies up to 4x between seeds on the same prompt (p2: 40.1 s and 228.2 s in story-think2; p8: 87.2 s and 21.5 s).
+A ratio of single cells therefore fails on cells where the note has nothing to remove. The cell rule was meant to catch
+a request that the note makes much slower (p9 under A: 2.05x, 15.92x, 2.34x over three seeds). A rule on the mean of
+each prompt over its seeds catches that case and is not a ratio of two single samples:
+
+- **G1 (new)**: total wall time at most 0.7x of M's, and for **each prompt, the mean wall time over its seeds** at most
+  1.25x of M's mean for that prompt.
+
+It is tested on **new seeds 10, 11 and 12** (the 7 prompts x 3 seeds = 21 cells for each arm, M and A2 in turn, the same
+server setup), with G2-G5 unchanged and the blind judges on these 21 cells. Seeds 5-9 are not used for this decision.
