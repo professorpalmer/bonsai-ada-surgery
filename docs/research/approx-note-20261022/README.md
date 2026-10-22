@@ -120,3 +120,60 @@ each prompt over its seeds catches that case and is not a ratio of two single sa
 
 It is tested on **new seeds 10, 11 and 12** (the 7 prompts x 3 seeds = 21 cells for each arm, M and A2 in turn, the same
 server setup), with G2-G5 unchanged and the blind judges on these 21 cells. Seeds 5-9 are not used for this decision.
+
+## Results of the per-prompt gate run (2026-10-22 12:56-14:05, seeds 10-12, `confirm3/`)
+
+42 cells (21 M, 21 A2), 0 errors, 0 CUDA errors, no spill.
+
+| prompt | M mean (s) | A2 mean (s) | A2 / M |
+|---|---:|---:|---:|
+| p1_story | 195.2 | 146.3 | 0.75 |
+| p2_chapter | 195.4 | 90.3 | 0.46 |
+| p4_blog | 117.0 | 37.8 | 0.32 |
+| p6_save_story | 202.5 | 77.7 | 0.38 |
+| p7_save_essay | 87.1 | 23.0 | 0.26 |
+| p8_save_chapter | 102.9 | 33.7 | 0.33 |
+| p10_save_long | 182.2 | 109.9 | 0.60 |
+| **total** | 3,247 s | 1,556 s | **0.479** |
+
+| | A2 | M |
+|---|---:|---:|
+| median thinking words | 1,430 | 6,251 |
+| median numbered words | 0 | 1,346 |
+| budget closed | **0** | 8 |
+| `write_file` called | 12 / 12 | 12 / 12 |
+| empty / claims_save / count leak / at the cap | 0 / 0 / 0 / 0 | 0 / 0 / 0 / 0 |
+| words / asked | median 1.00, 0.80-1.65 | |
+
+Blind judges (`judges.jsonl`, `judges_tally.py`; a cell counts when both orders agree; "A" in 50 of 112 answers):
+**won 12, lost 7, even 2** on seeds 10-12. For the record: A on seeds 5-7 won 10, lost 7, even 4; A' on seeds 8-9 won
+7, lost 3, even 4.
+
+| Gate (seeds 10-12) | A' |
+|---|---|
+| G1 time (total at most 0.7x; each prompt mean at most 1.25x) | PASS: 0.479x; 0.26x-0.75x |
+| G2 quality (lost at most won + 3) | PASS: 7 <= 15 |
+| G3 length | PASS: median 1.00, max 1.65 |
+| G4 health | PASS |
+| G5 budget | PASS: 0 against 8 |
+
+**Decision: A' is adopted** for writing requests on the layer, with the 8 GB card as the target (it goes to all cards:
+the layer is the same).
+
+## The RTX 2060 SUPER run, and why the default counts (issue #233)
+
+The rig ran `apc_ab.py` (seeds 8 and 9) on the real card (P226): total 0.961x, every prompt mean at most 1.158x, and
+G3-G5 pass; G1 fails on the total. Its default M thought a median of only **214 words with 0 counts** in 14 of 14
+cells; its follow-up (P226b, M on seeds 5-7) showed the same, so the seeds do not explain it.
+
+The cause is the **chat template in the model file**. The file that the docs and the launcher name, the Hugging Face
+`Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf` (6,397,970,272 bytes, the one used on the 4070), has an
+`operating_rules` block that the template adds to every system prompt (template SHA-256 `ac4c9d7d9d7c`, 9,311
+characters). One rule is "Call a file, a count, or a stale label only after you have opened the evidence." On a
+writing request with a length, the model takes that as "check the count", and counts each word of its draft. The
+original template (`c3cf9e34abf4`, 8,952 characters, in `Ternary-Bonsai-2-27B-PTQ1_0.gguf`) has no such block. The rig
+was asked (#233) which template its file has, and to run the published file if it is the original one.
+
+So the note is for the file that users download, and on a file with the original template it does no harm (the
+P226 total is 0.961x, the gates on length, health and budget pass). The rules themselves are a separate question (they
+were added for agent work); this study does not change them.
