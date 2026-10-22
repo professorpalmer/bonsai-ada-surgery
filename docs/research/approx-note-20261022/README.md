@@ -75,7 +75,7 @@ and the reason is logged here.
 
 **Decision: A is not adopted as tested** (G1).
 
-## Amendment A' (2026-10-22 11:50, after the G1 result above, before any quality result)
+## Amendment A' (2026-10-22 11:42, after the G1 result above, before any quality result)
 
 A length that one reply cannot hold must not get the note: the note tells the model that the length is approximate,
 and it then tries to write all of it. **A'** = A, but no note when the length named is above 10,000 words or tokens
