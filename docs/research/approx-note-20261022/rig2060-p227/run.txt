@@ -1,0 +1,21 @@
+src bytes 6397970272
+requant + proof exit 0
+Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf: template 9311 chars, sha256 ac4c9d7d9d7c..., operating_rules YES, 'only after you have opened the evidence' YES
+Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations-q4head.gguf: template 9311 chars, sha256 ac4c9d7d9d7c..., operating_rules YES, 'only after you have opened the evidence' YES
+launcher pid 2680  out C:\bonsai\8gb\logs\20261022-181414-p227.out.log
+18:14:27 health {"status":"ok"}
+props chat_template 9311 chars; operating_rules True
+8gb    preset on (8192 MiB card; BONSAI_8GB=0 turns it off): ub 512, f16 prefill to 32768 cells, deeper in chunks of 32768
+model  Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations-q4head.gguf
+window 262144 / q3_0  (8 GB default; trained max 262144)
+kv     tiered: cells 0..87552 in VRAM, 87552..262144 in system RAM (VRAM margin 225 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off)
+kv     sparse host-tail reads: auto (dense line 87552; past it the engine times dense vs sparse per 16k band and keeps the faster; BONSAI_SPARSE=0 off, =1 forced)
+kv     sparse calib: C:\Users\<user>\AppData\Local\bonsai\sparse-calib.txt ignored (key mismatch: GPU, driver, engine, line, K type or window changed); timing again
+kv     staging buffer for cells 87552..169472; past that the system RAM rows are read in place; packed KQ mask
+spec   draft 1 (2 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI_LOOKUP=0 turns it off)
+listen 0.0.0.0:8080  think=True effort=medium budget=20480  harness-proofing=True  backend-sampling=True
+layer  off: run layer\fetch_runtime.ps1 once to enable it (python=True runtime=False wasmtime=False)
+19:58:48 apc exit 0 ; runs 28
+CUDA error lines: 0
+spill lines: 0
+19:58:50 done

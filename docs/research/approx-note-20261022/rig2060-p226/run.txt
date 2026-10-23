@@ -1,0 +1,16 @@
+launcher pid 17096  out C:\bonsai\8gb\logs\20261022-110009-p226.out.log
+11:00:22 health {"status":"ok"}
+8gb    preset on (8192 MiB card; BONSAI_8GB=0 turns it off): ub 512, f16 prefill to 32768 cells, deeper in chunks of 32768
+model  Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations-q4head.gguf
+window 262144 / q3_0  (8 GB default; trained max 262144)
+kv     tiered: cells 0..88064 in VRAM, 88064..262144 in system RAM (VRAM margin 225 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off)
+kv     sparse host-tail reads: auto (dense line 88064; past it the engine times dense vs sparse per 16k band and keeps the faster; BONSAI_SPARSE=0 off, =1 forced)
+kv     sparse calib: C:\Users\<user>\AppData\Local\bonsai\sparse-calib.txt ignored (key mismatch: GPU, driver, engine, line, K type or window changed); timing again
+kv     staging buffer for cells 88064..169984; past that the system RAM rows are read in place; packed KQ mask
+spec   draft 1 (2 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI_LOOKUP=0 turns it off)
+listen 0.0.0.0:8080  think=True effort=medium budget=20480  harness-proofing=True  backend-sampling=True
+layer  off: run layer\fetch_runtime.ps1 once to enable it (python=True runtime=False wasmtime=False)
+11:28:36 apc exit 0 ; runs 28
+CUDA error lines: 0
+spill lines: 0
+11:28:38 done
