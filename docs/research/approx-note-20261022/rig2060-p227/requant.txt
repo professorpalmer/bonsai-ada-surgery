@@ -1,0 +1,8 @@
+866 tensors, 8 in blk.64.* requantized Q8_0 -> q4_0, saving 212 MB
+wrote C:/bonsai/models-hf1022/Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations-q4head.gguf: 6.186 GB
+tensors: 866 in base, 866 in other; shared 866: 858 byte-identical, 8 differ
+only in base: []
+only in other: 0 (of which 0 under 'blk.64.'); outside the prefix: []
+differing tensors: ['blk.64.attn_k.weight', 'blk.64.attn_output.weight', 'blk.64.attn_q.weight', 'blk.64.attn_v.weight', 'blk.64.ffn_down.weight', 'blk.64.ffn_gate.weight', 'blk.64.ffn_up.weight', 'blk.64.nextn.eh_proj.weight']
+metadata: 57 keys in base, 57 in other; added []; removed []; changed []
+RESULT: every shared tensor outside the prefix is byte-identical
