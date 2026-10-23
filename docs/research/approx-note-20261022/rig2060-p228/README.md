@@ -17,5 +17,5 @@ Gates (declared before the run in `jobrun_p228.sh` and on #233; L1 changed befor
 | L4 | 0 empty, `write_file` 8 / 8, 0 cut at the cap, 0 count leaks, 0 false save claims, 0 CUDA errors | 0 / 8 of 8 / 0 / 0 / 0 / 0 (0 spill lines): **PASS** |
 
 - **Length:** median words / asked 1.10, max 1.49.
-- **Seed 8 matches P227 A2:** the 7 cells have the same thinking-word counts as P227's A2, where the note was added by hand. So the layer adds exactly the tested text.
+- **Seed 8 vs P227 A2:** 6 of the 7 cells have the same thinking-word counts as P227's A2, where the note was added by hand (p4 s8 differs: 198 against 279). So the layer adds the tested text.
 - **`approx_notes`:** the response field is absent on this forward path (`None` in `runs.jsonl`), the known gap that #238 fixes.
