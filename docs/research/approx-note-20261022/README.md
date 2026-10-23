@@ -177,3 +177,22 @@ was asked (#233) which template its file has, and to run the published file if i
 So the note is for the file that users download, and on a file with the original template it does no harm (the
 P226 total is 0.961x, the gates on length, health and budget pass). The rules themselves are a separate question (they
 were added for agent work); this study does not change them.
+
+## The RTX 2060 SUPER with the published file (P227, issue #233)
+
+The rig ran `apc_ab.py` (seeds 8 and 9) with the Hugging Face file (`70ed43ce`, template 9,311 characters with
+`operating_rules`, confirmed by `GET /props`) and its Q4_0 head file, bundle-20261021, `BONSAI_8GB=1` (line 87,552),
+stock clocks. 28 / 28 requests, 0 CUDA errors, no spill. Data: `rig2060-p227/` (`runs.jsonl`, `texts/`, `gates.txt`,
+`requant.txt`, `judges.json`). The earlier rig runs P226 / P226b / P226c (`rig2060-p226*/`) used files with the original
+template and do not test the published file.
+
+| Gate | P227 (2060, published file) |
+|---|---|
+| G1 time | PASS: total **0.408x** (1,814.6 s against 4,444.5 s); prompt means 0.198x-0.581x |
+| G2 quality | PASS: blind judges won **9**, lost 4, even 1 (both p10 cells are wins: the default's text was empty) |
+| G3 length | PASS: median 1.04, max 1.70 |
+| G4 health | PASS for A2. The default **failed** on p10 (3,000 words with `write_file`) on both seeds: it counted until the output cap and wrote an empty file. A2 wrote 3,161 and 3,214 words. |
+| G5 budget | PASS: 0 closes against 3 |
+
+Medians: thinking words 7,700 (M) against 1,284 (A2); numbered words 834 against 0. **The note passes all gates on the
+real 8 GB card with the file that users download.**
