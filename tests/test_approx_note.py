@@ -121,6 +121,14 @@ def sent_user(text, **extra):
 
 c, tools = sent_user("Write a 1,500-word short story about a lighthouse.")
 check("server gets the note", c.endswith(NOTE) and tools == [], f"{c[-60:]!r} {tools}")
+r = json.loads(urllib.request.urlopen(urllib.request.Request(BASE + "/v1/chat/completions", data=json.dumps(
+    {"messages": [{"role": "user", "content": "Write a 1,500-word short story about a fox."}], "max_tokens": 20}).encode(),
+    headers={"Content-Type": "application/json"}), timeout=30).read())
+check("the answer reports the note (layer.approx_notes = 1)", (r.get("layer") or {}).get("approx_notes") == 1, str(r.get("layer")))
+r = json.loads(urllib.request.urlopen(urllib.request.Request(BASE + "/v1/chat/completions", data=json.dumps(
+    {"messages": [{"role": "user", "content": "Write a 40-line poem about rain."}], "max_tokens": 20,
+     "code_interpreter": False}).encode(), headers={"Content-Type": "application/json"}), timeout=30).read())
+check("no change: the answer has no layer object", "layer" not in r, str(r.get("layer")))
 c, _ = sent_user("Write a 1,500-word short story about a lighthouse.", stream=True)
 check("streamed: server gets the note", c.endswith(NOTE))
 c, tools = sent_user("Write a 1,500-word story and save it to story.md.", tools=[WF])

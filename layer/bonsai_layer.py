@@ -911,6 +911,24 @@ class Proxy(http.server.BaseHTTPRequestHandler):
         except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
             return
 
+    @staticmethod
+    def _with_info(out, info):
+        """(status, ctype, data) of a forwarded chat answer, with "layer": the layer's changes to the request (the
+        approximate-length note, image notes, cards ...), as the interpreter path already reports them. Only a JSON
+        200 answer and only entries that are set; any other answer is returned as it is."""
+        status, ctype, data = out
+        keep = {k: v for k, v in (info or {}).items() if v}
+        if status != 200 or not keep or "json" not in (ctype or ""):
+            return out
+        try:
+            obj = json.loads(data)
+        except ValueError:
+            return out
+        if not isinstance(obj, dict):
+            return out
+        obj["layer"] = dict(obj.get("layer") or {}, **keep)
+        return status, ctype, json.dumps(obj).encode()
+
     def _reply(self, status, ctype, data):
         self.send_response(status)
         self.send_header("Content-Type", ctype)
@@ -1060,9 +1078,9 @@ class Proxy(http.server.BaseHTTPRequestHandler):
                 return self._stream_interpreter(body, client_tools, with_input, extra)
             return self._stream("POST", json.dumps(body).encode())
         if not enabled:
-            return self._reply(*self._forward("POST", json.dumps(body).encode()))
-        if any(t.get("function", {}).get("name") == TOOL_NAME for t in client_tools):
-            return self._reply(*self._forward("POST", json.dumps(body).encode()))   # client owns that name
+            return self._reply(*self._with_info(self._forward("POST", json.dumps(body).encode()), info))
+        if any(t.get("function", {}).get("name") == TOOL_NAME for t in client_tools):   # client owns that name
+            return self._reply(*self._with_info(self._forward("POST", json.dumps(body).encode()), info))
         body["tools"] = client_tools + [tool_spec(with_input)]
         msgs = list(body["messages"])
         trace, usage_total = [], {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
