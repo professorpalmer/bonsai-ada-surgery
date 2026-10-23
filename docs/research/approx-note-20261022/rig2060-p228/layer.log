@@ -1,0 +1,44 @@
+[proxy] "GET /v1/models HTTP/1.1" 503 -
+[proxy] "GET /v1/models HTTP/1.1" 200 -
+[proxy] "GET /v1/models HTTP/1.1" 200 -
+[proxy] approximate-length note on 1 writing request(s)
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] prefix change against the previous request: message 1 (user) changed (2 of 3 parts the same before it). The server reads the prompt again from there, unless it restores a saved copy.
+[proxy] approximate-length note on 1 writing request(s)
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] prefix change against the previous request: message 1 (user) changed (2 of 3 parts the same before it). The server reads the prompt again from there, unless it restores a saved copy.
+[proxy] approximate-length note on 1 writing request(s)
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] prefix change against the previous request: the tool list changed (added write_file). The server reads the prompt again from there, unless it restores a saved copy.
+[proxy] approximate-length note on 1 writing request(s)
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] prefix change against the previous request: message 1 (user) changed (2 of 3 parts the same before it). The server reads the prompt again from there, unless it restores a saved copy.
+[proxy] approximate-length note on 1 writing request(s)
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] prefix change against the previous request: message 1 (user) changed (2 of 3 parts the same before it). The server reads the prompt again from there, unless it restores a saved copy.
+[proxy] approximate-length note on 1 writing request(s)
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] prefix change against the previous request: message 1 (user) changed (2 of 3 parts the same before it). The server reads the prompt again from there, unless it restores a saved copy.
+[proxy] approximate-length note on 1 writing request(s)
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] prefix change against the previous request: the tool list changed (removed write_file). The server reads the prompt again from there, unless it restores a saved copy.
+[proxy] approximate-length note on 1 writing request(s)
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] prefix change against the previous request: message 1 (user) changed (2 of 3 parts the same before it). The server reads the prompt again from there, unless it restores a saved copy.
+[proxy] approximate-length note on 1 writing request(s)
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] prefix change against the previous request: message 1 (user) changed (2 of 3 parts the same before it). The server reads the prompt again from there, unless it restores a saved copy.
+[proxy] approximate-length note on 1 writing request(s)
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] prefix change against the previous request: the tool list changed (added write_file). The server reads the prompt again from there, unless it restores a saved copy.
+[proxy] approximate-length note on 1 writing request(s)
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] prefix change against the previous request: message 1 (user) changed (2 of 3 parts the same before it). The server reads the prompt again from there, unless it restores a saved copy.
+[proxy] approximate-length note on 1 writing request(s)
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] prefix change against the previous request: message 1 (user) changed (2 of 3 parts the same before it). The server reads the prompt again from there, unless it restores a saved copy.
+[proxy] approximate-length note on 1 writing request(s)
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
+[proxy] prefix change against the previous request: message 1 (user) changed (2 of 3 parts the same before it). The server reads the prompt again from there, unless it restores a saved copy.
+[proxy] approximate-length note on 1 writing request(s)
+[proxy] "POST /v1/chat/completions HTTP/1.1" 200 -
