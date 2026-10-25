@@ -9,6 +9,12 @@ launcher prints `layer on` when the runtime is present and falls back to the pla
 
 ## What each bundle changed (newest first)
 
+`bundle-20261025` (no engine change): a non-streamed answer that the layer forwards now says what the layer
+changed in the request (`"layer": {"approx_notes": 1}` and similar; #238). `BONSAI_LAYER_PREFIX_DIFF=1` (opt-in) adds
+to each prefix-change line in `logs\layer.log` an excerpt of the first changed text, before and now, so you can see
+what a client rewrote, for example its system prompt (#241, issue #7). It writes conversation text into the log: check
+the log before you share it. Gates: `docs/research/release-20261025`.
+
 `bundle-20261022` (no engine change): a writing request that names a length ("a 1,500-word story", 200-10,000
 words or tokens, no hard limit such as "at most") gets one sentence at its end: the length is approximate, and the
 model must not count the words one by one. Without it, the model counted each word of its draft in its thinking: on
