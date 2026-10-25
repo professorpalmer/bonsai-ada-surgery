@@ -56,6 +56,18 @@ check("an earlier message edited", L.prefix_change(s([SYS, U1, A1, T1]), s([SYS,
 check("the system message changed", L.prefix_change(base, s([dict(SYS, content="other"), U1])), "message 0 (system) changed")
 check("a shorter request", L.prefix_change(s([SYS, U1, A1, T1]), s([SYS, U1])), "fewer parts")
 
+# The opt-in excerpt (issue #7: a client rewrote its developer message in the middle of a session).
+DEV1 = {"role": "developer", "content": "You are pi.\nTools: read, write.\nMCP servers: engram, x64dbg.\nBe brief."}
+DEV2 = {"role": "developer", "content": "You are pi.\nTools: read, write.\nMCP servers: engram, x64dbg, git.\nBe brief."}
+b1 = {"messages": [DEV1, U1, A1, T1], "tools": TOOLS}
+b2 = {"messages": [DEV2, U1, A1, T1], "tools": TOOLS}
+d = L.first_diff(L.prompt_texts(b1), L.prompt_texts(b2))
+ok = d is not None and d[0] == 0 and d[1] == DEV1["content"].index(".\nBe") and ", git" in d[3]
+check("excerpt: the first changed part and offset", "yes" if ok else "no: %r" % (d,), "yes")
+check("excerpt: no change, no excerpt", L.first_diff(L.prompt_texts(b1), L.prompt_texts(b1)), None)
+d3 = L.first_diff(L.prompt_texts(b1), L.prompt_texts(dict(b1, tools=TOOLS[:2])))
+check("excerpt: a tool change points at the tool list part", "yes" if d3 and d3[0] == 1 else "no: %r" % (d3,), "yes")
+
 # The vision probe: a good "no" answer stays when a later probe fails (a busy server can miss the 5 s timeout).
 P = L.Proxy.__new__(L.Proxy)
 P.upstream = "http://127.0.0.1:1"   # nothing listens: every probe fails
