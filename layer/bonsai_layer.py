@@ -102,6 +102,41 @@ def _preserves_reasoning(body):
     return not any(kw.get(k) is False for k in ("preserve_thinking", "preserve_reasoning"))
 
 
+def _part_text(x):
+    """The text of a part for the diff excerpt: a string content as it is, anything else as sorted JSON."""
+    if isinstance(x, dict) and isinstance(x.get("content"), str) and set(x) <= {"role", "content", "name"}:
+        return x["content"]
+    return json.dumps(x, sort_keys=True, ensure_ascii=False)
+
+
+def prompt_texts(body):
+    """The texts of the parts of prompt_summary, in the same order (only kept when BONSAI_LAYER_PREFIX_DIFF=1)."""
+    msgs = body.get("messages") or []
+    lead = 0
+    while lead < len(msgs) and isinstance(msgs[lead], dict) and msgs[lead].get("role") in ("system", "developer"):
+        lead += 1
+    strip = lambda m: {k: v for k, v in m.items() if k not in REASONING_KEYS} if isinstance(m, dict) else m  # noqa: E731
+    return ([_part_text(strip(msgs[i])) for i in range(lead)] + [_part_text(body.get("tools") or [])]
+            + [_part_text(strip(msgs[i])) for i in range(lead, len(msgs))])
+
+
+def first_diff(prev_texts, cur_texts, before=60, after=120):
+    """(part index, character offset, old excerpt, new excerpt) of the first text that differs, or None."""
+    for i, old in enumerate(prev_texts):
+        if i >= len(cur_texts):
+            return None
+        new = cur_texts[i]
+        if old == new:
+            continue
+        k = 0
+        while k < len(old) and k < len(new) and old[k] == new[k]:
+            k += 1
+        s = max(0, k - before)
+        cut = lambda t: t[s:k + after].replace(chr(10), "\\n").replace(chr(13), "")  # noqa: E731
+        return i, k, cut(old), cut(new)
+    return None
+
+
 def prompt_summary(body):
     """The parts of a chat request in the order the chat template renders them (the leading system messages, the tool
     list, then the other messages), each as (label, hash, reasoning hash), and a hash for each tool by name. The
@@ -447,6 +482,9 @@ class Proxy(http.server.BaseHTTPRequestHandler):
     _vision = None        # the server's /props modalities.vision; None = not asked yet
     _vision_at = 0.0
     prefix_log = True     # log where a request stops repeating the previous one (BONSAI_LAYER_PREFIX_LOG=0: off)
+    prefix_diff = False   # BONSAI_LAYER_PREFIX_DIFF=1: with that line, an excerpt of the first changed text (it writes
+                          # conversation text into layer.log, so it is opt-in: check the log before you share it)
+    _prev_texts = None
     approx_note = True    # the approximate-length note on writing requests (BONSAI_APPROX_NOTE=0, "approx_note": false)
     _prev_prompt = None
 
@@ -482,9 +520,15 @@ class Proxy(http.server.BaseHTTPRequestHandler):
             cur = prompt_summary(body)
             why = prefix_change(Proxy._prev_prompt, cur)
             Proxy._prev_prompt = cur
+            texts = prompt_texts(body) if self.prefix_diff else None
             if why:
                 self.log_message("prefix change against the previous request: %s. The server reads the prompt again "
                                  "from there, unless it restores a saved copy.", why)
+                d = first_diff(Proxy._prev_texts, texts) if (texts is not None and Proxy._prev_texts) else None
+                if d:
+                    self.log_message("  first change in %s at character %d:\n    before: ...%s...\n    now:    ...%s...",
+                                     cur["parts"][d[0]][0], d[1], d[2], d[3])
+            Proxy._prev_texts = texts
         except Exception as e:   # noqa: BLE001  (a log line must never break a request)
             self.log_message("prefix check failed: %r", e)
 
@@ -1154,6 +1198,7 @@ if __name__ == "__main__":
     a = ap.parse_args()
     Proxy.api_key = os.environ.get("BONSAI_LAYER_KEY") or None
     Proxy.prefix_log = os.environ.get("BONSAI_LAYER_PREFIX_LOG", "1") != "0"
+    Proxy.prefix_diff = os.environ.get("BONSAI_LAYER_PREFIX_DIFF", "0") == "1"
     Proxy.approx_note = os.environ.get("BONSAI_APPROX_NOTE", "1") != "0"
     Proxy.upstream, Proxy.max_rounds = a.upstream, a.max_rounds
     Proxy.keepalive = a.keepalive
