@@ -74,6 +74,10 @@ Cards are proven on two library families and not on a third. Token cost through 
   the server read the conversation again from there: 6 minutes for 172k tokens in issue #7. Start the MCP
   servers before the session. The layer writes one line to `logs/layer.log` for each such change, with the names
   of the tools or the number of the message that changed (`BONSAI_LAYER_PREFIX_LOG=0` turns it off).
+  With pi and [pi-mcp-adapter](https://github.com/nicobailon/pi-mcp-adapter), a refresh of its direct tools
+  ("MCP: direct tools refreshed") changes the system prompt the same way (issue #7: 221,714 tokens read again,
+  7 minutes). Set `"settings": {"freezeDirectTools": true}` in `~/.pi/agent/mcp-adapter.json`, and give the tools you
+  always use a fixed `"directTools": [...]` list instead of `"search"`.
 
 What the server does for agent work, by card. "Not measured" means that no run on that card is published.
 
