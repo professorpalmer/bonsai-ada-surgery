@@ -19,3 +19,17 @@ outside `docs/`: `layer/bonsai_layer.py` only.
 | R4 saved conversations | as release-20261022 R4 (8 GB defaults, slot folder, 3 turns, then two conversations that take turns); 0 CUDA errors |
 
 All pass: publish as the latest release. Any fail: no publish; log why.
+
+## Results (2026-10-25 08:46-08:53, RTX 4070, `release_1025.log`)
+
+Zip sha256 `c5130c65792075da...`, engine `810d93e5aa`. Scripts: `rel1025.sh`, `r3_info.py`, `make_bundle_1025.py`
+(`../release-20261022/r3_note.py`, `../release-20261021/r3_writing.py`, `../release-20261020/e2e_req.py`).
+
+| Gate | Result |
+|---|---|
+| R1 zip | PASS: outside `docs/` the same entries as 1022, every `bin/` file identical; changed: `layer/bonsai_layer.py` only; 0 control-byte files; 0 broken relative links |
+| R2 launcher | PASS: the three arms as in release-20261022 (draft lines, the replay line on 8 GB only, the `layer log:` line, the answer, 0 CUDA errors) |
+| R3 layer | PASS: the story's answer has `"layer": {"approx_notes": 1, "writing_request": true}`; the poem's answer has no `layer` object; 9 "first change in" excerpts for 9 prefix-change lines; the release-20261022 checks give the same results (note lines 1 / 0 / 0, the story with no `interpreter_trace`, the primes with one round and 3,682,913); 0 CUDA errors |
+| R4 saved conversations | PASS: 3 turns (18.8 / 8.3 / 8.8 s); two conversations that take turns: turn 2 restored its own save (25 and 24 new tokens); 0 CUDA errors |
+
+All gates pass: publish as the latest release.

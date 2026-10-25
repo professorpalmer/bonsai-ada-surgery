@@ -1,0 +1,56 @@
+08:46:45 === release-20261025: zip sha256 c5130c65792075da, engine commit 810d93e5aa
+08:46:53 R1 outside docs: only-new [] only-old [] bin identical True changed ['layer/bonsai_layer.py'] | docs new [] | control-byte files 0
+08:47:08 server 8gb (BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=90112 LLAMA_ARG_LOG_VERBOSITY=4): health=1; spec   draft 1 (2 past the VRAM line), draft window 16384 (MTP on); lo|layer  on: clients use :8080 (API cards, API check, sandboxed Python);|       layer log: <r-1025z root>\logs\layer| replay: pending inputs of 2 tokens; layer.log: exists
+08:47:20 R2 8gb: answer: Here are three primary colours and a fact about each:  1. **Red** � Red is the c; CUDA errors 0
+08:47:39 server 8gb_r0 (BONSAI_8GB=1 BONSAI_RS_REPLAY=0 BONSAI_KV_VRAM_CELLS=90112 LLAMA_ARG_LOG_VERBOSITY=4): health=1; spec   draft 1 (1 past the VRAM line), draft window 16384 (MTP on); lo|layer  on: clients use :8080 (API cards, API check, sandboxed Python);|       layer log: <r-1025z root>\logs\layer| replay: ; layer.log: exists
+08:47:51 R2 8gb_r0: answer: Here are three primary colours and a fact about each:  1. **Red** � Red is the c; CUDA errors 0
+08:48:09 server default (LLAMA_ARG_LOG_VERBOSITY=4): health=1; spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lo|layer  on: clients use :8080 (API cards, API check, sandboxed Python);|       layer log: <r-1025z root>\logs\layer| replay: ; layer.log: exists
+08:48:21 R2 default: answer: Here are three primary colours and a fact about each:  1. **Red** � Red is the c; CUDA errors 0
+08:48:40 server r3 (BONSAI_LAYER_PREFIX_DIFF=1): health=1; spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lo|layer  on: clients use :8080 (API cards, API check, sandboxed Python);|       layer log: <r-1025z root>\logs\layer| replay: ; layer.log: exists
+08:49:35 R3 info story: HTTP 200, layer = {'approx_notes': 1, 'writing_request': True}, approx_notes = 1
+08:49:35 R3 info poem: HTTP 200, layer object present: False
+08:51:25 R3 note story 300 words: HTTP 200, 313 words, 32.7 s, new note lines in layer.log: 1
+08:51:25 R3 note poem 40 lines: HTTP 200, 373 words, 17.0 s, new note lines in layer.log: 0
+08:51:25 R3 note story, approx_note false: HTTP 200, 300 words, 59.9 s, new note lines in layer.log: 0
+08:51:52 R3 story: HTTP 200, 310 words, interpreter_trace: False (0 rounds)
+08:51:52 R3 primes: HTTP 200, interpreter_trace: True (1 rounds), 3,682,913 in answer: True; answer tail: 'The sum of the first 1000 primes is **3,682,913**.\n\nFor reference, the primes run from 2 up to the 1000th prime, 7,919.'
+08:51:55 R3 r1 first: 200 'Hello there friend'
+08:51:55 R3 r2 appended turn (no line expected): 200 'Goodbye for now'
+08:51:55 R3 r3 x64dbg_list removed (line expected): 200 'Thank you very'
+08:51:56 R3 r4 first user message edited (line expected): 200 'Thank you very'
+08:51:56 R3 r5 image, no mmproj (note line expected): 200 "I can't see the image � this server has no vision model, so "
+08:51:58 R3 LOG [proxy] prefix change against the previous request: message 0 (user) changed (1 of 2 parts the same before it). The server reads the prompt again from there, unless it restores a saved copy.
+08:51:58 R3 LOG [proxy] prefix change against the previous request: message 0 (user) changed (1 of 2 parts the same before it). The server reads the prompt again from there, unless it restores a saved copy.
+08:51:58 R3 LOG [proxy] prefix change against the previous request: message 0 (user) changed (1 of 2 parts the same before it). The server reads the prompt again from there, unless it restores a saved copy.
+08:51:58 R3 LOG [proxy] prefix change against the previous request: message 0 (user) changed (1 of 2 parts the same before it). The server reads the prompt again from there, unless it restores a saved copy.
+08:51:58 R3 LOG [proxy] prefix change against the previous request: message 0 (user) changed (1 of 2 parts the same before it). The server reads the prompt again from there, unless it restores a saved copy.
+08:51:58 R3 LOG [proxy] prefix change against the previous request: the tool list is now message 0 (system). The server reads the prompt again from there, unless it restores a saved copy.
+08:51:58 R3 LOG [proxy] prefix change against the previous request: the tool list changed (removed x64dbg_list). The server reads the prompt again from there, unless it restores a saved copy.
+08:51:58 R3 LOG [proxy] prefix change against the previous request: message 1 (user) changed (2 of 7 parts the same before it). The server reads the prompt again from there, unless it restores a saved copy.
+08:51:58 R3 LOG [proxy] prefix change against the previous request: message 1 (user) changed (2 of 7 parts the same before it). The server reads the prompt again from there, unless it restores a saved copy.
+08:51:58 R3 LOG [proxy] no vision projector: 1 image part(s) replaced with a text note
+08:51:58 R3 excerpt lines: 9 for 9 prefix lines
+08:51:58 R3 EXC [proxy]   first change in message 0 (user) at character 8:
+08:51:59 R3 EXC before: ...Write a 300-word short story about an owl....
+08:51:59 R3 EXC now:    ...Write a 40-line poem about snow....
+08:51:59 R3 EXC --
+08:51:59 R3 EXC [proxy]   first change in message 0 (user) at character 8:
+08:51:59 R3 EXC before: ...Write a 40-line poem about snow....
+08:51:59 R3 EXC now:    ...Write a 300-word short story about a fox....
+08:51:59 R3 EXC --
+08:51:59 R3 EXC [proxy]   first change in message 0 (user) at character 8:
+08:51:59 R3 EXC before: ...Write a 300-word short story about a fox....
+08:51:59 R3 EXC now:    ...Write a 40-line poem about rain....
+08:51:59 R3 EXC --
+08:52:00 R3 f_keep f_keep = 0.036 f_keep = 0.046 f_keep = 0.035 f_keep = 0.066 f_keep = 0.017 f_keep = 1.000 f_keep = 1.000 f_keep = 0.144 f_keep = 0.907 f_keep = 0.905 ; CUDA errors 0
+08:52:19 server r4 (BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=90112 BONSAI_SLOT_SAVE_PATH=<home>\AppData\Local\Temp\r25_slots_r4): health=1; spec   draft 1 (2 past the VRAM line), draft window 16384 (MTP on); lo|layer  on: clients use :8080 (API cards, API check, sandboxed Python);|       layer log: <r-1025z root>\logs\layer| replay: ; layer.log: exists
+08:52:19 R3 after restart: layer.prev.log exists, prefix lines in it 9
+08:52:38 R4 {"turn": 1, "s": 18.8, "prompt_tokens": 21152, "slot_files": 1, "answer": "4821"}
+08:52:47 R4 {"turn": 2, "s": 8.3, "prompt_tokens": 28269, "slot_files": 2, "answer": "27611"}
+08:52:55 R4 {"turn": 3, "s": 8.8, "prompt_tokens": 35398, "slot_files": 3, "answer": "17412"}
+08:53:18 R4 {"conv": "A", "turn": 1, "prompt_n": 25846, "cache_n": 121, "answer": "6247"}
+08:53:41 R4 {"conv": "B", "turn": 1, "prompt_n": 25859, "cache_n": 121, "answer": "6722"}
+08:53:43 R4 {"conv": "A", "turn": 2, "prompt_n": 25, "cache_n": 25971, "answer": "pump"}
+08:53:44 R4 {"conv": "B", "turn": 2, "prompt_n": 24, "cache_n": 25985, "answer": "pump"}
+08:53:44 R4 index 6 entries; 3 deltas; CUDA errors 0
+08:53:51 === release-20261025 done
