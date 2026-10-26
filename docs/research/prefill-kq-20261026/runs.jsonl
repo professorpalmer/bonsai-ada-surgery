@@ -56,3 +56,11 @@
 {"run": "P5b", "cell": "p5b_p5_2", "batch_invariant": 0, "depth": 131072, "n_prompt": 512, "tok_s": 527.4, "engine": "P5b (8ce20823bc)", "type_k": "q4_0", "type_v": "q4_0", "mem_clock_mhz_after": 12001}
 {"run": "P5b", "cell": "p5b_p5_2", "batch_invariant": 0, "depth": 245760, "n_prompt": 512, "tok_s": 336.6, "engine": "P5b (8ce20823bc)", "type_k": "q4_0", "type_v": "q4_0", "mem_clock_mhz_after": 12001}
 {"run": "P5b-E1", "logits_byte_identical_to_bundle": true}
+{"run": "P5c", "type_kv": "q4_0", "n_ubatch": 1, "ctx": 2048, "chunks": 1, "batch_invariant": 1, "logits_null_eq_P4": true, "ppl": 6.7217, "bytes": 508079116}
+{"run": "P5c", "type_kv": "q4_0", "n_ubatch": 4, "ctx": 2048, "chunks": 1, "batch_invariant": 1, "logits_null_eq_P4": true, "ppl": 6.7259, "bytes": 508079116}
+{"run": "P5c", "type_kv": "q4_0", "n_ubatch": 8, "ctx": 2048, "chunks": 1, "batch_invariant": 1, "logits_null_eq_P4": true, "ppl": 6.7212, "bytes": 508079116}
+{"run": "P5c", "type_kv": "q4_0", "n_ubatch": 32, "ctx": 2048, "chunks": 1, "batch_invariant": 1, "logits_null_eq_P4": true, "ppl": 6.7281, "bytes": 508079116}
+{"run": "P5c", "type_kv": "q8_0", "n_ubatch": 1, "ctx": 2048, "chunks": 1, "batch_invariant": 1, "logits_null_eq_P4": true, "ppl": 6.7042, "bytes": 508079116}
+{"run": "P5c", "type_kv": "q8_0", "n_ubatch": 4, "ctx": 2048, "chunks": 1, "batch_invariant": 1, "logits_null_eq_P4": true, "ppl": 6.7054, "bytes": 508079116}
+{"run": "P5c", "type_kv": "q8_0", "n_ubatch": 8, "ctx": 2048, "chunks": 1, "batch_invariant": 1, "logits_null_eq_P4": true, "ppl": 6.6989, "bytes": 508079116}
+{"run": "P5c", "type_kv": "q8_0", "n_ubatch": 32, "ctx": 2048, "chunks": 1, "batch_invariant": 1, "logits_null_eq_P4": true, "ppl": 6.7039, "bytes": 508079116}

@@ -227,3 +227,9 @@ softmax and V·(KQ). Records: `runs.jsonl`, `data/p5b_*.jsonl`.
   and the K words now stay in registers for the whole tile. Without the profiler (P3b) this is not confirmed.
 - **P4 stays the candidate.** Next: identity checks for the small-batch kernels, then a release build for all three
   card generations and the RTX 2060 SUPER check (Turing tiles: two block pairs per thread).
+
+### P5c — identity for the small-batch kernels (13:17-13:22)
+
+The P4 change also runs for decode and drafting (other column counts and tile shapes). Null against P4,
+`llama-perplexity` with context 2,048, one chunk, `-ub 1 / 4 / 8 / 32` (each forces that batch shape),
+batch-invariant on, q4_0 and q8_0 K/V: the logit files (508,079,116 bytes) are **byte-identical in all 8 cells**.
