@@ -33,3 +33,30 @@ All pass: publish as the latest release. Any fail: no publish; log why.
 Amendment (13:56, before any gate run): the peer review found a latent fault for wave64 HIP builds (the slot count
 assumed 32 threads per warp; the host gate keeps that path off). The slot count now uses the physical warp size; for
 NVIDIA the code is the same. The two commits are one commit now, `a38714c63d`. R3b is new.
+
+## Results, RTX 4070 (14:06-15:15)
+
+Log: [`data/release_1026.log`](data/release_1026.log). Scripts: [`gates/`](gates/). Zip sha256 `c292760a2ff0d2c4...`,
+engine `a38714c63d`. Memory clock 11751 MHz in R5 and R6.
+
+| Gate | Result | Verdict |
+|---|---|---|
+| R1 zip | outside `docs/`: no new or removed entries; changed: the 10 engine `bin/` files only; 0 control-byte files; 0 broken links | PASS |
+| R2 launcher | default, `BONSAI_8GB=1`, `BONSAI_8GB=1 BONSAI_RS_REPLAY=0`, `BONSAI_TOTAL_MIB=24576`: health=1, a correct short answer, 0 CUDA errors each | PASS |
+| R3 identity | 12 of 12 cells (q4_0, q8_0, q3_0; `-ub 512` at 8,192; `-ub 1 / 4 / 8` at 2,048): `identical` | PASS |
+| R3b small batches | see the table below; lowest cell 1.005x (q8_0 pp4) | PASS |
+| R4 saved conversations | 3 turns (slot files 1, 2, 3); conversations A and B take turns, turn 2 of each reads its cache (25,971 / 25,985 cells, 24-25 new tokens); 7 index entries, 4 deltas; 0 CUDA errors | PASS |
+| R5 12 GB | mean decode 4k 96.6 -> 96.6 (1.000x), 32k 87.4 -> 88.3 (1.010x); 128k cold prefill 737.0 -> 767.4 tok/s (1.041x, 172.8 -> 165.9 s); 128k decode 1.033x; texts 9 / 9 identical | PASS |
+| R6 8 GB preset | mean decode 64k 76.2 -> 77.9 (1.022x), 128k 60.0 -> 62.2 (1.037x); prefill 1.000x (f16 path, as expected); texts 6 / 6 identical; 0 CUDA errors | PASS |
+| R7 RTX 2060 SUPER | waits for the rig (P229) | open |
+
+R3b (`llama-bench`, batch-invariant on, tok/s, 1025 -> candidate):
+
+| K/V | tg128 at 64k | tg128 at 128k | pp4 at 64k |
+|---|---|---|---|
+| q8_0 | 50.58 -> 51.43 (1.017x) | 40.69 -> 42.09 (1.034x) | 139.2 -> 139.9 (1.005x) |
+| q3_0 | 53.45 -> 56.57 (1.058x) | 44.52 -> 49.11 (1.103x) | 143.5 -> 147.2 (1.026x) |
+| q4_0 | 53.67 -> 56.20 (1.047x) | 44.75 -> 48.54 (1.085x) | 144.3 -> 147.4 (1.021x) |
+
+The q8_0 register risk of the review does not show: q8_0 is faster in every cell. The pp4 cells have a large spread
+(about +-19 tok/s over 5 runs), so the pp4 gains are in the noise; the gate needs no cell below 0.97x, and none is.

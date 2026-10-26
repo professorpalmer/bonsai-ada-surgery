@@ -1,0 +1,141 @@
+14:06:36 === release-20261026: zip sha256 c292760a2ff0d2c4, engine commit a38714c63d
+14:06:45 R1 outside docs: only-new [] only-old [] bin changed ['bin/ggml-base.dll', 'bin/ggml-cpu.dll', 'bin/ggml-cuda.dll', 'bin/ggml.dll', 'bin/llama-common.dll', 'bin/llama-server-impl.dll', 'bin/llama-server.exe', 'bin/llama.dll', 'bin/mtmd.dll', 'bin/test-backend-ops.exe'] changed ['bin/ggml-base.dll', 'bin/ggml-cpu.dll', 'bin/ggml-cuda.dll', 'bin/ggml.dll', 'bin/llama-common.dll', 'bin/llama-server-impl.dll', 'bin/llama-server.exe', 'bin/llama.dll', 'bin/mtmd.dll', 'bin/test-backend-ops.exe'] | docs new [] | control-byte files 0
+14:06:58 server default (BONSAI_LAYER=0 LLAMA_ARG_LOG_VERBOSITY=4): health=1; spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lo| replay: ; layer.log: MISSING
+14:07:10 R2 default: answer: Here are three primary colours and a fact about each:  1.  **Red**     *   **Fac; CUDA errors 0
+14:07:29 server 8gb (BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=90112 LLAMA_ARG_LOG_VERBOSITY=4): health=1; spec   draft 1 (2 past the VRAM line), draft window 16384 (MTP on); lo|layer  on: clients use :8080 (API cards, API check, sandboxed Python);|       layer log: %TEMP%\r-1026z\logs\layer| replay: pending inputs of 2 tokens; layer.log: exists
+14:07:41 R2 8gb: answer: Here are three primary colours and a fact about each:  1. **Red** � Red is the c; CUDA errors 0
+14:07:59 server 8gb_r0 (BONSAI_8GB=1 BONSAI_LAYER=0 BONSAI_RS_REPLAY=0 BONSAI_KV_VRAM_CELLS=90112 LLAMA_ARG_LOG_VERBOSITY=4): health=1; spec   draft 1 (1 past the VRAM line), draft window 16384 (MTP on); lo| replay: ; layer.log: exists
+14:08:11 R2 8gb_r0: answer: Here are three primary colors and a fact about each:  1.  **Red**     *   **Fact; CUDA errors 0
+14:08:31 server 24gb (BONSAI_LAYER=0 BONSAI_TOTAL_MIB=24576 LLAMA_ARG_LOG_VERBOSITY=4): health=1; spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lo| replay: ; layer.log: exists
+14:08:42 R2 24gb: answer: Here are three primary colours and a fact about each:  1.  **Red**     *   **Fac; CUDA errors 0
+14:09:01 server r4 (BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=90112 BONSAI_SLOT_SAVE_PATH=%TEMP%\r26_slots_r4): health=1; spec   draft 1 (2 past the VRAM line), draft window 16384 (MTP on); lo|layer  on: clients use :8080 (API cards, API check, sandboxed Python);|       layer log: %TEMP%\r-1026z\logs\layer| replay: ; layer.log: exists
+14:09:20 R4 {"turn": 1, "s": 18.9, "prompt_tokens": 21152, "slot_files": 1, "answer": "4821"}
+14:09:28 R4 {"turn": 2, "s": 8.4, "prompt_tokens": 28269, "slot_files": 2, "answer": "27611"}
+14:09:37 R4 {"turn": 3, "s": 8.8, "prompt_tokens": 35398, "slot_files": 3, "answer": "17412"}
+14:10:00 R4 {"conv": "A", "turn": 1, "prompt_n": 25846, "cache_n": 121, "answer": "6247"}
+14:10:23 R4 {"conv": "B", "turn": 1, "prompt_n": 25859, "cache_n": 121, "answer": "6722"}
+14:10:24 R4 {"conv": "A", "turn": 2, "prompt_n": 25, "cache_n": 25971, "answer": "pump"}
+14:10:25 R4 {"conv": "B", "turn": 2, "prompt_n": 24, "cache_n": 25985, "answer": "pump"}
+14:10:25 R4 index 7 entries; 4 deltas; CUDA errors 0
+14:10:32 === release-20261026 done
+14:10:34 R3 engines: old commit 810d93e5aa, new commit a38714c63d; mem 10501 MHz
+14:12:20 R3 q4_0 ctx 8192 ub 512: identical (Final estimate: PPL = 6.6371, 4067612676 bytes)
+14:13:30 R3 q4_0 ctx 2048 ub 1: identical (Final estimate: PPL = 6.7217, 508079116 bytes)
+14:14:02 R3 q4_0 ctx 2048 ub 4: identical (Final estimate: PPL = 6.7259, 508079116 bytes)
+14:14:36 R3 q4_0 ctx 2048 ub 8: identical (Final estimate: PPL = 6.7212, 508079116 bytes)
+14:15:39 R3 q8_0 ctx 8192 ub 512: identical (Final estimate: PPL = 6.6248, 4067612676 bytes)
+14:16:49 R3 q8_0 ctx 2048 ub 1: identical (Final estimate: PPL = 6.7042, 508079116 bytes)
+14:17:21 R3 q8_0 ctx 2048 ub 4: identical (Final estimate: PPL = 6.7054, 508079116 bytes)
+14:17:55 R3 q8_0 ctx 2048 ub 8: identical (Final estimate: PPL = 6.6989, 508079116 bytes)
+14:19:29 R3 q3_0 ctx 8192 ub 512: identical (Final estimate: PPL = 6.6592, 4067612676 bytes)
+14:20:39 R3 q3_0 ctx 2048 ub 1: identical (Final estimate: PPL = 6.7511, 508079116 bytes)
+14:21:11 R3 q3_0 ctx 2048 ub 4: identical (Final estimate: PPL = 6.7502, 508079116 bytes)
+14:21:45 R3 q3_0 ctx 2048 ub 8: identical (Final estimate: PPL = 6.7403, 508079116 bytes)
+14:26:35 R3b q8_0 old tg128: d 65536 p 0 g 128 50.58 +- 0.18
+;d 131072 p 0 g 128 40.69 +- 0.10
+;
+14:27:49 R3b q8_0 old pp4: d 65536 p 4 g 0 139.22 +- 18.14
+;
+14:32:20 R3b q8_0 new tg128: d 65536 p 0 g 128 51.43 +- 0.16
+;d 131072 p 0 g 128 42.09 +- 0.09
+;
+14:33:31 R3b q8_0 new pp4: d 65536 p 4 g 0 139.85 +- 18.60
+;
+14:37:52 R3b q3_0 old tg128: d 65536 p 0 g 128 53.45 +- 0.16
+;d 131072 p 0 g 128 44.52 +- 0.08
+;
+14:39:01 R3b q3_0 old pp4: d 65536 p 4 g 0 143.51 +- 18.94
+;
+14:43:12 R3b q3_0 new tg128: d 65536 p 0 g 128 56.57 +- 0.22
+;d 131072 p 0 g 128 49.11 +- 0.12
+;
+14:44:20 R3b q3_0 new pp4: d 65536 p 4 g 0 147.23 +- 19.67
+;
+14:48:44 R3b q4_0 old tg128: d 65536 p 0 g 128 53.67 +- 0.18
+;d 131072 p 0 g 128 44.75 +- 0.09
+;
+14:49:54 R3b q4_0 old pp4: d 65536 p 4 g 0 144.28 +- 20.00
+;
+14:54:05 R3b q4_0 new tg128: d 65536 p 0 g 128 56.20 +- 0.20
+;d 131072 p 0 g 128 48.54 +- 0.10
+;
+14:55:13 R3b q4_0 new pp4: d 65536 p 4 g 0 147.35 +- 20.29
+;
+14:55:13 R3 done
+14:55:30 R5 R5_old_4000: health=1; kv     tiered: cells 0..211712 in VRAM, 211712..262144 in system RAM (VRAM margin 1300 MiB); shared CUDA pool 
+R5 R5_old_4000: code   depth   4000 (evaluated 4048): prefill  1287.6 tok/s  ttft   3.14s  decode  105.3 tok/s (400 tok)
+R5 R5_old_4000: prose  depth   4000 (evaluated 512): prefill   987.3 tok/s  ttft   0.52s  decode   87.7 tok/s (400 tok)
+R5 R5_old_4000: bash   depth   4000 (evaluated 516): prefill   999.5 tok/s  ttft   0.52s  decode   96.7 tok/s (400 tok)
+R5 R5_old_4000: mean decode 96.6 tok/s
+14:55:47 R5 R5_old_4000: mem 11751 MHz
+14:55:53 R5 R5_old_4000: CUDA errors 0
+14:56:03 R5 R5_new_4000: health=1; kv     tiered: cells 0..211712 in VRAM, 211712..262144 in system RAM (VRAM margin 1300 MiB); shared CUDA pool 
+R5 R5_new_4000: code   depth   4000 (evaluated 4048): prefill  1286.9 tok/s  ttft   3.15s  decode  105.1 tok/s (400 tok)
+R5 R5_new_4000: prose  depth   4000 (evaluated 512): prefill   976.9 tok/s  ttft   0.52s  decode   87.6 tok/s (400 tok)
+R5 R5_new_4000: bash   depth   4000 (evaluated 516): prefill   997.3 tok/s  ttft   0.52s  decode   97.1 tok/s (400 tok)
+R5 R5_new_4000: mean decode 96.6 tok/s
+14:56:21 R5 R5_new_4000: mem 11751 MHz
+14:56:27 R5 R5_new_4000: CUDA errors 0
+14:56:36 R5 R5_old_32000: health=1; kv     tiered: cells 0..211712 in VRAM, 211712..262144 in system RAM (VRAM margin 1300 MiB); shared CUDA pool 
+R5 R5_old_32000: code   depth  32000 (evaluated 32044): prefill  1144.1 tok/s  ttft  28.01s  decode   95.4 tok/s (400 tok)
+R5 R5_old_32000: prose  depth  32000 (evaluated 512): prefill   754.7 tok/s  ttft   0.68s  decode   75.1 tok/s (400 tok)
+R5 R5_old_32000: bash   depth  32000 (evaluated 516): prefill   771.9 tok/s  ttft   0.67s  decode   91.6 tok/s (400 tok)
+R5 R5_old_32000: mean decode 87.4 tok/s
+14:57:20 R5 R5_old_32000: mem 11751 MHz
+14:57:27 R5 R5_old_32000: CUDA errors 0
+14:57:36 R5 R5_new_32000: health=1; kv     tiered: cells 0..211712 in VRAM, 211712..262144 in system RAM (VRAM margin 1300 MiB); shared CUDA pool 
+R5 R5_new_32000: code   depth  32000 (evaluated 32044): prefill  1154.0 tok/s  ttft  27.77s  decode   96.2 tok/s (400 tok)
+R5 R5_new_32000: prose  depth  32000 (evaluated 512): prefill   764.4 tok/s  ttft   0.67s  decode   75.9 tok/s (400 tok)
+R5 R5_new_32000: bash   depth  32000 (evaluated 516): prefill   777.8 tok/s  ttft   0.66s  decode   92.7 tok/s (400 tok)
+R5 R5_new_32000: mean decode 88.3 tok/s
+14:58:20 R5 R5_new_32000: mem 11751 MHz
+14:58:26 R5 R5_new_32000: CUDA errors 0
+14:58:36 R5 R5_old_128000: health=1; kv     tiered: cells 0..211712 in VRAM, 211712..262144 in system RAM (VRAM margin 1300 MiB); shared CUDA pool 
+R5 R5_old_128000: code   depth 128000 (evaluated 127340): prefill   737.0 tok/s  ttft 172.77s  decode   78.0 tok/s (400 tok)
+R5 R5_old_128000: prose  depth 128000 (evaluated 512): prefill   432.1 tok/s  ttft   1.18s  decode   65.0 tok/s (400 tok)
+R5 R5_old_128000: bash   depth 128000 (evaluated 516): prefill   437.2 tok/s  ttft   1.18s  decode   75.1 tok/s (400 tok)
+R5 R5_old_128000: mean decode 72.7 tok/s
+15:01:49 R5 R5_old_128000: mem 11751 MHz
+15:01:55 R5 R5_old_128000: CUDA errors 0
+15:02:05 R5 R5_new_128000: health=1; kv     tiered: cells 0..211712 in VRAM, 211712..262144 in system RAM (VRAM margin 1300 MiB); shared CUDA pool 
+R5 R5_new_128000: code   depth 128000 (evaluated 127340): prefill   767.4 tok/s  ttft 165.94s  decode   80.5 tok/s (400 tok)
+R5 R5_new_128000: prose  depth 128000 (evaluated 512): prefill   450.0 tok/s  ttft   1.14s  decode   67.2 tok/s (400 tok)
+R5 R5_new_128000: bash   depth 128000 (evaluated 516): prefill   455.7 tok/s  ttft   1.13s  decode   77.7 tok/s (400 tok)
+R5 R5_new_128000: mean decode 75.1 tok/s
+15:05:10 R5 R5_new_128000: mem 11751 MHz
+15:05:17 R5 R5_new_128000: CUDA errors 0
+15:05:27 R6 R6_old_64000: health=1; kv     tiered: cells 0..90112 in VRAM, 90112..262144 in system RAM; shared CUDA pool on (BONSAI_SHARED_POOL=0 
+kv     sparse host-tail reads: auto (dense line 90112; past it the engine times dense vs sparse per 16k band a
+R6 R6_old_64000: code   depth  64000 (evaluated 64009): prefill   972.3 tok/s  ttft  65.83s  decode   78.5 tok/s (400 tok)
+R6 R6_old_64000: prose  depth  64000 (evaluated 512): prefill   612.2 tok/s  ttft   0.84s  decode   72.1 tok/s (400 tok)
+R6 R6_old_64000: bash   depth  64000 (evaluated 516): prefill   622.8 tok/s  ttft   0.83s  decode   78.0 tok/s (400 tok)
+R6 R6_old_64000: mean decode 76.2 tok/s
+15:06:51 R6 R6_old_64000: mem 11751 MHz
+15:06:57 R6 R6_old_64000: CUDA errors 0
+15:07:08 R6 R6_new_64000: health=1; kv     tiered: cells 0..90112 in VRAM, 90112..262144 in system RAM; shared CUDA pool on (BONSAI_SHARED_POOL=0 
+kv     sparse host-tail reads: auto (dense line 90112; past it the engine times dense vs sparse per 16k band a
+R6 R6_new_64000: code   depth  64000 (evaluated 64009): prefill   972.7 tok/s  ttft  65.81s  decode   80.3 tok/s (400 tok)
+R6 R6_new_64000: prose  depth  64000 (evaluated 512): prefill   621.8 tok/s  ttft   0.82s  decode   73.7 tok/s (400 tok)
+R6 R6_new_64000: bash   depth  64000 (evaluated 516): prefill   623.7 tok/s  ttft   0.83s  decode   79.8 tok/s (400 tok)
+R6 R6_new_64000: mean decode 77.9 tok/s
+15:08:31 R6 R6_new_64000: mem 11751 MHz
+15:08:38 R6 R6_new_64000: CUDA errors 0
+15:08:47 R6 R6_old_128000: health=1; kv     tiered: cells 0..90112 in VRAM, 90112..262144 in system RAM; shared CUDA pool on (BONSAI_SHARED_POOL=0 
+kv     sparse host-tail reads: auto (dense line 90112; past it the engine times dense vs sparse per 16k band a
+R6 R6_old_128000: code   depth 128000 (evaluated 127340): prefill   756.8 tok/s  ttft 168.26s  decode   62.1 tok/s (400 tok)
+R6 R6_old_128000: prose  depth 128000 (evaluated 512): prefill   431.5 tok/s  ttft   1.19s  decode   53.0 tok/s (400 tok)
+R6 R6_old_128000: bash   depth 128000 (evaluated 516): prefill   447.5 tok/s  ttft   1.15s  decode   65.1 tok/s (400 tok)
+R6 R6_old_128000: mean decode 60.0 tok/s
+15:11:59 R6 R6_old_128000: mem 11751 MHz
+15:12:05 R6 R6_old_128000: CUDA errors 0
+15:12:15 R6 R6_new_128000: health=1; kv     tiered: cells 0..90112 in VRAM, 90112..262144 in system RAM; shared CUDA pool on (BONSAI_SHARED_POOL=0 
+kv     sparse host-tail reads: auto (dense line 90112; past it the engine times dense vs sparse per 16k band a
+R6 R6_new_128000: code   depth 128000 (evaluated 127340): prefill   756.9 tok/s  ttft 168.23s  decode   63.4 tok/s (400 tok)
+R6 R6_new_128000: prose  depth 128000 (evaluated 512): prefill   438.9 tok/s  ttft   1.17s  decode   55.2 tok/s (400 tok)
+R6 R6_new_128000: bash   depth 128000 (evaluated 516): prefill   447.3 tok/s  ttft   1.15s  decode   68.1 tok/s (400 tok)
+R6 R6_new_128000: mean decode 62.2 tok/s
+15:15:26 R6 R6_new_128000: mem 11751 MHz
+15:15:32 R6 R6_new_128000: CUDA errors 0
+15:15:33 R5 texts: 9 / 9 identical
+15:15:34 R6 texts: 6 / 6 identical
+15:15:34 R5 R6 done
