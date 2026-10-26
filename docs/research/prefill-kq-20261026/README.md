@@ -178,3 +178,23 @@ bundle gives max KLD 0.000059 and same top 99.988 %, the same as P4 against the 
 **Next (P5).** Before this can ship: decode and drafting must not get slower (the same kernel runs for small batches),
 and the 8 GB card (Turing tiles: 2 block pairs per thread) must gain too. In parallel, the next speed step is to fetch
 the next K tile during the V·(KQ) step, so the K loads overlap as well.
+
+### P5a — P4 with small batches (12:17-12:34)
+
+Null against P4, q4_0 K/V, batch-invariant on, memory clock 11,751 MHz. `tg128` with 3 repetitions, `pp4` with 5.
+Records: `runs.jsonl`, `data/p5a_*.jsonl`.
+
+| Cell | Depth | null tok/s | P4 tok/s | P4 / null |
+|---|---|---|---|---|
+| tg128 | 4k | 65.28 ± 0.28 | 64.63 ± 0.30 | 0.990x |
+| tg128 | 64k | 52.75 ± 0.20 | 55.38 ± 0.19 | **1.050x** |
+| tg128 | 128k | 43.71 ± 0.05 | 47.83 ± 0.15 | **1.094x** |
+| pp4 | 64k | 140.05 ± 21.42 | 144.55 ± 20.24 | 1.032x |
+| pp4 | 128k | 126.08 ± 13.40 | 130.58 ± 14.43 | 1.036x |
+
+- **S1 passes** (no cell below 0.97x). The 4k decode cell is 1 % slower, about two standard deviations; at 4k the
+  attention is a small part of a token, so the cost of the extra registers can show there. It is a point to check
+  again on the release candidate.
+- **Decode at depth gains too** (+5 % at 64k, +9 % at 128k): with one query column the kernel waits for the K and V
+  loads even more than in prefill.
+- `pp4` has a large spread (about 15 %) in `llama-bench`; the means agree with a small gain.
