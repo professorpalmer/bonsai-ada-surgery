@@ -59,6 +59,12 @@ the bundle-20261025 engine binaries (`810d93e5aa`), `llama-bench`, the model fil
   K loads overlap too. Gates as P4: byte-identical logits; pp512 at 128k and 245k at least 1.04x faster than P4
   in **two** back-to-back pairs (P4, P5b, P4, P5b), because one run has up to 5 % noise and only the K part is new.
   S1 uses `-r 3` for `tg128` and `-r 5` for `pp4`.
+- **P6 — P4 through the real server (added 13:25, after P5c started).** Two roots from the bundle-20261025 zip that
+  differ only in `ggml-cuda.dll`: the null build's and P4's (both `89-real`, same configuration). The 12 GB launcher
+  defaults (tiered KV, packed mask, MTP drafting, batch-invariant), the layer off, `bench/depth_table.sh` with a fresh
+  server for each depth (64k, 128k, 245k), and `QTPS_SAVE` keeps the reply texts. Order: null, P4 for each depth. Gates:
+  **G1** cumulative cold prefill at 245k at least 1.04x and no depth below 0.98x; **G2** decode (mean of the three
+  prompts) no depth below 0.97x; **G3** all 9 reply texts identical between the two roots.
 
 ## What decides the next step
 
