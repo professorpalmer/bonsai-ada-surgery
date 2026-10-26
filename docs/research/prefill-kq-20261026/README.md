@@ -46,3 +46,30 @@ the bundle-20261025 engine binaries (`810d93e5aa`), `llama-bench`, the model fil
 - If P1 shows that the batch-invariant mode costs more than 10 % of prefill at depth, that goes to its own study
   (the mode exists for MTP drafting; a prefill exception must keep the drafted output identical).
 - If neither, the time is somewhere else, and P1 says where to look next.
+
+## Results
+
+### P1 — depth sweep (10:07-10:44)
+
+GPU memory used by other programs at the start: 539 MiB; memory clock 11,751 MHz. Engine `810d93e5aa`. Records:
+`runs.jsonl`, `data/p1_inv1.jsonl`, `data/p1_inv0.jsonl`.
+
+| Depth | tok/s, batch-invariant on | tok/s, off | ms per token (on) |
+|---|---|---|---|
+| 0 | 1,406.2 | 1,415.9 | 0.711 |
+| 32k | 990.8 | 983.7 | 1.009 |
+| 64k | 727.0 | 727.4 | 1.375 |
+| 128k | 482.2 | 483.3 | 2.074 |
+| 196k | 362.4 | 363.9 | 2.759 |
+| 245k | 305.5 | 305.5 | 3.273 |
+
+- **The cost per token is a straight line in depth:** 0.711 ms + 10.4 ns per token of depth (the line gives 2.077 ms at
+  128k against 2.074 measured). At 245k, the part that grows with depth is 2.56 ms of 3.27 ms (78 %).
+- **That part runs at about half of the tensor-math rate.** K·Q and V·(KQ) at 245k are 96.6 GFLOP for each token, in
+  2.56 ms: 37.7 TFLOPS. At the RTX 4070's dense rates (about 58 TFLOPS for fp16 with fp32 accumulation, 117 with fp16
+  accumulation), the math alone takes 1.24 ms. So about half of the time is not tensor math: loading and dequantizing
+  the K and V tiles, the softmax, and synchronization. P3 measures the load part.
+- **The batch-invariant mode costs nothing here** (all cells within 0.7 %). That is as expected from the code: the mode
+  changes only the kernels for 1-8 columns (decode and drafting), not the 512-column prompt batches. Decision rule 2
+  (more than 10 %) does not apply.
+- The RTX 3060 report (about 240 tok/s at 245k) agrees with this line, scaled for a card with less compute.
