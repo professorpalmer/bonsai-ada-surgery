@@ -34,6 +34,10 @@ the bundle-20261025 engine binaries (`810d93e5aa`), `llama-bench`, the model fil
   (`T_C_KQ` as a half2 tile) on the Ada / Ampere path, if the kernel allows it without other changes. This is not a
   candidate to ship (fp16 accumulation of K·Q over 256-wide heads risks overflow); it shows how much prefill time a
   full-rate K·Q can save. With P2: perplexity on a short text, against P1's build, to see the numeric cost.
+- **P3 — the other parts of the attention cost (measurement, no gate).** Added at 10:20, after the first four P1 points
+  (batch-invariant on) were seen. The K and V tiles are loaded and dequantized again for each block of query columns, so
+  the load can cost as much as the math. At depth 64k, the same pp512 with `-ctk/-ctv` f16, q8_0 and q4_0 (f16 is the
+  case with no dequant step). At depth 128k, `-ub 512` against `-ub 2048 -b 2048` with `-p 2048`.
 
 ## What decides the next step
 
