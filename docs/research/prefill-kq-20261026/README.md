@@ -259,7 +259,7 @@ depth on Ada, and the 12 GB launcher uses this kernel for prefill and decode. Be
 the RTX 4070, and the RTX 2060 SUPER (Turing tiles, the 8 GB preset, where decode and drafting use this kernel and
 prefill uses the f16 path).
 
-## Status (15:10)
+## Status (13:50)
 
 P4 is in the release candidate `release-20261026` (engine commit `a38714c63d`: the P4 change as one commit, plus a
 review fix for 64-wide HIP warps that does not change the NVIDIA code). Not kept: P2 (fp16 accumulation, not
