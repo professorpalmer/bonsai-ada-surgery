@@ -76,3 +76,28 @@ GPU memory used by other programs at the start: 539 MiB; memory clock 11,751 MHz
   tensor rates (fp16 with fp32 accumulation) is about 0.44, and the ratio of the memory bandwidths is 0.71 (360 against
   504 GB/s). So the 3060 number agrees better with an attention cost set by loads than by math. This is only a hint:
   that number is from a full server prompt on a different system, not from this bench.
+
+### P2 — K·Q with fp16 accumulation (10:44-11:18), and its KL check (11:18)
+
+Build: the bundle engine `810d93e5aa` plus one change on the Ampere / Ada path (columns per warp not 8): the K·Q tensor
+operations accumulate into a half2 tile, which expands to the fp32 tile before the softmax. Measurement build only,
+for the RTX 4070 (`89-real`). Records: `runs.jsonl`, `data/p2_inv1.jsonl`, `data/p2_inv0.jsonl`, `data/kl_p2.txt`.
+
+| Depth | P2 tok/s (batch-invariant on) | against P1 | P2 tok/s (off) | against P1 |
+|---|---|---|---|---|
+| 0 | 1,405.8 | 1.000x | 1,403.5 | 0.991x |
+| 32k | 1,037.5 | 1.047x | 1,043.1 | 1.060x |
+| 64k | 789.2 | 1.086x | 799.9 | 1.100x |
+| 128k | 535.2 | 1.110x | 534.6 | 1.106x |
+| 196k | 402.9 | 1.112x | 403.4 | 1.109x |
+| 245k | 340.9 | **1.116x** | 342.5 | **1.121x** |
+
+- **The rule for the int8 K·Q study (1.25x at 245k) is not met:** 1.12x. Full-rate K·Q removes 0.34 ms of the 2.56 ms
+  that grows with depth. That is near the 0.41 ms that the tensor rates predict, so the K·Q math was not the large part.
+  An int8 K·Q kernel would run at the same full rate (and adds a quantization step for Q), so it cannot give much more
+  than this upper bound. **No int8 K·Q study.**
+- **Numeric cost (KL against the bundle engine,** `wiki.test.raw`, context 8,192, 2 chunks, q4_0 K and V): PPL 6.6422
+  against 6.6370 (ratio 1.00078 ± 0.00051), mean KLD 0.000925, 99 % KLD 0.0074, maximum 0.174, same top token 98.62 %.
+  Small, but not zero. The base run against itself was not measured (the kernels are deterministic for a fixed batch).
+- Decision rule 3 applies: the time is somewhere else. About 1.3 ms of the 2.56 ms is not tensor math (P1). P3 measures
+  the load and dequantization part.
