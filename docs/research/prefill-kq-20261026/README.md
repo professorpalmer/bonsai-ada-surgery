@@ -52,6 +52,12 @@ the bundle-20261025 engine binaries (`810d93e5aa`), `llama-bench`, the model fil
   as in P2: mean KLD 0 and same top token 100 %); **E2** pp512 at 64k, 128k and 245k (q4_0, batch-invariant off) at
   least 1.08x faster at 128k and 245k (above the 5 % noise of one run), no depth slower than 0.97x. If E1 and E2 pass,
   the next step is the same prefetch for the next K tile, then the RTX 2060 check.
+- **P5 — P4 for small batches, and the next K tile (added 12:20, after P4).** (a) Decode and drafting run the same
+  kernel with few columns. Null against P4, back to back, q4_0 K/V, batch-invariant on (as the 12 GB launcher with
+  drafting): `tg128` at depth 4k, 64k and 128k, and `pp4` (a draft check of 4 tokens) at 64k and 128k. Gate **S1**: no
+  cell slower than 0.97x. (b) P5b: during the V·(KQ) step, fetch the words of the next K tile into registers, so the
+  K loads overlap too. Gates as P4: byte-identical logits; pp512 at 128k and 245k at least 1.04x faster than P4,
+  back to back (smaller than P4's gate, because only the K part is new).
 
 ## What decides the next step
 
