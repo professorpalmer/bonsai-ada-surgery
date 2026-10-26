@@ -233,3 +233,28 @@ softmax and V·(KQ). Records: `runs.jsonl`, `data/p5b_*.jsonl`.
 The P4 change also runs for decode and drafting (other column counts and tile shapes). Null against P4,
 `llama-perplexity` with context 2,048, one chunk, `-ub 1 / 4 / 8 / 32` (each forces that batch shape),
 batch-invariant on, q4_0 and q8_0 K/V: the logit files (508,079,116 bytes) are **byte-identical in all 8 cells**.
+
+### P6 — P4 through the real server (13:24-13:51)
+
+Two roots from the bundle-20261025 zip that differ only in `ggml-cuda.dll` (null build / P4). The 12 GB launcher
+defaults (tiered KV with the VRAM line at about 212k cells, packed mask, MTP drafting, lookup drafting,
+batch-invariant), the layer off, a fresh server for each depth and root, the depth-table prompts of `quick_tps.py`.
+Memory clock 11,751 MHz in every sample. Records: `runs.jsonl`, `data/p6.log`.
+
+| Depth | cold prefill null | P4 | P4 / null | 512-token turn (prose) | decode, mean of 3: null | P4 | P4 / null |
+|---|---|---|---|---|---|---|---|
+| 64k | 964.9 tok/s | 988.2 | 1.024x | 591.0 -> 608.1 (1.029x) | 79.2 | 81.8 | 1.033x |
+| 128k | 738.5 | 769.6 | 1.042x | 419.8 -> 453.3 (1.080x) | 72.8 | 75.4 | 1.036x |
+| 245k | 515.9 (472.8 s) | 545.5 (447.1 s) | **1.057x** | 278.8 -> 301.3 (1.081x) | 44.8 | 45.9 | 1.025x |
+
+- **G1 pass** (1.057x at 245k; no depth below 0.98x). The cold prefill gains less than the bench at the same depth
+  because it is the mean over all depths from 0, and the server also runs the weights and the draft head.
+- **G2 pass** (decode +2.5 to +3.6 %).
+- **G3 pass:** all 9 reply texts identical. 0 CUDA errors, 0 spill lines.
+- The null root equals the earlier bundle receipt (`depth_table_bundle-20261019a-12gb-fresh`: 64k 977 / 79.2, 128k
+  741 / 72.0), so this setup measures the shipped speed.
+
+**Decision: P4 goes to a release candidate.** It changes no output bit (P4 E1, P5c, P6 G3), it is faster at every
+depth on Ada, and the 12 GB launcher uses this kernel for prefill and decode. Before publishing: the release gates on
+the RTX 4070, and the RTX 2060 SUPER (Turing tiles, the 8 GB preset, where decode and drafting use this kernel and
+prefill uses the f16 path).
