@@ -56,8 +56,9 @@ the bundle-20261025 engine binaries (`810d93e5aa`), `llama-bench`, the model fil
   kernel with few columns. Null against P4, back to back, q4_0 K/V, batch-invariant on (as the 12 GB launcher with
   drafting): `tg128` at depth 4k, 64k and 128k, and `pp4` (a draft check of 4 tokens) at 64k and 128k. Gate **S1**: no
   cell slower than 0.97x. (b) P5b: during the V·(KQ) step, fetch the words of the next K tile into registers, so the
-  K loads overlap too. Gates as P4: byte-identical logits; pp512 at 128k and 245k at least 1.04x faster than P4,
-  back to back (smaller than P4's gate, because only the K part is new).
+  K loads overlap too. Gates as P4: byte-identical logits; pp512 at 128k and 245k at least 1.04x faster than P4
+  in **two** back-to-back pairs (P4, P5b, P4, P5b), because one run has up to 5 % noise and only the K part is new.
+  S1 uses `-r 3` for `tg128` and `-r 5` for `pp4`.
 
 ## What decides the next step
 
