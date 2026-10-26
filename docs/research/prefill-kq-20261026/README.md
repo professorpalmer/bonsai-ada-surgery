@@ -198,3 +198,26 @@ Records: `runs.jsonl`, `data/p5a_*.jsonl`.
 - **Decode at depth gains too** (+5 % at 64k, +9 % at 128k): with one query column the kernel waits for the K and V
   loads even more than in prefill.
 - `pp4` has a large spread (about 15 %) in `llama-bench`; the means agree with a small gain.
+
+### P5b — also fetch the next K tile (12:34-13:16): no gain, not kept
+
+Engine commit `8ce20823bc` (on P4): in the path without the OOB check, the caller fetches the first K tile, and each
+tile fetches the words of the next K tile right after it stores its own K tile, so the K loads overlap with K·Q,
+softmax and V·(KQ). Records: `runs.jsonl`, `data/p5b_*.jsonl`.
+
+- **E1:** logits byte-identical to the bundle.
+- **Speed, two back-to-back pairs** (q4_0, batch-invariant off):
+
+| Pair | Depth | P4 | P5b | P5b / P4 |
+|---|---|---|---|---|
+| 1 (memory clock 11,751 MHz) | 128k | 531.1 | 525.2 | 0.989x |
+| 1 | 245k | 340.7 | 336.6 | 0.988x |
+| 2 (12,001 MHz) | 128k | 524.6 | 527.4 | 1.005x |
+| 2 | 245k | 342.2 | 336.6 | 0.984x |
+
+- **The gate (1.04x in both pairs) fails:** no gain, maybe a 1 % loss at 245k. The memory clock changed between the
+  pairs (each pair ran at one clock), so the pairs are compared only inside themselves.
+- A possible reason: with two blocks of 4 warps on each SM, the other block already covers the K load of this one,
+  and the K words now stay in registers for the whole tile. Without the profiler (P3b) this is not confirmed.
+- **P4 stays the candidate.** Next: identity checks for the small-batch kernels, then a release build for all three
+  card generations and the RTX 2060 SUPER check (Turing tiles: two block pairs per thread).

@@ -47,3 +47,12 @@
 {"run": "P5a", "cell": "p5a_tg_p4", "batch_invariant": 1, "depth": 131072, "n_prompt": 0, "n_gen": 128, "reps": 3, "tok_s": 47.83, "stddev": 0.15, "engine": "P4 (57d2928d04)", "type_k": "q4_0", "type_v": "q4_0", "mem_clock_mhz": 11751}
 {"run": "P5a", "cell": "p5a_pp4_p4", "batch_invariant": 1, "depth": 65536, "n_prompt": 4, "n_gen": 0, "reps": 5, "tok_s": 144.55, "stddev": 20.24, "engine": "P4 (57d2928d04)", "type_k": "q4_0", "type_v": "q4_0", "mem_clock_mhz": 11751}
 {"run": "P5a", "cell": "p5a_pp4_p4", "batch_invariant": 1, "depth": 131072, "n_prompt": 4, "n_gen": 0, "reps": 5, "tok_s": 130.58, "stddev": 14.43, "engine": "P4 (57d2928d04)", "type_k": "q4_0", "type_v": "q4_0", "mem_clock_mhz": 11751}
+{"run": "P5b", "cell": "p5b_p4_1", "batch_invariant": 0, "depth": 131072, "n_prompt": 512, "tok_s": 531.1, "engine": "P4 (57d2928d04)", "type_k": "q4_0", "type_v": "q4_0", "mem_clock_mhz_after": 11751}
+{"run": "P5b", "cell": "p5b_p4_1", "batch_invariant": 0, "depth": 245760, "n_prompt": 512, "tok_s": 340.7, "engine": "P4 (57d2928d04)", "type_k": "q4_0", "type_v": "q4_0", "mem_clock_mhz_after": 11751}
+{"run": "P5b", "cell": "p5b_p5_1", "batch_invariant": 0, "depth": 131072, "n_prompt": 512, "tok_s": 525.2, "engine": "P5b (8ce20823bc)", "type_k": "q4_0", "type_v": "q4_0", "mem_clock_mhz_after": 11751}
+{"run": "P5b", "cell": "p5b_p5_1", "batch_invariant": 0, "depth": 245760, "n_prompt": 512, "tok_s": 336.6, "engine": "P5b (8ce20823bc)", "type_k": "q4_0", "type_v": "q4_0", "mem_clock_mhz_after": 11751}
+{"run": "P5b", "cell": "p5b_p4_2", "batch_invariant": 0, "depth": 131072, "n_prompt": 512, "tok_s": 524.6, "engine": "P4 (57d2928d04)", "type_k": "q4_0", "type_v": "q4_0", "mem_clock_mhz_after": 12001}
+{"run": "P5b", "cell": "p5b_p4_2", "batch_invariant": 0, "depth": 245760, "n_prompt": 512, "tok_s": 342.2, "engine": "P4 (57d2928d04)", "type_k": "q4_0", "type_v": "q4_0", "mem_clock_mhz_after": 12001}
+{"run": "P5b", "cell": "p5b_p5_2", "batch_invariant": 0, "depth": 131072, "n_prompt": 512, "tok_s": 527.4, "engine": "P5b (8ce20823bc)", "type_k": "q4_0", "type_v": "q4_0", "mem_clock_mhz_after": 12001}
+{"run": "P5b", "cell": "p5b_p5_2", "batch_invariant": 0, "depth": 245760, "n_prompt": 512, "tok_s": 336.6, "engine": "P5b (8ce20823bc)", "type_k": "q4_0", "type_v": "q4_0", "mem_clock_mhz_after": 12001}
+{"run": "P5b-E1", "logits_byte_identical_to_bundle": true}
