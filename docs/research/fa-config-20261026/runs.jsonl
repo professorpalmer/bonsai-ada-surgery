@@ -1,0 +1,38 @@
+{"run": "C1", "variant": "B", "round": "r1", "type_kv": "q4_0", "n_depth": 65536, "n_prompt": 32, "tok_s": 449.76, "stddev": 33.96, "build_commit": "7c98a8d64b", "gpu": "NVIDIA GeForce RTX 4070", "batch_invariant": 1}
+{"run": "C1", "variant": "B", "round": "r2", "type_kv": "q4_0", "n_depth": 65536, "n_prompt": 32, "tok_s": 452.81, "stddev": 37.37, "build_commit": "7c98a8d64b", "gpu": "NVIDIA GeForce RTX 4070", "batch_invariant": 1}
+{"run": "C1", "variant": "C", "round": "r1", "type_kv": "q4_0", "n_depth": 65536, "n_prompt": 32, "tok_s": 502.12, "stddev": 43.88, "build_commit": "7c98a8d64b", "gpu": "NVIDIA GeForce RTX 4070", "batch_invariant": 1}
+{"run": "C1", "variant": "C", "round": "r2", "type_kv": "q4_0", "n_depth": 65536, "n_prompt": 32, "tok_s": 498.39, "stddev": 38.49, "build_commit": "7c98a8d64b", "gpu": "NVIDIA GeForce RTX 4070", "batch_invariant": 1}
+{"run": "C1", "variant": "E", "round": "r1", "type_kv": "q4_0", "n_depth": 65536, "n_prompt": 32, "tok_s": 441.78, "stddev": 26.4, "build_commit": "7c98a8d64b", "gpu": "NVIDIA GeForce RTX 4070", "batch_invariant": 1}
+{"run": "C1", "variant": "E", "round": "r2", "type_kv": "q4_0", "n_depth": 65536, "n_prompt": 32, "tok_s": 436.55, "stddev": 28.02, "build_commit": "7c98a8d64b", "gpu": "NVIDIA GeForce RTX 4070", "batch_invariant": 1}
+{"run": "C1", "variant": "base", "round": "r1", "type_kv": "q4_0", "n_depth": 65536, "n_prompt": 32, "tok_s": 506.53, "stddev": 35.42, "build_commit": "a38714c63d", "gpu": "NVIDIA GeForce RTX 4070", "batch_invariant": 1}
+{"run": "C1", "variant": "base", "round": "r2", "type_kv": "q4_0", "n_depth": 65536, "n_prompt": 32, "tok_s": 503.89, "stddev": 44.22, "build_commit": "a38714c63d", "gpu": "NVIDIA GeForce RTX 4070", "batch_invariant": 1}
+{"run": "C1", "variant": "B", "round": "r1", "type_kv": "q4_0", "n_depth": 32768, "n_prompt": 512, "tok_s": 934.26, "stddev": 6.77, "build_commit": "7c98a8d64b", "gpu": "NVIDIA GeForce RTX 4070", "batch_invariant": 1}
+{"run": "C1", "variant": "B", "round": "r1", "type_kv": "q4_0", "n_depth": 65536, "n_prompt": 512, "tok_s": 668.77, "stddev": 2.73, "build_commit": "7c98a8d64b", "gpu": "NVIDIA GeForce RTX 4070", "batch_invariant": 1}
+{"run": "C1", "variant": "B", "round": "r1", "type_kv": "q4_0", "n_depth": 131072, "n_prompt": 512, "tok_s": 438.04, "stddev": 1.16, "build_commit": "7c98a8d64b", "gpu": "NVIDIA GeForce RTX 4070", "batch_invariant": 1}
+{"run": "C1", "variant": "B", "round": "r2", "type_kv": "q4_0", "n_depth": 32768, "n_prompt": 512, "tok_s": 925.01, "stddev": 7.0, "build_commit": "7c98a8d64b", "gpu": "NVIDIA GeForce RTX 4070", "batch_invariant": 1}
+{"run": "C1", "variant": "B", "round": "r2", "type_kv": "q4_0", "n_depth": 65536, "n_prompt": 512, "tok_s": 673.1, "stddev": 4.17, "build_commit": "7c98a8d64b", "gpu": "NVIDIA GeForce RTX 4070", "batch_invariant": 1}
+{"run": "C1", "variant": "B", "round": "r2", "type_kv": "q4_0", "n_depth": 131072, "n_prompt": 512, "tok_s": 439.63, "stddev": 2.35, "build_commit": "7c98a8d64b", "gpu": "NVIDIA GeForce RTX 4070", "batch_invariant": 1}
+{"run": "C1", "variant": "C", "round": "r1", "type_kv": "q4_0", "n_depth": 32768, "n_prompt": 512, "tok_s": 1017.57, "stddev": 6.8, "build_commit": "7c98a8d64b", "gpu": "NVIDIA GeForce RTX 4070", "batch_invariant": 1}
+{"run": "C1", "variant": "C", "round": "r1", "type_kv": "q4_0", "n_depth": 65536, "n_prompt": 512, "tok_s": 772.21, "stddev": 4.06, "build_commit": "7c98a8d64b", "gpu": "NVIDIA GeForce RTX 4070", "batch_invariant": 1}
+{"run": "C1", "variant": "C", "round": "r1", "type_kv": "q4_0", "n_depth": 131072, "n_prompt": 512, "tok_s": 522.4, "stddev": 2.87, "build_commit": "7c98a8d64b", "gpu": "NVIDIA GeForce RTX 4070", "batch_invariant": 1}
+{"run": "C1", "variant": "C", "round": "r2", "type_kv": "q4_0", "n_depth": 32768, "n_prompt": 512, "tok_s": 1013.81, "stddev": 10.55, "build_commit": "7c98a8d64b", "gpu": "NVIDIA GeForce RTX 4070", "batch_invariant": 1}
+{"run": "C1", "variant": "C", "round": "r2", "type_kv": "q4_0", "n_depth": 65536, "n_prompt": 512, "tok_s": 772.22, "stddev": 2.98, "build_commit": "7c98a8d64b", "gpu": "NVIDIA GeForce RTX 4070", "batch_invariant": 1}
+{"run": "C1", "variant": "C", "round": "r2", "type_kv": "q4_0", "n_depth": 131072, "n_prompt": 512, "tok_s": 524.12, "stddev": 3.65, "build_commit": "7c98a8d64b", "gpu": "NVIDIA GeForce RTX 4070", "batch_invariant": 1}
+{"run": "C1", "variant": "E", "round": "r1", "type_kv": "q4_0", "n_depth": 32768, "n_prompt": 512, "tok_s": 903.5, "stddev": 8.15, "build_commit": "7c98a8d64b", "gpu": "NVIDIA GeForce RTX 4070", "batch_invariant": 1}
+{"run": "C1", "variant": "E", "round": "r1", "type_kv": "q4_0", "n_depth": 65536, "n_prompt": 512, "tok_s": 647.3, "stddev": 3.13, "build_commit": "7c98a8d64b", "gpu": "NVIDIA GeForce RTX 4070", "batch_invariant": 1}
+{"run": "C1", "variant": "E", "round": "r1", "type_kv": "q4_0", "n_depth": 131072, "n_prompt": 512, "tok_s": 415.38, "stddev": 1.42, "build_commit": "7c98a8d64b", "gpu": "NVIDIA GeForce RTX 4070", "batch_invariant": 1}
+{"run": "C1", "variant": "E", "round": "r2", "type_kv": "q4_0", "n_depth": 32768, "n_prompt": 512, "tok_s": 897.17, "stddev": 8.99, "build_commit": "7c98a8d64b", "gpu": "NVIDIA GeForce RTX 4070", "batch_invariant": 1}
+{"run": "C1", "variant": "E", "round": "r2", "type_kv": "q4_0", "n_depth": 65536, "n_prompt": 512, "tok_s": 642.28, "stddev": 1.45, "build_commit": "7c98a8d64b", "gpu": "NVIDIA GeForce RTX 4070", "batch_invariant": 1}
+{"run": "C1", "variant": "E", "round": "r2", "type_kv": "q4_0", "n_depth": 131072, "n_prompt": 512, "tok_s": 412.26, "stddev": 1.46, "build_commit": "7c98a8d64b", "gpu": "NVIDIA GeForce RTX 4070", "batch_invariant": 1}
+{"run": "C1", "variant": "base", "round": "r1", "type_kv": "q4_0", "n_depth": 32768, "n_prompt": 512, "tok_s": 1020.22, "stddev": 9.61, "build_commit": "a38714c63d", "gpu": "NVIDIA GeForce RTX 4070", "batch_invariant": 1}
+{"run": "C1", "variant": "base", "round": "r1", "type_kv": "q4_0", "n_depth": 65536, "n_prompt": 512, "tok_s": 780.11, "stddev": 5.34, "build_commit": "a38714c63d", "gpu": "NVIDIA GeForce RTX 4070", "batch_invariant": 1}
+{"run": "C1", "variant": "base", "round": "r1", "type_kv": "q4_0", "n_depth": 131072, "n_prompt": 512, "tok_s": 531.67, "stddev": 2.33, "build_commit": "a38714c63d", "gpu": "NVIDIA GeForce RTX 4070", "batch_invariant": 1}
+{"run": "C1", "variant": "base", "round": "r2", "type_kv": "q4_0", "n_depth": 32768, "n_prompt": 512, "tok_s": 1009.78, "stddev": 6.29, "build_commit": "a38714c63d", "gpu": "NVIDIA GeForce RTX 4070", "batch_invariant": 1}
+{"run": "C1", "variant": "base", "round": "r2", "type_kv": "q4_0", "n_depth": 65536, "n_prompt": 512, "tok_s": 771.19, "stddev": 4.53, "build_commit": "a38714c63d", "gpu": "NVIDIA GeForce RTX 4070", "batch_invariant": 1}
+{"run": "C1", "variant": "base", "round": "r2", "type_kv": "q4_0", "n_depth": 131072, "n_prompt": 512, "tok_s": 526.48, "stddev": 1.85, "build_commit": "a38714c63d", "gpu": "NVIDIA GeForce RTX 4070", "batch_invariant": 1}
+{"run": "C0", "variant": "E", "result": "  3115/3115 tests passed; FAIL lines 0"}
+{"run": "C0", "variant": "B", "result": "; FAIL lines 0"}
+{"run": "C0", "variant": "C", "result": "  3115/3115 tests passed; FAIL lines 0"}
+{"run": "C2", "variant": "E", "result": "DIFFER"}
+{"run": "C2", "variant": "B", "result": "chunk PPL ln(PPL(Q)/PPL(base)) KL Divergence \u0394p RMS Same top p;Mean KLD: 0.000899 \u00b1 0.000034;Maximum KLD: 0.142969;Same top p: 98.657 \u00b1 0.127 %; CUDA errors 0"}
+{"run": "C2", "variant": "C", "result": "chunk PPL ln(PPL(Q)/PPL(base)) KL Divergence \u0394p RMS Same top p;Mean KLD: 0.000859 \u00b1 0.000025;Maximum KLD: 0.105511;Same top p: 98.657 \u00b1 0.127 %; CUDA errors 0"}
