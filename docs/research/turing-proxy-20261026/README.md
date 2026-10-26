@@ -70,3 +70,17 @@ Log: [`data/tp.log`](data/tp.log). Every row: [`runs.jsonl`](runs.jsonl). Script
 - Two questions for the rig (P230, after P229): (1) with 0072, is the in-place read now as fast as the f16 copy on the
   2060? Then the 8 GB preset could drop the copy and its pool memory (about 240 MiB at 60k). (2) Does
   `GGML_CUDA_FA_F16_V_ROWS` help there, where the loads wait longer?
+
+## P230 on the rig (gates declared before the run, 16:45)
+
+Script: [`rig/p230.sh`](rig/p230.sh). Engines: the 1026 engine (`a38714c63d`), and `c19c5988d1` with V_ROWS 16 and
+64, all `75-real` builds. q3_0 K/V, `-ub 512`, batch-invariant on (the 8 GB launcher with drafting), pp512 at depth
+8,192 and 32,768, 2 rounds in turns.
+
+| Question | Gate | Then |
+|---|---|---|
+| A: in-place read against the f16 copy (1026 engine) | in-place at least 0.98x of the copy at 8k and at 32k | the 8 GB preset can drop the copy: no speed loss and the copy's pool memory is free. Next: a server A/B on the rig (cold prefill 64k and 128k, texts) before any launcher change |
+| A, other result | in-place below 0.98x at 8k or 32k | the copy stays; logged |
+| B: V_ROWS 16 / 64 | logits byte-identical to the 1026 engine (both cells), and pp512 at 32k with the copy at least 1.03x (both rounds) | patch candidate: then a server A/B on the rig and a release with its own gates |
+| B, other result | under 1.03x, or any difference in the logits | not kept; logged |
+| health | 0 `CUDA error` lines | else the run is not valid |
