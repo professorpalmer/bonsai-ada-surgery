@@ -43,6 +43,15 @@ the bundle-20261025 engine binaries (`810d93e5aa`), `llama-bench`, the model fil
   not locked: warp stall reasons, tensor-pipe use, L2 and DRAM traffic. It says which part of the non-math time to
   attack: global-load latency (then a register prefetch of the quantized tiles, P4), the dequantization work, or the
   barriers.
+- **P4 — a register prefetch of the quantized V tile (an engine build).** Added at 11:30, after P3; P3b could not run
+  (no access to the GPU performance counters). With a quantized cache, the kernel loads each K and V tile
+  synchronously (no pipeline stages), so every warp waits for the global loads. In P4, each thread reads the words of
+  its V block pair (9 for q4_0, 17 for q8_0, 7 for q3_0) into registers at the start of the tile, before the K
+  dequantization, and dequantizes them into shared memory after the K·Q and softmax steps. The V load then overlaps
+  with that work. The arithmetic does not change. Gates: **E1** the output is identical to the bundle engine (KL run
+  as in P2: mean KLD 0 and same top token 100 %); **E2** pp512 at 64k, 128k and 245k (q4_0, batch-invariant off) at
+  least 1.08x faster at 128k and 245k (above the 5 % noise of one run), no depth slower than 0.97x. If E1 and E2 pass,
+  the next step is the same prefetch for the next K tile, then the RTX 2060 check.
 
 ## What decides the next step
 
