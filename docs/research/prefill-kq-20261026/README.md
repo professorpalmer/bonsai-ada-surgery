@@ -72,4 +72,7 @@ GPU memory used by other programs at the start: 539 MiB; memory clock 11,751 MHz
 - **The batch-invariant mode costs nothing here** (all cells within 0.7 %). That is as expected from the code: the mode
   changes only the kernels for 1-8 columns (decode and drafting), not the 512-column prompt batches. Decision rule 2
   (more than 10 %) does not apply.
-- The RTX 3060 report (about 240 tok/s at 245k) agrees with this line, scaled for a card with less compute.
+- **A hint from the RTX 3060 report:** about 240 tok/s at 245k there, 305.5 here, a ratio of 0.79. The ratio of the
+  tensor rates (fp16 with fp32 accumulation) is about 0.44, and the ratio of the memory bandwidths is 0.71 (360 against
+  504 GB/s). So the 3060 number agrees better with an attention cost set by loads than by math. This is only a hint:
+  that number is from a full server prompt on a different system, not from this bench.
