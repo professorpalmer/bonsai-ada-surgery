@@ -136,3 +136,38 @@ Batch-invariant mode off, engine `810d93e5aa`. Records: `runs.jsonl`, `data/p3_*
 - **P3b did not run:** Nsight Compute stopped with `ERR_NVGPUCTRPERM` (no access to the GPU performance counters for
   this user). That is a system setting; it stays as it is unless Cary changes it. P4 tests the load-wait question
   directly instead.
+
+### P4 — register prefetch of the quantized K and V tiles (11:32-12:16)
+
+The change (engine branch `research/pkq-prefetch`, commit `57d2928d04` on `810d93e5aa`): the quantized tile loader is
+split in two. At the start of each tile, every thread reads the words of its K block pair and of its V block pair into
+registers (q4_0: 9 + 9 words for the Ada configuration). The K words are dequantized into shared memory at the old
+place; the V words are dequantized after the K·Q and softmax steps, also at the old place. So the V loads are in flight
+during that work, and the arithmetic is the same. It applies only when the tile is one chunk (true for head size 256)
+and the cache is quantized with no pipeline stages.
+
+**A control.** The P4 build has its own configuration (`89-real` only, its own build folder), so I built the
+unchanged source with the same configuration ("null") and measured it too.
+
+**E1, identical output: pass.** The logits that `llama-perplexity --kl-divergence-base` writes (wiki.test.raw, context
+8,192, 2 chunks, q4_0 K/V; 4,067,612,676 bytes) are **byte-identical** for the bundle engine, the null build and P4
+(SHA-256 `95bf9bb01a3ff444...`). This is stricter than the KL numbers in the gate text: the KL statistics cannot show
+0 / 100 % even for one binary against itself, because the base file holds compressed logits (the null against the
+bundle gives max KLD 0.000059 and same top 99.988 %, the same as P4 against the null).
+
+**E2, speed: pass.** pp512, q4_0 K/V, batch-invariant off; memory clock 11,751 MHz in all 96 samples under load.
+
+| Depth | P1 (bundle) | null | P4, back to back | P4 / null | P4, first run | first run / P1 |
+|---|---|---|---|---|---|---|
+| 64k | 727.4 | 724.1 | 767.9 | 1.060x | 772.9 | 1.063x |
+| 128k | 483.3 | 481.7 | 525.4 | **1.091x** | 524.7 | 1.086x |
+| 245k | 305.5 | 306.0 | 338.5 | **1.106x** | 339.7 | 1.112x |
+
+- The null is as fast as the bundle (within 0.5 %), so the build configuration does not cause the gain.
+- The two P4 runs agree within 0.7 %.
+- At 245k the prefetch removes about 0.32 ms of the 2.56 ms that grows with depth, about as much as full-rate K·Q in
+  P2. The two changes are on different parts, so they may add.
+
+**Next (P5).** Before this can ship: decode and drafting must not get slower (the same kernel runs for small batches),
+and the 8 GB card (Turing tiles: 2 block pairs per thread) must gain too. In parallel, the next speed step is to fetch
+the next K tile during the V·(KQ) step, so the K loads overlap as well.
