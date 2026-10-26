@@ -1,6 +1,6 @@
 # The patch stack
 
-Everything is submitted upstream to PrismML; this repo ships the combined stack now: 71 commits on
+Everything is submitted upstream to PrismML; this repo ships the combined stack now: 72 commits on
 `prism@adfffbe`, as `git am`-able patches in [`patches/`](../../patches/), as the branch
 [`bonsai-q8-product`](https://github.com/professorpalmer/llama.cpp-ada-ternary/tree/bonsai-q8-product), and as
 Windows binaries on [Releases](https://github.com/professorpalmer/bonsai-ada-surgery/releases). Merged upstream already: #214 (branch-free PTQ1_0 MMQ tile loader,
@@ -65,6 +65,7 @@ Hadamard-embedding fix of sudoingX's #217 landed through #205. #285 was split at
 | 0069 | delta saves, review fixes: the draft sidecar always full; deltas only without SWA / mtmd; the slot must end where the delta starts; the n_ctx check counts the total | this repo |
 | 0070 | Replay rollback (`LLAMA_RS_REPLAY=1`, launcher `BONSAI_RS_REPLAY=1`, off by default): the recurrent state keeps one plane instead of one per draft token, plus the inputs of the last tokens, so each rollback token costs ~142 MiB less VRAM (`docs/research/gdn-replay-20261018/`). Not in a published bundle yet | this repo |
 | 0071 | cuda: the tiered-KV CUDA graph line (`attention reads / does not read the host tail ...`) is a warning the first time for each state only; later switches are debug lines. Past the VRAM line the target graph reads the host tail and the MTP draft graph does not, so the state switched at every decode step and the line filled the log (issue #7: 7,399 of 7,869 lines). No change in what runs | this repo |
+| 0072 | cuda: the tensor-core flash-attention kernel, with a quantized K/V cache (q4_0, q8_0, q3_0) and no pipeline stages, reads the words of each thread's K and V block pairs into registers at the start of a KV tile and dequantizes each tile at the old place, so the V loads overlap with the K·Q and softmax steps. Same arithmetic: logits byte-identical for prompt batches and 1-32 column batches. RTX 4070, 12 GB defaults: cold prefill at 245k 1.057x (472.8 -> 447.1 s), 512-token turns at 128k / 245k 1.08x, decode +2.5 to +3.6 % (`docs/research/prefill-kq-20261026`) | this repo |
 
 How each cut was found (CUPTI traces, L1 wavefront counts, what did not work):
 [`surgery/ADA4070_PTQ1.md`](../../surgery/ADA4070_PTQ1.md) and [`docs/Q8_FULL_CONTEXT.md`](../12gb/Q8_FULL_CONTEXT.md).

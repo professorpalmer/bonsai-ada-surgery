@@ -9,6 +9,13 @@ launcher prints `layer on` when the runtime is present and falls back to the pla
 
 ## What each bundle changed (newest first)
 
+`bundle-20261026` (engine `57d2928d04`, patch 0072): faster attention deep in the context. With a quantized
+K/V cache, the attention kernel now starts the loads of the next K and V data before it needs them, so it waits less.
+The results do not change (the logits are byte-identical). RTX 4070 with the 12 GB defaults: a cold 245k prompt
+reads in 447 s instead of 473 s (1.057x), a 512-token turn at 128k or 245k is 1.08x faster, decode is 2.5-3.6 %
+faster (`docs/research/prefill-kq-20261026`). On 8 GB cards, prefill uses the f16 path, so this changes decode and
+drafting there. Gates: `docs/research/release-20261026`.
+
 `bundle-20261025` (no engine change): a non-streamed answer that the layer forwards now says what the layer
 changed in the request (`"layer": {"approx_notes": 1}` and similar; #238). `BONSAI_LAYER_PREFIX_DIFF=1` (opt-in) adds
 to each prefix-change line in `logs\layer.log` an excerpt of the first changed text, before and now, so you can see
