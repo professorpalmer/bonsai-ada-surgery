@@ -1,16 +1,21 @@
-From 57d2928d048bc035ae67399754666ef09011d5c0 Mon Sep 17 00:00:00 2001
+From a38714c63d95ba7c8373f8fedfa2375f51230b84 Mon Sep 17 00:00:00 2001
 From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
-Date: Mon, 26 Oct 2026 11:32:42 -0400
+Date: Mon, 26 Oct 2026 13:56:16 -0400
 Subject: [PATCH] cuda: FA MMA with quantized K/V and no pipeline stages: fetch
  the K and V tile words into registers at the start of the tile, dequantize
  each tile when it is needed
 
+The quantized tile loader is split into a fetch (global loads of each thread's block pairs into registers) and a store
+(dequantize into the shared tile, at the old place). Both tiles are fetched at the start of the KV tile, so the V loads
+are in flight during K*Q and softmax. Same arithmetic: logits byte-identical for prompt batches and 1-32 column batches
+(q4_0, q8_0). RTX 4070, 12 GB serve defaults: cold prefill at 245k 1.057x, 512-token turns at 128k / 245k 1.08x,
+decode +2.5 to +3.6 %.
 ---
- ggml/src/ggml-cuda/fattn-mma-f16.cuh | 138 ++++++++++++++++++++++-----
- 1 file changed, 113 insertions(+), 25 deletions(-)
+ ggml/src/ggml-cuda/fattn-mma-f16.cuh | 139 ++++++++++++++++++++++-----
+ 1 file changed, 114 insertions(+), 25 deletions(-)
 
 diff --git a/ggml/src/ggml-cuda/fattn-mma-f16.cuh b/ggml/src/ggml-cuda/fattn-mma-f16.cuh
-index d074869815..f73241a093 100644
+index d074869815..29d621d6de 100644
 --- a/ggml/src/ggml-cuda/fattn-mma-f16.cuh
 +++ b/ggml/src/ggml-cuda/fattn-mma-f16.cuh
 @@ -529,6 +529,46 @@ static __device__ __forceinline__ void flash_attn_ext_f16_store_q8_0_block(
@@ -60,7 +65,7 @@ index d074869815..f73241a093 100644
  // Loads a [nbatch_fa x ne] tile of a q4_0 / q8_0 / q3_0 K or V cache and dequantizes it into the F16 shared tile, in
  // the same layout the F16 loader produces. KV points at byte 0 of tile row 0, e0 / ne are the element offset and count
  // within a row (multiples of 64), stride_KV is the row stride in bytes. Each thread handles two adjacent blocks
-@@ -568,35 +608,67 @@ static __device__ __forceinline__ void flash_attn_ext_f16_load_tile_q(
+@@ -568,35 +608,68 @@ static __device__ __forceinline__ void flash_attn_ext_f16_load_tile_q(
          for (int k = 0; k < nwords; ++k) {
              w[k] = __ldg(src + k);
          }
@@ -93,8 +98,9 @@ index d074869815..f73241a093 100644
 +// each thread's block pairs into registers, store dequantizes them into the F16 shared tile. Between the two calls the
 +// loads stay in flight, so other work can hide their latency.
 +template<ggml_type type_KV, int nwarps, int nbatch_fa, int ne>
-+static constexpr __host__ __device__ int flash_attn_ext_f16_pair_slots() {
-+    return (nbatch_fa*(ne/64) + nwarps*32 - 1) / (nwarps*32);
++static constexpr __device__ int flash_attn_ext_f16_pair_slots() {
++    constexpr int nthreads = nwarps*ggml_cuda_get_physical_warp_size();
++    return (nbatch_fa*(ne/64) + nthreads - 1) / nthreads;
 +}
 +
 +template<ggml_type type_KV, int nwarps, int nbatch_fa, int ne, bool oob_check, int ns, int nw>
@@ -153,7 +159,7 @@ index d074869815..f73241a093 100644
      }
  }
  
-@@ -791,6 +863,18 @@ static __device__ __forceinline__ void flash_attn_ext_f16_iter(
+@@ -791,6 +864,18 @@ static __device__ __forceinline__ void flash_attn_ext_f16_iter(
          }
      }
  
@@ -172,7 +178,7 @@ index d074869815..f73241a093 100644
      // For MLA K and V have the same data.
      // Therefore, iterate over K in reverse and later re-use the data if possible.
  #pragma unroll
-@@ -806,6 +890,8 @@ static __device__ __forceinline__ void flash_attn_ext_f16_iter(
+@@ -806,6 +891,8 @@ static __device__ __forceinline__ void flash_attn_ext_f16_iter(
                  if (use_cp_async) {
                      cp_async_wait_all();
                  }
@@ -181,7 +187,7 @@ index d074869815..f73241a093 100644
              } else {
                  flash_attn_ext_f16_load_tile_q<type_KV, stride_tile_K, nwarps, nbatch_fa, oob_check>
                      ((const char *) K_h2 + int64_t(k_VKQ_0)*stride_K, tile_K, 2*k0_start, 2*k0_diff, stride_K, k_VKQ_sup);
-@@ -1163,6 +1249,8 @@ static __device__ __forceinline__ void flash_attn_ext_f16_iter(
+@@ -1163,6 +1250,8 @@ static __device__ __forceinline__ void flash_attn_ext_f16_iter(
                      if (use_cp_async) {
                          cp_async_wait_all();
                      }

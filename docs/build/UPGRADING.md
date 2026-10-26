@@ -9,7 +9,7 @@ launcher prints `layer on` when the runtime is present and falls back to the pla
 
 ## What each bundle changed (newest first)
 
-`bundle-20261026` (engine `57d2928d04`, patch 0072): faster attention deep in the context. With a quantized
+`bundle-20261026` (engine `a38714c63d`, patch 0072): faster attention deep in the context. With a quantized
 K/V cache, the attention kernel now starts to load the V data of each block before the K·Q step, so it waits less.
 The results do not change (the logits are byte-identical). RTX 4070 with the 12 GB defaults: a cold 245k prompt
 reads in 447 s instead of 473 s (1.057x), a 512-token turn at 128k or 245k is 1.08x faster, decode is 2.5-3.6 %
