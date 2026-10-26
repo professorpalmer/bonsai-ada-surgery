@@ -1,0 +1,58 @@
+13:24:20 === p6_null_64000: health=1 mem 11751 MHz; kv     tiered: cells 0..212480 in VRAM, 212480..262144 in system RAM (VRAM margin 1300 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns
+p6_null_64000: code   depth  64000 (evaluated 64009): prefill   959.9 tok/s  ttft  66.68s  decode   89.1 tok/s (400 tok)
+p6_null_64000: prose  depth  64000 (evaluated 512): prefill   591.0 tok/s  ttft   0.87s  decode   69.7 tok/s (400 tok)
+p6_null_64000: bash   depth  64000 (evaluated 516): prefill   606.2 tok/s  ttft   0.85s  decode   78.7 tok/s (400 tok)
+p6_null_64000: mean decode 79.2 tok/s
+13:25:44 p6_null_64000 mem under load sample: 11751 MHz
+p6_null_64000 cumulative prefill: 964.9 tok/s (64005 tokens in 66.3 s)
+13:25:51 p6_null_64000: CUDA errors 0, spill lines 0
+13:26:01 === p6_p4_64000: health=1 mem 11751 MHz; kv     tiered: cells 0..212224 in VRAM, 212224..262144 in system RAM (VRAM margin 1300 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns
+p6_p4_64000: code   depth  64000 (evaluated 64009): prefill   983.0 tok/s  ttft  65.12s  decode   91.5 tok/s (400 tok)
+p6_p4_64000: prose  depth  64000 (evaluated 512): prefill   608.1 tok/s  ttft   0.84s  decode   72.0 tok/s (400 tok)
+p6_p4_64000: bash   depth  64000 (evaluated 516): prefill   635.9 tok/s  ttft   0.81s  decode   81.8 tok/s (400 tok)
+p6_p4_64000: mean decode 81.8 tok/s
+13:27:23 p6_p4_64000 mem under load sample: 11751 MHz
+p6_p4_64000 cumulative prefill: 988.2 tok/s (64005 tokens in 64.8 s)
+13:27:30 p6_p4_64000: CUDA errors 0, spill lines 0
+13:27:39 === p6_null_128000: health=1 mem 11751 MHz; kv     tiered: cells 0..211712 in VRAM, 211712..262144 in system RAM (VRAM margin 1300 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns
+p6_null_128000: code   depth 128000 (evaluated 127340): prefill   736.5 tok/s  ttft 172.90s  decode   77.9 tok/s (400 tok)
+p6_null_128000: prose  depth 128000 (evaluated 512): prefill   419.8 tok/s  ttft   1.22s  decode   65.2 tok/s (400 tok)
+p6_null_128000: bash   depth 128000 (evaluated 516): prefill   433.2 tok/s  ttft   1.19s  decode   75.3 tok/s (400 tok)
+p6_null_128000: mean decode 72.8 tok/s
+13:30:52 p6_null_128000 mem under load sample: 11751 MHz
+p6_null_128000 cumulative prefill: 738.5 tok/s (127336 tokens in 172.4 s)
+13:30:59 p6_null_128000: CUDA errors 0, spill lines 0
+13:31:08 === p6_p4_128000: health=1 mem 11751 MHz; kv     tiered: cells 0..211712 in VRAM, 211712..262144 in system RAM (VRAM margin 1300 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns
+p6_p4_128000: code   depth 128000 (evaluated 127340): prefill   767.5 tok/s  ttft 165.91s  decode   80.8 tok/s (400 tok)
+p6_p4_128000: prose  depth 128000 (evaluated 512): prefill   453.3 tok/s  ttft   1.13s  decode   67.5 tok/s (400 tok)
+p6_p4_128000: bash   depth 128000 (evaluated 516): prefill   457.4 tok/s  ttft   1.13s  decode   77.9 tok/s (400 tok)
+p6_p4_128000: mean decode 75.4 tok/s
+13:34:13 p6_p4_128000 mem under load sample: 11751 MHz
+p6_p4_128000 cumulative prefill: 769.6 tok/s (127336 tokens in 165.5 s)
+13:34:20 p6_p4_128000: CUDA errors 0, spill lines 0
+13:34:29 === p6_null_245000: health=1 mem 11751 MHz; kv     tiered: cells 0..211712 in VRAM, 211712..262144 in system RAM (VRAM margin 1300 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns
+p6_null_245000: code   depth 245000 (evaluated 243896): prefill   515.1 tok/s  ttft 473.49s  decode   49.3 tok/s (400 tok)
+p6_null_245000: prose  depth 245000 (evaluated 512): prefill   278.8 tok/s  ttft   1.84s  decode   37.1 tok/s (400 tok)
+p6_null_245000: bash   depth 245000 (evaluated 516): prefill   285.6 tok/s  ttft   1.81s  decode   47.9 tok/s (400 tok)
+p6_null_245000: mean decode 44.8 tok/s
+13:42:55 p6_null_245000 mem under load sample: 11751 MHz
+p6_null_245000 cumulative prefill: 515.9 tok/s (243892 tokens in 472.8 s)
+13:43:02 p6_null_245000: CUDA errors 0, spill lines 0
+13:43:11 === p6_p4_245000: health=1 mem 11751 MHz; kv     tiered: cells 0..211712 in VRAM, 211712..262144 in system RAM (VRAM margin 1300 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns
+p6_p4_245000: code   depth 245000 (evaluated 243896): prefill   544.7 tok/s  ttft 447.77s  decode   50.5 tok/s (400 tok)
+p6_p4_245000: prose  depth 245000 (evaluated 512): prefill   301.3 tok/s  ttft   1.70s  decode   38.0 tok/s (400 tok)
+p6_p4_245000: bash   depth 245000 (evaluated 516): prefill   303.9 tok/s  ttft   1.70s  decode   49.2 tok/s (400 tok)
+p6_p4_245000: mean decode 45.9 tok/s
+13:51:10 p6_p4_245000 mem under load sample: 11751 MHz
+p6_p4_245000 cumulative prefill: 545.5 tok/s (243892 tokens in 447.1 s)
+13:51:17 p6_p4_245000: CUDA errors 0, spill lines 0
+13:51:17 text 128000_bash.txt: identical
+13:51:17 text 128000_code.txt: identical
+13:51:17 text 128000_prose.txt: identical
+13:51:17 text 245000_bash.txt: identical
+13:51:17 text 245000_code.txt: identical
+13:51:17 text 245000_prose.txt: identical
+13:51:18 text 64000_bash.txt: identical
+13:51:18 text 64000_code.txt: identical
+13:51:18 text 64000_prose.txt: identical
+13:51:18 === done

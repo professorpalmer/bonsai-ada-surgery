@@ -63,6 +63,7 @@ def go(base, key, prompt, n, filler_tokens=0):
     req = urllib.request.Request(base.rstrip("/") + "/v1/chat/completions", data=json.dumps(body).encode(), headers=_headers(key))
     r = json.loads(urllib.request.urlopen(req, timeout=int(os.environ.get("QTPS_TIMEOUT", "1800"))).read())
     t = r.get("timings", {})
+    t["_text"] = (r.get("choices") or [{}])[0].get("message", {}).get("content") or ""
     return t
 
 
@@ -78,6 +79,10 @@ def main():
     for name, p, n in PROMPTS:
         t = go(a.base, key, p, n, a.depth)
         tg.append(t.get("predicted_per_second") or 0)
+        if os.environ.get("QTPS_SAVE"):   # a folder: keep each reply, to compare two engines' texts
+            os.makedirs(os.environ["QTPS_SAVE"], exist_ok=True)
+            with open(os.path.join(os.environ["QTPS_SAVE"], f"{a.depth}_{name}.txt"), "w", encoding="utf-8") as f:
+                f.write(t["_text"])
         # prompt_n is what the server actually evaluated; after the first prompt at a depth the shared
         # filler is served from the prompt cache, so prefill/ttft are meaningful on the first line only
         print(f"{name:<6} depth {a.depth:>6} (evaluated {t.get('prompt_n')}): prefill {t.get('prompt_per_second', 0):7.1f} tok/s  "
