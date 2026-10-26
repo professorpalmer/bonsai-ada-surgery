@@ -38,6 +38,11 @@ the bundle-20261025 engine binaries (`810d93e5aa`), `llama-bench`, the model fil
   (batch-invariant on) were seen. The K and V tiles are loaded and dequantized again for each block of query columns, so
   the load can cost as much as the math. At depth 64k, the same pp512 with `-ctk/-ctv` f16, q8_0 and q4_0 (f16 is the
   case with no dequant step). At depth 128k, `-ub 512` against `-ub 2048 -b 2048` with `-p 2048`.
+- **P3b — a profile of the attention kernel (measurement, no gate).** Added at 11:25, after P2 and the three KV-type
+  cells of P3. Nsight Compute on one `flash_attn_ext_f16` launch near depth 64k (q4_0 and f16 K/V, `-ub 512`), clocks
+  not locked: warp stall reasons, tensor-pipe use, L2 and DRAM traffic. It says which part of the non-math time to
+  attack: global-load latency (then a register prefetch of the quantized tiles, P4), the dequantization work, or the
+  barriers.
 
 ## What decides the next step
 
