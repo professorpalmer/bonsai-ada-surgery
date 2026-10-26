@@ -115,3 +115,24 @@ for the RTX 4070 (`89-real`). Records: `runs.jsonl`, `data/p2_inv1.jsonl`, `data
   Small, but not zero. The base run against itself was not measured (the kernels are deterministic for a fixed batch).
 - Decision rule 3 applies: the time is somewhere else. About 1.3 ms of the 2.56 ms is not tensor math (P1). P3 measures
   the load and dequantization part.
+
+### P3 — KV type and batch size (11:18-11:25), and P3b
+
+Batch-invariant mode off, engine `810d93e5aa`. Records: `runs.jsonl`, `data/p3_*.jsonl`.
+
+| Cell | Depth | tok/s | ms per token | part that grows with depth |
+|---|---|---|---|---|
+| f16 K and V | 64k | 711.3 | 1.406 | 0.695 ms |
+| q8_0 K and V | 64k | 672.3 | 1.487 | 0.777 ms |
+| q4_0 K and V | 64k | 723.0 | 1.383 | 0.672 ms |
+| q4_0, `-ub 2048 -b 2048 -p 2048` | 128k | 487.5 | 2.051 | (P1, ub 512: 483.3) |
+
+- **The number of bytes does not set the speed.** f16 moves 3.5x the bytes of q4_0 (and 1.9x those of q8_0), but it is
+  as fast as q4_0 and faster than q8_0. The f16 path has two pipeline stages (asynchronous copies); the quantized
+  paths load synchronously and dequantize. q8_0 is the slowest: its block pair is 17 words against 9 for q4_0, so a
+  thread waits for more loads and does more work before the K·Q step can start.
+- **A larger batch does not help** (+0.9 % at 128k, within noise).
+- The q4_0 cell at 64k repeats P1 (727.4) within 0.6 %.
+- **P3b did not run:** Nsight Compute stopped with `ERR_NVGPUCTRPERM` (no access to the GPU performance counters for
+  this user). That is a system setting; it stays as it is unless Cary changes it. P4 tests the load-wait question
+  directly instead.
