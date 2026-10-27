@@ -32,3 +32,35 @@ that build (the change is in that file only). Control: the bundle-20261026 candi
 
 All pass: P2 becomes a candidate for the next bundle (12 GB), behind its own release gates (a switch with default on, a
 HumanEval run). Then P231 on the rig for the 8 GB preset. Any fail: not kept; log why.
+
+## Results, RTX 4070 (12:16-13:04)
+
+Log and data: `data/` (`p2b.log`, the F2 answers, F4 texts). Control root: bundle-20261026 (`a38714c63d`). P2 root: the
+same, with `ggml-cuda.dll` of `e5c4e35fc1`. 12 GB launcher defaults, layer off, VRAM line 223,744 cells, memory 11,751 MHz.
+
+| Run | Result | Verdict |
+|---|---|---|
+| F0 | FLASH_ATTN_EXT 3115 / 3115 | pass |
+| F1 | mean KLD 0.000925, max 0.174, same top 98.62 %; PPL 6.6422 against 6.6370 (+0.08 %) | recorded |
+| F2 | code set 21 / 24 against 21 / 24 (no answer changed); prose set 11 / 24 against 11 / 24 (7 answer texts changed: lost item 1, "kerosene" -> "diesel", a confident wrong answer; gained item 9; 5 changes in wording only). Confident wrong answers where the control is right: 1 (limit 1); total right 32 = 32; 0 CUDA errors | **PASS** (at the limit) |
+| F3 | cold read of the document: code 438.1 -> 420.8 s (1.041x), prose 442.5 -> 422.6 s (1.047x) | **FAIL** (at least 1.05x each) |
+| F4 | cold prefill 64k 987.4 -> 1017.5 tok/s (1.030x), 128k 767.7 -> 796.6 (1.038x); decode 64k 81.6 -> 82.6 (1.012x), 128k 75.4 -> 75.0 (0.995x); 512-token turns at 128k 1.04-1.05x; texts 0 / 6 identical (expected); 0 CUDA errors | pass |
+
+**Verdict for 12 GB: not kept** (F3 fails). On the 4070 the cold read of a ~240k-token document gains only 4-5 %:
+P1's 1.12x is the gain of one 512-token batch at 245k, and a cold read averages over all depths from 0 to 240k and
+includes the work that is not attention. 4 % does not pay for an arithmetic change that moves one answer in 48.
+
+## P231: the same change on the RTX 2060 SUPER (declared 13:10, after the 4070 verdict)
+
+The reason for a separate run: on GeForce Turing the tensor-core math with fp32 accumulation runs at half the rate of
+fp16 accumulation, and P230 showed that the 2060's prefill at depth is not limited by loads. So the 2060 can gain
+much more than the 4070, and the 8 GB cards are where the cold read hurts (245k: 1,489 s). F2's answers show that the
+change is safe at the T5 standard on the 4070. The 2060 runs other kernels (64-cell tiles, the f16 copy), so its own
+answers are checked in stage 2.
+
+| Stage | What (RTX 2060 SUPER, stock clocks, the 8 GB launcher's model file) | Gate |
+|---|---|---|
+| 1 | `llama-bench` q3_0, `-ub 512`, batch-invariant on, the 8 GB copy settings (`GGML_CUDA_FA_PREFILL_F16=32768`, `GGML_CUDA_FA_CHUNK=32768`): pp512 at 8k, 32k and 64k, the 1026 engine and P2 in turns, 2 rounds; `llama-perplexity` KL of P2 against 1026 (q3_0, ctx 8,192, the copy settings) | go to stage 2 if P2 is at least 1.08x at 32k and at 64k in both rounds; else stop, P2 is not kept for 8 GB |
+| 2 | (a new issue) the 8 GB launcher, the 1026 root against the P2 root: cold reads at 64k and 128k, and the P170 code and prose sets with the F2 rule | cold read at 128k at least 1.08x; F2 rule (at most 1 confident wrong answer where 1026 is right, total right at least 1026's minus 1); decode at least 0.98x |
+
+Stage 2 passes: P2 becomes an 8 GB-only switch (on in the 8 GB preset) for the next bundle, with its own release gates.

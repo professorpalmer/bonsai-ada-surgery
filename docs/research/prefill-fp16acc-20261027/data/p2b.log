@@ -1,0 +1,37 @@
+12:16:12 roots: control commit a38714c63d, p2 commit a38714c63d; ggml-cuda.dll differs: yes; build commit e5c4e35fc1
+12:19:31 F0 FLASH_ATTN_EXT:   3115/3115 tests passed; FAIL lines 0
+12:20:12 F1: chunk PPL ln(PPL(Q)/PPL(base)) KL Divergence Δp RMS Same top p;Mean PPL(Q) : 6.642215 ± 0.182724;Mean PPL(base) : 6.637047 ± 0.182491;Mean PPL(Q)/PPL(base) : 1.000779 ± 0.000509;Mean PPL(Q)-PPL(base) : 0.005168 ± 0.003381;Mean KLD: 0.000925 ± 0.000035;Maximum KLD: 0.173971;Same top p: 98.620 ± 0.129 %;
+12:20:28 server f2_code_ctrl: health=1; kv     tiered: cells 0..223744 in VRAM, 223744..262144 in system RAM (VRAM margi; mem 11751 MHz
+12:28:32 F2 f2_code_ctrl: ok 21 of 24 | cold read 438.1 s, prompt 240562 tok, 549.5 tok/s | errors 0; CUDA errors 0
+12:28:54 server f2_code_p2: health=1; kv     tiered: cells 0..223744 in VRAM, 223744..262144 in system RAM (VRAM margi; mem 11751 MHz
+12:36:37 F2 f2_code_p2: ok 21 of 24 | cold read 420.8 s, prompt 240562 tok, 572.1 tok/s | errors 0; CUDA errors 0
+12:36:59 server f2_prose_ctrl: health=1; kv     tiered: cells 0..223744 in VRAM, 223744..262144 in system RAM (VRAM margi; mem 11751 MHz
+12:45:15 F2 f2_prose_ctrl: ok 11 of 24 | cold read 442.5 s, prompt 241908 tok, 547.8 tok/s | errors 0; CUDA errors 0
+12:45:37 server f2_prose_p2: health=1; kv     tiered: cells 0..223744 in VRAM, 223744..262144 in system RAM (VRAM margi; mem 11751 MHz
+12:53:30 F2 f2_prose_p2: ok 11 of 24 | cold read 422.6 s, prompt 241908 tok, 573.6 tok/s | errors 0; CUDA errors 0
+12:53:52 server f4_ctrl_64000: health=1; kv     tiered: cells 0..222976 in VRAM, 222976..262144 in system RAM (VRAM margi; mem 11751 MHz
+F4 f4_ctrl_64000: code   depth  64000 (evaluated 64009): prefill   987.4 tok/s  ttft  64.83s  decode   91.7 tok/s (400 tok)
+F4 f4_ctrl_64000: prose  depth  64000 (evaluated 512): prefill   624.8 tok/s  ttft   0.82s  decode   71.7 tok/s (400 tok)
+F4 f4_ctrl_64000: bash   depth  64000 (evaluated 516): prefill   629.2 tok/s  ttft   0.82s  decode   81.3 tok/s (400 tok)
+F4 f4_ctrl_64000: mean decode 81.6 tok/s
+12:55:24 F4 f4_ctrl_64000: CUDA errors 0
+12:55:36 server f4_p2_64000: health=1; kv     tiered: cells 0..224000 in VRAM, 224000..262144 in system RAM (VRAM margi; mem 11751 MHz
+F4 f4_p2_64000: code   depth  64000 (evaluated 64009): prefill  1017.5 tok/s  ttft  62.91s  decode   90.8 tok/s (400 tok)
+F4 f4_p2_64000: prose  depth  64000 (evaluated 512): prefill   643.7 tok/s  ttft   0.80s  decode   73.4 tok/s (400 tok)
+F4 f4_p2_64000: bash   depth  64000 (evaluated 516): prefill   654.2 tok/s  ttft   0.79s  decode   83.6 tok/s (400 tok)
+F4 f4_p2_64000: mean decode 82.6 tok/s
+12:57:06 F4 f4_p2_64000: CUDA errors 0
+12:57:18 server f4_ctrl_128000: health=1; kv     tiered: cells 0..224000 in VRAM, 224000..262144 in system RAM (VRAM margi; mem 11751 MHz
+F4 f4_ctrl_128000: code   depth 128000 (evaluated 127340): prefill   767.7 tok/s  ttft 165.86s  decode   80.6 tok/s (400 tok)
+F4 f4_ctrl_128000: prose  depth 128000 (evaluated 512): prefill   451.2 tok/s  ttft   1.13s  decode   67.4 tok/s (400 tok)
+F4 f4_ctrl_128000: bash   depth 128000 (evaluated 516): prefill   458.0 tok/s  ttft   1.13s  decode   78.1 tok/s (400 tok)
+F4 f4_ctrl_128000: mean decode 75.4 tok/s
+13:00:33 F4 f4_ctrl_128000: CUDA errors 0
+13:00:46 server f4_p2_128000: health=1; kv     tiered: cells 0..223488 in VRAM, 223488..262144 in system RAM (VRAM margi; mem 11751 MHz
+F4 f4_p2_128000: code   depth 128000 (evaluated 127340): prefill   796.6 tok/s  ttft 159.85s  decode   82.6 tok/s (400 tok)
+F4 f4_p2_128000: prose  depth 128000 (evaluated 512): prefill   473.2 tok/s  ttft   1.08s  decode   68.4 tok/s (400 tok)
+F4 f4_p2_128000: bash   depth 128000 (evaluated 516): prefill   476.7 tok/s  ttft   1.08s  decode   74.1 tok/s (400 tok)
+F4 f4_p2_128000: mean decode 75.0 tok/s
+13:03:54 F4 f4_p2_128000: CUDA errors 0
+13:03:55 F4 texts: 0 / 6 identical
+13:03:55 p2b done
