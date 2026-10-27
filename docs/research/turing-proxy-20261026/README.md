@@ -50,7 +50,7 @@ Log: [`data/tp.log`](data/tp.log). Every row: [`runs.jsonl`](runs.jsonl). Script
 | Run | Result | Verdict |
 |---|---|---|
 | T0a | `tp-p4` FLASH_ATTN_EXT 3115 / 3115 | PASS |
-| T0b | 8 / 8 cells byte-identical (`tp-null` against `tp-p4`). PPL q3_0 6.6695 / 6.7441 / 6.7514 / 6.7377, q4_0 6.6458 / 6.7203 / 6.7179 / 6.7281 (cells as R7a). Native RTX 4070 (release-20261026 R3): q3_0 6.6592 / 6.7511 / 6.7502 / 6.7403, q4_0 6.6371 / 6.7217 / 6.7259 / 6.7212: other values, so the proxy runs other code than the native build | identity PASS; rig comparison open (P229) |
+| T0b | 8 / 8 cells byte-identical (`tp-null` against `tp-p4`). PPL q3_0 6.6695 / 6.7441 / 6.7514 / 6.7377, q4_0 6.6458 / 6.7203 / 6.7179 / 6.7281 (cells as R7a). Native RTX 4070 (release-20261026 R3): q3_0 6.6592 / 6.7511 / 6.7502 / 6.7403, q4_0 6.6371 / 6.7217 / 6.7259 / 6.7212: other values, so the proxy runs other code than the native build | identity PASS; rig comparison FAIL (see below) |
 | T0c, first run | not valid: at depth 32,768 + 512 the KV length (33,280) is more than `GGML_CUDA_FA_PREFILL_F16=32768`, and `GGML_CUDA_FA_CHUNK` was not set, so the f16 copy did not run. All rows of that run are in-place reads (they are kept as T1 data) | INVALID |
 | T0c, rerun | the 8 GB launcher's settings (`GGML_CUDA_FA_PREFILL_F16=32768`, `GGML_CUDA_FA_CHUNK=32768`), q3_0, pp512, 2 repeats: in-place 1093.8 / 873.4 tok/s (8k / 32k), f16 copy 1086.8 / 846.2. In the proxy the copy is 0.6 % / 3.1 % slower. On the rig it was 18 % faster at 32k (P25) | realism FAIL |
 | T1 decode | tg128, `tp-null` -> `tp-p4`: q3_0 61.00 -> 61.92 (1.015x, 32k), 56.28 -> 57.72 (1.026x, 64k); q4_0 60.85 -> 61.49 (1.011x), 56.07 -> 57.30 (1.022x) | prediction for R7b decode: faster, not slower |
@@ -84,3 +84,14 @@ Script: [`rig/p230.sh`](rig/p230.sh). Engines: the 1026 engine (`a38714c63d`), a
 | B: V_ROWS 16 / 64 | logits byte-identical to the 1026 engine (both cells), and pp512 at 32k with the copy at least 1.03x (both rounds) | patch candidate: then a server A/B on the rig and a release with its own gates |
 | B, other result | under 1.03x, or any difference in the logits | not kept; logged |
 | health | 0 `CUDA error` lines | else the run is not valid |
+
+## T0b against the rig (P229 R7a, 2026-10-27)
+
+The RTX 2060 SUPER's PPL values for the same 8 cells (1025 and 1026 engines, byte-identical to each other):
+q3_0 6.6809 / 6.7478 / 6.7540 / 6.7528, q4_0 6.6383 / 6.7177 / 6.7210 / 6.7264. The proxy's values (q3_0 6.6695 /
+6.7441 / 6.7514 / 6.7377, q4_0 6.6458 / 6.7203 / 6.7179 / 6.7281) are not the same in any cell. **Proxy validity
+FAIL:** the proxy runs the Turing code paths (and the A/B identity results inside the proxy hold), but it does not give
+the 2060's numbers. A likely cause, not checked: the work split of some kernels depends on the SM count (34 on the
+2060, 46 on the 4070), and the machine code differs (sm_75 against sm_89 from the same front end). So identity on
+Turing still needs the rig; the proxy is a fast first filter for Turing code (it builds, it passes the op tests, an
+A/B inside the proxy is or is not identical).
