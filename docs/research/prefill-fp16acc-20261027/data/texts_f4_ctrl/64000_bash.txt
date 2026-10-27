@@ -1,0 +1,40 @@
+```bash
+#!/usr/bin/env bash
+#
+# rotate_logs.sh
+#
+# Rotates logs in /var/log using size and age limits.
+#
+# Usage:
+#   ./rotate_logs.sh [LOG_DIR] [SIZE_LIMIT_KB] [AGE_DAYS]
+#
+# Arguments:
+#   LOG_DIR        Directory containing logs (default: /var/log)
+#   SIZE_LIMIT_KB  Rotate logs larger than this size in KB (default: 1024)
+#   AGE_DAYS       Rotate logs older than this many days (default: 7)
+#
+# Behavior:
+#   - Only processes regular files (skips directories, symlinks, sockets, etc.)
+#   - Skips files already ending in .gz (prevents double-compression)
+#   - Skips files with .log.1, .log.2, etc. (prevents rotating rotated files)
+#   - Uses gzip for compression
+#   - Creates a timestamped backup before rotation
+#   - Logs actions to stderr for visibility
+#   - Exits with non-zero status if any rotation fails
+#
+# Safety notes:
+#   - Requires root privileges to write to /var/log
+#   - Does not delete any files; only rotates and compresses
+#   - Uses mv (atomic on same filesystem) for safety
+#   - Does not touch files that do not meet size or age criteria
+#
+set -euo pipefail
+
+# --- Configuration (overridable via CLI args) ---
+LOG_DIR="${1:-/var/log}"
+SIZE_LIMIT_KB="${2:-1024}"   # 1 MB default
+AGE_DAYS="${3:-7}"           # 7 days default
+
+# --- Validate arguments ---
+if [[ ! -d "$LOG_DIR" ]]; then
+    echo "Error: $LOG_DIR is not

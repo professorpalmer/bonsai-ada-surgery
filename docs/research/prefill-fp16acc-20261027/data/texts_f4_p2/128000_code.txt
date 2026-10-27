@@ -1,0 +1,56 @@
+```python
+"""
+lru_cache_module.py
+
+A 300-line Python module implementing an LRU (Least Recently Used) cache
+with a comprehensive test suite.
+
+The LRU cache uses a doubly linked list combined with a hash map to achieve
+O(1) average time complexity for get, put, and eviction operations.
+
+Usage:
+    from lru_cache_module import LRUCache
+    cache = LRUCache(capacity=3)
+    cache.put(1, "one")
+    cache.get(1)  # returns "one"
+    cache.put(2, "two")
+    cache.put(3, "three")
+    cache.put(4, "four")  # evicts key 1 (least recently used)
+    cache.get(1)  # returns None (evicted)
+    cache.get(2)  # returns "two"
+"""
+
+from __future__ import annotations
+
+import threading
+import time
+from collections import OrderedDict
+from typing import Any, Optional
+
+
+class LRUCache:
+    """
+    A thread-safe LRU cache with configurable capacity.
+
+    Attributes:
+        capacity: Maximum number of items the cache can hold.
+        _store: OrderedDict mapping keys to values, ordered by access time.
+        _lock: Reentrant lock for thread safety.
+    """
+
+    def __init__(self, capacity: int) -> None:
+        if capacity < 0:
+            raise ValueError("Capacity must be non-negative")
+        self.capacity = capacity
+        self._store: "OrderedDict[int, Any]" = OrderedDict()
+        self._lock = threading.RLock()
+
+    def get(self, key: int) -> Optional[Any]:
+        """
+        Retrieve a value from the cache.
+
+        Args:
+            key: The key to look up.
+
+        Returns:
+            The value associated
