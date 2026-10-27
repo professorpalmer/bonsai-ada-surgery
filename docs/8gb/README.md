@@ -84,6 +84,13 @@ All on the same RTX 2060 SUPER (display on the card), the zip's own launcher wit
   16k and within noise at 32k. No task loss measured (HumanEval 160/164; copies and needles equal to q4_0).
 - **Faster cold reads on Turing** (bundle-20261016b, patches 0060 / 0061): prefill attention packs 2 query heads per
   column group on sm_75. A cold 245k read: 1,707 -> 1,489 s (1.147x), the same answers on the item tests.
+- **Faster decode at depth** (bundle-20261026, patch 0072, P229 on this card): decode 1.05x at 64k and 128k, logits
+  byte-identical, reply texts identical. Cold reads do not change, because this preset reads prompts from an f16 copy of
+  the cache ([`release-20261026`](../research/release-20261026/README.md)).
+- **Where a cold read's time goes on this card** (P232, [`prefill-profile-20261027`](../research/prefill-profile-20261027/README.md)):
+  a 245k cold read is about 59 % attention over the earlier tokens, 28 % weight matmuls and 5 % recurrent layers. The
+  recurrent layers are relatively slow here (5.8x the RTX 4070's time, against ~3x for the rest), because the fast
+  chunked prefill of those layers needs BF16 tensor cores, which Turing does not have.
 - **Saved conversations** (bundle-20261017, `BONSAI_SLOT_SAVE_PATH`): a long conversation is saved to disk and comes back
   after a server restart in seconds, automatically with the layer.
   - A ~199k-token document: the first question after a restart answers in 5.3 s (restore 2.9 s); later questions in
@@ -103,7 +110,10 @@ All on the same RTX 2060 SUPER (display on the card), the zip's own launcher wit
 - **Tried and not shipped:** a fast cold read with a prefill window (T5: 1.8x at 245k, but it returned some confident
   wrong values on long-document lookups; `docs/research/t5-release-20261017`), query-dependent token selection (T4:
   `docs/research/t4-20261017`), and a CUDA pool reserve against the squeeze (it does not help with the display on the
-  card; #171).
+  card; #171). From 10-27, for the cold read on this card: the in-place q3_0 read instead of the f16 copy (with 0072
+  it is equal at 8k but still 3 % slower at 32k, P230), a register prefetch of the f16 V tiles (identical, not faster,
+  P230; both in [`turing-proxy-20261026`](../research/turing-proxy-20261026/README.md)), and fp16 accumulation in the
+  K·Q step (1.02-1.03x at 64k, P231, [`prefill-fp16acc-20261027`](../research/prefill-fp16acc-20261027/README.md)).
 
 ## Earlier measurements (2026-10-06 to 10-10, q4_0 K/V)
 
