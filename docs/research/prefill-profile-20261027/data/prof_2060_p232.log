@@ -1,4 +1,3 @@
-```
 12:57:12 engine commit a38714c63d; gpu NVIDIA GeForce RTX 2060 SUPER, 7001 MHz, 422 MiB
 13:00:52 q2 (q3_0, f16 copy 32768, chunk 32768, depth 65536): 1 tables; CUDA errors 0
 op timing over 100 graphs: 1525.695 ms per graph
