@@ -86,3 +86,23 @@
 {"run": "T2", "name": "t2_pp_q3_0_v64_r1", "engine_tag": "0 v64 r1", "build_commit": "c19c5988d1", "gpu": "NVIDIA GeForce RTX 4070", "front_end": "compute_75 -> sm_89", "type_kv": "q3_0", "n_depth": 32768, "n_prompt": 512, "n_gen": 0, "tok_s": 861.65, "stddev": 4.85, "batch_invariant": 1, "note": "8 GB launcher f16 copy settings"}
 {"run": "T2", "name": "t2_pp_q3_0_v64_r2", "engine_tag": "0 v64 r2", "build_commit": "c19c5988d1", "gpu": "NVIDIA GeForce RTX 4070", "front_end": "compute_75 -> sm_89", "type_kv": "q3_0", "n_depth": 8192, "n_prompt": 512, "n_gen": 0, "tok_s": 1092.18, "stddev": 11.43, "batch_invariant": 1, "note": "8 GB launcher f16 copy settings"}
 {"run": "T2", "name": "t2_pp_q3_0_v64_r2", "engine_tag": "0 v64 r2", "build_commit": "c19c5988d1", "gpu": "NVIDIA GeForce RTX 4070", "front_end": "compute_75 -> sm_89", "type_kv": "q3_0", "n_depth": 32768, "n_prompt": 512, "n_gen": 0, "tok_s": 861.95, "stddev": 4.85, "batch_invariant": 1, "note": "8 GB launcher f16 copy settings"}
+{"run": "P230", "card": "RTX 2060 SUPER", "cell": "e1026_inplace", "round": 1, "type_kv": "q3_0", "n_prompt": 512, "n_depth": 8192, "tok_s": 382.1, "issue": 246}
+{"run": "P230", "card": "RTX 2060 SUPER", "cell": "e1026_inplace", "round": 1, "type_kv": "q3_0", "n_prompt": 512, "n_depth": 32768, "tok_s": 286.2, "issue": 246}
+{"run": "P230", "card": "RTX 2060 SUPER", "cell": "e1026_copy", "round": 1, "type_kv": "q3_0", "n_prompt": 512, "n_depth": 8192, "tok_s": 381.78, "issue": 246}
+{"run": "P230", "card": "RTX 2060 SUPER", "cell": "e1026_copy", "round": 1, "type_kv": "q3_0", "n_prompt": 512, "n_depth": 32768, "tok_s": 296.2, "issue": 246}
+{"run": "P230", "card": "RTX 2060 SUPER", "cell": "v16_copy", "round": 1, "type_kv": "q3_0", "n_prompt": 512, "n_depth": 8192, "tok_s": 378.7, "issue": 246}
+{"run": "P230", "card": "RTX 2060 SUPER", "cell": "v16_copy", "round": 1, "type_kv": "q3_0", "n_prompt": 512, "n_depth": 32768, "tok_s": 291.17, "issue": 246}
+{"run": "P230", "card": "RTX 2060 SUPER", "cell": "v64_copy", "round": 1, "type_kv": "q3_0", "n_prompt": 512, "n_depth": 8192, "tok_s": 378.01, "issue": 246}
+{"run": "P230", "card": "RTX 2060 SUPER", "cell": "v64_copy", "round": 1, "type_kv": "q3_0", "n_prompt": 512, "n_depth": 32768, "tok_s": 294.42, "issue": 246}
+{"run": "P230", "card": "RTX 2060 SUPER", "cell": "e1026_inplace", "round": 2, "type_kv": "q3_0", "n_prompt": 512, "n_depth": 8192, "tok_s": 373.5, "issue": 246}
+{"run": "P230", "card": "RTX 2060 SUPER", "cell": "e1026_inplace", "round": 2, "type_kv": "q3_0", "n_prompt": 512, "n_depth": 32768, "tok_s": 286.81, "issue": 246}
+{"run": "P230", "card": "RTX 2060 SUPER", "cell": "e1026_copy", "round": 2, "type_kv": "q3_0", "n_prompt": 512, "n_depth": 8192, "tok_s": 380.08, "issue": 246}
+{"run": "P230", "card": "RTX 2060 SUPER", "cell": "e1026_copy", "round": 2, "type_kv": "q3_0", "n_prompt": 512, "n_depth": 32768, "tok_s": 296.16, "issue": 246}
+{"run": "P230", "card": "RTX 2060 SUPER", "cell": "v16_copy", "round": 2, "type_kv": "q3_0", "n_prompt": 512, "n_depth": 8192, "tok_s": 378.13, "issue": 246}
+{"run": "P230", "card": "RTX 2060 SUPER", "cell": "v16_copy", "round": 2, "type_kv": "q3_0", "n_prompt": 512, "n_depth": 32768, "tok_s": 291.51, "issue": 246}
+{"run": "P230", "card": "RTX 2060 SUPER", "cell": "v64_copy", "round": 2, "type_kv": "q3_0", "n_prompt": 512, "n_depth": 8192, "tok_s": 377.69, "issue": 246}
+{"run": "P230", "card": "RTX 2060 SUPER", "cell": "v64_copy", "round": 2, "type_kv": "q3_0", "n_prompt": 512, "n_depth": 32768, "tok_s": 294.5, "issue": 246}
+{"run": "P230", "card": "RTX 2060 SUPER", "cell": "v16 q3_0 copy ctx8192 ub512", "identity": "identical"}
+{"run": "P230", "card": "RTX 2060 SUPER", "cell": "v64 q3_0 copy ctx8192 ub512", "identity": "identical"}
+{"run": "P230", "card": "RTX 2060 SUPER", "cell": "v16 f16 ctx2048 ub8", "identity": "identical"}
+{"run": "P230", "card": "RTX 2060 SUPER", "cell": "v64 f16 ctx2048 ub8", "identity": "identical"}

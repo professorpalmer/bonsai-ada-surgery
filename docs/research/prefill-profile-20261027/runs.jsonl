@@ -1,0 +1,9 @@
+{"run": "Q1", "card": "RTX 4070", "shape": "q4_0 in place", "depth_range": "0-51k", "ms_per_graph": 474.9, "attention_ms": 113.9, "weight_matmul_ms": 272.5, "recurrent_ms": 28.9}
+{"run": "Q1", "card": "RTX 4070", "shape": "q4_0 in place", "depth_range": "51k-102k", "ms_per_graph": 715.2, "attention_ms": 343.1, "weight_matmul_ms": 280.3, "recurrent_ms": 29.8}
+{"run": "Q2", "card": "RTX 4070", "shape": "q3_0 f16 copy", "depth_range": "0-51k", "ms_per_graph": 490.9, "attention_ms": 123.2, "weight_matmul_ms": 278.3, "recurrent_ms": 29.1}
+{"run": "Q2", "card": "RTX 4070", "shape": "q3_0 f16 copy", "depth_range": "51k-102k", "ms_per_graph": 723.6, "attention_ms": 358.3, "weight_matmul_ms": 276.5, "recurrent_ms": 29.0}
+{"run": "Q3", "card": "RTX 4070", "shape": "q3_0 in place", "depth_range": "0-51k", "ms_per_graph": 477.0, "attention_ms": 117.1, "weight_matmul_ms": 272.4, "recurrent_ms": 28.6}
+{"run": "Q3", "card": "RTX 4070", "shape": "q3_0 in place", "depth_range": "51k-102k", "ms_per_graph": 713.9, "attention_ms": 347.3, "weight_matmul_ms": 275.7, "recurrent_ms": 29.4}
+{"run": "P232 q2", "card": "RTX 2060 SUPER", "shape": "q3_0 f16 copy", "depth_range": "0-51k", "ms_per_graph": 1525.7, "attention_ms": 366.9, "weight_matmul_ms": 881.9, "recurrent_ms": 169.4}
+{"run": "P232 q3", "card": "RTX 2060 SUPER", "shape": "q3_0 in place", "depth_range": "0-51k", "ms_per_graph": 1622.9, "attention_ms": 435.0, "weight_matmul_ms": 905.8, "recurrent_ms": 174.0}
+{"run": "cold-read model", "card": "RTX 2060 SUPER", "source": "release-20261026 R7b cold reads", "a_ms_per_token": 2.504, "b_ns_per_token_per_depth": 29.78, "predicted_245k_s": 1507, "measured_243896_s": 1489}

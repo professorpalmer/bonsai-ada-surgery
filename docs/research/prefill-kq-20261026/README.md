@@ -266,3 +266,13 @@ review fix for 64-wide HIP warps that does not change the NVIDIA code). Not kept
 identical, 1.12x) and P5b (no gain). Open leads: on Turing the f16 tiles also load synchronously (no asynchronous
 copies on sm_75), and the 8 GB prefill runs on f16 tiles, so a prefetch there is the next idea for 8 GB prefill; the
 profile (P3b) needs access to the GPU performance counters.
+
+## Follow-ups (2026-10-26 / 10-27)
+
+| Study | What | Outcome |
+|---|---|---|
+| [`release-20261026`](../release-20261026/README.md) | P4 as patch 0072, release gates R1-R7 (R7 on the RTX 2060 SUPER, #245) | all pass; **bundle-20261026 published**. 2060: logits identical, decode 1.05x at 64k / 128k, prefill unchanged |
+| [`fa-config-20261026`](../fa-config-20261026/README.md) | other configs of the head-256 prefill row for the q4_0 cache | none kept (Q in shared memory 0.78-0.89x; 64-cell tiles the same speed). A tile-size change alone moves the logits as much as P2 did |
+| [`turing-proxy-20261026`](../turing-proxy-20261026/README.md) | the Turing code on the 4070 (`compute_75 -> sm_89`); P230 on the 2060 (#246) | the proxy is a first filter only (other PPL values, other speed order). The open lead above, closed: the in-place q3_0 read is still 3 % behind the f16 copy at 32k (the copy stays), and a V-tile register prefetch for the f16 tiles is identical but not faster (not kept) |
+| [`prefill-fp16acc-20261027`](../prefill-fp16acc-20261027/README.md) | P2 again, gated on answers (P170 sets at ~240k) instead of KL; P231 on the 2060 (#250) | answers hold, but the cold read gains 1.04x on the 4070 and 1.02-1.03x on the 2060: **P2 closed** |
+| [`prefill-profile-20261027`](../prefill-profile-20261027/README.md) | per-op GPU time over a depth fill (the P3b question, without the counters); P232 on the 2060 (#252) | a 245k cold read is ~59 % attention on both cards; on the 2060 the rest is mostly the prompt matmuls (~28 %) and the recurrent layers (~5 %, slow on Turing because the chunked GDN prefill needs BF16 MMA) |

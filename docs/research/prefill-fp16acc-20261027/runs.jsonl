@@ -1,0 +1,14 @@
+{"run": "F0", "card": "RTX 4070", "result": "FLASH_ATTN_EXT 3115/3115"}
+{"run": "F1", "card": "RTX 4070", "type_kv": "q4_0", "mean_kld": 0.000925, "max_kld": 0.173971, "same_top_pct": 98.62, "ppl_q": 6.642215, "ppl_base": 6.637047}
+{"run": "F2", "card": "RTX 4070", "set": "code", "ok_ctrl": 21, "ok_p2": 21, "answers_changed": 0, "cold_read_s_ctrl": 438.1, "cold_read_s_p2": 420.8, "prompt_tokens": 240562}
+{"run": "F2", "card": "RTX 4070", "set": "prose", "ok_ctrl": 11, "ok_p2": 11, "answers_changed": 7, "lost": [1], "gained": [9], "confident_wrong_vs_ctrl": [1], "cold_read_s_ctrl": 442.5, "cold_read_s_p2": 422.6, "prompt_tokens": 241908}
+{"run": "F3", "card": "RTX 4070", "code_ratio": 1.041, "prose_ratio": 1.047, "gate": 1.05, "verdict": "FAIL"}
+{"run": "F4", "card": "RTX 4070", "depth": 64000, "cold_prefill_ctrl": 987.4, "cold_prefill_p2": 1017.5, "decode_ctrl": 81.6, "decode_p2": 82.6}
+{"run": "F4", "card": "RTX 4070", "depth": 128000, "cold_prefill_ctrl": 767.7, "cold_prefill_p2": 796.6, "decode_ctrl": 75.4, "decode_p2": 75.0, "texts_identical": "0/6"}
+{"run": "P231", "card": "RTX 2060 SUPER", "type_kv": "q3_0", "mean_kld": 0.002502, "max_kld": 0.604852, "same_top_pct": 97.607, "ppl_q": 6.661329, "ppl_base": 6.680875, "issue": 250}
+{"run": "P231", "card": "RTX 2060 SUPER", "round": 1, "n_depth": 8192, "n_prompt": 512, "tok_s_1026": 395.61, "tok_s_p2": 386.13, "ratio": 0.976, "issue": 250}
+{"run": "P231", "card": "RTX 2060 SUPER", "round": 1, "n_depth": 32768, "n_prompt": 512, "tok_s_1026": 305.55, "tok_s_p2": 303.33, "ratio": 0.993, "issue": 250}
+{"run": "P231", "card": "RTX 2060 SUPER", "round": 1, "n_depth": 65536, "n_prompt": 512, "tok_s_1026": 233.76, "tok_s_p2": 238.93, "ratio": 1.022, "issue": 250}
+{"run": "P231", "card": "RTX 2060 SUPER", "round": 2, "n_depth": 8192, "n_prompt": 512, "tok_s_1026": 380.26, "tok_s_p2": 382.46, "ratio": 1.006, "issue": 250}
+{"run": "P231", "card": "RTX 2060 SUPER", "round": 2, "n_depth": 32768, "n_prompt": 512, "tok_s_1026": 296.34, "tok_s_p2": 301.3, "ratio": 1.017, "issue": 250}
+{"run": "P231", "card": "RTX 2060 SUPER", "round": 2, "n_depth": 65536, "n_prompt": 512, "tok_s_1026": 230.81, "tok_s_p2": 237.91, "ratio": 1.031, "issue": 250}

@@ -41,6 +41,19 @@ depth on one server shows too-high numbers at the later depths. With the display
 Same source. Without the drafter, q4_0 decodes as fast as q8_0 at 4k and faster deeper (32k +3.8 %,
 128k +9.6 %; U04b, bundle-20261016, [`release_0059.log`](../receipts/release_0059.log)).
 
+**bundle-20261026 (patch 0072) is faster at depth, with byte-identical output.** The same reads, fresh server per depth
+(P6 of [`prefill-kq-20261026`](../research/prefill-kq-20261026/README.md), release gate R5 of
+[`release-20261026`](../research/release-20261026/README.md)): cold 64k 1.02x, cold 128k 1.04x (172.8 -> 165.9 s), cold
+245k 472.8 -> 447.1 s (1.057x); a 512-token turn on top of 128k / 245k 1.08x; decode at 128k / 245k +2.5 to +3.6 %;
+4k and 32k unchanged.
+
+**Where a cold read's time goes** ([`prefill-profile-20261027`](../research/prefill-profile-20261027/README.md), the
+engine's per-op GPU timer): a 245k cold read is about 60 % attention over the earlier tokens and about 30 % weight
+matmuls. Tried for the attention and not kept: fp16 accumulation in the K·Q step (answers held, but a cold read gained
+only 1.04x; [`prefill-fp16acc-20261027`](../research/prefill-fp16acc-20261027/README.md)), other kernel configs
+([`fa-config-20261026`](../research/fa-config-20261026/README.md)), and a prefetch of the next K tile (P5b). After one
+cold read, [saved conversations](../agents-layer/SAVED_CONVERSATIONS.md) bring a long conversation back in seconds.
+
 Quality with q4_0: HumanEval 164 158/164 (the q8_0 runs: 158); at 245k exact code copies 20/20 and needles 24/24
 (q8_0: 20/20, 23/24); perplexity +0.21 % (-c 2048). Details: [Quality](../quality/README.md).
 
