@@ -1,0 +1,68 @@
+```
+12:57:12 engine commit a38714c63d; gpu NVIDIA GeForce RTX 2060 SUPER, 7001 MHz, 422 MiB
+13:00:52 q2 (q3_0, f16 copy 32768, chunk 32768, depth 65536): 1 tables; CUDA errors 0
+op timing over 100 graphs: 1525.695 ms per graph
+   378.988 ms/graph   24.8%  x128   MUL_MAT ptq1_0 5120x17408 cols=512
+   366.934 ms/graph   24.1%  x16    FLASH_ATTN_EXT f32 cols=24
+   199.192 ms/graph   13.1%  x64    MUL_MAT ptq1_0 17408x5120 cols=512
+   158.185 ms/graph   10.4%  x48    GATED_DELTA_NET f32 cols=640
+    88.399 ms/graph    5.8%  x48    MUL_MAT ptq1_0 5120x10240 cols=512
+    73.269 ms/graph    4.8%  x64    MUL_MAT ptq1_0 6144x5120 cols=512
+    54.865 ms/graph    3.6%  x48    MUL_MAT ptq1_0 5120x6144 cols=512
+    44.451 ms/graph    2.9%  x96    MUL_MAT bf16 5120x48 cols=512
+    35.193 ms/graph    2.3%  x16    MUL_MAT ptq1_0 5120x12288 cols=512
+    23.956 ms/graph    1.6%  x257   MUL f32 cols=512
+    17.430 ms/graph    1.1%  x64    SWIGLU f32 cols=512
+    14.650 ms/graph    1.0%  x128   ADD f32 cols=512
+    11.220 ms/graph    0.7%  x48    SSM_CONV f32 cols=512
+    10.090 ms/graph    0.7%  x48    CONCAT f32 cols=10240
+     9.103 ms/graph    0.6%  x48    RMS_NORM f32 cols=48
+     7.591 ms/graph    0.5%  x32    MUL_MAT ptq1_0 5120x1024 cols=512
+     7.243 ms/graph    0.5%  x48    CONT f32 cols=3
+     4.776 ms/graph    0.3%  x48    SWIGLU f32 cols=48
+     2.417 ms/graph    0.2%  x16    CONT f32 cols=512
+     2.294 ms/graph    0.2%  x48    L2_NORM f32 cols=32
+     2.102 ms/graph    0.1%  x96    CPY f32 cols=0
+     2.003 ms/graph    0.1%  x16    RMS_NORM f32 cols=24
+     1.579 ms/graph    0.1%  x16    SIGMOID f32 cols=512
+     1.140 ms/graph    0.1%  x32    SET_ROWS f32 cols=66048
+     1.109 ms/graph    0.1%  x16    MUL_MAT f32 256x256 cols=12288
+     1.050 ms/graph    0.1%  x16    MUL_MAT f32 64x64 cols=49152
+     0.900 ms/graph    0.1%  x529   RESHAPE f32 cols=512
+     0.818 ms/graph    0.1%  x16    ROPE f32 cols=24
+     0.469 ms/graph    0.0%  x48    CPY f32 cols=1
+     0.370 ms/graph    0.0%  x96    GET_ROWS f32 cols=1
+13:04:48 q3 (q3_0, f16 copy 0, chunk 0, depth 65536): 1 tables; CUDA errors 0
+op timing over 100 graphs: 1622.869 ms per graph
+   434.993 ms/graph   26.8%  x16    FLASH_ATTN_EXT f32 cols=24
+   389.502 ms/graph   24.0%  x128   MUL_MAT ptq1_0 5120x17408 cols=512
+   204.710 ms/graph   12.6%  x64    MUL_MAT ptq1_0 17408x5120 cols=512
+   162.715 ms/graph   10.0%  x48    GATED_DELTA_NET f32 cols=640
+    90.658 ms/graph    5.6%  x48    MUL_MAT ptq1_0 5120x10240 cols=512
+    75.107 ms/graph    4.6%  x64    MUL_MAT ptq1_0 6144x5120 cols=512
+    56.302 ms/graph    3.5%  x48    MUL_MAT ptq1_0 5120x6144 cols=512
+    45.465 ms/graph    2.8%  x96    MUL_MAT bf16 5120x48 cols=512
+    36.293 ms/graph    2.2%  x16    MUL_MAT ptq1_0 5120x12288 cols=512
+    23.963 ms/graph    1.5%  x257   MUL f32 cols=512
+    17.423 ms/graph    1.1%  x64    SWIGLU f32 cols=512
+    14.677 ms/graph    0.9%  x128   ADD f32 cols=512
+    11.309 ms/graph    0.7%  x48    SSM_CONV f32 cols=512
+    10.067 ms/graph    0.6%  x48    CONCAT f32 cols=10240
+     9.313 ms/graph    0.6%  x48    RMS_NORM f32 cols=48
+     7.808 ms/graph    0.5%  x32    MUL_MAT ptq1_0 5120x1024 cols=512
+     7.442 ms/graph    0.5%  x48    CONT f32 cols=3
+     4.776 ms/graph    0.3%  x48    SWIGLU f32 cols=48
+     2.478 ms/graph    0.2%  x16    CONT f32 cols=512
+     2.296 ms/graph    0.1%  x48    L2_NORM f32 cols=32
+     2.087 ms/graph    0.1%  x96    CPY f32 cols=0
+     2.057 ms/graph    0.1%  x16    RMS_NORM f32 cols=24
+     1.577 ms/graph    0.1%  x16    SIGMOID f32 cols=512
+     1.113 ms/graph    0.1%  x32    SET_ROWS f32 cols=66048
+     1.106 ms/graph    0.1%  x16    MUL_MAT f32 256x256 cols=12288
+     1.044 ms/graph    0.1%  x16    MUL_MAT f32 64x64 cols=49152
+     0.908 ms/graph    0.1%  x529   RESHAPE f32 cols=512
+     0.861 ms/graph    0.1%  x16    ROPE f32 cols=24
+     0.472 ms/graph    0.0%  x48    CPY f32 cols=1
+     0.376 ms/graph    0.0%  x96    GET_ROWS f32 cols=1
+13:04:48 prof done
+prof exit 0
