@@ -48,7 +48,7 @@ engine `a38714c63d`. Memory clock 11751 MHz in R5 and R6.
 | R4 saved conversations | 3 turns (slot files 1, 2, 3); conversations A and B take turns, turn 2 of each reads its cache (25,971 / 25,985 cells, 24-25 new tokens); 7 index entries, 4 deltas; 0 CUDA errors | PASS |
 | R5 12 GB | mean decode 4k 96.6 -> 96.6 (1.000x), 32k 87.4 -> 88.3 (1.010x); 128k cold prefill 737.0 -> 767.4 tok/s (1.041x, 172.8 -> 165.9 s); 128k decode 1.033x; texts 9 / 9 identical | PASS |
 | R6 8 GB preset | mean decode 64k 76.2 -> 77.9 (1.022x), 128k 60.0 -> 62.2 (1.037x); prefill 1.000x (f16 path, as expected); texts 6 / 6 identical; 0 CUDA errors | PASS |
-| R7 RTX 2060 SUPER | waits for the rig (P229) | open |
+| R7 RTX 2060 SUPER | see below (P229, issue #245) | PASS |
 
 R3b (`llama-bench`, batch-invariant on, tok/s, 1025 -> candidate):
 
@@ -60,3 +60,23 @@ R3b (`llama-bench`, batch-invariant on, tok/s, 1025 -> candidate):
 
 The q8_0 register risk of the review does not show: q8_0 is faster in every cell. The pp4 cells have a large spread
 (about +-19 tok/s over 5 runs), so the pp4 gains are in the noise; the gate needs no cell below 0.97x, and none is.
+
+## Results, RTX 2060 SUPER (R7, P229, 2026-10-27 10:43-11:27 CDT)
+
+Run on the rig with `rig/r7.sh` (issue #245, where the full `r7.log` is). Stock clocks (memory 7,001 MHz, 6,801 under
+load). Model: the published MTP file with its Q4_0 head, as the 8 GB launcher serves it. Engines as printed: 1025
+`810d93e5aa`, 1026 `a38714c63d`.
+
+| Gate | Result | Verdict |
+|---|---|---|
+| R7a identity | 8 / 8 cells `identical` (q3_0 PPL 6.6809 / 6.7478 / 6.7540 / 6.7528, q4_0 6.6383 / 6.7177 / 6.7210 / 6.7264; ub 512 at 8,192, ub 1 / 4 / 8 at 2,048) | PASS |
+| R7b speed, 64k | mean decode 38.1 -> 40.1 (1.052x); cold prefill 290.1 -> 289.4 tok/s (0.998x) | PASS |
+| R7b speed, 128k | mean decode 21.9 -> 22.9 (1.046x); cold prefill 227.5 -> 227.3 tok/s (0.999x) | PASS |
+| R7b texts | 6 / 6 identical | PASS |
+| health | 4 / 4 servers `health=1`; 0 `CUDA error` and 0 spill lines | PASS |
+
+Record notes from the rig: the desktop held 847 MiB, so the VRAM lines were 67,072-70,144 cells instead of about 88k.
+At 64k the two lines differ (1025 67,072, 1026 68,864), so that decode ratio includes ~1,800 more VRAM cells for 1026;
+at 128k both lines are 70,144, and that cell (1.046x) is the clean comparison.
+
+**All gates pass: bundle-20261026 is published as the latest release.**
