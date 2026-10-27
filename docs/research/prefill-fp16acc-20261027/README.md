@@ -64,3 +64,25 @@ answers are checked in stage 2.
 | 2 | (a new issue) the 8 GB launcher, the 1026 root against the P2 root: cold reads at 64k and 128k, and the P170 code and prose sets with the F2 rule | cold read at 128k at least 1.08x; F2 rule (at most 1 confident wrong answer where 1026 is right, total right at least 1026's minus 1); decode at least 0.98x |
 
 Stage 2 passes: P2 becomes an 8 GB-only switch (on in the 8 GB preset) for the next bundle, with its own release gates.
+
+## P231 stage 1 results (RTX 2060 SUPER, 2026-10-27 12:07-12:33 CDT, issue #250)
+
+Stock clocks (memory 7,001 MHz), the published MTP file with its Q4_0 head, q3_0, the 8 GB copy settings; 0 `CUDA
+error` lines. The full log and jsonl rows are on #250.
+
+| Cell | 8k | 32k | 64k |
+|---|---|---|---|
+| r1 1026 | 395.61 | 305.55 | 233.76 |
+| r1 P2 | 386.13 | 303.33 | 238.93 |
+| r2 1026 | 380.26 | 296.34 | 230.81 |
+| r2 P2 | 382.46 | 301.30 | 237.91 |
+| P2 / 1026, r1 / r2 | 0.976 / 1.006 | 0.993 / 1.017 | 1.022 / 1.031 |
+
+KL of P2 against 1026 (q3_0, copy settings, ctx 8,192): mean KLD 0.002502, max 0.605, same top 97.61 %, PPL 6.6613
+against 6.6809.
+
+**Verdict: FAIL** (at least 1.08x at 32k and at 64k in both rounds). Stage 2 does not run. **P2 is closed for both
+cards.** On the 2060 the fp16 accumulation gives at most 2-3 % at 64k: the K·Q accumulation rate is not the main cost
+of prefill at depth there either. With P230 (loads are not the limit either), two guesses about the 2060's prefill
+cost failed. The next step measures where the time goes before any new change: the engine's per-op GPU timer
+(`GGML_CUDA_OP_TIMING=1`) over a depth fill.
