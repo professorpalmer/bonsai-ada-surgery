@@ -8,7 +8,7 @@
 cd "$(dirname "$0")/.." || exit 1
 LOG=docs/receipts/fa_prefill_f16_ada.log
 say() { echo "$(date '+%H:%M') $*" | tee -a "$LOG"; }
-CU=/c/Users/pwall/AppData/Local/Programs/Python/Python312/Lib/site-packages/nvidia/cu13
+CU=$HOME/AppData/Local/Programs/Python/Python312/Lib/site-packages/nvidia/cu13
 BIN="$TEMP/build-0040/bin"
 say "=== FLASH_ATTN_EXT perf, RTX 4070, served prefill shape (head 256, 4 KV heads x 6, 512 queries), q8_0 vs f16"
 (cd "$BIN" && PATH="$BIN:$CU/bin:$CU/bin/x86_64:$PATH" ./test-backend-ops.exe perf -o FLASH_ATTN_EXT -b CUDA0 2>&1) > "$TEMP/fa_perf_ada.txt"

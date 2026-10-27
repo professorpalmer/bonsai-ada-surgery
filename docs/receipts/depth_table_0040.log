@@ -1,4 +1,4 @@
-02:57 === depth table 0040 (C:/Users/pwall/AppData/Local/Temp/root-0040): health=1; kv     tiered: cells 0..119040 in VRAM, 119040..262144 in system RAM (VRAM margin 1000 MiB)
+02:57 === depth table 0040 (<home>/AppData/Local/Temp/root-0040): health=1; kv     tiered: cells 0..119040 in VRAM, 119040..262144 in system RAM (VRAM margin 1000 MiB)
 258000: code   depth 258000 (evaluated 256858): prefill   368.7 tok/s  ttft 696.64s  decode   12.0 tok/s (400 tok)
 258000: prose  depth 258000 (evaluated 512): prefill   177.8 tok/s  ttft   2.88s  decode    8.6 tok/s (400 tok)
 258000: bash   depth 258000 (evaluated 516): prefill   178.0 tok/s  ttft   2.90s  decode   11.3 tok/s (400 tok)

@@ -2,7 +2,7 @@
 python approx_x.py INNER KEYFILE"""
 import json, re, sys, time, urllib.request
 INNER, KEY = sys.argv[1], open(sys.argv[2]).read().strip()
-P = {p["id"]: p for p in json.load(open(r"C:\Users\pwall\Projects\bonsai-saa\docs\research\no-count-20261022\prompts.json", encoding="utf-8"))}
+P = {p["id"]: p for p in json.load(open(r"<home>\Projects\bonsai-saa\docs\research\no-count-20261022\prompts.json", encoding="utf-8"))}
 WF = {"type": "function", "function": {"name": "write_file", "description": "Write a text file in the workspace.",
       "parameters": {"type": "object", "properties": {"path": {"type": "string"}, "content": {"type": "string"}}, "required": ["path", "content"]}}}
 NOTES = {"R1": " (The length can be approximate: do not count the words.)",

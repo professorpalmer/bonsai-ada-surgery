@@ -1,10 +1,10 @@
 0.00.020.718 I cmn  common_param: common_params_print_info: verbosity = 3 (adjust with the `-lv N` CLI arg)
-0.00.030.948 I srv    load_model: loading model 'C:/Users/pwall/Projects/bonsai-2-27b-serve\models\Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf'
+0.00.030.948 I srv    load_model: loading model '<home>/Projects/bonsai-2-27b-serve\models\Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf'
 0.04.557.242 I cmn          init: llama threadpool init, n_threads = 16
 0.04.559.172 W ggml_cuda_graph_check_compability: attention does not read the host tail of the tiered KV cache: CUDA graphs on
 0.04.936.700 I common_speculative_init_result: draft context sized to 20736 tokens (spec-draft-window 16384, target 262144)
 0.04.936.706 I common_speculative_init_result: MTP draft context n_ubatch 512 -> 256 (LLAMA_MTP_DRAFT_UBATCH)
-0.04.936.706 I common_speculative_init_result: creating MTP draft context against the target model 'C:/Users/pwall/Projects/bonsai-2-27b-serve\models\Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf'
+0.04.936.706 I common_speculative_init_result: creating MTP draft context against the target model '<home>/Projects/bonsai-2-27b-serve\models\Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf'
 0.05.588.419 I srv    load_model: initializing, n_slots = 1, n_ctx_slot = 262144, kv_unified = 'false'
 0.05.602.253 I srv    load_model: speculative decoding enabled: ngram-mod,draft-mtp
 0.05.606.558 I srv          init: chat template supports preserving reasoning, consider enabling it via --reasoning-preserve

@@ -1,4 +1,4 @@
-23:45 === engine A/B pr8: A = C:/Users/pwall/Projects/bonsai-2-27b-serve\bin, B = C:\Users\pwall\AppData\Local\Temp\root-0040\bin, depths 4000 32000
+23:45 === engine A/B pr8: A = <home>/Projects/bonsai-2-27b-serve\bin, B = <home>\AppData\Local\Temp\root-0040\bin, depths 4000 32000
 A-mtp-1 depth 4000: mean decode 94.7 tok/s
 A-mtp-1 depth 32000: mean decode 100.9 tok/s
 B-mtp-1 depth 4000: mean decode 94.5 tok/s

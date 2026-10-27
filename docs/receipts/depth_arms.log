@@ -1,35 +1,35 @@
 21:44 === depth arms relgm: depths 192000 (bench/arms/release_graphs_mask.txt)
-21:44 arm shipped-lkoff (C:/Users/pwall/Projects/bonsai-2-27b-serve; BONSAI_LOOKUP=0): health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margi
+21:44 arm shipped-lkoff (<home>/Projects/bonsai-2-27b-serve; BONSAI_LOOKUP=0): health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margi
 shipped-lkoff code   depth 192000 (evaluated 191010): prefill   523.1 tok/s  ttft 365.18s  decode   22.4 tok/s (400 tok)
 shipped-lkoff prose  depth 192000 (evaluated 512): prefill   286.1 tok/s  ttft   1.79s  decode   16.3 tok/s (400 tok)
 shipped-lkoff bash   depth 192000 (evaluated 516): prefill   287.6 tok/s  ttft   1.79s  decode   20.6 tok/s (400 tok)
 shipped-lkoff mean decode 19.8 tok/s
 21:51 shipped-lkoff: 'one sync per K write' warnings: 0
-21:51 arm nographs-lkoff (C:/Users/pwall/Projects/bonsai-2-27b-serve; BONSAI_LOOKUP=0 GGML_CUDA_DISABLE_GRAPHS=1): health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margi
+21:51 arm nographs-lkoff (<home>/Projects/bonsai-2-27b-serve; BONSAI_LOOKUP=0 GGML_CUDA_DISABLE_GRAPHS=1): health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margi
 nographs-lkoff code   depth 192000 (evaluated 191010): prefill   522.8 tok/s  ttft 365.35s  decode   28.2 tok/s (400 tok)
 nographs-lkoff prose  depth 192000 (evaluated 512): prefill   282.9 tok/s  ttft   1.81s  decode   20.7 tok/s (400 tok)
 nographs-lkoff bash   depth 192000 (evaluated 516): prefill   287.8 tok/s  ttft   1.79s  decode   26.1 tok/s (400 tok)
 nographs-lkoff mean decode 25.0 tok/s
 21:58 nographs-lkoff: 'one sync per K write' warnings: 0
-21:59 arm f16mask-lkoff (C:/Users/pwall/Projects/bonsai-2-27b-serve; BONSAI_LOOKUP=0 LLAMA_ARG_KQ_MASK_PACKED=0): health=1; kv     tiered: cells 0..121344 in VRAM, 121344..262144 in system RAM (VRAM margi
+21:59 arm f16mask-lkoff (<home>/Projects/bonsai-2-27b-serve; BONSAI_LOOKUP=0 LLAMA_ARG_KQ_MASK_PACKED=0): health=1; kv     tiered: cells 0..121344 in VRAM, 121344..262144 in system RAM (VRAM margi
 f16mask-lkoff code   depth 192000 (evaluated 191010): prefill   526.2 tok/s  ttft 363.00s  decode   20.8 tok/s (400 tok)
 f16mask-lkoff prose  depth 192000 (evaluated 512): prefill   284.2 tok/s  ttft   1.80s  decode   15.2 tok/s (400 tok)
 f16mask-lkoff bash   depth 192000 (evaluated 516): prefill   285.2 tok/s  ttft   1.81s  decode   19.1 tok/s (400 tok)
 f16mask-lkoff mean decode 18.3 tok/s
 22:06 f16mask-lkoff: 'one sync per K write' warnings: 0
-22:06 arm shipped-lkon (C:/Users/pwall/Projects/bonsai-2-27b-serve; ): health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margi
+22:06 arm shipped-lkon (<home>/Projects/bonsai-2-27b-serve; ): health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margi
 shipped-lkon code   depth 192000 (evaluated 191010): prefill   523.1 tok/s  ttft 365.13s  decode   22.4 tok/s (400 tok)
 shipped-lkon prose  depth 192000 (evaluated 512): prefill   284.9 tok/s  ttft   1.80s  decode   16.3 tok/s (400 tok)
 shipped-lkon bash   depth 192000 (evaluated 516): prefill   287.8 tok/s  ttft   1.79s  decode   20.6 tok/s (400 tok)
 shipped-lkon mean decode 19.8 tok/s
 22:13 shipped-lkon: 'one sync per K write' warnings: 0
-22:14 arm nographs-lkon (C:/Users/pwall/Projects/bonsai-2-27b-serve; GGML_CUDA_DISABLE_GRAPHS=1): health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margi
+22:14 arm nographs-lkon (<home>/Projects/bonsai-2-27b-serve; GGML_CUDA_DISABLE_GRAPHS=1): health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margi
 nographs-lkon code   depth 192000 (evaluated 191010): prefill   523.3 tok/s  ttft 365.02s  decode   28.2 tok/s (400 tok)
 nographs-lkon prose  depth 192000 (evaluated 512): prefill   282.2 tok/s  ttft   1.81s  decode   20.6 tok/s (400 tok)
 nographs-lkon bash   depth 192000 (evaluated 516): prefill   287.1 tok/s  ttft   1.80s  decode   26.0 tok/s (400 tok)
 nographs-lkon mean decode 24.9 tok/s
 22:21 nographs-lkon: 'one sync per K write' warnings: 0
-22:21 arm f16mask-lkon (C:/Users/pwall/Projects/bonsai-2-27b-serve; LLAMA_ARG_KQ_MASK_PACKED=0): health=1; kv     tiered: cells 0..121344 in VRAM, 121344..262144 in system RAM (VRAM margi
+22:21 arm f16mask-lkon (<home>/Projects/bonsai-2-27b-serve; LLAMA_ARG_KQ_MASK_PACKED=0): health=1; kv     tiered: cells 0..121344 in VRAM, 121344..262144 in system RAM (VRAM margi
 f16mask-lkon code   depth 192000 (evaluated 191010): prefill   525.7 tok/s  ttft 363.32s  decode   20.5 tok/s (400 tok)
 f16mask-lkon prose  depth 192000 (evaluated 512): prefill   277.3 tok/s  ttft   1.85s  decode   14.9 tok/s (400 tok)
 f16mask-lkon bash   depth 192000 (evaluated 516): prefill   281.1 tok/s  ttft   1.84s  decode   18.8 tok/s (400 tok)
@@ -37,21 +37,21 @@ f16mask-lkon mean decode 18.1 tok/s
 22:28 f16mask-lkon: 'one sync per K write' warnings: 0
 22:28 === relgm done
 22:28 === depth arms optime: depths 192000 (bench/arms/sparse_optiming.txt)
-22:28 arm op-dense-lkon (C:\Users\pwall\AppData\Local\Temp\root-sparse4; GGML_CUDA_DISABLE_GRAPHS=1 LLAMA_ARG_KQ_MASK_PACKED=0 GGML_CUDA_OP_TIMING=1): health=1; kv     tiered: cells 0..121344 in VRAM, 121344..262144 in system RAM (VRAM margi
+22:28 arm op-dense-lkon (<home>\AppData\Local\Temp\root-sparse4; GGML_CUDA_DISABLE_GRAPHS=1 LLAMA_ARG_KQ_MASK_PACKED=0 GGML_CUDA_OP_TIMING=1): health=1; kv     tiered: cells 0..121344 in VRAM, 121344..262144 in system RAM (VRAM margi
 op-dense-lkon code   depth 192000 (evaluated 191010): prefill   514.0 tok/s  ttft 371.61s  decode   24.5 tok/s (400 tok)
 op-dense-lkon prose  depth 192000 (evaluated 512): prefill   275.7 tok/s  ttft   1.86s  decode   17.8 tok/s (400 tok)
 op-dense-lkon bash   depth 192000 (evaluated 516): prefill   276.8 tok/s  ttft   1.86s  decode   22.5 tok/s (400 tok)
 op-dense-lkon mean decode 21.6 tok/s
 22:36 op-dense-lkon: 'one sync per K write' warnings: 0
-22:36 arm op-sparse-lkon (C:\Users\pwall\AppData\Local\Temp\root-sparse4; GGML_CUDA_DISABLE_GRAPHS=1 LLAMA_ARG_KQ_MASK_PACKED=0 GGML_CUDA_OP_TIMING=1 GGML_CUDA_FA_SPARSE=8192,256,1024 GGML_CUDA_FA_SPARSE_FAST=1 GGML_CUDA_KV_TIER_STAGE_MIN_Q=9): health=1; kv     tiered: cells 0..121344 in VRAM, 121344..262144 in system RAM (VRAM margi
+22:36 arm op-sparse-lkon (<home>\AppData\Local\Temp\root-sparse4; GGML_CUDA_DISABLE_GRAPHS=1 LLAMA_ARG_KQ_MASK_PACKED=0 GGML_CUDA_OP_TIMING=1 GGML_CUDA_FA_SPARSE=8192,256,1024 GGML_CUDA_FA_SPARSE_FAST=1 GGML_CUDA_KV_TIER_STAGE_MIN_Q=9): health=1; kv     tiered: cells 0..121344 in VRAM, 121344..262144 in system RAM (VRAM margi
 op-sparse-lkon code   depth 192000 (evaluated 191010): prefill   511.7 tok/s  ttft 373.32s  decode   15.9 tok/s (400 tok)
 op-sparse-lkon prose  depth 192000 (evaluated 512): prefill   263.8 tok/s  ttft   1.94s  decode   10.4 tok/s (400 tok)
 op-sparse-lkon bash   depth 192000 (evaluated 516): prefill   268.9 tok/s  ttft   1.92s  decode   13.6 tok/s (400 tok)
 op-sparse-lkon mean decode 13.3 tok/s
 22:44 op-sparse-lkon: 'one sync per K write' warnings: 1
-22:44 arm op-dense-lkoff (C:\Users\pwall\AppData\Local\Temp\root-sparse4; BONSAI_LOOKUP=0 GGML_CUDA_DISABLE_GRAPHS=1 LLAMA_ARG_KQ_MASK_PACKED=0 GGML_CUDA_OP_TIMING=1): health=1; kv     tiered: cells 0..121344 in VRAM, 121344..262144 in system RAM (VRAM margi
+22:44 arm op-dense-lkoff (<home>\AppData\Local\Temp\root-sparse4; BONSAI_LOOKUP=0 GGML_CUDA_DISABLE_GRAPHS=1 LLAMA_ARG_KQ_MASK_PACKED=0 GGML_CUDA_OP_TIMING=1): health=1; kv     tiered: cells 0..121344 in VRAM, 121344..262144 in system RAM (VRAM margi
 23:07 === depth arms tgate: depths 4000 32000 128000 192000 250000 (bench/arms/tier_graphs_gate.txt)
-23:08 arm shipped (C:/Users/pwall/Projects/bonsai-2-27b-serve; ): health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margi
+23:08 arm shipped (<home>/Projects/bonsai-2-27b-serve; ): health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margi
 shipped code   depth   4000 (evaluated 4048): prefill  1197.9 tok/s  ttft   3.38s  decode  103.7 tok/s (400 tok)
 shipped prose  depth   4000 (evaluated 512): prefill   929.0 tok/s  ttft   0.55s  decode   84.7 tok/s (400 tok)
 shipped bash   depth   4000 (evaluated 516): prefill   946.8 tok/s  ttft   0.54s  decode   97.2 tok/s (400 tok)
@@ -73,7 +73,7 @@ shipped prose  depth 250000 (evaluated 512): prefill   225.8 tok/s  ttft   2.27s
 shipped bash   depth 250000 (evaluated 516): prefill   230.5 tok/s  ttft   2.24s  decode   13.6 tok/s (400 tok)
 shipped mean decode 12.7 tok/s
 23:30 shipped: 'one sync per K write' warnings: 0
-23:30 arm tiergraphs (C:\Users\pwall\AppData\Local\Temp\root-graphs; ): health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margi
+23:30 arm tiergraphs (<home>\AppData\Local\Temp\root-graphs; ): health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margi
 tiergraphs code   depth   4000 (evaluated 4048): prefill  1200.8 tok/s  ttft   3.37s  decode  104.3 tok/s (400 tok)
 tiergraphs prose  depth   4000 (evaluated 512): prefill   938.6 tok/s  ttft   0.55s  decode   85.2 tok/s (400 tok)
 tiergraphs bash   depth   4000 (evaluated 516): prefill   950.6 tok/s  ttft   0.54s  decode   96.6 tok/s (400 tok)
@@ -97,13 +97,13 @@ tiergraphs mean decode 14.6 tok/s
 23:52 tiergraphs: 'one sync per K write' warnings: 0
 23:52 === tgate done
 23:52 === depth arms tgateoff: depths 192000 (bench/arms/tier_graphs_gate_lkoff.txt)
-23:52 arm shipped-lkoff (C:/Users/pwall/Projects/bonsai-2-27b-serve; BONSAI_LOOKUP=0): health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margi
+23:52 arm shipped-lkoff (<home>/Projects/bonsai-2-27b-serve; BONSAI_LOOKUP=0): health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margi
 shipped-lkoff code   depth 192000 (evaluated 191010): prefill   523.1 tok/s  ttft 365.18s  decode   22.4 tok/s (400 tok)
 shipped-lkoff prose  depth 192000 (evaluated 512): prefill   285.7 tok/s  ttft   1.79s  decode   16.3 tok/s (400 tok)
 shipped-lkoff bash   depth 192000 (evaluated 516): prefill   287.4 tok/s  ttft   1.80s  decode   20.5 tok/s (400 tok)
 shipped-lkoff mean decode 19.8 tok/s
 00:00 shipped-lkoff: 'one sync per K write' warnings: 0
-00:00 arm tiergraphs-lkoff (C:\Users\pwall\AppData\Local\Temp\root-graphs; BONSAI_LOOKUP=0): health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margi
+00:00 arm tiergraphs-lkoff (<home>\AppData\Local\Temp\root-graphs; BONSAI_LOOKUP=0): health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margi
 tiergraphs-lkoff code   depth 192000 (evaluated 191010): prefill   523.7 tok/s  ttft 364.76s  decode   28.3 tok/s (400 tok)
 tiergraphs-lkoff prose  depth 192000 (evaluated 512): prefill   284.3 tok/s  ttft   1.80s  decode   20.6 tok/s (400 tok)
 tiergraphs-lkoff bash   depth 192000 (evaluated 516): prefill   288.3 tok/s  ttft   1.79s  decode   26.1 tok/s (400 tok)
@@ -111,7 +111,7 @@ tiergraphs-lkoff mean decode 25.0 tok/s
 00:07 tiergraphs-lkoff: 'one sync per K write' warnings: 0
 00:07 === tgateoff done
 03:18 === depth arms optime6: depths 192000 (bench/arms/sparse_optiming6.txt)
-03:18 arm op-dense-lkon (C:\Users\pwall\AppData\Local\Temp\root-sparse6; GGML_CUDA_DISABLE_GRAPHS=1 LLAMA_ARG_KQ_MASK_PACKED=0 GGML_CUDA_OP_TIMING=1): health=1; kv     tiered: cells 0..121344 in VRAM, 121344..262144 in system RAM (VRAM margi
+03:18 arm op-dense-lkon (<home>\AppData\Local\Temp\root-sparse6; GGML_CUDA_DISABLE_GRAPHS=1 LLAMA_ARG_KQ_MASK_PACKED=0 GGML_CUDA_OP_TIMING=1): health=1; kv     tiered: cells 0..121344 in VRAM, 121344..262144 in system RAM (VRAM margi
 op-dense-lkon code   depth 192000 (evaluated 191010): prefill   511.4 tok/s  ttft 373.51s  decode   24.6 tok/s (400 tok)
 op-dense-lkon prose  depth 192000 (evaluated 512): prefill   275.6 tok/s  ttft   1.86s  decode   18.0 tok/s (400 tok)
 op-dense-lkon bash   depth 192000 (evaluated 516): prefill   278.9 tok/s  ttft   1.85s  decode   22.6 tok/s (400 tok)
@@ -130,7 +130,7 @@ op-dense-lkon timing: 7.18.984.421 W      0.459 ms/graph    1.8%  x9     CONT f3
 op-dense-lkon timing: 7.18.984.421 W      0.442 ms/graph    1.8%  x9     MUL_MAT ptq1_0 5120x6144 cols=5
 op-dense-lkon timing: 7.18.984.422 W      0.423 ms/graph    1.7%  x9     RESHAPE f32 cols=10240
 03:25 op-dense-lkon: 'one sync per K write' warnings: 0
-03:26 arm op-sparse-lkon (C:\Users\pwall\AppData\Local\Temp\root-sparse6; GGML_CUDA_DISABLE_GRAPHS=1 LLAMA_ARG_KQ_MASK_PACKED=0 GGML_CUDA_OP_TIMING=1 GGML_CUDA_FA_SPARSE=8192,256,1024 GGML_CUDA_FA_SPARSE_FAST=1 GGML_CUDA_KV_TIER_STAGE_MIN_Q=9): health=1; kv     tiered: cells 0..121344 in VRAM, 121344..262144 in system RAM (VRAM margi
+03:26 arm op-sparse-lkon (<home>\AppData\Local\Temp\root-sparse6; GGML_CUDA_DISABLE_GRAPHS=1 LLAMA_ARG_KQ_MASK_PACKED=0 GGML_CUDA_OP_TIMING=1 GGML_CUDA_FA_SPARSE=8192,256,1024 GGML_CUDA_FA_SPARSE_FAST=1 GGML_CUDA_KV_TIER_STAGE_MIN_Q=9): health=1; kv     tiered: cells 0..121344 in VRAM, 121344..262144 in system RAM (VRAM margi
 op-sparse-lkon code   depth 192000 (evaluated 191010): prefill   510.7 tok/s  ttft 373.98s  decode   15.8 tok/s (400 tok)
 op-sparse-lkon prose  depth 192000 (evaluated 512): prefill   264.9 tok/s  ttft   1.93s  decode   10.1 tok/s (400 tok)
 op-sparse-lkon bash   depth 192000 (evaluated 516): prefill   266.7 tok/s  ttft   1.94s  decode   13.4 tok/s (400 tok)
@@ -149,7 +149,7 @@ op-sparse-lkon timing: 7.58.089.167 W      0.296 ms/graph    0.7%  x9     CONT f
 op-sparse-lkon timing: 7.58.089.167 W      0.279 ms/graph    0.6%  x9     RESHAPE f32 cols=10240
 op-sparse-lkon timing: 7.58.089.168 W      0.279 ms/graph    0.6%  x19    MUL_MAT bf16 5120x48 cols=5
 03:34 op-sparse-lkon: 'one sync per K write' warnings: 0
-03:34 arm op-dense-lkoff (C:\Users\pwall\AppData\Local\Temp\root-sparse6; BONSAI_LOOKUP=0 GGML_CUDA_DISABLE_GRAPHS=1 LLAMA_ARG_KQ_MASK_PACKED=0 GGML_CUDA_OP_TIMING=1): health=1; kv     tiered: cells 0..121344 in VRAM, 121344..262144 in system RAM (VRAM margi
+03:34 arm op-dense-lkoff (<home>\AppData\Local\Temp\root-sparse6; BONSAI_LOOKUP=0 GGML_CUDA_DISABLE_GRAPHS=1 LLAMA_ARG_KQ_MASK_PACKED=0 GGML_CUDA_OP_TIMING=1): health=1; kv     tiered: cells 0..121344 in VRAM, 121344..262144 in system RAM (VRAM margi
 op-dense-lkoff code   depth 192000 (evaluated 191010): prefill   511.1 tok/s  ttft 373.75s  decode   24.6 tok/s (400 tok)
 op-dense-lkoff prose  depth 192000 (evaluated 512): prefill   273.6 tok/s  ttft   1.87s  decode   18.0 tok/s (400 tok)
 op-dense-lkoff bash   depth 192000 (evaluated 516): prefill   279.6 tok/s  ttft   1.85s  decode   22.7 tok/s (400 tok)
@@ -168,7 +168,7 @@ op-dense-lkoff timing: 7.19.383.325 W      0.446 ms/graph    1.8%  x9     MUL_MA
 op-dense-lkoff timing: 7.19.383.325 W      0.437 ms/graph    1.7%  x9     CONT f32 cols=3
 op-dense-lkoff timing: 7.19.383.326 W      0.413 ms/graph    1.6%  x0     MUL_MAT ptq1_0 5120x248320 cols=1
 03:41 op-dense-lkoff: 'one sync per K write' warnings: 0
-03:42 arm op-sparse-lkoff (C:\Users\pwall\AppData\Local\Temp\root-sparse6; BONSAI_LOOKUP=0 GGML_CUDA_DISABLE_GRAPHS=1 LLAMA_ARG_KQ_MASK_PACKED=0 GGML_CUDA_OP_TIMING=1 GGML_CUDA_FA_SPARSE=8192,256,1024 GGML_CUDA_FA_SPARSE_FAST=1 GGML_CUDA_KV_TIER_STAGE_MIN_Q=9): health=1; kv     tiered: cells 0..121344 in VRAM, 121344..262144 in system RAM (VRAM margi
+03:42 arm op-sparse-lkoff (<home>\AppData\Local\Temp\root-sparse6; BONSAI_LOOKUP=0 GGML_CUDA_DISABLE_GRAPHS=1 LLAMA_ARG_KQ_MASK_PACKED=0 GGML_CUDA_OP_TIMING=1 GGML_CUDA_FA_SPARSE=8192,256,1024 GGML_CUDA_FA_SPARSE_FAST=1 GGML_CUDA_KV_TIER_STAGE_MIN_Q=9): health=1; kv     tiered: cells 0..121344 in VRAM, 121344..262144 in system RAM (VRAM margi
 op-sparse-lkoff code   depth 192000 (evaluated 191010): prefill   511.0 tok/s  ttft 373.79s  decode   15.8 tok/s (400 tok)
 op-sparse-lkoff prose  depth 192000 (evaluated 512): prefill   264.7 tok/s  ttft   1.93s  decode   10.3 tok/s (400 tok)
 op-sparse-lkoff bash   depth 192000 (evaluated 516): prefill   268.8 tok/s  ttft   1.92s  decode   13.1 tok/s (400 tok)

@@ -9,7 +9,7 @@ param(
 # wikitext-2 *test* (same method and base file as bench\kv_kl_sweep.ps1, so the numbers line up with it).
 $ErrorActionPreference = 'Continue'
 Set-Location (Split-Path $PSScriptRoot -Parent)
-$cu = "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\site-packages\nvidia\cu13"
+$cu = "$env:USERPROFILE\AppData\Local\Programs\Python\Python312\Lib\site-packages\nvidia\cu13"
 $env:PATH = "$cu\bin;$cu\bin\x86_64;$env:PATH"
 $out = "artifacts\eval"
 $bias = "$out\kv-mean-center-bonsai2.gguf"

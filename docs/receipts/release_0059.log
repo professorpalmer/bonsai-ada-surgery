@@ -13,17 +13,17 @@ U02 eightgb (BONSAI_8GB=1 BONSAI_VRAM_MARGIN=3600): health=1 reply 'OK.'
 window 262144 / q3_0  (8 GB default; trained max 262144)
 kv     tiered: cells 0..143872 in VRAM, 143872..262144 in system RAM (VRAM margin 3600 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off)
 kv     sparse host-tail reads: auto (dense line 143872; past it the engine times dense vs sparse per 16k band and keeps the faster; BONSAI_SPARSE=0 off, =1 forced)
-kv     sparse calib: C:\Users\pwall\AppData\Local\bonsai\sparse-calib.txt new (each 16k band past the engage point is timed once, on first use)
+kv     sparse calib: <home>\AppData\Local\bonsai\sparse-calib.txt new (each 16k band past the engage point is timed once, on first use)
 kv     staging buffer for cells 143872..225792; past that the system RAM rows are read in place; packed KQ mask
 U02 big (BONSAI_TOTAL_MIB=24576): health=1 reply 'OK.'
 window 262144 / q8_0  (q8_0: the card holds most of the window; trained max 262144)
 kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off); packed KQ mask (240 MiB saved)
 23:55 U02 control bytes in tracked text: 0 files
-U02 vis (BONSAI_MMPROJ=C:\Users\pwall\Projects\bonsai-2-27b-serve\models\Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf BONSAI_CTX=32768): health=1 reply 'OK'
+U02 vis (BONSAI_MMPROJ=<home>\Projects\bonsai-2-27b-serve\models\Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf BONSAI_CTX=32768): health=1 reply 'OK'
 window 32768 / q4_0  (12 GB default, BONSAI_CTK=q8_0 for the previous one; trained max 262144)
 23:56 U05 responses tool image: 'The main (and only) color in the screenshot is a solid, vivid **red**.'
 23:56 === depth arms rel0059: depths 4000 32000 245000 (bench/arms/release_0059.txt)
-23:56 arm b15c (C:\Users\pwall\AppData\Local\Temp\root-15c; ): health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margi
+23:56 arm b15c (<home>\AppData\Local\Temp\root-15c; ): health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margi
 b15c code   depth   4000 (evaluated 4048): prefill  1270.0 tok/s  ttft   3.19s  decode  104.7 tok/s (400 tok)
 b15c prose  depth   4000 (evaluated 512): prefill   944.9 tok/s  ttft   0.54s  decode   86.6 tok/s (400 tok)
 b15c bash   depth   4000 (evaluated 516): prefill   991.0 tok/s  ttft   0.52s  decode   94.8 tok/s (400 tok)
@@ -37,7 +37,7 @@ b15c prose  depth 245000 (evaluated 512): prefill   237.9 tok/s  ttft   2.15s  d
 b15c bash   depth 245000 (evaluated 516): prefill   239.7 tok/s  ttft   2.15s  decode   16.8 tok/s (400 tok)
 b15c mean decode 14.8 tok/s
 00:07 b15c: 'one sync per K write' warnings: 0
-00:07 arm r0059 (C:\Users\pwall\AppData\Local\Temp\root-0059s; ): health=1; kv     tiered: cells 0..260352 in VRAM, 260352..262144 in system RAM (VRAM margi
+00:07 arm r0059 (<home>\AppData\Local\Temp\root-0059s; ): health=1; kv     tiered: cells 0..260352 in VRAM, 260352..262144 in system RAM (VRAM margi
 r0059 code   depth   4000 (evaluated 4048): prefill  1293.7 tok/s  ttft   3.13s  decode  104.8 tok/s (400 tok)
 r0059 prose  depth   4000 (evaluated 512): prefill   994.7 tok/s  ttft   0.51s  decode   87.3 tok/s (400 tok)
 r0059 bash   depth   4000 (evaluated 516): prefill  1003.9 tok/s  ttft   0.51s  decode   96.6 tok/s (400 tok)
@@ -56,7 +56,7 @@ U03 HumanEval release default (12 GB q4_0): 158/164; fails ['HumanEval/36', 'Hum
 01:11 === release-20261016 4070 gates end
 01:12 === U04b (drafter off)
 01:12 === depth arms rel0059ns: depths 4000 32000 128000 (bench/arms/release_0059_nospec.txt)
-01:12 arm b15c (C:\Users\pwall\AppData\Local\Temp\root-15c; BONSAI_SPEC=0): health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margi
+01:12 arm b15c (<home>\AppData\Local\Temp\root-15c; BONSAI_SPEC=0): health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margi
 b15c code   depth   4000 (evaluated 4048): prefill  1365.9 tok/s  ttft   2.96s  decode   67.3 tok/s (400 tok)
 b15c prose  depth   4000 (evaluated 512): prefill  1081.7 tok/s  ttft   0.47s  decode   67.2 tok/s (400 tok)
 b15c bash   depth   4000 (evaluated 516): prefill  1114.3 tok/s  ttft   0.46s  decode   67.2 tok/s (400 tok)
@@ -70,7 +70,7 @@ b15c prose  depth 128000 (evaluated 512): prefill   423.7 tok/s  ttft   1.21s  d
 b15c bash   depth 128000 (evaluated 516): prefill   430.7 tok/s  ttft   1.20s  decode   41.6 tok/s (400 tok)
 b15c mean decode 41.5 tok/s
 01:17 b15c: 'one sync per K write' warnings: 0
-01:17 arm r0059 (C:\Users\pwall\AppData\Local\Temp\root-0059s; BONSAI_SPEC=0): health=1; kv     tiered: cells 0..259328 in VRAM, 259328..262144 in system RAM (VRAM margi
+01:17 arm r0059 (<home>\AppData\Local\Temp\root-0059s; BONSAI_SPEC=0): health=1; kv     tiered: cells 0..259328 in VRAM, 259328..262144 in system RAM (VRAM margi
 r0059 code   depth   4000 (evaluated 4048): prefill  1362.7 tok/s  ttft   2.97s  decode   67.2 tok/s (400 tok)
 r0059 prose  depth   4000 (evaluated 512): prefill  1080.9 tok/s  ttft   0.47s  decode   67.2 tok/s (400 tok)
 r0059 bash   depth   4000 (evaluated 516): prefill  1114.0 tok/s  ttft   0.46s  decode   67.2 tok/s (400 tok)

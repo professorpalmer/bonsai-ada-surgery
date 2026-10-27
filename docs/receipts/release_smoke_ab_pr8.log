@@ -1,4 +1,4 @@
-23:56 === release smoke ab_pr8: old = C:/Users/pwall/Projects/bonsai-2-27b-serve\bin, new = C:\Users\pwall\AppData\Local\Temp\root-0040
+23:56 === release smoke ab_pr8: old = <home>/Projects/bonsai-2-27b-serve\bin, new = <home>\AppData\Local\Temp\root-0040
 23:57 old: health=1 version: 
   old  code   sha 33cf4e00f8f31f03  tok   256    91.6 tok/s  exhausted=False
   old  prose  sha 6e202c20339818bc  tok   256    86.8 tok/s  exhausted=False

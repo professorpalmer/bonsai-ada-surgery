@@ -1,5 +1,5 @@
 ﻿llama-perplexity.exe : 0.02.527.458 I cmn          init: llama threadpool init, n_threads = 16
-At C:\Users\pwall\Projects\bonsai-2-27b-serve\bench\kv_mean_center_kl.ps1:28 char:5
+At <home>\Projects\bonsai-2-27b-serve\bench\kv_mean_center_kl.ps1:28 char:5
 +     & "$Bin\llama-perplexity.exe" @common -ctk $t -ctv $t --kv-mean-c ...
 +     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     + CategoryInfo          : NotSpecified: (0.02.527.458 I ... n_threads = 16:String) [], RemoteException

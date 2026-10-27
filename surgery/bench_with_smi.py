@@ -8,7 +8,7 @@ import sys
 import time
 from pathlib import Path
 
-root = Path(r"C:\Users\pwall\Projects\bonsai-2-27b-serve")
+root = Path(Path.home() / r"Projects\bonsai-2-27b-serve")
 dst = root / "tooling" / "ada-bin"
 bench = dst / "llama-bench.exe"
 model = root / "models" / "Ternary-Bonsai-2-27B-PTQ1_0.gguf"

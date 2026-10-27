@@ -2,7 +2,7 @@
 # Same binary, same sampling/reasoning controls as pinned A. Differences forced by memory: -c 32768, no MTP
 # speculation, no tiered KV, GPU layers chosen by the loader's fit (the model is larger than 12 GB).
 $ErrorActionPreference = 'Stop'
-$Root = 'C:\Users\pwall\Projects\bonsai-2-27b-serve'
+$Root = "$env:USERPROFILE\Projects\bonsai-2-27b-serve"
 $Key = (Get-Content -Path (Join-Path $Root 'artifacts\api_key.txt') -Raw).Trim()
 $env:GGML_CUDA_BATCH_INVARIANT = '1'
 Set-Location (Join-Path $Root 'bin')

@@ -13,66 +13,66 @@ pass@1 96.95%  (159/164)  arm=medium effort=- temp=0.0 max_tokens=24576  1305.9s
 wrote artifacts/humaneval-terse-off\summary.json
 terse off: mean tokens 932 median 710
 21:43 === terse done
-22:45 === norules: template gguf_template.jinjaC:\Users\pwall\Projects\bonsai-2-27b-serve\tmp\templates-sharp\gguf_template.jinja, root C:/Users/pwall/Projects/bonsai-2-27b-serve, kwargs none, health=1
+22:45 === norules: template gguf_template.jinja<home>\Projects\bonsai-2-27b-serve\tmp\templates-sharp\gguf_template.jinja, root <home>/Projects/bonsai-2-27b-serve, kwargs none, health=1
 pass@1 96.95%  (159/164)  arm=medium effort=- temp=0.0 max_tokens=24576  1310.7s
 wrote artifacts/humaneval-norules\summary.json
 norules: mean tokens 932 median 710, over 4k: 3
 23:07 === norules done
-00:15 === tiergraphs: template model, root C:\Users\pwall\AppData\Local\Temp\root-graphs, kwargs none, health=0
-01:10 === tiergraphs: template model, root C:\Users\pwall\AppData\Local\Temp\smoke-0053, kwargs none, health=1
+00:15 === tiergraphs: template model, root <home>\AppData\Local\Temp\root-graphs, kwargs none, health=0
+01:10 === tiergraphs: template model, root <home>\AppData\Local\Temp\smoke-0053, kwargs none, health=1
 pass@1 0.0%  (0/164)  arm=medium effort=- temp=0.0 max_tokens=24576  0.4s
 wrote artifacts/humaneval-tiergraphs\summary.json
 tiergraphs: mean tokens 0 median 0, over 4k: 0
 01:10 === tiergraphs done
-01:23 === tiergraphs: template model, root C:\Users\pwall\AppData\Local\Temp\smoke-0053, kwargs none, health=1
+01:23 === tiergraphs: template model, root <home>\AppData\Local\Temp\smoke-0053, kwargs none, health=1
 pass@1 97.56%  (160/164)  arm=medium effort=- temp=0.0 max_tokens=24576  3135.4s
 wrote artifacts/humaneval-tiergraphs\summary.json
 tiergraphs: mean tokens 2312 median 576, over 4k: 18
 02:15 === tiergraphs done
-03:50 === rulesuser: template gguf_template.jinja, root C:/Users/pwall/Projects/bonsai-2-27b-serve, kwargs none, --prefix-file tmp/templates-sharp/work_rules.txt, health=1
+03:50 === rulesuser: template gguf_template.jinja, root <home>/Projects/bonsai-2-27b-serve, kwargs none, --prefix-file tmp/templates-sharp/work_rules.txt, health=1
 pass@1 97.56%  (160/164)  arm=medium effort=- temp=0.0 max_tokens=24576  1452.3s
 wrote artifacts/humaneval-rulesuser\summary.json
 rulesuser: mean tokens 956 median 676, over 4k: 3
 04:15 === rulesuser done
-04:15 === rulesmedsent: template gguf_template.jinja, root C:/Users/pwall/Projects/bonsai-2-27b-serve, kwargs none, --system-file tmp/templates-sharp/rules_system_medium.txt, health=1
+04:15 === rulesmedsent: template gguf_template.jinja, root <home>/Projects/bonsai-2-27b-serve, kwargs none, --system-file tmp/templates-sharp/rules_system_medium.txt, health=1
 pass@1 98.17%  (161/164)  arm=medium effort=- temp=0.0 max_tokens=24576  3309.6s
 wrote artifacts/humaneval-rulesmedsent\summary.json
 rulesmedsent: mean tokens 2327 median 599, over 4k: 19
 05:10 === rulesmedsent done
-05:10 === ruleslow: template gguf_template.jinja, root C:/Users/pwall/Projects/bonsai-2-27b-serve, kwargs {"reasoning_effort": "low"}, --system-file tmp/templates-sharp/work_rules.txt, health=1
+05:10 === ruleslow: template gguf_template.jinja, root <home>/Projects/bonsai-2-27b-serve, kwargs {"reasoning_effort": "low"}, --system-file tmp/templates-sharp/work_rules.txt, health=1
 pass@1 97.56%  (160/164)  arm=medium effort=- temp=0.0 max_tokens=24576  3127.8s
 wrote artifacts/humaneval-ruleslow\summary.json
 ruleslow: mean tokens 2312 median 576, over 4k: 18
 06:03 === ruleslow done
-06:56 === budget4096: template model, root C:/Users/pwall/Projects/bonsai-2-27b-serve, kwargs none, --budget 4096, health=1
+06:56 === budget4096: template model, root <home>/Projects/bonsai-2-27b-serve, kwargs none, --budget 4096, health=1
 pass@1 97.56%  (160/164)  arm=medium effort=- temp=0.0 max_tokens=24576  1953.3s
 wrote artifacts/humaneval-budget4096\summary.json
 budget4096: mean tokens 1178 median 589, over 4k: 18
 07:29 === budget4096 done
-07:29 === budget2048: template model, root C:/Users/pwall/Projects/bonsai-2-27b-serve, kwargs none, --budget 2048, health=1
+07:29 === budget2048: template model, root <home>/Projects/bonsai-2-27b-serve, kwargs none, --budget 2048, health=1
 pass@1 97.56%  (160/164)  arm=medium effort=- temp=0.0 max_tokens=24576  1565.7s
 wrote artifacts/humaneval-budget2048\summary.json
 budget2048: mean tokens 913 median 606, over 4k: 0
 07:55 === budget2048 done
-09:24 === gdnmma: template model, root C:\Users\pwall\AppData\Local\Temp\root-gdn2, kwargs none, health=1
+09:24 === gdnmma: template model, root <home>\AppData\Local\Temp\root-gdn2, kwargs none, health=1
 gdnmma: mean tokens 2313 median 576, over 4k: 19
 10:20 === gdnmma done
-10:21 === clientsys_product: template model, root C:/Users/pwall/Projects/bonsai-2-27b-serve, kwargs none, --system-file bench/prompts/agent_system.txt, health=1
+10:21 === clientsys_product: template model, root <home>/Projects/bonsai-2-27b-serve, kwargs none, --system-file bench/prompts/agent_system.txt, health=1
 clientsys_product: mean tokens 2209 median 557, over 4k: 20
 11:12 === clientsys_product done
-11:13 === clientsys_userprefix: template served_template_userprefix.jinja, root C:/Users/pwall/Projects/bonsai-2-27b-serve, kwargs none, --system-file bench/prompts/agent_system.txt, health=1
+11:13 === clientsys_userprefix: template served_template_userprefix.jinja, root <home>/Projects/bonsai-2-27b-serve, kwargs none, --system-file bench/prompts/agent_system.txt, health=1
 11:50 clientsys_userprefix stopped at 154/164 by the 10-11 shutdown (partial; rerun pending)
-11:27 === clientsys_userprefix: template served_template_userprefix.jinja, root C:/Users/pwall/Projects/bonsai-2-27b-serve, kwargs none, --system-file bench/prompts/agent_system.txt, health=1
+11:27 === clientsys_userprefix: template served_template_userprefix.jinja, root <home>/Projects/bonsai-2-27b-serve, kwargs none, --system-file bench/prompts/agent_system.txt, health=1
 pass@1 96.34%  (158/164)  arm=medium effort=- temp=0.0 max_tokens=24576  2411.6s
 wrote artifacts/humaneval-clientsys_userprefix\summary.json
 clientsys_userprefix: mean tokens 1476 median 635, over 4k: 10
 12:07 === clientsys_userprefix done
-19:41 === b0054: template model, root C:\Users\pwall\AppData\Local\Temp\root-0054, kwargs none, health=1
+19:41 === b0054: template model, root <home>\AppData\Local\Temp\root-0054, kwargs none, health=1
 pass@1 21.34%  (35/164)  arm=medium effort=- temp=0.0 max_tokens=24576  3559.3s
 wrote artifacts/humaneval-b0054\summary.json
 b0054: mean tokens 2313 median 576, over 4k: 19
 20:40 === b0054 done
-04:12 === b0055: template model, root C:\Users\pwall\AppData\Local\Temp\root-0055, kwargs none, health=1
+04:12 === b0055: template model, root <home>\AppData\Local\Temp\root-0055, kwargs none, health=1
 pass@1 96.34%  (158/164)  arm=medium effort=- temp=0.0 max_tokens=24576  3525.2s
 wrote artifacts/humaneval-b0055\summary.json
 b0055: mean tokens 2313 median 576, over 4k: 19

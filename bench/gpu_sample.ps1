@@ -1,6 +1,6 @@
 param(
     [int]$Seconds = 20,
-    [string]$OutFile = 'C:\Users\pwall\Projects\bonsai-2-27b-serve\artifacts\gpu_sample.csv'
+    [string]$OutFile = "$env:USERPROFILE\Projects\bonsai-2-27b-serve\artifacts\gpu_sample.csv"
 )
 $ErrorActionPreference = 'Stop'
 New-Item -ItemType Directory -Force -Path (Split-Path $OutFile) | Out-Null

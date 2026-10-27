@@ -1,7 +1,7 @@
 # Speculation A/B arms. Frozen copies of the running server's launch (PID 3076, started 2026-09-27 07:42:14
 # by start-server.ps1 @ 2519e99). Nothing here is sized at launch: every value is pinned to what A runs with.
 # The API key is read from artifacts\api_key.txt at launch time and never written anywhere else.
-$Root = 'C:\Users\pwall\Projects\bonsai-2-27b-serve'
+$Root = "$env:USERPROFILE\Projects\bonsai-2-27b-serve"
 $Bin  = Join-Path $Root 'bin'
 $Model = Join-Path $Root 'models\Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf'
 

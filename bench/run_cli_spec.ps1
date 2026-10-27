@@ -4,8 +4,8 @@ param(
     [string[]]$Extra = @()
 )
 $ErrorActionPreference = 'Stop'
-$bin = 'C:\Users\pwall\Projects\bonsai-2-27b-serve\bin'
-$out = "C:\Users\pwall\Projects\bonsai-2-27b-serve\artifacts\cli_$Name.out"
+$bin = "$env:USERPROFILE\Projects\bonsai-2-27b-serve\bin"
+$out = "$env:USERPROFILE\Projects\bonsai-2-27b-serve\artifacts\cli_$Name.out"
 Set-Location $bin
 $prompt = 'Write a detailed explanation of why memory bandwidth, not FLOPs, usually limits batch-1 LLM decode. Include a short numeric example with 7 GB weights and 500 GB/s bandwidth.'
 $env:LLAMA_ARG_CHAT_TEMPLATE_KWARGS = '{"enable_thinking":false}'

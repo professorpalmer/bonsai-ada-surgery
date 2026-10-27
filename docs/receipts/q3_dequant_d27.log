@@ -1,5 +1,5 @@
 2026-10-14 15:30 NOTE (release session): the q3-fast nvcc build ran 15:19:46-15:29:43 at idle priority, before D27's start: no overlap. Started from session f82461a3.
-15:30 === D27 start: fast q3-fast df218650a (7c7b47e156 + packed-half q3_0 tile dequant, sm_89, build-q3fast), old C:\Users\pwall\AppData\Local\Temp\root-q3-55, depth 64000, driver 610.88
+15:30 === D27 start: fast q3-fast df218650a (7c7b47e156 + packed-half q3_0 tile dequant, sm_89, build-q3fast), old <home>\AppData\Local\Temp\root-q3-55, depth 64000, driver 610.88
 15:33 op test FLASH_ATTN_EXT (q3-fast):  3115/3115 tests passed 0 FAIL lines
 15:33 r1 q4: health=1; mem clock under load 11751 MHz; kv     tiered: cells 0..260352 in VRAM, 260352..262144 in system RAM (
 r1 q4 code   depth  64000 (evaluated 64009): prefill   964.1 tok/s  ttft  66.39s  decode   89.3 tok/s (400 tok)

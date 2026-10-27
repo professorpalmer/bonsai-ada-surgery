@@ -1,4 +1,4 @@
-09:05 === release smoke 1010: old = C:/Users/pwall/Projects/bonsai-2-27b-serve\bin, new = C:/Users/pwall/AppData/Local/Temp/bundle1010-unzip
+09:05 === release smoke 1010: old = <home>/Projects/bonsai-2-27b-serve\bin, new = <home>/AppData/Local/Temp/bundle1010-unzip
 09:05 old: health=1 version: 
   old  code   sha 33cf4e00f8f31f03  tok   256    92.4 tok/s  exhausted=False
   old  prose  sha 6e202c20339818bc  tok   256    88.8 tok/s  exhausted=False

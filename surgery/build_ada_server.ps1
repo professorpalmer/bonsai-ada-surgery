@@ -2,9 +2,9 @@ $ErrorActionPreference = 'Stop'
 $Root = Split-Path -Parent $PSScriptRoot
 $Src  = Join-Path $Root 'vendor\prism-llama'
 $Build = Join-Path $Root 'tooling\build-ada'
-$Cuda = 'C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\site-packages\nvidia\cu13'
+$Cuda = "$env:USERPROFILE\AppData\Local\Programs\Python\Python312\Lib\site-packages\nvidia\cu13"
 $Vcvars = 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat'
-$Cmake = 'C:\Users\pwall\AppData\Local\Programs\Python\Python312\Scripts\cmake.exe'
+$Cmake = "$env:USERPROFILE\AppData\Local\Programs\Python\Python312\Scripts\cmake.exe"
 New-Item -ItemType Directory -Force -Path $Build | Out-Null
 
 $cmd = @"

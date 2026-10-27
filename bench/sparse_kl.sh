@@ -5,7 +5,7 @@
 # graphs off (the emulation syncs per op). Engine: %TEMP%\build-sparse (fa-chunked-prefill + 0050 + the emulation).
 #   [CORPUS=pycode.raw] bash bench/sparse_kl.sh [budgets...]   -> artifacts/eval/kl_sparse_*.log, docs/receipts/sparse_kl.log
 cd "$(dirname "$0")/.." || exit 1
-BIN=/tmp/build-sparse/bin; RT=/c/Users/pwall/Projects/bonsai-2-27b-serve/bin; LOG=docs/receipts/sparse_kl.log; OUT=artifacts/eval
+BIN=/tmp/build-sparse/bin; RT=$HOME/Projects/bonsai-2-27b-serve/bin; LOG=docs/receipts/sparse_kl.log; OUT=artifacts/eval
 B=("$@"); [ ${#B[@]} -eq 0 ] && B=(8192 4096 2048)
 say() { echo "$(date '+%H:%M') $*" | tee -a "$LOG"; }
 CORPUS=${CORPUS:-wiki.test.raw}; TAG=${CORPUS%%.*}

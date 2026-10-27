@@ -4,7 +4,7 @@
 2026-10-14 04:12 R01 op test GATED_DELTA_NET:  55/55 tests passed 0 FAIL lines
 R02 HumanEval b0055: 158/164; answers identical to bundle-20261013 (b0054): 164/164; 0xC0000142 test failures: 0
 05:11 === depth arms rel0055: depths 4000 32000 128000 (bench/arms/release_0055.txt)
-05:12 arm b1013 (C:/Users/pwall/Projects/bonsai-2-27b-serve; ): health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margi
+05:12 arm b1013 (<home>/Projects/bonsai-2-27b-serve; ): health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margi
 b1013 code   depth   4000 (evaluated 4048): prefill  1264.0 tok/s  ttft   3.20s  decode   99.5 tok/s (400 tok)
 b1013 prose  depth   4000 (evaluated 512): prefill   977.7 tok/s  ttft   0.52s  decode   81.2 tok/s (400 tok)
 b1013 bash   depth   4000 (evaluated 516): prefill   977.5 tok/s  ttft   0.53s  decode   88.5 tok/s (400 tok)
@@ -18,7 +18,7 @@ b1013 prose  depth 128000 (evaluated 512): prefill   385.3 tok/s  ttft   1.33s  
 b1013 bash   depth 128000 (evaluated 516): prefill   390.1 tok/s  ttft   1.32s  decode   77.3 tok/s (400 tok)
 b1013 mean decode 70.1 tok/s
 05:16 b1013: 'one sync per K write' warnings: 0
-05:16 arm b0055 (C:\Users\pwall\AppData\Local\Temp\root-0055; ): health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margi
+05:16 arm b0055 (<home>\AppData\Local\Temp\root-0055; ): health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margi
 b0055 code   depth   4000 (evaluated 4048): prefill  1260.9 tok/s  ttft   3.21s  decode   98.5 tok/s (400 tok)
 b0055 prose  depth   4000 (evaluated 512): prefill   959.9 tok/s  ttft   0.53s  decode   81.2 tok/s (400 tok)
 b0055 bash   depth   4000 (evaluated 516): prefill   977.1 tok/s  ttft   0.53s  decode   89.0 tok/s (400 tok)

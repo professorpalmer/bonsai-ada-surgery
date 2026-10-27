@@ -1,4 +1,4 @@
-00:46 === int8 eval, build C:\Users\pwall\AppData\Local\Temp\build-int8\bin
+00:46 === int8 eval, build <home>\AppData\Local\Temp\build-int8\bin
   2994/2994 tests passed
 00:47 kernel timing (served prefill shape):
 kv=4096  1005.31 us/run  51.27 TFLOPS

@@ -1,7 +1,7 @@
 01:25 === tier A/B, depth 40000
-01:25 arm base (C:/Users/pwall/AppData/Local/Temp/root-0040; BONSAI_KV_VRAM_CELLS=16384): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
+01:25 arm base (<home>/AppData/Local/Temp/root-0040; BONSAI_KV_VRAM_CELLS=16384): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
 base:     t = go(a.base, key, p, n, a.depth)
-01:26 arm pre (C:/Users/pwall/AppData/Local/Temp/root-tier; BONSAI_KV_VRAM_CELLS=16384): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
+01:26 arm pre (<home>/AppData/Local/Temp/root-tier; BONSAI_KV_VRAM_CELLS=16384): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
 pre: code   depth  40000 (evaluated 40034): prefill   745.3 tok/s  ttft  53.71s  decode   40.5 tok/s (400 tok)
 pre chunk to   6144: 0.820 ms/tok
 pre chunk to   8192: 0.840 ms/tok
@@ -22,9 +22,9 @@ pre chunk to  36864: 1.807 ms/tok
 pre chunk to  38912: 1.870 ms/tok
 pre chunk to  39518: 2.442 ms/tok
 pre chunk to  40030: 1.465 ms/tok
-01:32 arm prek (C:/Users/pwall/AppData/Local/Temp/root-tier; BONSAI_KV_VRAM_CELLS=16384,GGML_CUDA_KV_TIER_COPY=kernel): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
+01:32 arm prek (<home>/AppData/Local/Temp/root-tier; BONSAI_KV_VRAM_CELLS=16384,GGML_CUDA_KV_TIER_COPY=kernel): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
 01:32 === tier A/B, depth 40000
-01:32 arm base (C:/Users/pwall/AppData/Local/Temp/root-0040; BONSAI_KV_VRAM_CELLS=16384): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
+01:32 arm base (<home>/AppData/Local/Temp/root-0040; BONSAI_KV_VRAM_CELLS=16384): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
 base: code   depth  40000 (evaluated 40034): prefill   717.0 tok/s  ttft  55.83s  decode   40.0 tok/s (400 tok)
 base chunk to   6144: 0.830 ms/tok
 base chunk to   8192: 0.850 ms/tok
@@ -45,7 +45,7 @@ base chunk to  36864: 1.914 ms/tok
 base chunk to  38912: 1.948 ms/tok
 base chunk to  39518: 2.574 ms/tok
 base chunk to  40030: 1.465 ms/tok
-01:38 arm v2 (C:/Users/pwall/AppData/Local/Temp/root-tier2; BONSAI_KV_VRAM_CELLS=16384): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
+01:38 arm v2 (<home>/AppData/Local/Temp/root-tier2; BONSAI_KV_VRAM_CELLS=16384): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
 v2: code   depth  40000 (evaluated 40034): prefill   982.9 tok/s  ttft  40.73s  decode   41.7 tok/s (400 tok)
 v2 chunk to   6144: 0.825 ms/tok
 v2 chunk to   8192: 0.850 ms/tok
@@ -66,7 +66,7 @@ v2 chunk to  36864: 1.201 ms/tok
 v2 chunk to  38912: 1.235 ms/tok
 v2 chunk to  39518: 1.716 ms/tok
 v2 chunk to  40030: 0.957 ms/tok
-01:43 arm v2-noredir (C:/Users/pwall/AppData/Local/Temp/root-tier2; BONSAI_KV_VRAM_CELLS=16384,GGML_CUDA_KV_TIER_REDIRECT=0): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
+01:43 arm v2-noredir (<home>/AppData/Local/Temp/root-tier2; BONSAI_KV_VRAM_CELLS=16384,GGML_CUDA_KV_TIER_REDIRECT=0): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
 v2-noredir: code   depth  40000 (evaluated 40034): prefill   721.2 tok/s  ttft  55.51s  decode   40.4 tok/s (400 tok)
 v2-noredir chunk to   6144: 0.830 ms/tok
 v2-noredir chunk to   8192: 0.850 ms/tok
@@ -87,7 +87,7 @@ v2-noredir chunk to  36864: 1.890 ms/tok
 v2-noredir chunk to  38912: 1.914 ms/tok
 v2-noredir chunk to  39518: 2.459 ms/tok
 v2-noredir chunk to  40030: 1.504 ms/tok
-01:49 arm v2-nopre (C:/Users/pwall/AppData/Local/Temp/root-tier2; BONSAI_KV_VRAM_CELLS=16384,GGML_CUDA_KV_TIER_PREFETCH=0): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
+01:49 arm v2-nopre (<home>/AppData/Local/Temp/root-tier2; BONSAI_KV_VRAM_CELLS=16384,GGML_CUDA_KV_TIER_PREFETCH=0): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
 v2-nopre: code   depth  40000 (evaluated 40034): prefill   966.9 tok/s  ttft  41.40s  decode   39.9 tok/s (400 tok)
 v2-nopre chunk to   6144: 0.820 ms/tok
 v2-nopre chunk to   8192: 0.854 ms/tok
@@ -117,7 +117,7 @@ tierab-v2-noredir: decode mean 124.6 tok/s over 7 jobs
 tierab-v2-nopre: decode mean 141.0 tok/s over 7 jobs
 01:53 === done
 01:54 === tier A/B, depth 40000
-01:54 arm v2fix (C:/Users/pwall/AppData/Local/Temp/root-tier2; BONSAI_KV_VRAM_CELLS=16384): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
+01:54 arm v2fix (<home>/AppData/Local/Temp/root-tier2; BONSAI_KV_VRAM_CELLS=16384): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
 v2fix: code   depth  40000 (evaluated 40034): prefill   983.4 tok/s  ttft  40.71s  decode   40.5 tok/s (400 tok)
 v2fix chunk to   6144: 0.825 ms/tok
 v2fix chunk to   8192: 0.850 ms/tok
@@ -141,7 +141,7 @@ v2fix chunk to  40030: 0.996 ms/tok
 tierab-v2fix: decode mean 147.4 tok/s over 7 jobs
 01:58 === done
 02:04 === tier A/B, depth 160000
-02:04 arm base160 (C:/Users/pwall/AppData/Local/Temp/root-0040; ): health=1; kv     tiered: cells 0..119040 in VRAM, 119040..262144 in system RAM (VRAM margin 1000 MiB)
+02:04 arm base160 (<home>/AppData/Local/Temp/root-0040; ): health=1; kv     tiered: cells 0..119040 in VRAM, 119040..262144 in system RAM (VRAM margin 1000 MiB)
 base160: code   depth 160000 (evaluated 159086): prefill   542.0 tok/s  ttft 293.53s  decode   28.4 tok/s (400 tok)
 base160 chunk to   6144: 0.825 ms/tok
 base160 chunk to   8192: 0.850 ms/tok
@@ -220,7 +220,7 @@ base160 chunk to 155648: 3.232 ms/tok
 base160 chunk to 157696: 3.320 ms/tok
 base160 chunk to 158570: 3.524 ms/tok
 base160 chunk to 159082: 3.008 ms/tok
-02:13 arm v2fix-160 (C:/Users/pwall/AppData/Local/Temp/root-tier2; ): health=1; kv     tiered: cells 0..119040 in VRAM, 119040..262144 in system RAM (VRAM margin 1000 MiB)
+02:13 arm v2fix-160 (<home>/AppData/Local/Temp/root-tier2; ): health=1; kv     tiered: cells 0..119040 in VRAM, 119040..262144 in system RAM (VRAM margin 1000 MiB)
 v2fix-160: code   depth 160000 (evaluated 159086): prefill   584.6 tok/s  ttft 272.11s  decode   28.7 tok/s (400 tok)
 v2fix-160 chunk to   6144: 0.830 ms/tok
 v2fix-160 chunk to   8192: 0.850 ms/tok
@@ -304,7 +304,7 @@ tierab-base160: decode mean 205.6 tok/s over 7 jobs
 tierab-v2fix-160: decode mean 206.4 tok/s over 7 jobs
 02:21 === done
 02:24 === tier A/B, depth 40000
-02:24 arm v2fix2 (C:/Users/pwall/AppData/Local/Temp/root-tier2; BONSAI_KV_VRAM_CELLS=16384): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
+02:24 arm v2fix2 (<home>/AppData/Local/Temp/root-tier2; BONSAI_KV_VRAM_CELLS=16384): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
 v2fix2: code   depth  40000 (evaluated 40034): prefill   987.3 tok/s  ttft  40.55s  decode   40.4 tok/s (400 tok)
 v2fix2 chunk to   6144: 0.825 ms/tok
 v2fix2 chunk to   8192: 0.854 ms/tok
@@ -328,7 +328,7 @@ v2fix2 chunk to  40030: 0.977 ms/tok
 tierab-v2fix2: decode mean 147.5 tok/s over 7 jobs
 02:29 === done
 02:46 === tier A/B, depth 40000
-02:46 arm q4-base (C:/Users/pwall/AppData/Local/Temp/root-0040; BONSAI_KV_VRAM_CELLS=16384,BONSAI_CTK=q4_0): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
+02:46 arm q4-base (<home>/AppData/Local/Temp/root-0040; BONSAI_KV_VRAM_CELLS=16384,BONSAI_CTK=q4_0): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
 q4-base: code   depth  40000 (evaluated 40034): prefill   850.9 tok/s  ttft  47.05s  decode   49.7 tok/s (400 tok)
 q4-base chunk to   6144: 0.825 ms/tok
 q4-base chunk to   8192: 0.845 ms/tok
@@ -349,7 +349,7 @@ q4-base chunk to  36864: 1.470 ms/tok
 q4-base chunk to  38912: 1.494 ms/tok
 q4-base chunk to  39518: 2.046 ms/tok
 q4-base chunk to  40030: 1.152 ms/tok
-02:51 arm q4-v2 (C:/Users/pwall/AppData/Local/Temp/root-tier2; BONSAI_KV_VRAM_CELLS=16384,BONSAI_CTK=q4_0): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
+02:51 arm q4-v2 (<home>/AppData/Local/Temp/root-tier2; BONSAI_KV_VRAM_CELLS=16384,BONSAI_CTK=q4_0): health=1; kv     tiered: cells 0..16384 in VRAM, 16384..262144 in system RAM
 q4-v2: code   depth  40000 (evaluated 40034): prefill  1018.5 tok/s  ttft  39.31s  decode   50.3 tok/s (400 tok)
 q4-v2 chunk to   6144: 0.820 ms/tok
 q4-v2 chunk to   8192: 0.845 ms/tok
@@ -375,7 +375,7 @@ tierab-q4-base: decode mean 169.7 tok/s over 7 jobs
 tierab-q4-v2: decode mean 175.8 tok/s over 7 jobs
 02:55 === done
 10:15 === tier A/B, depth 100000
-10:15 arm f16off (C:/Users/pwall/Projects/bonsai-2-27b-serve; GGML_CUDA_FA_PREFILL_F16=0): health=1; kv     tiered: cells 0..119040 in VRAM, 119040..262144 in system RAM (VRAM margin 1000 MiB)
+10:15 arm f16off (<home>/Projects/bonsai-2-27b-serve; GGML_CUDA_FA_PREFILL_F16=0): health=1; kv     tiered: cells 0..119040 in VRAM, 119040..262144 in system RAM (VRAM margin 1000 MiB)
 f16off: code   depth 100000 (evaluated 99933): prefill   735.3 tok/s  ttft 135.90s  decode   78.6 tok/s (400 tok)
 f16off chunk to   6144: 0.825 ms/tok
 f16off chunk to   8192: 0.850 ms/tok
@@ -425,7 +425,7 @@ f16off chunk to  96256: 1.890 ms/tok
 f16off chunk to  98304: 1.909 ms/tok
 f16off chunk to  99417: 2.273 ms/tok
 f16off chunk to  99929: 1.465 ms/tok
-10:21 arm f16on (C:/Users/pwall/Projects/bonsai-2-27b-serve; GGML_CUDA_FA_PREFILL_F16=131072): health=1; kv     tiered: cells 0..119040 in VRAM, 119040..262144 in system RAM (VRAM margin 1000 MiB)
+10:21 arm f16on (<home>/Projects/bonsai-2-27b-serve; GGML_CUDA_FA_PREFILL_F16=131072): health=1; kv     tiered: cells 0..119040 in VRAM, 119040..262144 in system RAM (VRAM margin 1000 MiB)
 f16on:     t = go(a.base, key, p, n, a.depth)
 f16on chunk to   6144: 0.820 ms/tok
 f16on chunk to   8192: 0.835 ms/tok
@@ -434,7 +434,7 @@ tierab-f16off: decode mean 208.8 tok/s over 7 jobs
 tierab-f16on: decode mean 0.0 tok/s over 0 jobs
 10:21 === done
 10:24 === tier A/B, depth 60000
-10:24 arm f16off-64k (C:/Users/pwall/Projects/bonsai-2-27b-serve; BONSAI_TIER=0,BONSAI_CTX=65536,GGML_CUDA_FA_PREFILL_F16=0): health=1; 
+10:24 arm f16off-64k (<home>/Projects/bonsai-2-27b-serve; BONSAI_TIER=0,BONSAI_CTX=65536,GGML_CUDA_FA_PREFILL_F16=0): health=1; 
 f16off-64k: code   depth  60000 (evaluated 59953): prefill   888.7 tok/s  ttft  67.46s  decode   87.6 tok/s (400 tok)
 f16off-64k chunk to   6144: 0.820 ms/tok
 f16off-64k chunk to   8192: 0.850 ms/tok
@@ -465,7 +465,7 @@ f16off-64k chunk to  57344: 1.426 ms/tok
 f16off-64k chunk to  59392: 1.460 ms/tok
 f16off-64k chunk to  59437: 9.556 ms/tok
 f16off-64k chunk to  59949: 0.996 ms/tok
-10:29 arm f16on-64k (C:/Users/pwall/Projects/bonsai-2-27b-serve; BONSAI_TIER=0,BONSAI_CTX=65536,GGML_CUDA_FA_PREFILL_F16=65536): health=1; 
+10:29 arm f16on-64k (<home>/Projects/bonsai-2-27b-serve; BONSAI_TIER=0,BONSAI_CTX=65536,GGML_CUDA_FA_PREFILL_F16=65536): health=1; 
 f16on-64k: code   depth  60000 (evaluated 59953): prefill   898.2 tok/s  ttft  66.75s  decode   87.5 tok/s (400 tok)
 f16on-64k chunk to   6144: 0.820 ms/tok
 f16on-64k chunk to   8192: 0.835 ms/tok
@@ -501,7 +501,7 @@ tierab-f16off-64k: decode mean 211.6 tok/s over 7 jobs
 tierab-f16on-64k: decode mean 194.9 tok/s over 7 jobs
 10:33 === done
 11:55 === tier A/B, depth 60000
-11:55 arm f16off-64k (C:/Users/pwall/Projects/bonsai-2-27b-serve; BONSAI_TIER=0,BONSAI_CTX=65536,GGML_CUDA_FA_PREFILL_F16=0): health=1; 
+11:55 arm f16off-64k (<home>/Projects/bonsai-2-27b-serve; BONSAI_TIER=0,BONSAI_CTX=65536,GGML_CUDA_FA_PREFILL_F16=0): health=1; 
 f16off-64k: code   depth  60000 (evaluated 59953): prefill   887.6 tok/s  ttft  67.54s  decode   88.0 tok/s (400 tok)
 f16off-64k chunk to   6144: 0.825 ms/tok
 f16off-64k chunk to   8192: 0.850 ms/tok
@@ -532,7 +532,7 @@ f16off-64k chunk to  57344: 1.436 ms/tok
 f16off-64k chunk to  59392: 1.460 ms/tok
 f16off-64k chunk to  59437: 9.778 ms/tok
 f16off-64k chunk to  59949: 0.996 ms/tok
-12:00 arm minq64-64k (C:/Users/pwall/AppData/Local/Temp/root-minq; BONSAI_TIER=0,BONSAI_CTX=65536,GGML_CUDA_FA_PREFILL_F16=65536): health=1; 
+12:00 arm minq64-64k (<home>/AppData/Local/Temp/root-minq; BONSAI_TIER=0,BONSAI_CTX=65536,GGML_CUDA_FA_PREFILL_F16=65536): health=1; 
 minq64-64k: code   depth  60000 (evaluated 59953): prefill   898.0 tok/s  ttft  66.77s  decode   87.6 tok/s (400 tok)
 minq64-64k chunk to   6144: 0.815 ms/tok
 minq64-64k chunk to   8192: 0.840 ms/tok
@@ -563,7 +563,7 @@ minq64-64k chunk to  57344: 1.416 ms/tok
 minq64-64k chunk to  59392: 1.440 ms/tok
 minq64-64k chunk to  59437: 9.333 ms/tok
 minq64-64k chunk to  59949: 1.016 ms/tok
-12:04 arm minq9-64k (C:/Users/pwall/AppData/Local/Temp/root-minq; BONSAI_TIER=0,BONSAI_CTX=65536,GGML_CUDA_FA_PREFILL_F16=65536,GGML_CUDA_FA_PREFILL_F16_MIN_Q=9): health=1; 
+12:04 arm minq9-64k (<home>/AppData/Local/Temp/root-minq; BONSAI_TIER=0,BONSAI_CTX=65536,GGML_CUDA_FA_PREFILL_F16=65536,GGML_CUDA_FA_PREFILL_F16_MIN_Q=9): health=1; 
 minq9-64k: code   depth  60000 (evaluated 59953): prefill   896.3 tok/s  ttft  66.89s  decode   88.3 tok/s (400 tok)
 minq9-64k chunk to   6144: 0.820 ms/tok
 minq9-64k chunk to   8192: 0.840 ms/tok

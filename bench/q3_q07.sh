@@ -4,7 +4,7 @@
 cd "$(dirname "$0")/.." || exit 1
 LOG=docs/receipts/q3port_checks.log
 say() { echo "$(date '+%F %H:%M') $*" | tee -a "$LOG"; }
-( cd /tmp/root-q3-55/bin && PATH="/c/Users/pwall/Projects/bonsai-2-27b-serve/bin:$PATH" ./test-backend-ops.exe perf -o MUL_MAT -b CUDA0 > /dev/null 2>&1 & ); sleep 4
+( cd /tmp/root-q3-55/bin && PATH="$HOME/Projects/bonsai-2-27b-serve/bin:$PATH" ./test-backend-ops.exe perf -o MUL_MAT -b CUDA0 > /dev/null 2>&1 & ); sleep 4
 say "=== Q07: q3_0 vs q4_0, sparse 12288 floor, root-q3-55 ($(cat /tmp/root-q3-55/ENGINE.txt)); memory clock under load $(nvidia-smi --query-gpu=clocks.mem --format=csv,noheader); driver $(nvidia-smi --query-gpu=driver_version --format=csv,noheader)"
 taskkill //IM test-backend-ops.exe //F > /dev/null 2>&1; sleep 2
 for A in "200000 20 q4_0" "200000 20 q3_0" "245000 10 q4_0" "245000 10 q3_0"; do

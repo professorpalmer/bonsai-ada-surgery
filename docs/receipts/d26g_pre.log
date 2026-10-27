@@ -1,6 +1,6 @@
 06:45 clock check pending
-06:45 === depth arms d26gpre: depths 64000 80000 96000 112000 128000 (/c/Users/pwall/Projects/bonsai-rel0054/bench/arms/d26g_pre.txt)
-06:45 arm off (C:\Users\pwall\AppData\Local\Temp\root-0056r; BONSAI_CTK=q3_0 BONSAI_KV_VRAM_CELLS=80640): health=1; kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; shared CUDA 
+06:45 === depth arms d26gpre: depths 64000 80000 96000 112000 128000 (<home>/Projects/bonsai-rel0054/bench/arms/d26g_pre.txt)
+06:45 arm off (<home>\AppData\Local\Temp\root-0056r; BONSAI_CTK=q3_0 BONSAI_KV_VRAM_CELLS=80640): health=1; kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; shared CUDA 
 off code   depth  64000 (evaluated 64009): prefill   970.9 tok/s  ttft  65.92s  decode   85.4 tok/s (400 tok)
 off prose  depth  64000 (evaluated 512): prefill   585.4 tok/s  ttft   0.87s  decode   69.4 tok/s (400 tok)
 off bash   depth  64000 (evaluated 516): prefill   619.1 tok/s  ttft   0.83s  decode   78.1 tok/s (400 tok)
@@ -23,7 +23,7 @@ off prose  depth 128000 (evaluated 512): prefill   435.5 tok/s  ttft   1.18s  de
 off bash   depth 128000 (evaluated 516): prefill   440.2 tok/s  ttft   1.17s  decode   61.6 tok/s (400 tok)
 off mean decode 50.8 tok/s
 06:52 off: 'one sync per K write' warnings: 0
-06:52 arm sparse (C:\Users\pwall\AppData\Local\Temp\root-0056r; BONSAI_CTK=q3_0 BONSAI_KV_VRAM_CELLS=73984 GGML_CUDA_FA_SPARSE=12288,64,1024 GGML_CUDA_FA_SPARSE_FRAC=0.125 GGML_CUDA_FA_SPARSE_FAST=1 GGML_CUDA_KV_TIER_STAGE_MIN_Q=9 GGML_CUDA_FA_SPARSE_MIN_HOST=32768): health=1; kv     tiered: cells 0..73984 in VRAM, 73984..262144 in system RAM; shared CUDA 
+06:52 arm sparse (<home>\AppData\Local\Temp\root-0056r; BONSAI_CTK=q3_0 BONSAI_KV_VRAM_CELLS=73984 GGML_CUDA_FA_SPARSE=12288,64,1024 GGML_CUDA_FA_SPARSE_FRAC=0.125 GGML_CUDA_FA_SPARSE_FAST=1 GGML_CUDA_KV_TIER_STAGE_MIN_Q=9 GGML_CUDA_FA_SPARSE_MIN_HOST=32768): health=1; kv     tiered: cells 0..73984 in VRAM, 73984..262144 in system RAM; shared CUDA 
 kv     sparse host-tail reads: 12288,64,1024 (B,P,R), budget max(B, host tail x 
 sparse code   depth  64000 (evaluated 64009): prefill   969.2 tok/s  ttft  66.04s  decode   86.6 tok/s (400 tok)
 sparse prose  depth  64000 (evaluated 512): prefill   611.6 tok/s  ttft   0.84s  decode   70.2 tok/s (400 tok)
@@ -46,7 +46,7 @@ sparse prose  depth 128000 (evaluated 512): prefill   432.9 tok/s  ttft   1.18s 
 sparse bash   depth 128000 (evaluated 516): prefill   435.0 tok/s  ttft   1.19s  decode   44.8 tok/s (400 tok)
 sparse mean decode 41.3 tok/s
 07:00 sparse: 'one sync per K write' warnings: 0
-07:00 arm off2 (C:\Users\pwall\AppData\Local\Temp\root-0056r; BONSAI_CTK=q3_0 BONSAI_KV_VRAM_CELLS=80640): health=1; kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; shared CUDA 
+07:00 arm off2 (<home>\AppData\Local\Temp\root-0056r; BONSAI_CTK=q3_0 BONSAI_KV_VRAM_CELLS=80640): health=1; kv     tiered: cells 0..80640 in VRAM, 80640..262144 in system RAM; shared CUDA 
 off2 code   depth  64000 (evaluated 64009): prefill   969.6 tok/s  ttft  66.02s  decode   86.8 tok/s (400 tok)
 off2 prose  depth  64000 (evaluated 512): prefill   612.8 tok/s  ttft   0.84s  decode   70.3 tok/s (400 tok)
 off2 bash   depth  64000 (evaluated 516): prefill   618.3 tok/s  ttft   0.83s  decode   78.9 tok/s (400 tok)
@@ -68,7 +68,7 @@ off2 prose  depth 128000 (evaluated 512): prefill   435.6 tok/s  ttft   1.18s  d
 off2 bash   depth 128000 (evaluated 516): prefill   442.2 tok/s  ttft   1.17s  decode   62.1 tok/s (400 tok)
 off2 mean decode 51.0 tok/s
 07:07 off2: 'one sync per K write' warnings: 0
-07:08 arm sparse2 (C:\Users\pwall\AppData\Local\Temp\root-0056r; BONSAI_CTK=q3_0 BONSAI_KV_VRAM_CELLS=73984 GGML_CUDA_FA_SPARSE=12288,64,1024 GGML_CUDA_FA_SPARSE_FRAC=0.125 GGML_CUDA_FA_SPARSE_FAST=1 GGML_CUDA_KV_TIER_STAGE_MIN_Q=9 GGML_CUDA_FA_SPARSE_MIN_HOST=32768): health=1; kv     tiered: cells 0..73984 in VRAM, 73984..262144 in system RAM; shared CUDA 
+07:08 arm sparse2 (<home>\AppData\Local\Temp\root-0056r; BONSAI_CTK=q3_0 BONSAI_KV_VRAM_CELLS=73984 GGML_CUDA_FA_SPARSE=12288,64,1024 GGML_CUDA_FA_SPARSE_FRAC=0.125 GGML_CUDA_FA_SPARSE_FAST=1 GGML_CUDA_KV_TIER_STAGE_MIN_Q=9 GGML_CUDA_FA_SPARSE_MIN_HOST=32768): health=1; kv     tiered: cells 0..73984 in VRAM, 73984..262144 in system RAM; shared CUDA 
 kv     sparse host-tail reads: 12288,64,1024 (B,P,R), budget max(B, host tail x 
 sparse2 code   depth  64000 (evaluated 64009): prefill   968.7 tok/s  ttft  66.08s  decode   86.1 tok/s (400 tok)
 sparse2 prose  depth  64000 (evaluated 512): prefill   612.7 tok/s  ttft   0.84s  decode   69.6 tok/s (400 tok)
@@ -92,4 +92,4 @@ sparse2 bash   depth 128000 (evaluated 516): prefill   434.2 tok/s  ttft   1.19s
 sparse2 mean decode 41.1 tok/s
 07:15 sparse2: 'one sync per K write' warnings: 0
 07:15 === d26gpre done
-07:16 === D26g-pre end; Mirai product: === product start 2026-10-15 07:16 engine 784986b41: inner health=1 vram=11459 MiB
+07:16 === D26g-pre end; (another serve on the card restored; line removed)

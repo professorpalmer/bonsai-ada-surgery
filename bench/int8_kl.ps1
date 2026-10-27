@@ -9,7 +9,7 @@ param(
 )
 $ErrorActionPreference = 'Continue'
 Set-Location (Split-Path $PSScriptRoot -Parent)
-$cu = "C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\site-packages\nvidia\cu13"
+$cu = "$env:USERPROFILE\AppData\Local\Programs\Python\Python312\Lib\site-packages\nvidia\cu13"
 $env:PATH = "$cu\bin;$cu\bin\x86_64;$env:PATH"
 $out = "artifacts\eval"
 $base = "$out\int8kl_base_q8kv_$Ctx.bin"

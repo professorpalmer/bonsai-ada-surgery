@@ -1,5 +1,5 @@
 # Full-164 control for the output-cap floor: harness-proofing OFF, 4096-token cap, no effort word (Continue's row).
-$R = "C:\Users\pwall\Projects\bonsai-2-27b-serve"
+$R = "$env:USERPROFILE\Projects\bonsai-2-27b-serve"
 Set-Location $R
 Get-Process llama-server -ErrorAction SilentlyContinue | Stop-Process -Force
 Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" | Where-Object { $_.CommandLine -match 'start-server' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }

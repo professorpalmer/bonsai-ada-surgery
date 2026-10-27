@@ -8,11 +8,11 @@ cd "$(dirname "$0")/.." || exit 1
 LOG=docs/receipts/vision_probe.log; MM="Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf"
 MODEL="Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf"
 say() { echo "$(date '+%H:%M') $*" | tee -a "$LOG"; }
-stop() { powershell -NoProfile -Command "Get-Process llama-server -ErrorAction SilentlyContinue | Where-Object { \$_.Path -like 'C:\Users\pwall\Projects\bonsai-2-27b-serve\*' } | Stop-Process -Force" >/dev/null 2>&1; sleep 4; }
+stop() { powershell -NoProfile -Command "Get-Process llama-server -ErrorAction SilentlyContinue | Where-Object { \$_.Path -like '$USERPROFILE\Projects\bonsai-2-27b-serve\*' } | Stop-Process -Force" >/dev/null 2>&1; sleep 4; }
 arm() { # LABEL LAUNCHER "ENV"
   local label=$1 launcher=$2 envs=$3
   stop; rm -f logs/vp_launcher.log
-  env BONSAI_MODEL="$MODEL" BONSAI_LAYER=0 $envs powershell -NoProfile -Command "Start-Process powershell -WindowStyle Hidden -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File','C:\Users\pwall\Projects\bonsai-2-27b-serve\\$launcher' -RedirectStandardOutput 'C:\Users\pwall\Projects\bonsai-2-27b-serve\logs\vp_launcher.log' -RedirectStandardError 'C:\Users\pwall\Projects\bonsai-2-27b-serve\logs\vp_$label.err'"
+  env BONSAI_MODEL="$MODEL" BONSAI_LAYER=0 $envs powershell -NoProfile -Command "Start-Process powershell -WindowStyle Hidden -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File','$USERPROFILE\Projects\bonsai-2-27b-serve\\$launcher' -RedirectStandardOutput '$USERPROFILE\Projects\bonsai-2-27b-serve\logs\vp_launcher.log' -RedirectStandardError '$USERPROFILE\Projects\bonsai-2-27b-serve\logs\vp_$label.err'"
   local ok=0 i; for i in $(seq 1 60); do sleep 3; curl -s -m 2 http://127.0.0.1:8080/health 2>/dev/null | grep -q '"ok"' && { ok=1; break; }; done
   sleep 5
   say "arm $label: health=$ok vram_at_load=$(nvidia-smi --query-gpu=memory.used --format=csv,noheader) $(grep -E '^kv' logs/vp_launcher.log | cut -c1-60) $(grep -E '^vision' logs/vp_launcher.log)"
@@ -40,8 +40,8 @@ PY
 say "=== vision probe $(bin/llama-server.exe --version 2>&1 | head -1 | cut -c1-60)"
 arm A start-server.ps1 ""
 CELLS=$(grep -oE 'cells 0\.\.[0-9]+' logs/vp_launcher.log | grep -oE '[0-9]+$')
-arm B start-server.old.ps1 "LLAMA_ARG_MMPROJ=C:\\Users\\pwall\\Projects\\bonsai-2-27b-serve\\models\\$MM"
-arm C start-server.ps1 "LLAMA_ARG_MMPROJ=C:\\Users\\pwall\\Projects\\bonsai-2-27b-serve\\models\\$MM"
+arm B start-server.old.ps1 "LLAMA_ARG_MMPROJ=$USERPROFILE\\Projects\\bonsai-2-27b-serve\\models\\$MM"
+arm C start-server.ps1 "LLAMA_ARG_MMPROJ=$USERPROFILE\\Projects\\bonsai-2-27b-serve\\models\\$MM"
 arm D start-server.ps1 "BONSAI_MMPROJ=$MM BONSAI_MMPROJ_GPU=1 BONSAI_KV_VRAM_CELLS=$CELLS"
 stop
 say "=== done (A's cells: $CELLS)"

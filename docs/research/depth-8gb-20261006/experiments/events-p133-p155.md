@@ -101,7 +101,7 @@ GitHub posts of both sessions use the same account; "4070" and "2060" name the s
 | | |
 | --- | --- |
 | Date | PR #93 (R10 plan) 03:57Z; R10 partial 04:30Z; R10 complete 04:45Z (PR #96); R10b PR #97 05:26Z; #95 rule amended PR #99 05:27Z; PR #98 (bench lenient score) 05:28Z; #95 merged 10:29Z; R11 = P141 (PR #100) |
-| R10 (4070) | Wider items for the shipped rule (Mirai S missed a needle digit at 0.958 with FRAC 1/16 + 12288 floor): 245k code_needle n 20 / needle_depth n 24. Result FAIL: FRAC 1/16 loses copy _check_tzname (0.128), vault 13 (0.521), vault 15 (0.604) that dense gets right (dense 20/20 + 23/24; vault 14 wrong in dense, right in sparse) |
+| R10 (4070) | Wider items for the shipped rule (another model on the same engine missed a needle digit at 0.958 with FRAC 1/16 + 12288 floor): 245k code_needle n 20 / needle_depth n 24. Result FAIL: FRAC 1/16 loses copy _check_tzname (0.128), vault 13 (0.521), vault 15 (0.604) that dense gets right (dense 20/20 + 23/24; vault 14 wrong in dense, right in sparse) |
 | R10b (4070) | FRAC 1/8 = dense in substance on their set |
 | #95 rule (amended before P141) | Merge if P141's FRAC 1/8 arm (a) is not below FRAC 1/16 on any item of the 2060 set, (b) not below dense on any item in the droppable host tail, (c) >= 1.5x dense at 160k and 245k. Reason: R10b's strict miss (_check_tzname, cells 30,772-30,823) is inside the VRAM line; the answer has the exact body + the real comment above it |
 | 2060 (P141) | dense 20/20 + 24/24; 1/16 20/20 + 23/24; 1/8 20/20 + 24/24; 1/8 1.59x / 1.76x: rule PASS |

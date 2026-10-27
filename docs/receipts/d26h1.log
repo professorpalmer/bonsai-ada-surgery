@@ -44,7 +44,7 @@ q245 copies: {"tag": "d26h1", "depth": 245000, "correct": 19, "correct_lead": 20
 q245 needles: {"tag": "d26h1", "depth": 245000, "correct": 22, "of": 24}
 11:21 q245: late-reserve lines 1: 2.36.391.454 W ggml_cuda_tier_maybe_demote: late reserve: 192.0 MiB of the VRAM line moved to system RAM for the sparse page bounds (line 84260 -> 70217 cells); CUDA errors 0
 11:21 === D26h-1 end
-11:22 Mirai product restored: === product start 2026-10-15 11:22 engine de2104665: inner health=1 vram=11459 MiB
+11:22 (another serve on the card restored; line removed)
 11:51 === D26h-1e dense q3_0 control (line 80,640, no sparse): health=1
 dq245 needles: {"tag": "d26h1-denseq3", "depth": 245000, "correct": 23, "of": 24}
 12:00 === D26h-1e end

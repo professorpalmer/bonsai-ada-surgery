@@ -2,7 +2,7 @@
 # AW1: AppWorld, first 20 test_normal tasks, simplified_react_code_agent, raw (:18080) then layer (:8080). Logs to AW1.log.
 set -u
 export PYTHONUTF8=1 PYTHONIOENCODING=utf-8
-K=$(tr -d '\r\n' < C:/Users/pwall/Projects/bonsai-2-27b-serve/artifacts/api_key.txt)
+K=$(tr -d '\r\n' < $USERPROFILE/Projects/bonsai-2-27b-serve/artifacts/api_key.txt)
 export BONSAI_API_KEY="$K" OPENAI_API_KEY="$K"
 VP="$TEMP/appworld-venv/Scripts/python.exe"
 cd "$TEMP/appworld-src"

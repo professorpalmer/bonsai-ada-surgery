@@ -1,5 +1,5 @@
 2026-10-14 15:49 NOTE (release session): the q3-fast2 build ran 15:46:01-15:49:32 at idle priority, before D28's start: no overlap. Started from session f82461a3.
-15:49 === D28 start: new q3-fast2 be604dec0 (df218650a + packed-half q4_0/q8_0 tile dequant, sm_89, build-q3fast), old C:\Users\pwall\AppData\Local\Temp\root-q3-55, depth 64000, driver 610.88
+15:49 === D28 start: new q3-fast2 be604dec0 (df218650a + packed-half q4_0/q8_0 tile dequant, sm_89, build-q3fast), old <home>\AppData\Local\Temp\root-q3-55, depth 64000, driver 610.88
 15:53 op test FLASH_ATTN_EXT (new):  3115/3115 tests passed 0 FAIL lines
 15:53 r1 q4-old: health=1; mem clock under load 11751 MHz; kv     tiered: cells 0..260352 in VRAM, 260352..262144 in system RAM (
 q4-old hash 4c6b9a6dd9696680 742

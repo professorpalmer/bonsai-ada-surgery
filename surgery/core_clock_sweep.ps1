@@ -2,7 +2,7 @@
 # Results append to artifacts\core_sweep.txt. Resets to default clocks at the end.
 param([string] $Clocks = "2100,2400,2600,2805")
 
-$root = "C:\Users\pwall\Projects\bonsai-2-27b-serve"
+$root = "$env:USERPROFILE\Projects\bonsai-2-27b-serve"
 $log = Join-Path $root "artifacts\core_sweep.txt"
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
     [Security.Principal.WindowsBuiltInRole]::Administrator)

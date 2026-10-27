@@ -1,5 +1,5 @@
 20:49 NOTE: build-q3 (another branch, nvcc -j 4, low priority) starts on the CPU
-20:49 === D21 start, root C:\Users\pwall\AppData\Local\Temp/root-psparse (product-sparse 3ab0af3c2 (sm_89, build-psparse))
+20:49 === D21 start, root <home>\AppData\Local\Temp/root-psparse (product-sparse 3ab0af3c2 (sm_89, build-psparse))
 20:50 op test FLASH_ATTN_EXT:  3005/3005 tests passed 0 FAIL lines
 20:50 op test GATED_DELTA_NET:  55/55 tests passed 0 FAIL lines
 21:01 NOTE: build-q3 ends (rc 0)
@@ -13,7 +13,7 @@
 21:23 NOTE: build-q3 rebuild (q3-on-sparse 4dbfe57d4, incremental, low priority) starts on the CPU
 2026-10-13 21:58 NOTE: power cut at about 21:40 (reboot 21:41). D21 stopped in its sparse_prefill step; the lines after 21:03 in sparse_prefill.log from that run are partial. D21 runs again from the start after MSI Afterburner (memory OC) is back on.
 2026-10-13 22:01 NOTE: memory OC checked under CUDA load: 11751 MHz (P2). All runs below are at the product clocks.
-22:02 === D21 start, root C:\Users\pwall\AppData\Local\Temp/root-psparse (product-sparse 3ab0af3c2 (sm_89, build-psparse))
+22:02 === D21 start, root <home>\AppData\Local\Temp/root-psparse (product-sparse 3ab0af3c2 (sm_89, build-psparse))
 22:03 op test FLASH_ATTN_EXT:  3005/3005 tests passed 0 FAIL lines
 22:03 op test GATED_DELTA_NET:  55/55 tests passed 0 FAIL lines
 22:03 NOTE: build-q3 rebuild ended (it ran 21:58-22:03, during D21's op-test start; quality steps only so far)

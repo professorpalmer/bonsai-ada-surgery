@@ -5,8 +5,8 @@ import shutil
 import subprocess
 from pathlib import Path
 
-src = Path(r"C:\Users\pwall\AppData\Local\Temp\bonsai-ada-build\bin\ggml-cuda.dll")
-dst = Path(r"C:\Users\pwall\Projects\bonsai-2-27b-serve\tooling\ada-bin\ggml-cuda.dll")
+src = Path(Path.home() / r"AppData\Local\Temp\bonsai-ada-build\bin\ggml-cuda.dll")
+dst = Path(Path.home() / r"Projects\bonsai-2-27b-serve\tooling\ada-bin\ggml-cuda.dll")
 shutil.copy2(src, dst)
 
 out = subprocess.check_output(["tasklist"], text=True, errors="replace")
@@ -15,9 +15,9 @@ for line in out.splitlines():
         pid = line.split()[1]
         subprocess.call(["taskkill", "/PID", pid, "/F"])
 
-bench = Path(r"C:\Users\pwall\Projects\bonsai-2-27b-serve\tooling\ada-bin\llama-bench.exe")
-model = Path(r"C:\Users\pwall\Projects\bonsai-2-27b-serve\models\Ternary-Bonsai-2-27B-PTQ1_0.gguf")
-art = Path(r"C:\Users\pwall\Projects\bonsai-2-27b-serve\artifacts")
+bench = Path(Path.home() / r"Projects\bonsai-2-27b-serve\tooling\ada-bin\llama-bench.exe")
+model = Path(Path.home() / r"Projects\bonsai-2-27b-serve\models\Ternary-Bonsai-2-27B-PTQ1_0.gguf")
+art = Path(Path.home() / r"Projects\bonsai-2-27b-serve\artifacts")
 cwd = bench.parent
 env = os.environ.copy()
 env["PATH"] = str(cwd) + os.pathsep + env.get("PATH", "")

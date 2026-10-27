@@ -5,7 +5,7 @@
 cd "$(dirname "$0")/.." || exit 1
 REPO="$(pwd -W)"; MODEL="$REPO\models\Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf"; ROOT="$(cygpath -w "${1:?root}")"; LOG=docs/receipts/pr13_ada.log; OUT=docs/receipts/pr13_ada.jsonl
 say() { echo "$(date '+%H:%M') $*" | tee -a "$LOG"; }
-stop_srv() { powershell -NoProfile -ExecutionPolicy Bypass -File bench/stop_serve.ps1 >/dev/null 2>&1; powershell -NoProfile -ExecutionPolicy Bypass -File ../mirai-s-serve/tooling/stop.ps1 >/dev/null 2>&1; powershell -NoProfile -Command "Get-Process llama-server -ErrorAction SilentlyContinue | Where-Object { \$_.Path -like '$ROOT\bin\*' } | Stop-Process -Force" >/dev/null 2>&1; sleep 4; }
+stop_srv() { powershell -NoProfile -ExecutionPolicy Bypass -File bench/stop_serve.ps1 >/dev/null 2>&1; powershell -NoProfile -Command "Get-Process llama-server -ErrorAction SilentlyContinue | Where-Object { \$_.Path -like '$ROOT\bin\*' } | Stop-Process -Force" >/dev/null 2>&1; sleep 4; }
 start_srv() { # NAME "ENVS"
   stop_srv
   env BONSAI_MODEL="$MODEL" BONSAI_LAYER=0 $2 powershell -NoProfile -Command "Start-Process powershell -WindowStyle Hidden -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File','$ROOT\start-server.ps1' -RedirectStandardOutput '$REPO\logs\pr13_$1.launcher.log' -RedirectStandardError '$REPO\logs\pr13_$1.server.log'"
