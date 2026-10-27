@@ -95,3 +95,26 @@ the 2060's numbers. A likely cause, not checked: the work split of some kernels 
 2060, 46 on the 4070), and the machine code differs (sm_75 against sm_89 from the same front end). So identity on
 Turing still needs the rig; the proxy is a fast first filter for Turing code (it builds, it passes the op tests, an
 A/B inside the proxy is or is not identical).
+
+## P230 results (RTX 2060 SUPER, 2026-10-27 11:27-11:50 CDT, issue #246)
+
+Stock clocks (memory 7,001 MHz). Model: the published MTP file with its Q4_0 head. q3_0, `-ub 512`, batch-invariant on,
+pp512, 2 rounds in turns; 0 `CUDA error` lines. The full log and the jsonl rows are on #246.
+
+| Cell | 8k r1 | 32k r1 | 8k r2 | 32k r2 |
+|---|---|---|---|---|
+| 1026 in-place | 382.10 | 286.20 | 373.50 | 286.81 |
+| 1026 f16 copy | 381.78 | 296.20 | 380.08 | 296.16 |
+| V_ROWS 16, f16 copy | 378.70 | 291.17 | 378.13 | 291.51 |
+| V_ROWS 64, f16 copy | 378.01 | 294.42 | 377.69 | 294.50 |
+
+| Question | Ratios | Verdict |
+|---|---|---|
+| A: in-place / copy | 8k 1.001 / 0.983; 32k 0.966 / 0.968 | below 0.98x at 32k: **the f16 copy stays** |
+| B: V_ROWS 16 / copy | identity 2 / 2; 32k 0.983 / 0.984 | **not kept** |
+| B: V_ROWS 64 / copy | identity 2 / 2; 32k 0.994 / 0.994 | **not kept** |
+
+What this shows: on Turing the f16 copy's lead over the in-place q3_0 read is now about 3 % at 32k (it was 18 % at
+32k in P25, before patches 0060 / 0061 / 0072 made the in-place read faster). The synchronous f16 tile loads are
+not the limit of the 2060's prefill: reading V ahead into registers only adds cost. The prefill time at depth on this
+card goes to the math of the attention, which is the target of `prefill-fp16acc-20261027`.
