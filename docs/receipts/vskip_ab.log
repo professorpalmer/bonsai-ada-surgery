@@ -1,5 +1,5 @@
 FLASH_ATTN_EXT with GGML_CUDA_FA_V_SKIP=1 (f6f2d146c): ok 3007 fail 0
-08:48 === V skip A/B: quality depth 160000, speed depth 192000, root C:\Users\pwall\AppData\Local\Temp\root-sparse8
+08:48 === V skip A/B: quality depth 160000, speed depth 192000, root <home>\AppData\Local\Temp\root-sparse8
 08:48 arm vskip-off (): health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margin 1000 MiB
 vskip-off code   depth 192000 (evaluated 191010): prefill   530.3 tok/s  ttft 360.21s  decode   22.3 tok/s (400 tok)
 vskip-off prose  depth 192000 (evaluated 512): prefill   282.3 tok/s  ttft   1.81s  decode   16.3 tok/s (400 tok)

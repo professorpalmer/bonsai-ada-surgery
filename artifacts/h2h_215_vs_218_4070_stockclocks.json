@@ -1,26 +1,26 @@
 {
-  "model": "C:\\Users\\pwall\\Projects\\bonsai-2-27b-serve\\models\\Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+  "model": "<home>\\Projects\\bonsai-2-27b-serve\\models\\Ternary-Bonsai-2-27B-PTQ1_0.gguf",
   "arms": [
     {
       "name": "stock",
-      "bindir": "C:\\Users\\pwall\\Projects\\bonsai-2-27b-serve\\tooling\\stock-bin",
+      "bindir": "<home>\\Projects\\bonsai-2-27b-serve\\tooling\\stock-bin",
       "env": {}
     },
     {
       "name": "pr218",
-      "bindir": "C:\\Users\\pwall\\AppData\\Local\\Temp\\pr218-build\\bin",
+      "bindir": "<home>\\AppData\\Local\\Temp\\pr218-build\\bin",
       "env": {}
     },
     {
       "name": "ours_nofuse",
-      "bindir": "C:\\Users\\pwall\\AppData\\Local\\Temp\\bonsai-ada-build\\bin",
+      "bindir": "<home>\\AppData\\Local\\Temp\\bonsai-ada-build\\bin",
       "env": {
         "GGML_CUDA_GDN_GATHER_FUSION": "0"
       }
     },
     {
       "name": "ours",
-      "bindir": "C:\\Users\\pwall\\AppData\\Local\\Temp\\bonsai-ada-build\\bin",
+      "bindir": "<home>\\AppData\\Local\\Temp\\bonsai-ada-build\\bin",
       "env": {}
     }
   ],

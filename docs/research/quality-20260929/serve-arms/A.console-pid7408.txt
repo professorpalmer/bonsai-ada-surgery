@@ -48,4 +48,4 @@
 2314.48.142.656 I slot print_timing: id  0 | task 997450 |    graphs reused =     980560
 2314.48.142.659 I slot print_timing: id  0 | task 997450 | draft acceptance = 0.65196 (  399 accepted /   612 generated), mean len =  2.30
 2314.48.142.932 I slot      release: id  0 | task 997450 | stop processing: n_tokens = 12507, truncated = 0
-PS C:\Users\pwall\Projects\bonsai-2-27b-serve\bin>
+PS <home>\Projects\bonsai-2-27b-serve\bin>

@@ -1,5 +1,5 @@
 $ErrorActionPreference = 'Stop'
-$Cuda = 'C:\Users\pwall\AppData\Local\Programs\Python\Python312\Lib\site-packages\nvidia\cu13'
+$Cuda = "$env:USERPROFILE\AppData\Local\Programs\Python\Python312\Lib\site-packages\nvidia\cu13"
 $Dump = 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\bin\Hostx64\x64\dumpbin.exe'
 $Lib  = 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\bin\Hostx64\x64\lib.exe'
 $Out  = Join-Path $Cuda 'lib\x64'

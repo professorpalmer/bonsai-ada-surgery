@@ -1,4 +1,4 @@
-11:54 === release smoke 0042: old = C:/Users/pwall/Projects/bonsai-2-27b-serve\bin, new = C:/Users/pwall/AppData/Local/Temp/bundle-0042
+11:54 === release smoke 0042: old = <home>/Projects/bonsai-2-27b-serve\bin, new = <home>/AppData/Local/Temp/bundle-0042
 11:54 old: health=1 version: 
   old  code   sha 33cf4e00f8f31f03  tok   256    93.2 tok/s  exhausted=False
   old  prose  sha 6e202c20339818bc  tok   256    89.6 tok/s  exhausted=False

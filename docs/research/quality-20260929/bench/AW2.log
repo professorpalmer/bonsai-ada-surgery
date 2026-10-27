@@ -18,5 +18,5 @@ difficulty_3 |         60.3         |           28.6
 
 == bonsai-raw done 04:19
 health(8080)=True
-C:\Users\pwall\Projects\bonsai-2-27b-serve\models\Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf
+<home>\Projects\bonsai-2-27b-serve\models\Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf
 == AW2 done, product serve restored 04:19

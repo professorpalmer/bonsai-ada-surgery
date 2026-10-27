@@ -4,8 +4,8 @@ import shutil
 import subprocess
 from pathlib import Path
 
-src = Path(r"C:\Users\pwall\AppData\Local\Temp\bonsai-ada-build\bin")
-dst = Path(r"C:\Users\pwall\Projects\bonsai-2-27b-serve\tooling\ada-bin")
+src = Path(Path.home() / r"AppData\Local\Temp\bonsai-ada-build\bin")
+dst = Path(Path.home() / r"Projects\bonsai-2-27b-serve\tooling\ada-bin")
 for name in (
     "ggml-cuda.dll",
     "llama-bench.exe",

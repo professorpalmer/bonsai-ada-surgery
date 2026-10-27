@@ -59,7 +59,7 @@ the server and layer restarted before turns 1, 4, 7, ... 28. Before each restart
 | E mechanism | the prefix test passes in the layer log; at least 1 save after the answer; saves in `after` not more than `before` + 2 |
 | F health | 0 CUDA errors; no `lc-saving-*` files left |
 
-All pass: merge, then make AFTER the default in the next bundle and port it to Mirai. Any fail: keep it off and log why.
+All pass: merge, then make AFTER the default in the next bundle. Any fail: keep it off and log why.
 
 ## Runs
 
@@ -245,6 +245,5 @@ Receipts in `run8/`.
 Arm wall time: 1,818 s vs 2,213 s. In the before arm, the saves before the request land on answers (turns 7, 9, 11, 15,
 17, 19, 21, 25: 81-121 s); in the after arm they run during the think time.
 
-Decision (declared): `BONSAI_SLOT_CACHE_AFTER` defaults to 1 in the next bundle (all presets); `=0` turns it off. Mirai
-keeps it opt-in until it has its own check (its launcher removes the variable unless `MIRAI_SLOT_CACHE_AFTER=1`; a port
-of this default must make the Mirai launcher set 0 explicitly).
+Decision (declared): `BONSAI_SLOT_CACHE_AFTER` defaults to 1 in the next bundle (all presets); `=0` turns it off. A sister serve that shares
+this layer keeps it opt-in until it has its own check.

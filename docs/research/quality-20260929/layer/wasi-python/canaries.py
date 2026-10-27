@@ -2,7 +2,7 @@
 import json
 import sandbox
 
-KEYFILE = r"C:\Users\pwall\Projects\bonsai-2-27b-serve\artifacts\api_key.txt"
+KEYFILE = r"<home>\Projects\bonsai-2-27b-serve\artifacts\api_key.txt"
 C = {
     "hello": ("print('hi', 6*7)", lambda r: r["exit_code"] == 0 and r["stdout"].strip() == b"hi 42"),
     "stdin_json": ("import json,sys; d=json.load(sys.stdin); print(json.dumps({'n': d['x']+1}))",

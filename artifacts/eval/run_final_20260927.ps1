@@ -1,6 +1,6 @@
 # Detached final receipt run: depth sweep + Killy suite against the running :8080 serve. Log: run_final_20260927.log
 $S = Join-Path $env:TEMP "bonsai-receipts"
-$R = "C:\Users\pwall\Projects\bonsai-2-27b-serve"
+$R = "$env:USERPROFILE\Projects\bonsai-2-27b-serve"
 $env:KEY = [IO.File]::ReadAllText("$R\artifacts\api_key.txt").Trim(); $env:PORT = "8080"
 $env:DEPTHS = "4096,16384,32768,65536,112000,131072,180000,258000"; $env:NGEN = "256"
 "== depth sweep (final recipe, iGPU display, margin 1000)  $(Get-Date -Format s)"

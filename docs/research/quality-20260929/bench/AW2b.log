@@ -1,6 +1,6 @@
 == AW2b starts 05:44
 health(18080)=True
-C:\Users\pwall\Projects\bonsai-2-27b-serve\models\donor\Ternary-Bonsai-2-27B-PQ2_0.gguf
+<home>\Projects\bonsai-2-27b-serve\models\donor\Ternary-Bonsai-2-27B-PQ2_0.gguf
 == bonsai-raw-pq2 run start 05:44
 difficulty_1 |         84.2         |           68.4          
 difficulty_2 |         64.6         |           37.5          
@@ -20,5 +20,5 @@ difficulty_3 |         55.6         |           28.6
 
 == bonsai-raw-pq2 done 09:27
 health(8080)=True
-C:\Users\pwall\Projects\bonsai-2-27b-serve\models\Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf
+<home>\Projects\bonsai-2-27b-serve\models\Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf
 == AW2 done, product serve restored 09:28

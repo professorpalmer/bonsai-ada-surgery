@@ -27,7 +27,7 @@ One release, two changes, gated together.
   (-8.5 %). 4k is +0.8 %, 245k is 4.1x (60.4 vs 14.8). The whole 32k loss is the code prompt: q8_0 121.6 tok/s at MTP
   draft acceptance 0.884 (mean 3.66 tokens per step), q4_0 94.2 at 0.715 (2.57); prose is +4.5 %, bash -2.0 %, and
   prefill is 3-8 % faster with q4_0. The two caches generate different text, and the text sets the acceptance (as on
-  Mirai, sparse-20261014 N02).
+  another model, sparse-20261014 N02).
 - **U04b** measures the cache speed without the drafter: `BONSAI_SPEC=0`, the same two roots, 4k / 32k / 128k, one
   server per arm. Rule: q4_0 mean decode not slower than 2 % at 4k and 32k; 128k reported. U04's numbers stay in the
   record as measured.

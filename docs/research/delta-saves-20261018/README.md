@@ -4,8 +4,8 @@ Date: 2026-10-18. Hardware: RTX 4070 12 GB (the dev drive: ~1.4 GB/s for the fir
 
 ## Problem
 
-Every save writes the whole conversation state: ~5 GB for a 150k Bonsai conversation on the 8 GB preset (q3_0), ~8 GB
-for Mirai (q8_0). On a drive that cannot keep its write speed, one save takes 30-190 s. Since bundle-20261018b the save
+Every save writes the whole conversation state: ~5 GB for a 150k Bonsai conversation on the 8 GB preset (q3_0), more with
+a q8_0 cache. On a drive that cannot keep its write speed, one save takes 30-190 s. Since bundle-20261018b the save
 runs after the answer, but a turn sent before it ends still waits (run 8: normal turns of 34-87 s right after a save),
 and the 20 GB budget holds only ~4 saves.
 
@@ -100,7 +100,7 @@ draft sidecar (15.0 MB).
 
 ## Run 3 (declared before the run): deltas for the save before the request
 
-The save before the request (used when the prefix test fails, with `BONSAI_SLOT_CACHE_AFTER=0`, and by Mirai's default)
+The save before the request (used when the prefix test fails, and with `BONSAI_SLOT_CACHE_AFTER=0`)
 still wrote full files, and there the user waits for it. Change (layer only): that save is also a delta of the best saved
 prefix when the slot starts with it.
 
@@ -114,7 +114,7 @@ Setup: G1 session (30 turns, 131k document, restarts before every 3rd turn, no t
 | P3 mechanism | at least 1 delta saved before the request; no "restore failed" in the delta arm's layer log |
 | P4 health | 0 CUDA errors; no `lc-saving-*` files |
 
-All pass: ships with the next bundle (Bonsai and Mirai). Any fail: not shipped; log why.
+All pass: ships with the next bundle. Any fail: not shipped; log why.
 
 ## Run 3 result: P1-P4 PASS — deltas before the request ship
 
@@ -132,7 +132,7 @@ Arm wall time: 793 s vs 1,972 s. The save before the request took 0.23-0.24 s as
 
 ## Open item: the chain length (measured, no change yet)
 
-Mirai MD3 (`mirai-s-serve receipts/delta/m8d`): a chain restore takes ~1.1 s per delta on the dev machine (depth 2:
+A check on a sister serve (q8_0 cache, a slow drive): a chain restore takes ~1.1 s per delta on the dev machine (depth 2:
 2.95 s, 4: 6.69 s, 6: 9.23 s, 8: 11.42 s), because each delta carries the ~150 MiB fixed recurrent state and the full
 draft sidecar. The forced full save every 8 deltas took 167 s there (a slow drive). A longer chain halves the full saves
 but adds ~1 s per extra delta to every restart restore, and the balance depends on the drive. Candidates for a later
@@ -144,15 +144,14 @@ full save only when the layer has been idle for a while.
 Change (layer only): after `BONSAI_SLOT_CACHE_CHAIN` deltas (8) the full save of a conversation runs when the layer has
 been idle for `BONSAI_SLOT_CACHE_IDLE` seconds (30), in a background thread under the cache lock; after
 `BONSAI_SLOT_CACHE_CHAIN_MAX` deltas (32) the next save is full in any case. Before: the 9th save was full at once, after
-an answer, and the next turn waited for it (Mirai MD3 turn 29: 163 s).
+an answer, and the next turn waited for it (the sister serve's check, turn 29: 163 s).
 
 | Gate | Condition |
 |---|---|
 | I1 Bonsai | G1's first 13 turns (8 GB preset, the 1018d root + this layer, no restarts before turn 13), then 45 s idle: the layer log shows one idle full save; after a restart, turn 13 restores a chain of length 1 (the full save) and its answer equals the run-7 reference; 0 CUDA errors |
-| I2 Mirai | the M8 session (Mirai 1018b root + this layer, 20 s think time, restarts, deltas in both arms) with the gates M8-1 ... M8-5 of `mirai-s-serve receipts/mirai_saa_default.md` |
+| I2 | the same layer on a sister serve (its own gates and records, not in this repo) |
 
-I1 passes: the idle full save ships in the next bundles (Bonsai, Mirai). I2 decides `MIRAI_SLOT_CACHE_AFTER` (all pass:
-on by default in the next Mirai bundle).
+I1 passes: the idle full save ships in the next bundle. I2 is the sister serve's decision.
 
 ### Run 4, I1: FAIL as declared (the test did not reach the soft cap)
 

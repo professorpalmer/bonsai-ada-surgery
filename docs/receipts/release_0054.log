@@ -6,7 +6,7 @@
 2026-10-13 20:05 NOTE: build-psparse (another branch) ran 19:54-20:04, before the G07 arms: no overlap, no G07 rerun needed.
 20:40 HumanEval: pass@1 21.34%  (35/164)  arm=medium effort=- temp=0.0 max_tokens=24576  3559.3s b0054: mean tokens 2313 median 576, over 4k: 19 
 20:40 === depth arms rel0054: depths 4000 32000 128000 (bench/arms/release_0054.txt)
-20:40 arm b1011 (C:/Users/pwall/Projects/bonsai-2-27b-serve; ): health=1; kv     tiered: cells 0..118272 in VRAM, 118272..262144 in system RAM (VRAM margi
+20:40 arm b1011 (<home>/Projects/bonsai-2-27b-serve; ): health=1; kv     tiered: cells 0..118272 in VRAM, 118272..262144 in system RAM (VRAM margi
 b1011 code   depth   4000 (evaluated 4048): prefill  1197.4 tok/s  ttft   3.38s  decode  106.0 tok/s (400 tok)
 b1011 prose  depth   4000 (evaluated 512): prefill   940.7 tok/s  ttft   0.54s  decode   86.7 tok/s (400 tok)
 b1011 bash   depth   4000 (evaluated 516): prefill   940.6 tok/s  ttft   0.55s  decode   98.3 tok/s (400 tok)
@@ -20,7 +20,7 @@ b1011 prose  depth 128000 (evaluated 512): prefill   381.3 tok/s  ttft   1.34s  
 b1011 bash   depth 128000 (evaluated 516): prefill   386.4 tok/s  ttft   1.34s  decode   60.7 tok/s (400 tok)
 b1011 mean decode 55.1 tok/s
 20:45 b1011: 'one sync per K write' warnings: 0
-20:45 arm b0054 (C:\Users\pwall\AppData\Local\Temp\root-0054; ): health=1; kv     tiered: cells 0..118272 in VRAM, 118272..262144 in system RAM (VRAM margi
+20:45 arm b0054 (<home>\AppData\Local\Temp\root-0054; ): health=1; kv     tiered: cells 0..118272 in VRAM, 118272..262144 in system RAM (VRAM margi
 b0054 code   depth   4000 (evaluated 4048): prefill  1279.6 tok/s  ttft   3.16s  decode  105.1 tok/s (400 tok)
 b0054 prose  depth   4000 (evaluated 512): prefill   979.1 tok/s  ttft   0.52s  decode   86.5 tok/s (400 tok)
 b0054 bash   depth   4000 (evaluated 516): prefill   987.1 tok/s  ttft   0.52s  decode   94.4 tok/s (400 tok)

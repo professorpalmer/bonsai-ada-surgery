@@ -1,6 +1,6 @@
 param([Parameter(Mandatory)][ValidateSet('q8_0', 'f16')][string]$Kv)
 $ErrorActionPreference = 'Stop'
-$Key = (Get-Content 'C:\Users\pwall\Projects\bonsai-2-27b-serve\artifacts\api_key.txt' -Raw).Trim()
+$Key = (Get-Content "$env:USERPROFILE\Projects\bonsai-2-27b-serve\artifacts\api_key.txt" -Raw).Trim()
 $H = @{ Authorization = "Bearer $Key" }
 try { if (@(Invoke-RestMethod http://127.0.0.1:8080/slots -Headers $H | Where-Object { $_.is_processing }).Count) { throw 'busy' } } catch { if ("$_" -eq 'busy') { throw } }
 Get-Process llama-server -ErrorAction SilentlyContinue | Stop-Process -Force

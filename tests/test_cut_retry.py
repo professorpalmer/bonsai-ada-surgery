@@ -1,6 +1,6 @@
 """Offline test: a reply that max_tokens cuts inside the layer's own run_python call is asked again without the tool.
 
-Before the fix the layer dropped the half-written call and the client got content "" (receipts: Mirai M5). A fake
+Before the fix the layer dropped the half-written call and the client got content "" (found in a check on a sister serve). A fake
 server answers with a cut run_python call when the request offers tools, and with plain text when it does not.
 python tests/test_cut_retry.py
 """

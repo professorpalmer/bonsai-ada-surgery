@@ -1,4 +1,4 @@
-01:11 === gdn prefill A/B: speed depths 4000 32000 128000, quality depth 32000, root C:\Users\pwall\AppData\Local\Temp\root-gdn
+01:11 === gdn prefill A/B: speed depths 4000 32000 128000, quality depth 32000, root <home>\AppData\Local\Temp\root-gdn
 01:11 arm recurrent (GGML_CUDA_GDN_MMA_DISABLE=1): health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margin 1000 MiB
 recurrent code   depth   4000 (evaluated 4048): prefill  1200.6 tok/s  ttft   3.37s  decode  103.9 tok/s (400 tok)
 recurrent prose  depth   4000 (evaluated 512): prefill   931.4 tok/s  ttft   0.55s  decode   84.6 tok/s (400 tok)
@@ -31,7 +31,7 @@ mma mean decode 71.5 tok/s
 {"tag": "mma", "depth": 32000, "correct": 12, "of": 12}
 01:22 === done
 GATED_DELTA_NET (root-gdn2, 31c337bbb): ok 57 fail 0
-02:49 === gdn prefill A/B: speed depths 4000 32000 128000, quality depth 32000, root C:\Users\pwall\AppData\Local\Temp\root-gdn2
+02:49 === gdn prefill A/B: speed depths 4000 32000 128000, quality depth 32000, root <home>\AppData\Local\Temp\root-gdn2
 02:49 arm recurrent (GGML_CUDA_GDN_MMA_DISABLE=1): health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margin 1000 MiB
 recurrent code   depth   4000 (evaluated 4048): prefill  1203.9 tok/s  ttft   3.36s  decode  105.7 tok/s (400 tok)
 recurrent prose  depth   4000 (evaluated 512): prefill   939.1 tok/s  ttft   0.55s  decode   86.4 tok/s (400 tok)
@@ -66,6 +66,6 @@ mma mean decode 74.1 tok/s
 recurrent: 
 mma: 0.06.732.452 W ggml_cuda_op_gated_delta_net_impl: chunked GDN prefill (MMA) engaged: 121 tokens (116 by MMA), K 5, H 48, H_k 16, raw 1, gather 1, seqs 1
 0.05.162.639 W ggml_cuda_op_gated_delta_net_impl: chunked GDN prefill (MMA) engaged: 121 tokens (116 by MMA), K 5, H 48, H_k 16, raw 1, gather 1, seqs 1
-09:24 === gdnmma: template model, root C:\Users\pwall\AppData\Local\Temp\root-gdn2, kwargs none, health=1
+09:24 === gdnmma: template model, root <home>\AppData\Local\Temp\root-gdn2, kwargs none, health=1
 gdnmma: mean tokens 2313 median 576, over 4k: 19
 10:20 === gdnmma done

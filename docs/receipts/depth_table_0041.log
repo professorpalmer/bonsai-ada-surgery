@@ -1,6 +1,6 @@
-02:21 === depth table 0041 (C:/Users/pwall/AppData/Local/Temp/bundle-0041): health=1; kv     tiered: cells 0..119040 in VRAM, 119040..262144 in system RAM (VRAM margin 1000 MiB)
+02:21 === depth table 0041 (<home>/AppData/Local/Temp/bundle-0041): health=1; kv     tiered: cells 0..119040 in VRAM, 119040..262144 in system RAM (VRAM margin 1000 MiB)
 02:22 === done
-03:28 === depth table 0041 (C:/Users/pwall/AppData/Local/Temp/bundle-0041): health=1; kv     tiered: cells 0..119040 in VRAM, 119040..262144 in system RAM (VRAM margin 1000 MiB)
+03:28 === depth table 0041 (<home>/AppData/Local/Temp/bundle-0041): health=1; kv     tiered: cells 0..119040 in VRAM, 119040..262144 in system RAM (VRAM margin 1000 MiB)
 258000: code   depth 258000 (evaluated 256858): prefill   436.1 tok/s  ttft 589.03s  decode   12.1 tok/s (400 tok)
 258000: prose  depth 258000 (evaluated 512): prefill   221.1 tok/s  ttft   2.32s  decode    8.6 tok/s (400 tok)
 258000: bash   depth 258000 (evaluated 516): prefill   222.1 tok/s  ttft   2.32s  decode   11.4 tok/s (400 tok)

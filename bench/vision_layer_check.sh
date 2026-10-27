@@ -9,7 +9,7 @@ say() { echo "$(date '+%F %H:%M') $*" | tee -a "$LOG"; }
 arm() { # LABEL "ENV"
   local label=$1 envs=$2
   powershell -NoProfile -ExecutionPolicy Bypass -File bench/stop_serve.ps1 >/dev/null 2>&1; sleep 3
-  env $envs powershell -NoProfile -Command "Start-Process powershell -WindowStyle Hidden -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File','C:\Users\pwall\Projects\bonsai-2-27b-serve\start-server.ps1' -RedirectStandardOutput 'C:\Users\pwall\Projects\bonsai-2-27b-serve\logs\vl_$label.launcher.log' -RedirectStandardError 'C:\Users\pwall\Projects\bonsai-2-27b-serve\logs\vl_$label.err'"
+  env $envs powershell -NoProfile -Command "Start-Process powershell -WindowStyle Hidden -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File','$USERPROFILE\Projects\bonsai-2-27b-serve\start-server.ps1' -RedirectStandardOutput '$USERPROFILE\Projects\bonsai-2-27b-serve\logs\vl_$label.launcher.log' -RedirectStandardError '$USERPROFILE\Projects\bonsai-2-27b-serve\logs\vl_$label.err'"
   local ok=0 i; for i in $(seq 1 80); do sleep 3; curl -s -m 2 http://127.0.0.1:8080/health 2>/dev/null | grep -q '"ok"' && { ok=1; break; }; done
   sleep 5
   say "arm $label ($envs): health=$ok; $(grep -E '^(layer|vision)' logs/vl_$label.launcher.log | tr '\n' ' ' | cut -c1-200)"

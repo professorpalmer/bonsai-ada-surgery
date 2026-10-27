@@ -1,9 +1,9 @@
-20:21 === release smoke pr13: old = C:/Users/pwall/Projects/bonsai-2-27b-serve\bin, new = C:/Users/pwall/AppData/Local/Temp/root-0049
+20:21 === release smoke pr13: old = <home>/Projects/bonsai-2-27b-serve\bin, new = <home>/AppData/Local/Temp/root-0049
 20:22 old: health=1 version: 
   old  code   sha 33cf4e00f8f31f03  tok   256    91.9 tok/s  exhausted=False
   old  prose  sha 6e202c20339818bc  tok   256    89.5 tok/s  exhausted=False
   old  think  sha f6fb82f84e485f7f  tok   110   106.3 tok/s  exhausted=False
-20:22 === release smoke pr13: old = C:/Users/pwall/Projects/bonsai-2-27b-serve\bin, new = C:/Users/pwall/AppData/Local/Temp/root-0049
+20:22 === release smoke pr13: old = <home>/Projects/bonsai-2-27b-serve\bin, new = <home>/AppData/Local/Temp/root-0049
 20:22 old: health=1 version: 
   old  code   sha 33cf4e00f8f31f03  tok   256    91.6 tok/s  exhausted=False
   old  prose  sha 6e202c20339818bc  tok   256    89.6 tok/s  exhausted=False

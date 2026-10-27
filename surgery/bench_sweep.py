@@ -14,7 +14,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-root = Path(r"C:\Users\pwall\Projects\bonsai-2-27b-serve")
+root = Path(Path.home() / r"Projects\bonsai-2-27b-serve")
 dst = root / "tooling" / "ada-bin"
 bench = dst / "llama-bench.exe"
 model = root / "models" / "Ternary-Bonsai-2-27B-PTQ1_0.gguf"
@@ -28,7 +28,7 @@ for line in out.splitlines():
         subprocess.call(["taskkill", "/PID", line.split()[1], "/F"])
         time.sleep(1.0)
 
-build_bin = Path(r"C:\Users\pwall\AppData\Local\Temp\bonsai-ada-build\bin")
+build_bin = Path(Path.home() / r"AppData\Local\Temp\bonsai-ada-build\bin")
 for name in ("ggml-cuda.dll", "ggml-base.dll", "ggml.dll", "llama.dll", "llama-bench.exe", "llama-bench-impl.dll", "llama-server.exe"):
     s = build_bin / name
     if s.exists() and (not (dst / name).exists() or s.stat().st_mtime > (dst / name).stat().st_mtime):

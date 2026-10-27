@@ -6,13 +6,13 @@
 # Waits for E17 to finish first. Restores the product serve (start-server.ps1 + layer) at the end.
 set -u
 export PYTHONUTF8=1 PYTHONIOENCODING=utf-8
-ROOT="C:/Users/pwall/Projects/bonsai-2-27b-serve"
+ROOT="$USERPROFILE/Projects/bonsai-2-27b-serve"
 BENCH="$ROOT/artifacts/quality-20260929/bench"
 SCRIPTS="$ROOT/artifacts/experiments/spec-ab-20260928"
 K=$(tr -d '\r\n' < "$ROOT/artifacts/api_key.txt")
 export BONSAI_API_KEY="$K" OPENAI_API_KEY="$K"
 VP="$TEMP/appworld-venv/Scripts/python.exe"
-PQ2="C:\\Users\\pwall\\Projects\\bonsai-2-27b-serve\\models\\donor\\Ternary-Bonsai-2-27B-PQ2_0.gguf"
+PQ2="$USERPROFILE\\Projects\\bonsai-2-27b-serve\\models\\donor\\Ternary-Bonsai-2-27B-PQ2_0.gguf"
 
 echo "== AW2b starts $(date +%H:%M)"
 

@@ -1,14 +1,14 @@
 {
-  "model": "C:\\Users\\pwall\\Projects\\bonsai-2-27b-serve\\models\\Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+  "model": "<home>\\Projects\\bonsai-2-27b-serve\\models\\Ternary-Bonsai-2-27B-PTQ1_0.gguf",
   "arms": [
     {
       "name": "prism",
-      "bindir": "C:\\Users\\pwall\\Projects\\bonsai-2-27b-serve\\tooling\\stock-bin",
+      "bindir": "<home>\\Projects\\bonsai-2-27b-serve\\tooling\\stock-bin",
       "env": {}
     },
     {
       "name": "bundle",
-      "bindir": "C:\\Users\\pwall\\Projects\\bonsai-2-27b-serve\\bin",
+      "bindir": "<home>\\Projects\\bonsai-2-27b-serve\\bin",
       "env": {}
     }
   ],

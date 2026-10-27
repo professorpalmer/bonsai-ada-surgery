@@ -450,8 +450,8 @@ Step 1, VRAM at N=16384 (q4_0, draft 1, tail 2, window 16384), server VRAM at lo
   C0 q8 head, pool off | C1 q4 head, pool off | C2 q4 head, pool on + DRAFT_UBATCH=256.
 Step 2: size N for the cheapest passing variant to P11's passing free margin; depth sweep 4k/16k/32k/64k vs B at P11's N.
 Gates, written before the run:
-- each saving within 30% of the Mirai number (head -204 MiB, pool -188 MiB) or reported as not transferring;
-- acceptance with the q4 head within 2 pp of the q8 head (Mirai: 77.7 vs 78.2%);
+- each saving within 30% of the source fork's number (head -204 MiB, pool -188 MiB) or reported as not transferring;
+- acceptance with the q4 head within 2 pp of the q8 head (source fork: 77.7 vs 78.2%);
 - decision vs B: P5's rule (best at 32k unless >25% at both 4k and 16k), min free >= P11's passing margin;
 - drafting differs from non-drafting at rounding level on every card (documented) - not a gate; KL of the drafted
   default vs B is reported if the head mode becomes the default.
@@ -503,7 +503,7 @@ Receipts: receipts/p12/p12.txt, C0/C1/C2_4k.json. bin-p12 (Turing fix + #314 [PC
 fan 100%, desk fans, q4_0, draft 1 / tail 2.
 Step 1 (N=16384): server C0 q8 head 7,262 / C1 q4 head 7,048 / C2 + pool + DRAFT_UBATCH=256 6,986 MiB.
 4k decode 51.82 / 51.28 / 51.34; acceptance 0.875 / 0.848 / 0.848.
-Gates: q4 head -214 MiB (Mirai -204) PASS; pool+ubatch -62 MiB (Mirai -188) FAIL - does not transfer (kept: harmless,
+Gates: q4 head -214 MiB (source fork -204) PASS; pool+ubatch -62 MiB (source fork -188) FAIL - does not transfer (kept: harmless,
 62 MiB); acceptance q4 vs q8 head -2.7 pp (> 2 pp) FAIL, decode -1.0%.
 Strip proof: q4-head file minus the head == official PTQ1_0 sha256 (53107f53...). Head requant saved 212 MB.
 Step 2: C2 N=38400 (free 256) vs B N=77568 (free 269), decode 4k/16k/32k/64k:
@@ -2924,7 +2924,7 @@ FA 110/110 (q3_0 cases). PPL 16k q4_0 7.9050 +/- 0.05444, q3_0 7.9491 +/- 0.0547
 b86298dba, launcher sparsetest2q3, sparse off, lookup on. Lines q4_0 61,696 / q3_0 80,640. Sweep q4 54.6 / 41.8 / 15.8 / 9.2,
 q3 53.6 / 41.1 / 22.8 / 12.3 at 4k / 64k / 128k / 192k (+44 % at 128k, +34 % at 192k). 160k quality arms running. Posted on #21.
 
-## 2026-10-15 03:57Z PR #93: R10 plan (4070): wider items for the shipped sparse rule (Mirai S missed a needle digit at 0.958 with
+## 2026-10-15 03:57Z PR #93: R10 plan (4070): wider items for the shipped sparse rule (another model on the same engine missed a needle digit at 0.958 with
 FRAC 1/16 + 12288 floor); 245k code_needle n20 / needle_depth n24, dense vs sparse; if a miss: FRAC 1/8 + a 2060 speed check.
 P141 (queue 69il, after P132; gate = R10): the same on the 2060 with the zip bins (other item set). Posted on #21.
 

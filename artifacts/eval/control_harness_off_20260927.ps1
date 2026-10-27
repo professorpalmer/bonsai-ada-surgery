@@ -1,6 +1,6 @@
 # Control for the harness-proofing receipts: the same server recipe with BONSAI_HARNESS_PROOF=0 on :8091, the two app
 # arms on the first 20 HumanEval problems. Then the normal serve comes back on :8080.
-$R = "C:\Users\pwall\Projects\bonsai-2-27b-serve"
+$R = "$env:USERPROFILE\Projects\bonsai-2-27b-serve"
 Set-Location $R
 Get-Process llama-server -ErrorAction SilentlyContinue | Stop-Process -Force
 Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" | Where-Object { $_.CommandLine -match 'start-server' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }

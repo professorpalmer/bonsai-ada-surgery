@@ -1,4 +1,4 @@
-# bundle_nospec_128k_q8  bin=C:\Users\pwall\Projects\bonsai-2-27b-serve\bin  model=Ternary-Bonsai-2-27B-PTQ1_0.gguf  ctx=131072 kv=q8_0 spec=0 bs=True  2026-09-20T01:03:40
+# bundle_nospec_128k_q8  bin=<home>\Projects\bonsai-2-27b-serve\bin  model=Ternary-Bonsai-2-27B-PTQ1_0.gguf  ctx=131072 kv=q8_0 spec=0 bs=True  2026-09-20T01:03:40
 ## depth 0
 code   depth      0 (evaluated 32): prefill   250.0 tok/s  ttft   0.13s  decode   68.3 tok/s (400 tok)
 prose  depth      0 (evaluated 28): prefill   229.9 tok/s  ttft   0.12s  decode   68.3 tok/s (400 tok)

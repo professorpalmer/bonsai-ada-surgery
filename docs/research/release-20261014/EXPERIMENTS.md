@@ -147,7 +147,7 @@ the 00:31 Windows-update reboot). Every A/B is inside one session.
 
 ## R10 plan: a wider item set for the shipped sparse rule (written 2026-10-14 23:00, before the run)
 
-- **Why.** On Mirai S (another model on the same engine), FRAC 1/16 with the 12,288 floor missed one needle digit at
+- **Why.** On another model served by the same engine, FRAC 1/16 with the 12,288 floor missed one needle digit at
   245k (the item at position 0.958; dense and a 1/8 budget were right). R04 / P136 / P139 on Bonsai used 10 copies and
   12 needles. Does the shipped Bonsai rule hold on more items?
 - **Setup.** RTX 4070, the bundle-20261014 bins (product `bin/`), 12 GB recipe with the VRAM line pinned at 32,768
@@ -155,7 +155,7 @@ the 00:31 Windows-update reboot). Every A/B is inside one session.
   environment with the shipped values (`12288,64,1024`, FAST, STAGE_MIN_Q 9, MIN_HOST 32768, engine FRAC 1/16). 245k:
   `code_needle --n 20` and `needle_depth --n 24` (other positions than the n 10 / n 12 sets), one fresh server per arm.
 - **Gate.** Sparse = dense on every item. If an item differs: rerun that arm with FRAC 1/8; if 1/8 matches dense, the
-  8 GB launcher sets FRAC 1/8 (as Mirai) after a 2060 speed check.
+  8 GB launcher sets FRAC 1/8 (as the other model's serve) after a 2060 speed check.
 
 ## R10 Result: the shipped sparse rule on 20 copies + 24 needles at 245k (2026-10-14 22:57-23:42)
 

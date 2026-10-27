@@ -1,7 +1,7 @@
-14:51 === D29 start: root C:\Users\pwall\AppData\Local\Temp\root-15c (commit c2cf6d6450), driver 610.88
+14:51 === D29 start: root <home>\AppData\Local\Temp\root-15c (commit c2cf6d6450), driver 610.88
 14:52 q8_0: health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool 
 14:52 === D29 PAUSED before results (the release session ran D26h-3b first: the q3_0 budget is on the 8 GB release path); D29 restarts after it
-15:47 === D29 start: root C:\Users\pwall\AppData\Local\Temp\root-15c (commit c2cf6d6450), driver 610.88
+15:47 === D29 start: root <home>\AppData\Local\Temp\root-15c (commit c2cf6d6450), driver 610.88
 15:48 q8_0: health=1; kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool 
 15:49 q8_0 mem clock under load: 11751 MHz
 q8_0 64000 mean decode 78.5 tok/s

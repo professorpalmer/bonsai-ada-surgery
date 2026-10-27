@@ -18,7 +18,7 @@
       "accepted": 1594,
       "proposed": 2403,
       "acceptance_lines": [],
-      "log": "C:\\Users\\pwall\\Projects\\bonsai-2-27b-serve\\artifacts\\eval\\mtp_head_ab\\teacher_q4_k_graft.log",
+      "log": "<home>\\Projects\\bonsai-2-27b-serve\\artifacts\\eval\\mtp_head_ab\\teacher_q4_k_graft.log",
       "acceptance_rows": [
         {
           "task": 0,
@@ -97,7 +97,7 @@
       "accepted": 1705,
       "proposed": 2416,
       "acceptance_lines": [],
-      "log": "C:\\Users\\pwall\\Projects\\bonsai-2-27b-serve\\artifacts\\eval\\mtp_head_ab\\procreations_q8_trained.log",
+      "log": "<home>\\Projects\\bonsai-2-27b-serve\\artifacts\\eval\\mtp_head_ab\\procreations_q8_trained.log",
       "acceptance_rows": [
         {
           "task": 0,
