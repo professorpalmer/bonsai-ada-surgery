@@ -1,0 +1,130 @@
+15:36:31 engines: null commit 810d93e5aa, p4 commit a38714c63d; mem 10501 MHz
+15:41:40 T0a p4 FLASH_ATTN_EXT:   3115/3115 tests passed; FAIL lines 0; 309 s (includes the first JIT)
+15:42:37 T0b q3_0 ctx 8192 ub 512: identical (null Final estimate: PPL = 6.6695; p4 PPL = 6.6695; 4067612676 bytes)
+15:43:52 T0b q3_0 ctx 2048 ub 1: identical (null Final estimate: PPL = 6.7441; p4 PPL = 6.7441; 508079116 bytes)
+15:44:29 T0b q3_0 ctx 2048 ub 4: identical (null Final estimate: PPL = 6.7514; p4 PPL = 6.7514; 508079116 bytes)
+15:45:07 T0b q3_0 ctx 2048 ub 8: identical (null Final estimate: PPL = 6.7377; p4 PPL = 6.7377; 508079116 bytes)
+15:46:13 T0b q4_0 ctx 8192 ub 512: identical (null Final estimate: PPL = 6.6458; p4 PPL = 6.6458; 4067612676 bytes)
+15:47:28 T0b q4_0 ctx 2048 ub 1: identical (null Final estimate: PPL = 6.7203; p4 PPL = 6.7203; 508079116 bytes)
+15:48:04 T0b q4_0 ctx 2048 ub 4: identical (null Final estimate: PPL = 6.7179; p4 PPL = 6.7179; 508079116 bytes)
+15:48:45 T0b q4_0 ctx 2048 ub 8: identical (null Final estimate: PPL = 6.7281; p4 PPL = 6.7281; 508079116 bytes)
+15:49:00 T2 builds done; speed runs start
+15:49:38 T0c/T1 q3_0 null pp512 f16=0: d 32768 p 512 g 0 872.64 +- 7.07
+;
+15:50:16 T0c/T1 q3_0 p4 pp512 f16=0: d 32768 p 512 g 0 892.75 +- 7.72
+;
+15:50:56 T0c/T1 q3_0 null pp512 f16=32768: d 32768 p 512 g 0 868.44 +- 9.78
+;
+15:51:36 T0c/T1 q3_0 p4 pp512 f16=32768: d 32768 p 512 g 0 890.80 +- 6.59
+;
+15:53:45 T1 q3_0 null tg128: d 32768 p 0 g 128 61.00 +- 0.30
+;d 65536 p 0 g 128 56.28 +- 0.18
+;
+15:55:52 T1 q3_0 p4 tg128: d 32768 p 0 g 128 61.92 +- 0.22
+;d 65536 p 0 g 128 57.72 +- 0.24
+;
+15:56:30 T0c/T1 q4_0 null pp512 f16=0: d 32768 p 512 g 0 871.77 +- 6.99
+;
+15:57:07 T0c/T1 q4_0 p4 pp512 f16=0: d 32768 p 512 g 0 898.76 +- 7.41
+;
+15:57:47 T0c/T1 q4_0 null pp512 f16=32768: d 32768 p 512 g 0 866.16 +- 17.60
+;
+15:58:27 T0c/T1 q4_0 p4 pp512 f16=32768: d 32768 p 512 g 0 897.54 +- 8.62
+;
+16:00:36 T1 q4_0 null tg128: d 32768 p 0 g 128 60.85 +- 0.28
+;d 65536 p 0 g 128 56.07 +- 0.15
+;
+16:02:43 T1 q4_0 p4 tg128: d 32768 p 0 g 128 61.49 +- 0.27
+;d 65536 p 0 g 128 57.30 +- 0.21
+;
+16:02:43 tp done
+16:04:37 T0c2 r1 q3_0 null inplace: d 8192 p 512 g 0 1093.23 +- 8.78
+;d 32768 p 512 g 0 874.92 +- 4.62
+; chunk log lines 0
+16:05:24 T0c2 r1 q3_0 p4 inplace: d 8192 p 512 g 0 1100.31 +- 10.45
+;d 32768 p 512 g 0 893.36 +- 4.48
+; chunk log lines 0
+16:06:13 T0c2 r1 q3_0 null f16: d 8192 p 512 g 0 1089.19 +- 9.94
+;d 32768 p 512 g 0 846.53 +- 5.55
+; chunk log lines 0
+16:07:02 T0c2 r1 q3_0 p4 f16: d 8192 p 512 g 0 1086.71 +- 10.02
+;d 32768 p 512 g 0 845.42 +- 4.20
+; chunk log lines 0
+16:07:49 T0c2 r1 q4_0 null inplace: d 8192 p 512 g 0 1098.72 +- 11.79
+;d 32768 p 512 g 0 872.87 +- 5.90
+; chunk log lines 0
+16:08:35 T0c2 r1 q4_0 p4 inplace: d 8192 p 512 g 0 1102.67 +- 10.54
+;d 32768 p 512 g 0 898.57 +- 7.43
+; chunk log lines 0
+16:09:24 T0c2 r1 q4_0 null f16: d 8192 p 512 g 0 1086.81 +- 7.35
+;d 32768 p 512 g 0 846.25 +- 3.37
+; chunk log lines 0
+16:10:14 T0c2 r1 q4_0 p4 f16: d 8192 p 512 g 0 1089.82 +- 10.63
+;d 32768 p 512 g 0 846.16 +- 4.45
+; chunk log lines 0
+16:11:01 T0c2 r2 q3_0 null inplace: d 8192 p 512 g 0 1094.32 +- 11.39
+;d 32768 p 512 g 0 871.83 +- 4.59
+; chunk log lines 0
+16:11:47 T0c2 r2 q3_0 p4 inplace: d 8192 p 512 g 0 1099.85 +- 11.41
+;d 32768 p 512 g 0 892.02 +- 4.46
+; chunk log lines 0
+16:12:37 T0c2 r2 q3_0 null f16: d 8192 p 512 g 0 1084.44 +- 12.52
+;d 32768 p 512 g 0 845.78 +- 3.21
+; chunk log lines 0
+16:13:26 T0c2 r2 q3_0 p4 f16: d 8192 p 512 g 0 1089.57 +- 10.95
+;d 32768 p 512 g 0 846.52 +- 3.59
+; chunk log lines 0
+16:14:13 T0c2 r2 q4_0 null inplace: d 8192 p 512 g 0 1096.52 +- 10.61
+;d 32768 p 512 g 0 872.47 +- 5.75
+; chunk log lines 0
+16:14:59 T0c2 r2 q4_0 p4 inplace: d 8192 p 512 g 0 1103.44 +- 10.64
+;d 32768 p 512 g 0 899.80 +- 4.96
+; chunk log lines 0
+16:15:48 T0c2 r2 q4_0 null f16: d 8192 p 512 g 0 1086.33 +- 10.34
+;d 32768 p 512 g 0 846.60 +- 3.70
+; chunk log lines 0
+16:16:37 T0c2 r2 q4_0 p4 f16: d 8192 p 512 g 0 1084.84 +- 12.63
+;d 32768 p 512 g 0 845.54 +- 3.08
+; chunk log lines 0
+16:16:37 T0c2 done
+16:16:38 T2 engines: commit c19c5988d1
+16:19:55 T2 v16 FLASH_ATTN_EXT:   3115/3115 tests passed; FAIL lines 0
+16:23:14 T2 v32 FLASH_ATTN_EXT:   3115/3115 tests passed; FAIL lines 0
+16:26:32 T2 v64 FLASH_ATTN_EXT:   3115/3115 tests passed; FAIL lines 0
+16:27:19 T2 identity v16 f16 f16copy=0 ctx 8192 ub 512: identical (PPL = 6.6236; ref PPL = 6.6236)
+16:27:44 T2 identity v32 f16 f16copy=0 ctx 8192 ub 512: identical (PPL = 6.6236; ref PPL = 6.6236)
+16:28:09 T2 identity v64 f16 f16copy=0 ctx 8192 ub 512: identical (PPL = 6.6236; ref PPL = 6.6236)
+16:28:45 T2 identity v16 f16 f16copy=0 ctx 2048 ub 8: identical (PPL = 6.7008; ref PPL = 6.7008)
+16:29:03 T2 identity v32 f16 f16copy=0 ctx 2048 ub 8: identical (PPL = 6.7008; ref PPL = 6.7008)
+16:29:21 T2 identity v64 f16 f16copy=0 ctx 2048 ub 8: identical (PPL = 6.7008; ref PPL = 6.7008)
+16:30:08 T2 identity v16 q3_0 f16copy=32768 ctx 8192 ub 512: identical (PPL = 6.6695; ref PPL = 6.6695)
+16:30:33 T2 identity v32 q3_0 f16copy=32768 ctx 8192 ub 512: identical (PPL = 6.6695; ref PPL = 6.6695)
+16:30:58 T2 identity v64 q3_0 f16copy=32768 ctx 8192 ub 512: identical (PPL = 6.6695; ref PPL = 6.6695)
+16:31:34 T2 identity v16 q3_0 f16copy=32768 ctx 2048 ub 8: identical (PPL = 6.7377; ref PPL = 6.7377)
+16:31:52 T2 identity v32 q3_0 f16copy=32768 ctx 2048 ub 8: identical (PPL = 6.7377; ref PPL = 6.7377)
+16:32:10 T2 identity v64 q3_0 f16copy=32768 ctx 2048 ub 8: identical (PPL = 6.7377; ref PPL = 6.7377)
+16:33:00 T2 speed r1 p4 q3_0 pp512 f16copy: d 8192 p 512 g 0 1089.03 +- 11.71
+;d 32768 p 512 g 0 846.80 +- 5.22
+;
+16:33:48 T2 speed r1 v16 q3_0 pp512 f16copy: d 8192 p 512 g 0 1089.98 +- 10.89
+;d 32768 p 512 g 0 860.37 +- 5.43
+;
+16:34:37 T2 speed r1 v32 q3_0 pp512 f16copy: d 8192 p 512 g 0 1091.55 +- 11.06
+;d 32768 p 512 g 0 861.75 +- 3.95
+;
+16:35:25 T2 speed r1 v64 q3_0 pp512 f16copy: d 8192 p 512 g 0 1093.03 +- 13.28
+;d 32768 p 512 g 0 861.65 +- 4.85
+;
+16:36:14 T2 speed r2 p4 q3_0 pp512 f16copy: d 8192 p 512 g 0 1085.55 +- 10.36
+;d 32768 p 512 g 0 846.30 +- 2.93
+;
+16:37:03 T2 speed r2 v16 q3_0 pp512 f16copy: d 8192 p 512 g 0 1090.31 +- 11.25
+;d 32768 p 512 g 0 859.59 +- 5.32
+;
+16:37:51 T2 speed r2 v32 q3_0 pp512 f16copy: d 8192 p 512 g 0 1088.12 +- 9.14
+;d 32768 p 512 g 0 861.01 +- 3.21
+;
+16:38:39 T2 speed r2 v64 q3_0 pp512 f16copy: d 8192 p 512 g 0 1092.18 +- 11.43
+;d 32768 p 512 g 0 861.95 +- 4.85
+;
+16:38:39 T2 done
