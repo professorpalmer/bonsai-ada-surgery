@@ -27,31 +27,46 @@ def main():
     ap.add_argument("--out", required=True)
     ap.add_argument("--n", type=int, default=5)
     ap.add_argument("--bias", type=float, default=8.0)
+    ap.add_argument("--zero", action="store_true", help="first one try at bias 0 (try -1)")
     a = ap.parse_args()
     key = open(a.key_file).read().strip()
     eot = post(a.base, key, "/tokenize", {"content": "<|im_end|>", "parse_special": True})["tokens"]
     assert len(eot) == 1, eot
-    n_open = n_answered = 0
+    # "open" = the turn stopped (finish "stop") with no `</think>`: an end-of-generation token inside the block.
+    # A length cut or an error is "other", never "open". Try -1 (bias 0) must close the block and answer.
+    n_open = n_closed = n_answered = n_other = 0
+    zero = None
     with open(a.out, "a", encoding="utf-8") as out:
-        for i in range(a.n):
+        for i in range(-1 if a.zero else 0, a.n):
+            bias = 0.0 if i < 0 else a.bias
             t0 = time.time()
+            # the launcher's floor raises max_tokens to the think budget + 4096 (24,576 by default)
             r = post(a.base, key, "/v1/chat/completions", {
                 "messages": [{"role": "user", "content": PROMPT}], "max_tokens": 4096,
-                "reasoning_format": "none", "logit_bias": {str(eot[0]): a.bias}})
+                "reasoning_format": "none", "logit_bias": {str(eot[0]): bias}})
             ch = r["choices"][0]
             text = ch["message"].get("content") or ""
+            finish = ch.get("finish_reason")
             closed = "</think>" in text
             answer = text.split("</think>", 1)[1].strip() if closed else ""
-            n_open += not closed
-            n_answered += bool(answer)
-            row = {"try": i, "bias": a.bias, "eot": eot[0], "finish": ch.get("finish_reason"), "closed": closed,
+            kind = "closed" if closed else "open" if finish == "stop" else "other"
+            row = {"try": i, "bias": bias, "eot": eot[0], "finish": finish, "kind": kind, "closed": closed,
                    "answered": bool(answer), "answer": answer[-300:], "chars": len(text), "tail": text[-200:],
                    "completion_tokens": (r.get("usage") or {}).get("completion_tokens"), "s": round(time.time() - t0, 1)}
             out.write(json.dumps(row, ensure_ascii=False) + "\n")
             out.flush()
-            print(json.dumps({k: row[k] for k in ("try", "bias", "finish", "closed", "answered", "completion_tokens")}),
+            print(json.dumps({k: row[k] for k in ("try", "bias", "finish", "kind", "answered", "completion_tokens")}),
                   flush=True)
-    print(f"summary bias {a.bias}: open {n_open} / {a.n}, answered {n_answered} / {a.n}", flush=True)
+            if i < 0:
+                zero = row
+                continue
+            n_open += kind == "open"
+            n_closed += kind == "closed"
+            n_other += kind == "other"
+            n_answered += bool(answer)
+    z = "" if zero is None else f"bias 0: {zero['kind']}, answered {zero['answered']}; "
+    print(f"summary {z}bias {a.bias}: open {n_open} closed {n_closed} other {n_other} / {a.n}, "
+          f"answered {n_answered} / {a.n}", flush=True)
 
 
 if __name__ == "__main__":

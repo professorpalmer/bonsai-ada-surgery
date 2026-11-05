@@ -1,5 +1,6 @@
 """Bundle 20261105 (engine 21fd9beda = a38714c63d + patch 0073: no end-of-generation token while the think block is open). Was: bundle 20261026.
-Outside docs/: the entries of bundle-20261026 (llama-common.dll from the release build, every other bin/ file from 1026,
+Outside docs/: the entries of bundle-20261026 (the ENGINE files from the release build: the files that hold common/ code
+or the commit string; every other bin/ file from 1026, so ggml-cuda.dll, ggml-cpu.dll, ggml.dll, mtmd.dll are 1026's;
 the rest from git archive of the release branch head in %TEMP%\\rel-1105-src).
     set BONSAI_REPO=<serve checkout> & set BONSAI_BUILD=<release build folder> & python make_bundle_1105.py
 docs/: every .md / .png / card .html of the docs, except research/, receipts/ and cards/legacy/.
@@ -12,7 +13,7 @@ OLD = os.path.join(REPO, r"artifacts\release\bonsai-bundle-win-x64-20261026.zip"
 NEW = os.path.join(REPO, r"artifacts\release\bonsai-bundle-win-x64-20261105.zip")
 BUILD = os.path.join(os.environ["BONSAI_BUILD"], "bin")
 assert os.path.abspath(NEW) != os.path.abspath(OLD), "NEW must not be OLD"
-ENGINE = {"llama-common.dll"}
+ENGINE = {"ggml-base.dll", "llama.dll", "llama-common.dll", "llama-server-impl.dll", "llama-server.exe", "test-backend-ops.exe"}
 STAMP = (2026, 11, 5, 12, 0, 0)
 
 src = zipfile.ZipFile(OLD)
