@@ -1,0 +1,5 @@
+{
+ "finish": "stop",
+ "reasoning": "We need to answer user: \"Explain in one paragraph why the sky is blue, for a ten-year-old.\" Simple. Need final one paragraph. Ensure age-appropriate.\n",
+ "content": "The sky looks blue because sunlight is made of many colors, and when it hits the air in our sky, the tiny air molecules scatter the blue colors more than the others. That scattered blue light travels all around the sky and reaches our eyes, so we see a blue sky during the day."
+}

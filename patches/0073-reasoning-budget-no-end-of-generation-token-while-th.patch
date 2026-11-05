@@ -1,0 +1,74 @@
+From 21fd9bedade3818d9be8a3625a1e86d9f9fb443e Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Wed, 4 Nov 2026 22:17:58 -0500
+Subject: [PATCH] reasoning-budget: no end-of-generation token while the think
+ block is open
+
+---
+ common/reasoning-budget.cpp | 34 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
+
+diff --git a/common/reasoning-budget.cpp b/common/reasoning-budget.cpp
+index 4aedbc4a0..0ff2acc51 100644
+--- a/common/reasoning-budget.cpp
++++ b/common/reasoning-budget.cpp
+@@ -69,8 +69,22 @@ struct common_reasoning_budget_ctx {
+     // reporting (whole response, across re-armed blocks)
+     int32_t n_reasoning = 0;  // tokens accepted inside reasoning blocks, end sequence and forced tokens included
+     bool    exhausted   = false; // the budget ran out and the end sequence was forced at least once
++    llama_tokens eog_ids;     // end-of-generation tokens, banned while the think block is open
+ };
+ 
++static llama_tokens common_reasoning_budget_eog_ids(const llama_vocab * vocab) {
++    llama_tokens ids;
++    if (vocab != nullptr) {
++        const int32_t n = llama_vocab_n_tokens(vocab);
++        for (llama_token id = 0; id < n; id++) {
++            if (llama_vocab_is_eog(vocab, id)) {
++                ids.push_back(id);
++            }
++        }
++    }
++    return ids;
++}
++
+ static const char * common_reasoning_budget_name(const struct llama_sampler * /*smpl*/) {
+     return "reasoning-budget";
+ }
+@@ -178,6 +192,25 @@ static void common_reasoning_budget_accept(struct llama_sampler * smpl, llama_to
+ static void common_reasoning_budget_apply(struct llama_sampler * smpl, llama_token_data_array * cur_p) {
+     auto * ctx = (common_reasoning_budget_ctx *) smpl->ctx;
+ 
++    // inside an open think block an end-of-generation token would end the turn with no answer and no tool call
++    // (low-bit checkpoints leak a little probability onto it; over thousands of thinking tokens at temp 1 it gets
++    // sampled): the block has to close first, by the model or by the budget
++    if (ctx->state == REASONING_BUDGET_COUNTING || ctx->state == REASONING_BUDGET_WAITING_UTF8) {
++        for (const llama_token eog : ctx->eog_ids) {
++            if ((size_t) eog < cur_p->size && cur_p->data[eog].id == eog) {   // full vocab in id order (the CPU path)
++                cur_p->data[eog].logit = -INFINITY;
++                continue;
++            }
++            for (size_t i = 0; i < cur_p->size; i++) {
++                if (cur_p->data[i].id == eog) {
++                    cur_p->data[i].logit = -INFINITY;
++                    break;
++                }
++            }
++        }
++        return;
++    }
++
+     if (ctx->state != REASONING_BUDGET_FORCING) {
+         // passthrough — don't modify logits
+         return;
+@@ -271,6 +304,7 @@ static struct llama_sampler * common_reasoning_budget_init_state(
+             /* .end_match     = */ -1,
+             /* .n_reasoning   = */ 0,
+             /* .exhausted     = */ exhausted_at_init,
++            /* .eog_ids       = */ common_reasoning_budget_eog_ids(vocab),
+         }
+     );
+ }
+-- 
+2.55.0.windows.3
+

@@ -9,6 +9,15 @@ launcher prints `layer on` when the runtime is present and falls back to the pla
 
 ## What each bundle changed (newest first)
 
+`bundle-20261105` (engine `21fd9beda`, patch 0073): a turn cannot end inside the think block. With thinking on and
+sampling, the model could sometimes pick the end-of-turn token while it was still thinking. The client then got
+reasoning and no answer and no tool call, and an agent stopped the task, often in the middle of a sentence. Now every
+end-of-turn token is blocked while the think block is open; the model must close it first (or the thinking budget
+closes it). This applies to every request while the thinking budget is on (the default, `BONSAI_THINK_BUDGET`
+20,480); with `BONSAI_THINK_BUDGET=-1` only requests with tools have it. Thinking off: no change. Greedy texts (thinking
+on and off) and decode speed: the same as 1026; HumanEval 159/164 with 0 empty answers. The CUDA kernels did not change (`bin\ggml-cuda.dll` is the 1026 file). Gates:
+`docs/research/release-20261105`.
+
 `bundle-20261026` (engine `a38714c63d`, patch 0072): faster attention deep in the context. With a quantized
 K/V cache, the attention kernel now starts to load the V data of each block before the K·Q step, so it waits less.
 The results do not change (the logits are byte-identical). RTX 4070 with the 12 GB defaults: a cold 245k prompt

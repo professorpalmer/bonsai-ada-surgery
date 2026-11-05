@@ -1,0 +1,102 @@
+10:12:46 === release-20261105: zip sha256 bce9a0d0b136f2ae, engine commit 21fd9beda; 1026 root commit a38714c63d
+10:12:51 R1 outside docs: only-new [] only-old [] changed ['bin/ggml-base.dll', 'bin/llama-common.dll', 'bin/llama-server-impl.dll', 'bin/llama-server.exe', 'bin/llama.dll', 'bin/test-backend-ops.exe'] | docs changed ['docs/12gb/README.md', 'docs/8gb/README.md', 'docs/build/PATCHES.md', 'docs/build/UPGRADING.md'] docs new [] | control-byte files 0
+10:12:54 R1 unzipped bin/ = zip entries: all equal
+10:13:14 server r2_default (r-1105z BONSAI_LAYER=0 LLAMA_ARG_LOG_VERBOSITY=4): health=1; kv     tiered: cells 0..210176 in VRAM, 210176..262144 in system RAM (VRAM margin 1300 MiB|spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to |
+10:13:25 R2 r2_default: answer: Here are three primary colours and a fact about each:  1.  **Red**     *   **Fac; CUDA errors 0; replay: 
+10:13:25 R2 /props build_info: b10816-21fd9beda
+10:13:45 server r2_8gb (r-1105z BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=90112 LLAMA_ARG_LOG_VERBOSITY=4): health=1; kv     tiered: cells 0..90112 in VRAM, 90112..262144 in system RAM; shared CUDA pool on (B|kv     sparse host-tail reads: auto (dense line 90112; past it the engine times dense vs s|spec   draft 1 (2 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to |layer  on: clients use :8080 (API cards, API check, sandboxed Python); llama-server on 127|       layer log: <home>\AppData\Local\Temp\r-1105z\logs\layer.log|
+10:13:57 R2 r2_8gb: answer: Here are three primary colours and a fact about each:  1. **Red** – Red is the c; CUDA errors 0; replay: pending inputs of 2 tokens
+10:14:16 server r2_8gb_r0 (r-1105z BONSAI_8GB=1 BONSAI_LAYER=0 BONSAI_RS_REPLAY=0 BONSAI_KV_VRAM_CELLS=90112 LLAMA_ARG_LOG_VERBOSITY=4): health=1; kv     tiered: cells 0..90112 in VRAM, 90112..262144 in system RAM; shared CUDA pool on (B|kv     sparse host-tail reads: auto (dense line 90112; past it the engine times dense vs s|spec   draft 1 (1 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to |
+10:14:28 R2 r2_8gb_r0: answer: Here are three primary colors and a fact about each:  1.  **Red**     *   **Fact; CUDA errors 0; replay: 
+10:14:49 server r2_24gb (r-1105z BONSAI_LAYER=0 BONSAI_TOTAL_MIB=24576 LLAMA_ARG_LOG_VERBOSITY=4): health=1; kv     tiered: cells 0..102912 in VRAM, 102912..262144 in system RAM (VRAM margin 1300 MiB|spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to |
+10:15:00 R2 r2_24gb: answer: Here are three primary colours and a fact about each:  1.  **Red**     *   **Fac; CUDA errors 0; replay: 
+10:15:19 server r4 (r-1105z BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=90112 BONSAI_SLOT_SAVE_PATH=<home>\AppData\Local\Temp\r1105_slots_r4): health=1; kv     tiered: cells 0..90112 in VRAM, 90112..262144 in system RAM; shared CUDA pool on (B|kv     sparse host-tail reads: auto (dense line 90112; past it the engine times dense vs s|spec   draft 1 (2 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to |layer  on: clients use :8080 (API cards, API check, sandboxed Python); llama-server on 127|       layer log: <home>\AppData\Local\Temp\r-1105z\logs\layer.log|
+10:15:38 R4 {"turn": 1, "s": 18.8, "prompt_tokens": 21152, "slot_files": 1, "answer": "4821"}
+10:15:47 R4 {"turn": 2, "s": 8.4, "prompt_tokens": 28269, "slot_files": 2, "answer": "27611"}
+10:15:56 R4 {"turn": 3, "s": 8.8, "prompt_tokens": 35398, "slot_files": 3, "answer": "17412"}
+10:16:19 R4 {"conv": "A", "turn": 1, "prompt_n": 25846, "cache_n": 121, "answer": "6247"}
+10:16:42 R4 {"conv": "B", "turn": 1, "prompt_n": 25859, "cache_n": 121, "answer": "6722"}
+10:16:43 R4 {"conv": "A", "turn": 2, "prompt_n": 25, "cache_n": 25971, "answer": "pump"}
+10:16:44 R4 {"conv": "B", "turn": 2, "prompt_n": 24, "cache_n": 25985, "answer": "pump"}
+10:16:44 R4 index 7 entries; 4 deltas; CUDA errors 0
+10:17:04 server r3_old (r-1026a BONSAI_LAYER=0): health=1; kv     tiered: cells 0..210944 in VRAM, 210944..262144 in system RAM (VRAM margin 1300 MiB|spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to |
+{"try": -1, "bias": 0.0, "finish": "stop", "kind": "closed", "answered": true, "completion_tokens": 1030}
+{"try": 0, "bias": 8.0, "finish": "stop", "kind": "open", "answered": false, "completion_tokens": 1967}
+{"try": 1, "bias": 8.0, "finish": "stop", "kind": "closed", "answered": true, "completion_tokens": 153}
+{"try": 2, "bias": 8.0, "finish": "stop", "kind": "closed", "answered": true, "completion_tokens": 78}
+{"try": 3, "bias": 8.0, "finish": "stop", "kind": "open", "answered": false, "completion_tokens": 153}
+{"try": 4, "bias": 8.0, "finish": "stop", "kind": "closed", "answered": true, "completion_tokens": 357}
+summary bias 0: closed, answered True; bias 8.0: open 2 closed 3 other 0 / 5, answered 3 / 5
+10:17:46 R3 1026 summary bias 0: closed, answered True; bias 8.0: open 2 closed 3 other 0 / 5, answered 3 / 5
+{"try": 0, "bias": 12.0, "finish": "stop", "kind": "open", "answered": false, "completion_tokens": 11}
+{"try": 1, "bias": 12.0, "finish": "stop", "kind": "open", "answered": false, "completion_tokens": 149}
+{"try": 2, "bias": 12.0, "finish": "stop", "kind": "open", "answered": false, "completion_tokens": 10}
+{"try": 3, "bias": 12.0, "finish": "stop", "kind": "open", "answered": false, "completion_tokens": 86}
+{"try": 4, "bias": 12.0, "finish": "stop", "kind": "open", "answered": false, "completion_tokens": 34}
+summary bias 12.0: open 5 closed 0 other 0 / 5, answered 0 / 5
+10:17:50 R3 1026 summary bias 12.0: open 5 closed 0 other 0 / 5, answered 0 / 5
+R3c 1026 {"case": "tools", "finish": "tool_calls", "ok": true, "detail": "{\"city\": \"Paris\"}", "reasoning_chars": 113}
+R3c 1026 {"case": "json_schema", "finish": "stop", "ok": true, "detail": "{\"city\": \"Tokyo\", \"population_millions\": 14.0}", "reasoning_chars": 2118}
+10:18:18 server r3_new (r-1105z BONSAI_LAYER=0): health=1; kv     tiered: cells 0..211456 in VRAM, 211456..262144 in system RAM (VRAM margin 1300 MiB|spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to |
+{"try": -1, "bias": 0.0, "finish": "stop", "kind": "closed", "answered": true, "completion_tokens": 134}
+{"try": 0, "bias": 12.0, "finish": "stop", "kind": "closed", "answered": true, "completion_tokens": 140}
+{"try": 1, "bias": 12.0, "finish": "stop", "kind": "closed", "answered": true, "completion_tokens": 72}
+{"try": 2, "bias": 12.0, "finish": "stop", "kind": "closed", "answered": false, "completion_tokens": 246}
+{"try": 3, "bias": 12.0, "finish": "stop", "kind": "closed", "answered": true, "completion_tokens": 99}
+{"try": 4, "bias": 12.0, "finish": "stop", "kind": "closed", "answered": false, "completion_tokens": 290}
+summary bias 0: closed, answered True; bias 12.0: open 0 closed 5 other 0 / 5, answered 3 / 5
+10:18:30 R3 candidate summary bias 0: closed, answered True; bias 12.0: open 0 closed 5 other 0 / 5, answered 3 / 5
+R3c candidate {"case": "tools", "finish": "tool_calls", "ok": true, "detail": "{\"city\": \"Paris\"}", "reasoning_chars": 113}
+R3c candidate {"case": "json_schema", "finish": "stop", "ok": true, "detail": "{\"city\": \"Tokyo\", \"population_millions\": 14.0}", "reasoning_chars": 2118}
+10:18:39 R3 CUDA errors 0 / 0
+10:18:58 server r5_old_4000 (r-1026a BONSAI_LAYER=0): health=1; kv     tiered: cells 0..210688 in VRAM, 210688..262144 in system RAM (VRAM margin 1300 MiB|spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to |
+R5 r5_old_4000: code   depth   4000 (evaluated 4048): prefill  1294.5 tok/s  ttft   3.13s  decode  104.8 tok/s (400 tok)
+R5 r5_old_4000: prose  depth   4000 (evaluated 512): prefill   993.3 tok/s  ttft   0.52s  decode   87.3 tok/s (400 tok)
+R5 r5_old_4000: bash   depth   4000 (evaluated 516): prefill  1008.6 tok/s  ttft   0.51s  decode   96.6 tok/s (400 tok)
+R5 r5_old_4000: mean decode 96.2 tok/s
+R5 r5_old_4000 think: train: finish stop, reasoning 304 chars, content 87 chars
+R5 r5_old_4000 think: code: finish stop, reasoning 1316 chars, content 692 chars
+R5 r5_old_4000 think: prose: finish stop, reasoning 150 chars, content 277 chars
+R5 r5_old_4000 think: bash: finish stop, reasoning 22676 chars, content 275 chars
+R5 r5_old_4000 think: logic: finish stop, reasoning 634 chars, content 484 chars
+R5 r5_old_4000 think: math: finish stop, reasoning 765 chars, content 374 chars
+10:20:55 R5 r5_old_4000: mem 11751 MHz; CUDA errors 0
+10:21:14 server r5_new_4000 (r-1105z BONSAI_LAYER=0): health=1; kv     tiered: cells 0..211456 in VRAM, 211456..262144 in system RAM (VRAM margin 1300 MiB|spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to |
+R5 r5_new_4000: code   depth   4000 (evaluated 4048): prefill  1290.3 tok/s  ttft   3.14s  decode  105.3 tok/s (400 tok)
+R5 r5_new_4000: prose  depth   4000 (evaluated 512): prefill  1005.5 tok/s  ttft   0.51s  decode   88.0 tok/s (400 tok)
+R5 r5_new_4000: bash   depth   4000 (evaluated 516): prefill  1008.3 tok/s  ttft   0.51s  decode   97.3 tok/s (400 tok)
+R5 r5_new_4000: mean decode 96.9 tok/s
+R5 r5_new_4000 think: train: finish stop, reasoning 304 chars, content 87 chars
+R5 r5_new_4000 think: code: finish stop, reasoning 1316 chars, content 692 chars
+R5 r5_new_4000 think: prose: finish stop, reasoning 150 chars, content 277 chars
+R5 r5_new_4000 think: bash: finish stop, reasoning 22676 chars, content 275 chars
+R5 r5_new_4000 think: logic: finish stop, reasoning 634 chars, content 484 chars
+R5 r5_new_4000 think: math: finish stop, reasoning 765 chars, content 374 chars
+10:23:11 R5 r5_new_4000: mem 11751 MHz; CUDA errors 0
+10:23:30 server r5_old_32000 (r-1026a BONSAI_LAYER=0): health=1; kv     tiered: cells 0..211456 in VRAM, 211456..262144 in system RAM (VRAM margin 1300 MiB|spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to |
+R5 r5_old_32000: code   depth  32000 (evaluated 32044): prefill  1155.3 tok/s  ttft  27.74s  decode   95.9 tok/s (400 tok)
+R5 r5_old_32000: prose  depth  32000 (evaluated 512): prefill   772.4 tok/s  ttft   0.66s  decode   75.6 tok/s (400 tok)
+R5 r5_old_32000: bash   depth  32000 (evaluated 516): prefill   783.4 tok/s  ttft   0.66s  decode   91.8 tok/s (400 tok)
+R5 r5_old_32000: mean decode 87.8 tok/s
+10:24:14 R5 r5_old_32000: mem 11751 MHz; CUDA errors 0
+10:24:33 server r5_new_32000 (r-1105z BONSAI_LAYER=0): health=1; kv     tiered: cells 0..211200 in VRAM, 211200..262144 in system RAM (VRAM margin 1300 MiB|spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to |
+R5 r5_new_32000: code   depth  32000 (evaluated 32044): prefill  1156.6 tok/s  ttft  27.71s  decode   96.1 tok/s (400 tok)
+R5 r5_new_32000: prose  depth  32000 (evaluated 512): prefill   777.4 tok/s  ttft   0.66s  decode   75.8 tok/s (400 tok)
+R5 r5_new_32000: bash   depth  32000 (evaluated 516): prefill   781.8 tok/s  ttft   0.66s  decode   92.0 tok/s (400 tok)
+R5 r5_new_32000: mean decode 88.0 tok/s
+10:25:16 R5 r5_new_32000: mem 11751 MHz; CUDA errors 0
+10:25:23 R5 file counts: thinking off 0 / 0 (need 6 / 6), thinking on 0 / 0 (need 6 / 6)
+10:25:23 R5 text *.txt: DIFFER
+10:25:23 R5 texts (thinking off): 0 / 1 identical
+10:25:23 R5 thinking on: texts: 6 / 6 identical
+ 
+10:25:37 server r6 (r-1105z BONSAI_LAYER=0): health=1; kv     tiered: cells 0..210432 in VRAM, 210432..262144 in system RAM (VRAM margin 1300 MiB|spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to |
+R6                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+R6 FileNotFoundError: [Errno 2] No such file or directory: '<home>\\AppData\\Local\\Temp\\human-eval\\data\\HumanEval.jsonl.gz'
+10:25:37 R6 empty answers: ; CUDA errors 0
+10:25:43 === release-20261105 [r1 r2 r4 r3 r5 r6] done
+10:27:14 server r6 (r-1105z BONSAI_LAYER=0): health=1; 
+R6 pass@1 96.95%  (159/164)  arm=medium effort=- temp=0.0 max_tokens=24576  3580.0s
+R6 wrote <home>\AppData\Local\Temp\r1105-logs\humaneval-1105\summary.json
+11:26:54 R6 empty answers: 0; CUDA errors 
+11:27:01 === release-20261105 [r6] done
