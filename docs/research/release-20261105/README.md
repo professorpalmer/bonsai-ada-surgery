@@ -104,4 +104,7 @@ passed the health and owner checks (the process on port 8080 ran from the candid
 and server log files were not found after the run, so the R6 CUDA error count is not known. It is not part of the
 R6 condition; R2-R5 show 0 CUDA errors on the same files.
 
+Published zip: the tested zip with `docs/build/UPGRADING.md` updated to these results (the only entry that differs;
+checked entry by entry), sha256 `d3ebf3a604bb82b50b81be52dcba98c014702d90b7ebf945c7446c646795040e`.
+
 **All gates pass: bundle-20261105 is published as the latest release.**
