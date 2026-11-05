@@ -72,3 +72,36 @@ Other changes from the peer review:
   schema's keys, and no case that passes on 1026 fails on the candidate.
 - Known, not gated: each request's sampler init scans the vocabulary for end-of-generation tokens (~250k lookups,
   a few ms of time to first token); a model that never closes the block now thinks until the budget closes it.
+
+## Results (2026-11-05 10:12-11:27, RTX 4070)
+
+Log: [`data/release_1105.log`](data/release_1105.log). Zip sha256 `bce9a0d0b136f2ae...`, engine `21fd9beda`. Memory
+clock 11,751 MHz in R5.
+
+| Gate | Result | Verdict |
+|---|---|---|
+| R1 zip | outside `docs/`: no new or removed entries; changed: the six planned `bin/` files only (`ggml-base.dll`, `llama-common.dll`, `llama-server-impl.dll`, `llama-server.exe`, `llama.dll`, `test-backend-ops.exe`); docs changed: `12gb/README.md`, `8gb/README.md` (the public-repo audit after 1026), `build/PATCHES.md`, `build/UPGRADING.md`; 0 control-byte files; 0 broken links; every unzipped `bin/` file equal to its zip entry; `--version` `21fd9beda` | PASS |
+| R2 launcher | default, `BONSAI_8GB=1`, `BONSAI_8GB=1 BONSAI_RS_REPLAY=0`, `BONSAI_TOTAL_MIB=24576`: health=1, a correct short answer, 0 CUDA errors each; the replay line on the 8 GB arm only; `/props` `build_info` `b10816-21fd9beda` | PASS |
+| R3 fail-without / pass-with | bias 0: both roots close the block and answer. 1026 at +8: open 2 / 5 (below the trigger), at +12: open 5 / 5, 0 answers, so the gate's bias is +12. Candidate at +12: open 0 / 5, closed 5 / 5 (and 3 of 5 still answer although `<|im_end|>` keeps +12 after the block); 0 CUDA errors on both | PASS |
+| R3c agent path | 1026 and candidate the same: `get_weather` `{"city": "Paris"}` (`tool_calls`), JSON `{"city": "Tokyo", "population_millions": 14.0}`; the reasoning lengths are equal too (113 and 2,118 characters) | PASS |
+| R4 saved conversations | 3 turns (18.8 / 8.4 / 8.8 s; slot files 1, 2, 3); conversations A and B take turns, turn 2 of each reads its own save (25,971 / 25,985 cells, 25 / 24 new tokens); 7 index entries, 4 deltas; 0 CUDA errors | PASS |
+| R5 no cost | mean decode 4k 96.2 -> 96.9 (1.007x), 32k 87.8 -> 88.0 (1.002x); thinking off texts 6 / 6 identical; thinking on, greedy, 6 prompts: 6 / 6 identical (reasoning and answer); 0 CUDA errors | PASS (see note 1) |
+| R6 HumanEval | 159 / 164 (fails: 47, 93, 116, 132, 145), 0 empty answers, 3,580 s | PASS (see note 2) |
+
+R3 tries (finish, kind, completion tokens): [`data/r3_old.jsonl`](data/r3_old.jsonl),
+[`data/r3_new.jsonl`](data/r3_new.jsonl). On 1026 at +12 the turns end after 10-149 tokens, all inside the block.
+
+Note 1, a script fault in R5 (the measurements are not affected). The script's count and compare lines used
+`$TEMP/r1105-logs/...` in a glob; `$TEMP` holds backslashes, which a glob reads as escapes, so they found 0 files and
+the log says "0 / 0" and "0 / 1 identical". The files were there (both servers ran, the log shows each reply). The
+compare was done again at 10:26 on the same files with a POSIX path: thinking off 6 / 6 and thinking on 6 / 6
+identical; the files are in [`data/texts_r5_old`](data/texts_r5_old), [`data/texts_r5_new`](data/texts_r5_new),
+[`data/think_old`](data/think_old), [`data/think_new`](data/think_new). The script now uses a POSIX path.
+
+Note 2, R6 ran twice. The first start (10:25:37) stopped at once: the HumanEval data file was not in `%TEMP%`; it was
+put back from a local copy (164 tasks, sha256 `b796127e...`) and R6 was started alone (10:27:14). That run's server
+passed the health and owner checks (the process on port 8080 ran from the candidate root's `bin\`), but its launcher
+and server log files were not found after the run, so the R6 CUDA error count is not known. It is not part of the
+R6 condition; R2-R5 show 0 CUDA errors on the same files.
+
+**All gates pass: bundle-20261105 is published as the latest release.**

@@ -1,0 +1,2 @@
+{"case": "tools", "finish": "tool_calls", "ok": true, "detail": "{\"city\": \"Paris\"}", "reasoning_chars": 113}
+{"case": "json_schema", "finish": "stop", "ok": true, "detail": "{\"city\": \"Tokyo\", \"population_millions\": 14.0}", "reasoning_chars": 2118}

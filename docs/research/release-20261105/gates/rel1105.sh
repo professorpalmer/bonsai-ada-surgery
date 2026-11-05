@@ -5,7 +5,7 @@ B=${1:?serve checkout}; STEPS=${2:-r1 r2 r4 r3 r5 r6}
 SP=$(dirname "$(realpath "$0")"); RD=$(dirname "$SP"); BENCH=$(realpath "$RD/../../../bench")
 cd "$B" || exit 1; REPO="$(pwd -W)"; MODEL="$REPO\models\Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf"
 ZIP=$B/artifacts/release/bonsai-bundle-win-x64-20261105.zip; OLDZ=$B/artifacts/release/bonsai-bundle-win-x64-20261026.zip
-NEWR=$TEMP/r-1105z; OLDR=$TEMP/r-1026a; L=$TEMP/r1105-logs; rm -rf "$L"; mkdir -p "$L" "$RD/data"
+NEWR=$TEMP/r-1105z; OLDR=$TEMP/r-1026a; L=$(cygpath -u "$TEMP")/r1105-logs; rm -rf "$L"   # POSIX path: in a glob, the backslashes of $TEMP are escapes; mkdir -p "$L" "$RD/data"
 LOG=$RD/data/release_1105.log; say() { echo "$(date '+%H:%M:%S') $*" | tee -a "$LOG"; }
 stopall() { powershell -NoProfile -ExecutionPolicy Bypass -File "$(cygpath -w $BENCH/stop_serve.ps1)" >/dev/null 2>&1
   powershell -NoProfile -Command "Get-CimInstance Win32_Process -Filter \"Name='python.exe'\" | Where-Object { \$_.CommandLine -like '*r-1105z*bonsai_layer.py*' } | ForEach-Object { Stop-Process -Id \$_.ProcessId -Force }"; }
