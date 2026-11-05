@@ -3,7 +3,7 @@
 Plan written before the runs (2026-11-05 10:05). Engine: `serve/eog-think` (`21fd9beda`) = bundle-20261026's engine
 `a38714c63d` + patch 0073. Launcher, layer and suite: unchanged.
 
-Patch 0073 (`common/reasoning-budget.cpp`, 35 lines): while the reasoning-budget sampler has the think block open
+Patch 0073 (`common/reasoning-budget.cpp`, 34 lines): while the reasoning-budget sampler has the think block open
 (state COUNTING or WAITING_UTF8), every end-of-generation token gets logit -inf. The block closes when the model
 writes `</think>` or when the budget forces it closed; after that, the end-of-generation tokens are free again.
 
