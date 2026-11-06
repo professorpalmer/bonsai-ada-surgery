@@ -14,7 +14,9 @@ jobs:
     container: nvidia/cuda:13.0.2-devel-ubuntu24.04
     steps:
       - name: Install build dependencies
-        run: apt-get update && apt-get install -y git cmake build-essential libcurl4-openssl-dev libssl-dev python3 ca-certificates
+        run: apt-get update && apt-get install -y git cmake build-essential libcurl4-openssl-dev libssl-dev python3 python3-pip ca-certificates
+      - name: Install the layer's sandbox module (the layer tests import it)
+        run: python3 -m pip install --break-system-packages wasmtime==49.0.0
       - name: Provide driver stub for GPU-less linking
         run: |
           mkdir -p /tmp/bonsai-cuda-stubs
