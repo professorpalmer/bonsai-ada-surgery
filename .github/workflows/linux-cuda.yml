@@ -23,7 +23,16 @@ jobs:
           ln -s /usr/local/cuda/lib64/stubs/libcuda.so /tmp/bonsai-cuda-stubs/libcuda.so.1
       - uses: actions/checkout@v4
       - name: Setup and launcher checks
-        run: python3 -m unittest discover -s tests -v
+        run: python3 -m unittest -v tests/test_linux_setup.py
+      # The layer tests are scripts (they run on import and exit non-zero on a failure), so unittest discover reports
+      # even a passing one as a failed import. Run each one as a script.
+      - name: Layer checks
+        run: |
+          for t in tests/test_*.py; do
+            [ "$t" = tests/test_linux_setup.py ] && continue
+            echo "== $t"
+            python3 "$t" || exit 1
+          done
       - name: Compile the bundled patch stack for Ada
         env:
           BONSAI_CUDA_ARCH: '89'
