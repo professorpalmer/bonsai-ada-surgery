@@ -1,4 +1,4 @@
-DS0 load and acceptance checks, 2026-11-12, RTX 4070 12 GB, engine research/dspine 0ef4e6b14 (DS0a/DS0c with two
+DS0 load and acceptance checks, 2026-11-12, RTX 4070 12 GB, engine research/dspine e8f8c8c0a (= the port 0ef4e6b14 plus two
 debug environment switches added: LLAMA_DSPINE_DEBUG prints the drafts, LLAMA_DFLASH_CAUSAL overrides the draft attention).
 bench/one_shot.ps1: one server, ctx 8192, q8_0 KV, GGML_CUDA_BATCH_INVARIANT=1, n-max 7 (3 for the DFlash control),
 greedy, thinking off, Fibonacci prompt. Columns: VRAM used after load (MiB, card total incl. ~310 idle), decode tok/s,
