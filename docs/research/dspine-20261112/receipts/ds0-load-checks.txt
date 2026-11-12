@@ -1,0 +1,24 @@
+DS0 load and acceptance checks, 2026-11-12, RTX 4070 12 GB, engine research/dspine 0ef4e6b14 (DS0a/DS0c with two
+debug environment switches added: LLAMA_DSPINE_DEBUG prints the drafts, LLAMA_DFLASH_CAUSAL overrides the draft attention).
+bench/one_shot.ps1: one server, ctx 8192, q8_0 KV, GGML_CUDA_BATCH_INVARIANT=1, n-max 7 (3 for the DFlash control),
+greedy, thinking off, Fibonacci prompt. Columns: VRAM used after load (MiB, card total incl. ~310 idle), decode tok/s,
+prefill tok/s, drafted tokens, accepted tokens, generated tokens.
+
+target Bonsai 2 PTQ1_0
+  dspine q8_0 (target's ternary head)              mem=10187 decode=16.7  prefill=98.3  draft=1316 acc=7   n=200
+  dspine q8_0, causal on  (debug)                  mem=10187 decode=17.2  prefill=144.2 draft=378  acc=1   n=60
+  dspine q8_0, causal off (debug override)         mem=10187 decode=17.2  prefill=134.4 draft=378  acc=1   n=60
+  dspine q4_0 (target's ternary head)              mem=9201  decode=17.5  prefill=81.1  draft=1323 acc=6   n=200
+  dspine q4_0 + Qwen token embeddings              mem=9201  decode=17.5  prefill=148.6 draft=1330 acc=5   n=200
+  dspine q4_0 + Qwen embeddings + Qwen head (Q6_K) mem=10175 decode=104.6 prefill=143.4 draft=210  acc=169 n=200
+  dspine q4_0 + Qwen head (Q6_K)                   mem=10175 decode=101.1 prefill=123.9 draft=210  acc=168 n=200
+  dspine q8_0 + Qwen head (Q6_K)                   mem=11141 decode=98.6  prefill=137.8 draft=210  acc=168 n=200
+  no draft                                         mem=6447  decode=58.5  prefill=198.6
+  (every text above starts identically: "```python / def fibonacci(n: int) -> int: ...")
+
+target Qwen3.8-27B UD-Q4_K_M (full-precision base, 36 of 64 layers on the GPU, ctx 4096)
+  dspine q8_0 (that target's head)                 mem=11924 decode=15.4  prefill=18.7  draft=112  acc=102 n=120
+
+Drafts with the debug switch (q8_0, target's ternary head): the right next token is often among the 16 candidates of
+row 1, but the chosen draft is a different candidate, for example
+  id_last=71093 ("```")  draft=[36164 173172 ...]  row 1 candidates include 12305 ("python"), the token the target chose.
