@@ -1,0 +1,52 @@
+{
+ "id": "DS1",
+ "declared": "2026-11-12, before any GPU run",
+ "question": "Does the DSpine block drafter (tencent/Qwen3.8-27B-DSpine-b16, 5 layers, block 16, SWA 8192) make Bonsai 2 27B decode faster than the shipped MTP head on the RTX 4070 12 GB? Issue #258 (idea: Milor123).",
+ "engine": "fork branch research/dspine = 21fd9beda (serve/eog-think, the bundle-20261105 engine) + the DSpine part of ggml-org/llama.cpp#31941 (b44fcf816) + the DFlash causal-attention flag from ggml-org ca3d5a3e1; built for sm_89 (89-real). Every arm uses this one binary.",
+ "exe_dir": "<engine-bin>",
+ "filler": {
+  "code": "<repo>/artifacts\\eval\\pycode.raw",
+  "prose": "<repo>/artifacts\\eval\\wiki.test.raw"
+ },
+ "max_tokens": 400,
+ "server": {
+  "ctx": 40960,
+  "args": ["-ngl", "99", "-fa", "on", "-np", "1", "-b", "2048", "-ub", "512", "-ctk", "q8_0", "-ctv", "q8_0",
+           "--jinja", "--fit", "off", "--host", "127.0.0.1", "-n", "4096", "--metrics"],
+  "env": {"GGML_CUDA_BATCH_INVARIANT": "1", "LLAMA_ARG_KQ_MASK_PACKED": "1"}
+ },
+ "arms": {
+  "a": {"what": "no draft", "model": "<repo>/models\\Ternary-Bonsai-2-27B-PTQ1_0.gguf"},
+  "b": {"what": "MTP head as shipped on 12 GB (draft 2, draft window 16k, shared pool, MTP draft ubatch 256)",
+        "model": "<repo>/models\\Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf",
+        "args": ["--spec-type", "draft-mtp", "--spec-draft-n-max", "2", "-ctkd", "q8_0", "-ctvd", "q8_0", "--spec-draft-window", "16384"],
+        "env": {"GGML_CUDA_SHARED_POOL": "1", "LLAMA_MTP_DRAFT_UBATCH": "256"}},
+  "c3":  {"what": "DSpine q8_0, n-max 3",  "model": "<draft-dir>\\Qwen3.8-27B-DSpine-b16-q8_0-qhead.gguf", "base_model": "a", "n_max": 3},
+  "c7":  {"what": "DSpine q8_0, n-max 7",  "model": "same as c3", "n_max": 7},
+  "c15": {"what": "DSpine q8_0, n-max 15", "model": "same as c3", "n_max": 15},
+  "d3":  {"what": "DSpine q4_0, n-max 3",  "model": "<draft-dir>\\Qwen3.8-27B-DSpine-b16-q4_0-qhead.gguf", "base_model": "a", "n_max": 3},
+  "d7":  {"what": "DSpine q4_0, n-max 7",  "model": "same as d3", "n_max": 7},
+  "d15": {"what": "DSpine q4_0, n-max 15", "model": "same as d3", "n_max": 15},
+  "dspine_common": {"args": ["-md", "<draft gguf>", "-ngld", "99", "--spec-type", "draft-dflash", "--spec-draft-n-max", "<n>", "-ctkd", "q8_0", "-ctvd", "q8_0"],
+                    "env": {"LLAMA_RS_REPLAY": "1"},
+                    "why_replay": "the recurrent-state rollback ring is one 150 MiB plane per draft token; at n-max 15 that is ~2.4 GB (estimate). Replay keeps one plane. The MTP arm runs as shipped (no replay)."}
+ },
+ "cells": {
+  "step1_short": "a, b, c3, c7, c15, d3, d7, d15 at depth 1500",
+  "step2_depth": "a, b, best c, best d at depth 16000 and 32000 (best = highest mean decode of code and prose in step 1)"
+ },
+ "method": "Fresh server per arm and per depth. Per cell: warm-up request, then the code prompt and the prose prompt, each with its own filler (Python stdlib source for code, wikitext for prose) sized to the depth with the server tokenizer; 2 requests per prompt (the second reads the prompt from the cache, so prefill comes from the first); greedy (temperature 0, top-k 1), thinking off, 400 tokens. Record decode and prefill tok/s, draft_n and draft_n_accepted (server timings), VRAM after load and peak, memory clock while busy, the first 200 characters of each text (full texts in texts.jsonl).",
+ "gate": [
+  "ADOPT a DSpine quant only if its decode tok/s beats arm b (MTP as shipped) by >= 8 % on BOTH the code and the prose prompt at EVERY tested depth (1.5k, 16k, 32k).",
+  "AND its greedy text equals or closely matches arm a (no draft): rounding-level differences are allowed and noted; broken or repeated text fails.",
+  "AND its VRAM cost is recorded with the effect on the 12 GB 262k product (the tiered-KV VRAM line), labeled as an estimate.",
+  "Per-cell differences below 5 % are noise (one request per cell, 2 repeats). A result between 5 % and 8 % is reported as 'not shown'.",
+  "All arms on the same memory clock (11751 MHz Afterburner OC or 10251 stock): a clock change between arms makes the comparison invalid and the step is repeated."
+ ],
+ "stop_rule": "If DSpine does not load or crashes on the ternary target and a fix needs large engine changes, stop, log why, and report that as the result.",
+ "amendment_1": {
+  "declared": "2026-11-12 12:33, after the load checks (DS0 in runs.jsonl), before any speed cell",
+  "finding": "The plain DSpine files load and run, but on Bonsai 2 the acceptance is 0.4-0.5 % (DS0a). The same files on the full-precision Qwen3.8-27B (UD-Q4_K_M) accept 91 % (DS0b), so the port is correct. A DFlash draft without its own output head uses the target's head; Bonsai's head is ternary (PTQ1_0). With the Qwen3.8-27B output head (Q6_K, 1.0 GB) put in the draft file, the acceptance on Bonsai is 80 % (DS0c). The Qwen token embeddings make no difference (DS0c).",
+  "change": "Arms c and d use the draft files with the Qwen3.8-27B output head: Qwen3.8-27B-DSpine-b16-q8_0-qhead.gguf and Qwen3.8-27B-DSpine-b16-q4_0-qhead.gguf (made with bench/graft_target_tensors.py). The plain files are reported from DS0 only. Arms, depths, gate and noise rule are unchanged."
+ }
+}
