@@ -1,0 +1,55 @@
+# bonsai-ada-surgery
+
+> A runtime bundle that serves PrismML's ternary Bonsai 2 27B model with the full 262k-token context window on 12 GB and 8 GB NVIDIA cards.
+
+Windows and NVIDIA focused: download the release bundle, place the GGUF weights and MTP head in models\, and run start-server.ps1 to get an OpenAI-compatible API on port 8080. Includes a patched PrismML llama.cpp, a launcher that sizes the K/V cache per card, MTP drafting, and an optional agent layer; it fixes runtime quality issues without changing the weights.
+
+## Docs
+
+- [bonsai-ada-surgery README](https://raw.githubusercontent.com/professorpalmer/bonsai-ada-surgery/main/README.md): What the repo serves, quick start for Windows and NVIDIA, links to builds and credits, and the license split.
+- [Credits](https://raw.githubusercontent.com/professorpalmer/bonsai-ada-surgery/main/docs/CREDITS.md): Who contributed what, plus the Hopper/Blackwell PDL synchronization fix and its patch provenance.
+
+## 12gb
+
+- [Bonsai 2 27B on a 12 GB card](https://raw.githubusercontent.com/professorpalmer/bonsai-ada-surgery/main/docs/12gb/README.md): Setup on a 12 GB card with q4_0 K/V cache, measured speed and VRAM-line numbers on an RTX 4070.
+- [q8_0 at the full 262,144-token window on a 12 GB card](https://raw.githubusercontent.com/professorpalmer/bonsai-ada-surgery/main/docs/12gb/Q8_FULL_CONTEXT.md): The older q8_0 full-window recipe for 12 GB cards, its measured numbers, K/V precision, and the tiered cache setup.
+
+## 8gb
+
+- [Bonsai 2 27B on an 8 GB card](https://raw.githubusercontent.com/professorpalmer/bonsai-ada-surgery/main/docs/8gb/README.md): Setup on an 8 GB card with q3_0 K/V cache, system RAM requirements, and speed numbers on an RTX 2060 SUPER.
+
+## Agents layer
+
+- [The Bonsai layer and agent use](https://raw.githubusercontent.com/professorpalmer/bonsai-ada-surgery/main/docs/agents-layer/README.md): The server-side agent layer: API cards, API check, sandboxed run_python tool, and saved conversations restored to disk.
+- [Saved conversations](https://raw.githubusercontent.com/professorpalmer/bonsai-ada-surgery/main/docs/agents-layer/SAVED_CONVERSATIONS.md): Saving conversation state to disk so restores take seconds, plus required settings, file sizes and measured numbers.
+
+## Cards
+
+- [Result cards](https://raw.githubusercontent.com/professorpalmer/bonsai-ada-surgery/main/docs/cards/README.md): How to edit the DATA objects of the HTML cards, render them to PNGs with render_cards.ps1, and render legacy figures.
+
+## Quality
+
+- [Bonsai 2 27B quality: what the runtime controls, measured](https://raw.githubusercontent.com/professorpalmer/bonsai-ada-surgery/main/docs/quality/README.md): Measured Bonsai 2 27B quality: KV precision, q3_0 on 8 GB cards and reasoning effort settings, with benchmark results.
+- [Benchmark your own model the way this repo does](https://raw.githubusercontent.com/professorpalmer/bonsai-ada-surgery/main/docs/quality/BENCHMARK.md): Running the repo's quality benchmarks on any OpenAI-compatible server: sandbox setup, HumanEval data and what to send back.
+
+## Receipts
+
+- [Receipts](https://raw.githubusercontent.com/professorpalmer/bonsai-ada-surgery/main/docs/receipts/README.md): Raw logs behind documented numbers, recipes per bundle and card, and how to measure speed yourself with bench/receipt.py.
+
+## Research
+
+- [Adaptive MTP draft depth on the 8 GB preset, with replay rollback (2026-10-19)](https://raw.githubusercontent.com/professorpalmer/bonsai-ada-surgery/main/docs/research/adaptive-mtp-20261019/README.md): Adaptive MTP draft depth experiment with replay rollback, failing its gates; a fixed 2/2 draft is recommended instead.
+- [Writing requests: tell the model that the length is approximate (2026-10-22)](https://raw.githubusercontent.com/professorpalmer/bonsai-ada-surgery/main/docs/research/approx-note-20261022/README.md): Plan to test whether a paragraph telling the model the length is approximate stops word counting in thinking.
+- [Cold read-in on 8 GB, 2026-10-16](https://raw.githubusercontent.com/professorpalmer/bonsai-ada-surgery/main/docs/research/coldread-20261016/README.md): Read-in times for cold 64k-245k prompts on the RTX 2060 SUPER 8 GB and the prefill rate fit.
+- [Empty replies cut at max_tokens (layer fix, 2026-10-19)](https://raw.githubusercontent.com/professorpalmer/bonsai-ada-surgery/main/docs/research/cut-retry-20261019/README.md): Why the layer returns empty content when max_tokens cuts a run_python call, and the one-retry fix with checks.
+- [Delta saves for the layer cache (#138)](https://raw.githubusercontent.com/professorpalmer/bonsai-ada-surgery/main/docs/research/delta-saves-20261018/README.md): Delta saves that write only the cells after the previous save, with engine patch, parent-chain restore and gates.
+- [Depth research, 2026-10-10 to 2026-10-11](https://raw.githubusercontent.com/professorpalmer/bonsai-ada-surgery/main/docs/research/depth-20261010/README.md): Experiments on decode and prefill speed at 128k-262k context with the KV tail in pinned system RAM.
+- [8 GB research, 2026-10-06 to 2026-10-14 (ongoing)](https://raw.githubusercontent.com/professorpalmer/bonsai-ada-surgery/main/docs/research/depth-8gb-20261006/README.md): Ongoing experiments P1-P161 making Bonsai 2 27B fast, correct and stable on one 8 GB RTX 2060 SUPER.
+- [A DFlash 2 drafter on the 12 GB preset (2026-10-19)](https://raw.githubusercontent.com/professorpalmer/bonsai-ada-surgery/main/docs/research/dflash12-20261019/README.md): Rejected experiment testing a DFlash 2 drafter against the MTP head on the RTX 4070 at 12 GB.
+
+## Speed
+
+- [Decode efficiency on the RTX 4070 (2026-10-09)](https://raw.githubusercontent.com/professorpalmer/bonsai-ada-surgery/main/docs/speed/decode-efficiency.md): How close one decode step gets to the card's peak weight-read bandwidth, with kernel timings.
+- [Depth: decode and prefill past the VRAM line](https://raw.githubusercontent.com/professorpalmer/bonsai-ada-surgery/main/docs/speed/DEPTH.md): Measured speed at 128k-262k context where the KV cache tail lives in pinned system RAM.
+- [What we took from HyperQwen, and what we measured (2026-10-08)](https://raw.githubusercontent.com/professorpalmer/bonsai-ada-surgery/main/docs/speed/HYPERQWEN.md): Which HyperQwen speed techniques were tested on this engine and card, and what measurements showed.
+- [Int8 score step for prefill attention (plan and result, 2026-10-08)](https://raw.githubusercontent.com/professorpalmer/bonsai-ada-surgery/main/docs/speed/INT8_ATTENTION.md): Plan and result for an int8 score step in prefill attention to raise tok/s at depth.
