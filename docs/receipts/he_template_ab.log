@@ -77,3 +77,28 @@ pass@1 96.34%  (158/164)  arm=medium effort=- temp=0.0 max_tokens=24576  3525.2s
 wrote artifacts/humaneval-b0055\summary.json
 b0055: mean tokens 2313 median 576, over 4k: 19
 05:11 === b0055 done
+16:28 === b0056: template model, root C:\Users\<user>\AppData\Local\Temp\root-0056, kwargs none, health=1
+pass@1 96.34%  (158/164)  arm=medium effort=- temp=0.0 max_tokens=24576  3353.4s
+wrote artifacts/humaneval-b0056\summary.json
+b0056: mean tokens 2313 median 576, over 4k: 19
+17:24 === b0056 done
+17:54 === d29-q4-12gb: template model, root C:\Users\<user>\AppData\Local\Temp\root-15c, kwargs none, health=1
+pass@1 96.34%  (158/164)  arm=medium effort=- temp=0.0 max_tokens=24576  3320.8s
+wrote artifacts/humaneval-d29-q4-12gb\summary.json
+d29-q4-12gb: mean tokens 2225 median 527, over 4k: 21
+18:49 === d29-q4-12gb done
+00:16 === r0059: template model, root C:\Users\<user>\AppData\Local\Temp\root-0059s, kwargs none, health=1
+pass@1 96.34%  (158/164)  arm=medium effort=- temp=0.0 max_tokens=24576  3287.6s
+wrote artifacts/humaneval-r0059\summary.json
+r0059: mean tokens 2225 median 527, over 4k: 21
+01:11 === r0059 done
+11:54 === pres-p0: template model, root C:\Users\<user>\AppData\Local\Temp\r-1019az, kwargs none, --temp -1, health=1
+pass@1 96.95%  (159/164)  arm=medium effort=- temp=server max_tokens=24576  3619.6s
+wrote artifacts/humaneval-pres-p0\summary.json
+pres-p0: mean tokens 1939 median 598, over 4k: 18
+12:54 === pres-p0 done
+12:55 === pres-p15: template model, root C:\Users\<user>\AppData\Local\Temp\r-1019az, kwargs none, --temp -1, health=1
+pass@1 98.78%  (162/164)  arm=medium effort=- temp=server max_tokens=24576  4854.3s
+wrote artifacts/humaneval-pres-p15\summary.json
+pres-p15: mean tokens 2366 median 655, over 4k: 22
+14:16 === pres-p15 done
