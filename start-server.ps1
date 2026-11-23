@@ -102,6 +102,14 @@ $RamGiB = 0
 try { $RamGiB = [math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB) } catch { }
 $Small262 = $Small -and $Tier -and $Has262 -and $RamGiB -ge 24 -and $env:BONSAI_SPEC -ne '0' -and ((Split-Path $Model -Leaf) -match '-mtp')
 $Ctx = if ($env:BONSAI_CTX) { [int]$env:BONSAI_CTX } elseif ($Small) { if ($Small262) { 262144 } else { 131072 } } elseif ($Tier) { 262144 } else { 98304 }
+# Guard (2026-11-23): with the tiered K/V cache the window is a multiple of 32,768 positions. Older engines wrote wrong V
+# rows past the VRAM line on prompt reads when it was not (one 2 MiB page held the end of K and the start of V). The
+# engine of this bundle has the fix; the guard keeps an older engine copied into bin\ safe too.
+if ($Tier -and ($Ctx % 32768) -ne 0) {
+    $CtxOld = $Ctx
+    $Ctx = [int]([math]::Ceiling($Ctx / 32768) * 32768)
+    Write-Host "note   window $CtxOld rounded up to $Ctx (a multiple of 32,768 with the tiered K/V cache)"
+}
 # 8 GB: q4_0 holds 2.3x the positions of q8_0 in the same VRAM (1 flipped top token in 48 at depth vs 1 in 171).
 # With an engine that has q3_0 (patch 0056; the server lists it in --help), q3_0 is the 8 GB default: RTX 2060 SUPER, 262k
 # launcher, VRAM line 80,640 vs 61,696 positions (1.31x); decode 64k 41.0 vs 39.6 tok/s (+3.5 %), 128k +44 %, 192k +34 %;
