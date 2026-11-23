@@ -28,7 +28,7 @@ props() { curl -s -m 10 -H "Authorization: Bearer $(cat $NEWR/artifacts/api_key.
 
 for STEP in $STEPS; do case $STEP in
 r1)
-  say "=== release-20261123: zip sha256 $(sha256sum $ZIP | cut -c1-16), engine $("$NEWR/bin/llama-server.exe" --version 2>&1 | grep -o 'commit [0-9a-f]*\|([0-9a-f]*)' | head -1); 1105 root $("$OLDR/bin/llama-server.exe" --version 2>&1 | grep -o 'commit [0-9a-f]*\|([0-9a-f]*)' | head -1)"
+  say "=== release-20261123: zip sha256 $(python -I -c "import hashlib,sys; print(hashlib.sha256(open(sys.argv[1],'rb').read()).hexdigest()[:16])" "$(cygpath -w $ZIP)"), engine $("$NEWR/bin/llama-server.exe" --version 2>&1 | grep -o 'commit [0-9a-f]*\|([0-9a-f]*)' | head -1); 1105 root $("$OLDR/bin/llama-server.exe" --version 2>&1 | grep -o 'commit [0-9a-f]*\|([0-9a-f]*)' | head -1)"
   say "R1 $(python -I -c "
 import zipfile,re,sys,getpass
 a=zipfile.ZipFile(sys.argv[1]); b=zipfile.ZipFile(sys.argv[2])
