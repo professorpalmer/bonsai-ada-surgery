@@ -1,6 +1,6 @@
 # Release bundle-20261123 (the tiered K/V cache is exact at every window size)
 
-Plan written before the runs (2026-11-23 02:40). Engine: `serve/tier-fix` = bundle-20261105's engine `21fd9beda` and
+Plan written before the runs (2026-11-23 02:20). Engine: `serve/tier-fix` = bundle-20261105's engine `21fd9beda` and
 five commits:
 
 | Commit | What |
