@@ -63,3 +63,33 @@ that is off, a row bound that equals the old one for dense models, a driver fall
 sm_89. A check on the 2060 after the release is welcome.
 
 All pass: publish as the latest release. Any fail: no publish; the reason goes into this file.
+
+## Results (2026-11-23 02:39-02:59, RTX 4070, memory clock 11,751 MHz) - NOT PUBLISHED
+
+Logs: [`data/release_1123_b.log`](data/release_1123_b.log).
+
+| Gate | Result | Verdict |
+|---|---|---|
+| B0 build | `--version`: build 10822, commit `e6dda24c9` (the branch head); 0 of the candidate `bin/` files hold the local user name (the bundle-20261105 `bin/` has 9 such files) | PASS |
+| B1 tier test | `test-kv-tier`: K and V rows 0 of 10,240 differ, attention output equal at 6 of 6 steps, ALL OK | PASS |
+| B2 op tests | `FLASH_ATTN_EXT` F1 off 3,115 / 3,115, F1 on 3,115 / 3,115; `MUL_MAT_ID` 1,085 / 1,085; `MUL_MAT` (`n=1`) 699 / 699 | PASS |
+| B3 identity | 50 / 50 token-identical (decode 66.2 / 66.0 tok/s) | PASS |
+| B4 fail-without / pass-with | KL (21,356 scored positions): A0 0.0386127827, A1 0.0386127827, C0 0.0386127827, C1 0.0386127827 (top-1 96.231 % in all four); F1 on: 0.0386187021. Pass-with holds. Fail-without does NOT: the bundle-20261105 engine is exact at this window with a VRAM line | **FAIL (the gate does not reach its trigger)** |
+
+The R gates were not run.
+
+**Why the fault does not show on Bonsai.** The fault needs a write-back that copies only the FIRST host run of a
+tensor. In this engine, `ggml_cuda_tier_host_part` returns the span from the first host run to the last one. That
+change came with the sparse late reserve (2026-10-15, `ab9481005`: demoted chunks join the host runs). So since
+bundle-20261015 the write-back covers the V tail too, and the published bundle-20261105 is exact at every window.
+The engines that copied the tier code before that change kept the first-run form; there the fault is real, and patch
+0074 is the fix. Bonsai bundles from 2026-10-08 to 2026-10-14 had the first-run form; with a window that the user set
+(not the default) and the tier on, they were affected. The latest bundle is not.
+
+**Decision.** No release from this branch: its main reason (a user-visible fault) does not exist in the latest
+bundle, and the gate plan says no publish when a gate fails or does not reach its trigger. The other changes stay
+here for the next engine rebuild: 0074 (the write-back per host run, exact and narrower than the span: it does not
+copy the VRAM head), 0075 (F1, off), 0076 / 0077 (expert models only), 0078 / 0079 (570 drivers), neutral build
+paths (the published DLLs hold a local user name in assert paths), the licence list in the zip, and the launcher
+guard (it keeps an older engine safe). The entry for `bundle-20261123` in `docs/build/UPGRADING.md` on this branch
+is a draft for that rebuild; its fault text must say that bundles since 2026-10-15 were not affected.
