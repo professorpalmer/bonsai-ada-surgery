@@ -1,0 +1,35 @@
+From 794298a781de913c564a48754f8e6a5325bdb1e7 Mon Sep 17 00:00:00 2001
+From: professorpalmer <professorpalmer@users.noreply.github.com>
+Date: Sat, 21 Nov 2026 12:16:56 -0500
+Subject: [PATCH 76/79] tests: MUL_MAT_ID one token, short K, rows not a
+ multiple of the row block, for every type
+
+(cherry picked from commit c52fcf1dd982621a4fe81215b23690a644a4914d)
+---
+ tests/test-backend-ops.cpp | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/tests/test-backend-ops.cpp b/tests/test-backend-ops.cpp
+index 7f7742632..e2e0ac0cd 100644
+--- a/tests/test-backend-ops.cpp
++++ b/tests/test-backend-ops.cpp
+@@ -9613,6 +9613,16 @@ static std::vector<std::unique_ptr<test_case>> make_test_cases_eval() {
+         test_cases.emplace_back(new test_mul_mat_id(type_a, GGML_TYPE_F32, 4, 2, false, 64, 16, 3*ggml_blck_size(type_a)));
+     }
+ 
++    // one token, short K (several rows per block), rows not a multiple of the block: the last block of an expert slot must not write into the next slot
++    for (ggml_type type_a : all_types) {
++        if (ggml_blck_size(type_a) < 32) {
++            continue;
++        }
++        for (int n_used : {2, 4}) {
++            test_cases.emplace_back(new test_mul_mat_id(type_a, GGML_TYPE_F32, 4, n_used, false, 67, 1, 2*ggml_blck_size(type_a)));
++        }
++    }
++
+     for (ggml_type type_a : base_types) {
+         for (ggml_type type_b : {GGML_TYPE_F32 /*, GGML_TYPE_F16 */}) {
+             for (int n_mats : {4, 8}) {
+-- 
+2.55.0.windows.3
+

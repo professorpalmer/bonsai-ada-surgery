@@ -1,0 +1,48 @@
+From e6dda24c9b28f18707e5fd58ce581b309b9bb381 Mon Sep 17 00:00:00 2001
+From: professorpalmer <professorpalmer@users.noreply.github.com>
+Date: Mon, 23 Nov 2026 02:15:06 -0500
+Subject: [PATCH 79/79] cuda: tiered K/V page demotion takes the same
+ host-memory fallback (HOST, then HOST_NUMA on 570 drivers)
+
+The sparse-attention late reserve (GGML_CUDA_KV_TIER_DEMOTE_FRAC) moved VRAM chunks to cuMemCreate pages on CU_MEM_LOCATION_TYPE_HOST only. It now calls ggml_cuda_hostmem_create, as the tier allocator does.
+---
+ ggml/src/ggml-cuda/ggml-cuda.cu | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/ggml/src/ggml-cuda/ggml-cuda.cu b/ggml/src/ggml-cuda/ggml-cuda.cu
+index 408c185c5..0794d4dac 100644
+--- a/ggml/src/ggml-cuda/ggml-cuda.cu
++++ b/ggml/src/ggml-cuda/ggml-cuda.cu
+@@ -1339,6 +1339,9 @@ static bool ggml_cuda_tier_staging_handle(int physical, const std::string & key,
+ // when sparse attention first engages. The chunk joins the staged host tail: its alias pages get a VRAM staging slot of
+ // their own, and the entry's host runs (the tier line, staging, write-back, the CUDA-graph check) include it from then on.
+ // Kernels keep the same addresses. Returns the bytes of VRAM freed.
++// defined below with the tier allocator: cuMemCreate on the first host location type this driver accepts
++static CUresult ggml_cuda_hostmem_create(CUmemGenericAllocationHandle * h, size_t len, int physical);
++
+ static size_t ggml_cuda_tier_demote_all() {
+     std::lock_guard<std::mutex> lock(g_tier_mutex);
+     size_t freed = 0;
+@@ -1346,10 +1349,6 @@ static size_t ggml_cuda_tier_demote_all() {
+         if (rec->demoted || !rec->demotable) {
+             continue;
+         }
+-        CUmemAllocationProp ph = {};
+-        ph.type          = CU_MEM_ALLOCATION_TYPE_PINNED;
+-        ph.location.type = CU_MEM_LOCATION_TYPE_HOST;
+-        ph.location.id   = 0;
+         CUmemAccessDesc ad = {};
+         ad.location.type = CU_MEM_LOCATION_TYPE_DEVICE;
+         ad.location.id   = rec->physical;
+@@ -1360,7 +1359,7 @@ static size_t ggml_cuda_tier_demote_all() {
+                 continue;
+             }
+             CUmemGenericAllocationHandle hh;
+-            CU_CHECK(cuMemCreate(&hh, rr.len, &ph, 0));
++            CU_CHECK(ggml_cuda_hostmem_create(&hh, rr.len, rec->physical));   // HOST, or HOST_NUMA on 570 drivers
+             // copy the chunk through a temporary mapping of the host handle, then swap the mapping at the same address
+             CUdeviceptr tmp = 0;
+             CU_CHECK(cuMemAddressReserve(&tmp, rr.len, 0, 0, 0));
+-- 
+2.55.0.windows.3
+

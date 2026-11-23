@@ -9,6 +9,15 @@ launcher prints `layer on` when the runtime is present and falls back to the pla
 
 ## What each bundle changed (newest first)
 
+`bundle-20261123` (engine `serve/tier-fix`, patches 0074-0079): the tiered K/V cache is exact at every window
+size. With the tier on and a window that is not a multiple of 32,768 (for example `BONSAI_CTX=100000`), a prompt read
+wrote wrong V rows past the VRAM line, so the model could ignore the middle of a long prompt. The launcher defaults
+(262,144 / 131,072 / 98,304) were not affected. The engine fix is patch 0074; the launcher now also rounds
+`BONSAI_CTX` up to a multiple of 32,768 when the tier is on (a `note` line says so). Drivers of the 570 family now
+load the tiered cache (0078, 0079). All engine files are rebuilt from neutral paths (no local folder names in the
+DLLs). The web chat page's third-party licences: `licenses\web-ui-THIRD-PARTY.txt`. 0075 (an fp32 V-sum switch, off)
+and 0077 (a row bound for expert models) change no Bonsai output. Gates: `docs/research/release-20261123`.
+
 `bundle-20261105` (engine `21fd9beda`, patch 0073): a turn cannot end inside the think block. With thinking on and
 sampling, the model could sometimes pick the end-of-turn token while it was still thinking. The client then got
 reasoning and no answer and no tool call, and an agent stopped the task, often in the middle of a sentence. Now every
