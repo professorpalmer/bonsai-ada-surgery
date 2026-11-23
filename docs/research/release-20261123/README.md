@@ -93,3 +93,28 @@ copy the VRAM head), 0075 (F1, off), 0076 / 0077 (expert models only), 0078 / 00
 paths (the published DLLs hold a local user name in assert paths), the licence list in the zip, and the launcher
 guard (it keeps an older engine safe). The entry for `bundle-20261123` in `docs/build/UPGRADING.md` on this branch
 is a draft for that rebuild; its fault text must say that bundles since 2026-10-15 were not affected.
+
+## Plan 2 (written 2026-11-23 03:05, before its runs): an optional update without build paths
+
+New purpose. The published bundle-20261105 binaries hold local build paths (with a local user name) in the source
+paths of their asserts: 9 files in its `bin/`. The build above (`e6dda24c9`, neutral paths) holds none (B0). This
+release ships that build. It also ships the host-memory fallback for 570 drivers (0078, 0079) and the licence list of
+the web chat page. Patches 0074 (write-back per host run), 0075 (F1, off) and 0076 / 0077 (expert models) come along
+as hygiene: they change no output on Bonsai. Bundles since 2026-10-15 were not affected by the tier write-back fault
+(see Results above); this release does not change answers. The launcher guard (window rounded up to a multiple of
+32,768 with the tier on) stays: it changes nothing at the defaults.
+
+Gates. B0-B3 above passed on this exact build and count for Plan 2 (B4 is not a Plan 2 gate). Then, on the zip:
+
+| Gate | Condition |
+|---|---|
+| R1 zip | as in the table above (entries, changed files, control bytes, links, unzipped `bin/` = zip entries, `--version` = `e6dda24c9`) |
+| P1 private strings | 0 zip entries that hold the local user name, a `Users\<name>` or `Users/<name>` path, or the names of the private local folders of the build machine (scan list in `gates/rel1123.sh`); the bundle-20261105 zip is scanned the same way and must show hits (the scan works) |
+| R2 launcher + 8 GB path | as above: default 12 GB, `BONSAI_8GB=1` (+ `BONSAI_KV_VRAM_CELLS=90112`), `BONSAI_8GB=1 BONSAI_RS_REPLAY=0`, `BONSAI_TOTAL_MIB=24576`, `BONSAI_CTX=100000` (guard): health ok, a correct short answer, 0 CUDA errors, `/props` names `e6dda24c9`; the 8 GB arms print the 8 GB window / kv lines |
+| R3c agent path | as above |
+| R4 saved conversations | as above |
+| R5 no cost | as above, texts 6 / 6 + 6 / 6 identical; decode at 4k and 32k at least 0.92x of bundle-20261105, both roots on the same memory clock (11,751 MHz under load, read in each cell) |
+| R6 HumanEval | at least 158 / 164, 0 empty answers |
+
+All pass: publish as the latest release, merge `release/20261123`; the UPGRADING entry reads "optional update:
+removes build paths from the binaries; no change to answers". Any fail: no publish; the reason goes into this file.

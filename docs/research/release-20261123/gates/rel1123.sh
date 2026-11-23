@@ -39,6 +39,18 @@ print('outside docs: only-new', sorted(oa-ob), 'only-old', sorted(ob-oa), 'chang
       '| docs changed', sorted(n for n in (na-oa)&(nb-ob) if a.read(n)!=b.read(n)), 'docs new', sorted((na-oa)-(nb-ob)),
       '| control-byte files', len([n for n in na if n.endswith(('.ps1','.py','.md','.sh','.txt','.json','.jinja','.html')) and re.search(rb'[\x00-\x08\x0b\x0c\x0e-\x1f]', a.read(n))]),
       '| entries with the user name', len([n for n in na if u in a.read(n).lower()]))" "$(cygpath -w $ZIP)" "$(cygpath -w $OLDZ)")"
+  say "P1 private strings: $(python -I -c "
+import zipfile,sys,getpass
+u=getpass.getuser().lower()
+pats=[u.encode(), ('users'+chr(92)+u).encode(), ('users/'+u).encode(), b'escha-port', b'l0xre', b'mirai-s-serve', b'wt-btier', b'wt-brel', ('projects'+chr(92)+'bnr').encode(), ('projects'+chr(92)+'wt-').encode()]
+for zp in sys.argv[1:3]:
+    z=zipfile.ZipFile(zp); hits={}
+    for n in z.namelist():
+        if n.endswith('/'): continue
+        d=z.read(n).lower()
+        for q in pats:
+            if q in d: hits.setdefault(n, []).append(q.decode())
+    print(zp.split(chr(92))[-1], len(hits), 'entries with hits', sorted(hits)[:12], '|')" "$(cygpath -w $ZIP)" "$(cygpath -w $OLDZ)")"
   say "R1 unzipped bin/ = zip entries: $(python -I -c "
 import zipfile,hashlib,os,sys
 z=zipfile.ZipFile(sys.argv[1]); bad=[n for n in z.namelist() if n.startswith('bin/') and not n.endswith('/') and hashlib.sha256(z.read(n)).digest()!=hashlib.sha256(open(os.path.join(sys.argv[2],*n.split('/')),'rb').read()).digest()]

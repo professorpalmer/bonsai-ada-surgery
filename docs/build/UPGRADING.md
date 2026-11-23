@@ -9,15 +9,15 @@ launcher prints `layer on` when the runtime is present and falls back to the pla
 
 ## What each bundle changed (newest first)
 
-DRAFT, not published: `bundle-20261123` (engine `serve/tier-fix`, patches 0074-0079): the tiered K/V cache is exact at
-every window size. With the tier on and a window that is not a multiple of 32,768 (for example `BONSAI_CTX=100000`), a prompt read
-wrote wrong V rows past the VRAM line, so the model could ignore the middle of a long prompt. The launcher defaults
-(262,144 / 131,072 / 98,304) were not affected, and bundles since 2026-10-15 were not affected at all
-(their write-back already covered every host run; `docs/research/release-20261123`). The engine fix is patch 0074; the launcher now also rounds
-`BONSAI_CTX` up to a multiple of 32,768 when the tier is on (a `note` line says so). Drivers of the 570 family now
-load the tiered cache (0078, 0079). All engine files are rebuilt from neutral paths (no local folder names in the
-DLLs). The web chat page's third-party licences: `licenses\web-ui-THIRD-PARTY.txt`. 0075 (an fp32 V-sum switch, off)
-and 0077 (a row bound for expert models) change no Bonsai output. Gates: `docs/research/release-20261123`.
+`bundle-20261123` (engine `e6dda24c9`, patches 0074-0079): optional update: removes build paths from the binaries; no
+change to answers. The DLLs of earlier bundles held local build paths in their assert messages; these are built from
+neutral paths. Also: the engine source loads the tiered K/V cache on drivers of the 570 family (0078, 0079; for
+Linux builds: this Windows bundle needs a CUDA 13 driver); the web chat page's
+third-party licences are in `licenses\web-ui-THIRD-PARTY.txt`; the launcher rounds `BONSAI_CTX` up to a multiple of
+32,768 when the tiered cache is on (no change at the defaults). Hygiene with no output change on Bonsai: 0074 (the
+tier write-back per host run; bundles since 2026-10-15 already wrote every row correctly), 0075 (an fp32 V-sum test
+switch, off), 0076 / 0077 (expert models only). Greedy texts are identical to bundle-20261105. Gates:
+`docs/research/release-20261123`.
 
 `bundle-20261105` (engine `21fd9beda`, patch 0073): a turn cannot end inside the think block. With thinking on and
 sampling, the model could sometimes pick the end-of-turn token while it was still thinking. The client then got
