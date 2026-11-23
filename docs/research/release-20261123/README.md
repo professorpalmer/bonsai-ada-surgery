@@ -118,3 +118,26 @@ Gates. B0-B3 above passed on this exact build and count for Plan 2 (B4 is not a 
 
 All pass: publish as the latest release, merge `release/20261123`; the UPGRADING entry reads "optional update:
 removes build paths from the binaries; no change to answers". Any fail: no publish; the reason goes into this file.
+
+## Plan 2 results (2026-11-23 03:05-04:22, RTX 4070, memory clock 11,751 MHz under load in every R5 cell)
+
+Log: [`data/release_1123.log`](data/release_1123.log) (local paths replaced by `<home>`). Zip sha256
+`defff9296644847a4f801aace5bc81f745e1f8057e4e795addc761cbd214a2d9`, engine `e6dda24c9` (build 10822).
+
+| Gate | Result | Verdict |
+|---|---|---|
+| B0-B3 | see the first results table (this exact build) | PASS |
+| R1 zip | outside `docs/`: new `licenses/web-ui-THIRD-PARTY.txt`, none removed; changed: the 10 rebuilt engine files in `bin/` and `start-server.ps1`; docs changed: `CREDITS.md`, `build/PATCHES.md`, `build/UPGRADING.md`; 0 control-byte files; 0 broken relative links; unzipped `bin/` = zip entries; `--version` `e6dda24c9` | PASS |
+| P1 private strings | candidate zip: 0 entries with hits; bundle-20261105 zip: 9 entries with hits (its engine DLLs and `test-backend-ops.exe`), so the scan works | PASS |
+| R2 launcher + 8 GB path | default, `BONSAI_8GB=1`, `BONSAI_8GB=1 BONSAI_RS_REPLAY=0`, `BONSAI_TOTAL_MIB=24576`: health 1, a correct short answer, 0 CUDA errors each; the 8 GB arms print `window 262144 / q3_0 (8 GB default)` and the 90,112-cell line, the replay arm `pending inputs of 2 tokens`; `/props` `b10822-e6dda24c9`. `BONSAI_CTX=100000`: `note window 100000 rounded up to 131072`, `/props` n_ctx 131,072 | PASS |
+| R3c agent path | 1105 and candidate the same: `get_weather` `{"city": "Paris"}`, JSON `{"city": "Tokyo", "population_millions": 14.0}`, reasoning 113 / 2,118 characters on both | PASS |
+| R4 saved conversations | 3 turns (19.1 / 27.3 / 18.1 s; slot files 1, 2, 3); A and B take turns, turn 2 of each reads its own save (25,971 / 25,985 cells, 25 / 24 new tokens); 6 index entries, 3 deltas; 0 CUDA errors | PASS |
+| R5 no cost | mean decode 4k 96.7 -> 95.4 (0.987x), 32k 88.0 -> 87.8 (0.998x); thinking off texts 6 / 6 identical, thinking on 6 / 6 identical; 0 CUDA errors | PASS |
+| R6 HumanEval | 159 / 164 (fails 47, 93, 116, 132, 145: the same five as bundle-20261105), 0 empty answers, 0 CUDA errors, 3,558 s | PASS |
+
+Note, a script fault in R6 (no effect on the result). The first R6 start stopped before any task: the scorer's child
+process inherited an invalid stdin handle in the headless console (`WinError 6`). The script now gives the runner
+stdin from NUL, and R6 ran again on a fresh server (03:22-04:22). The R1-R5 server logs were in the folder that the
+R6 start cleared; their gate lines are in the log above.
+
+**All Plan 2 gates pass: bundle-20261123 is published as the latest release (optional update).**
