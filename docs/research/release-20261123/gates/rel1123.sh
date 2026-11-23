@@ -6,7 +6,7 @@ B=${1:?serve checkout}; STEPS=${2:-r1 r2 r4 r3c r5 r6}
 SP=$(dirname "$(realpath "$0")"); RD=$(dirname "$SP"); BENCH=$(realpath "$RD/../../../bench"); G05=$(realpath "$RD/../release-20261105/gates")
 cd "$B" || exit 1; REPO="$(pwd -W)"; MODEL="$REPO\models\Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf"
 ZIP=$B/artifacts/release/bonsai-bundle-win-x64-20261123.zip; OLDZ=$B/artifacts/release/bonsai-bundle-win-x64-20261105.zip
-TU=$(cygpath -u "$TEMP"); NEWR=$TU/r-1123z; OLDR=$TU/r-1105a; L=$TU/r1123-logs; rm -rf "$L"; mkdir -p "$L" "$RD/data"
+TU=$(cygpath -u "$TEMP"); NEWR=$TU/r-1123z; OLDR=$TU/r-1105a; L=$TU/r1123-logs-${STEPS// /-}; rm -rf "$L"; mkdir -p "$L" "$RD/data"
 LOG=$RD/data/release_1123.log; say() { echo "$(date '+%H:%M:%S') $*" | tee -a "$LOG"; }
 stopall() { powershell -NoProfile -ExecutionPolicy Bypass -File "$(cygpath -w $BENCH/stop_serve.ps1)" >/dev/null 2>&1
   powershell -NoProfile -Command "Get-CimInstance Win32_Process -Filter \"Name='python.exe'\" | Where-Object { \$_.CommandLine -like '*r-11*bonsai_layer.py*' } | ForEach-Object { Stop-Process -Id \$_.ProcessId -Force }"; }
@@ -106,7 +106,7 @@ r5)
   fi ;;
 r6)
   if start r6 $NEWR BONSAI_LAYER=0; then
-    PYTHONUTF8=1 python "$BENCH/humaneval_run.py" --key-file "$KEY" --arm medium --max-tokens 24576 --out "$(cygpath -w $L/humaneval-1123)" 2>&1 | tail -2 | sed 's/^/R6 /' | tee -a "$LOG"
+    PYTHONUTF8=1 python "$BENCH/humaneval_run.py" --key-file "$KEY" --arm medium --max-tokens 24576 --out "$(cygpath -w $L/humaneval-1123)" < /dev/null 2>&1 | tail -2 | sed 's/^/R6 /' | tee -a "$LOG"
     say "R6 empty answers: $(python -I -c "
 import json,sys
 n=0
