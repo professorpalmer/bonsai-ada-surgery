@@ -6,6 +6,12 @@ of PrismML). Killy (@net_termina) for the failure census and the HumanEval plate
 into fixable buckets. Dogukan for the PatchEval agent traces and the loop finding on the Bonsai 2 small models
 (`docs/research/small-models-20261006/`). MIT for everything here; weights are PrismML's (Apache 2.0). Not affiliated with PrismML.
 
+## Third-party licences
+
+- llama.cpp and ggml: MIT, the ggml authors. The PrismML fork: MIT.
+- The built-in web chat page (llama.cpp tools/ui) and the npm code in it: [`licenses/web-ui-THIRD-PARTY.txt`](../licenses/web-ui-THIRD-PARTY.txt) (each package with its licence and
+  copyright text; MIT, ISC, BSD-3-Clause, Apache-2.0, MPL-2.0 OR Apache-2.0, Unlicense; no GPL).
+
 ## Hopper/Blackwell PDL fix
 
 Patch `0026` carries `09b6cce`. The planar PTQ1_0 mat-vec calls `ggml_cuda_pdl_sync()` before reading activations
