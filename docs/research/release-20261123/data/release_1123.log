@@ -1,0 +1,88 @@
+03:06:21 === release-20261123: zip sha256 defff9296644847a, engine commit e6dda24c9; 1105 root commit 21fd9beda
+03:06:29 R1 outside docs: only-new ['licenses/web-ui-THIRD-PARTY.txt'] only-old [] changed ['bin/ggml-base.dll', 'bin/ggml-cpu.dll', 'bin/ggml-cuda.dll', 'bin/ggml.dll', 'bin/llama-common.dll', 'bin/llama-server-impl.dll', 'bin/llama-server.exe', 'bin/llama.dll', 'bin/mtmd.dll', 'bin/test-backend-ops.exe', 'start-server.ps1'] | docs changed ['docs/CREDITS.md', 'docs/build/PATCHES.md', 'docs/build/UPGRADING.md'] docs new [] | control-byte files 0 | entries with the user name 0
+03:06:41 P1 private strings: bonsai-bundle-win-x64-20261123.zip 0 entries with hits [] |
+bonsai-bundle-win-x64-20261105.zip 9 entries with hits ['bin/ggml-base.dll', 'bin/ggml-cpu.dll', 'bin/ggml-cuda.dll', 'bin/ggml.dll', 'bin/llama-common.dll', 'bin/llama-server-impl.dll', 'bin/llama.dll', 'bin/mtmd.dll', 'bin/test-backend-ops.exe'] |
+03:06:44 R1 unzipped bin/ = zip entries: all equal
+03:06:58 server r2_default (r-1123z BONSAI_LAYER=0 LLAMA_ARG_LOG_VERBOSITY=4): health=1; window 262144 / q4_0  (12 GB default, BONSAI_CTK=q8_0 for the previous one; trained max 262144)|kv     tiered: cells 0..260352 in VRAM, 260352..262144 in system RAM (VRAM margin 1000 MiB); shared |spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI|
+03:07:09 R2 r2_default: answer: Here are three primary colours and a fact about each:  1.  **Red**     *   **Fac; CUDA errors 0; replay: 
+03:07:10 R2 r2_default /props: b10822-e6dda24c9 n_ctx 262144
+03:07:29 server r2_8gb (r-1123z BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=90112 LLAMA_ARG_LOG_VERBOSITY=4): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)|kv     tiered: cells 0..90112 in VRAM, 90112..262144 in system RAM; shared CUDA pool on (BONSAI_SHAR|kv     sparse host-tail reads: auto (dense line 90112; past it the engine times dense vs sparse per |spec   draft 1 (2 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI|layer  on: clients use :8080 (API cards, API check, sandboxed Python); llama-server on 127.0.0.1:180|       layer log: C:\Users\<user>\AppData\Local\Temp\r-1123z\logs\layer.log|
+03:07:41 R2 r2_8gb: answer: Here are three primary colours and a fact about each:  1. **Red** – Red is the c; CUDA errors 0; replay: pending inputs of 2 tokens
+03:08:01 server r2_8gb_r0 (r-1123z BONSAI_8GB=1 BONSAI_LAYER=0 BONSAI_RS_REPLAY=0 BONSAI_KV_VRAM_CELLS=90112 LLAMA_ARG_LOG_VERBOSITY=4): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)|kv     tiered: cells 0..90112 in VRAM, 90112..262144 in system RAM; shared CUDA pool on (BONSAI_SHAR|kv     sparse host-tail reads: auto (dense line 90112; past it the engine times dense vs sparse per |spec   draft 1 (1 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI|
+03:08:13 R2 r2_8gb_r0: answer: Here are three primary colors and a fact about each:  1.  **Red**     *   **Fact; CUDA errors 0; replay: 
+03:08:33 server r2_24gb (r-1123z BONSAI_LAYER=0 BONSAI_TOTAL_MIB=24576 LLAMA_ARG_LOG_VERBOSITY=4): health=1; window 262144 / q8_0  (q8_0: the card holds most of the window; trained max 262144)|kv     tiered: cells 0..129024 in VRAM, 129024..262144 in system RAM (VRAM margin 1000 MiB); shared |spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI|
+03:08:44 R2 r2_24gb: answer: Here are three primary colours and a fact about each:  1.  **Red**     *   **Fac; CUDA errors 0; replay: 
+03:09:02 server r2_ctxg (r-1123z BONSAI_LAYER=0 BONSAI_CTX=100000): health=1; note   window 100000 rounded up to 131072 (a multiple of 32,768 with the tiered K/V cache)|window 131072 / q4_0  (12 GB default, BONSAI_CTK=q8_0 for the previous one; trained max 262144)|spec   draft 2, draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI_LOOKUP=0 turns it off)|
+03:09:14 R2 r2_ctxg: answer: Here are three primary colours and a fact about each:  1.  **Red**     *   **Fac; CUDA errors 0; replay: 
+03:09:14 R2 r2_ctxg /props: b10822-e6dda24c9 n_ctx 131072
+03:09:14 R2 ctxg launcher: note   window 100000 rounded up to 131072 (a multiple of 32,768 with the tiered K/V cache)|window 131072 / q4_0  (12 GB default, BONSAI_CTK=q8_0 for the previous one; trained max 262144)|; server n_ctx line: 
+03:09:33 server r4 (r-1123z BONSAI_8GB=1 BONSAI_KV_VRAM_CELLS=90112 BONSAI_SLOT_SAVE_PATH=C:\Users\<user>\AppData\Local\Temp\r1123_slots_r4): health=1; window 262144 / q3_0  (8 GB default; trained max 262144)|kv     tiered: cells 0..90112 in VRAM, 90112..262144 in system RAM; shared CUDA pool on (BONSAI_SHAR|kv     sparse host-tail reads: auto (dense line 90112; past it the engine times dense vs sparse per |spec   draft 1 (2 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI|layer  on: clients use :8080 (API cards, API check, sandboxed Python); llama-server on 127.0.0.1:180|       layer log: C:\Users\<user>\AppData\Local\Temp\r-1123z\logs\layer.log|
+03:09:53 R4 {"turn": 1, "s": 19.1, "prompt_tokens": 21152, "slot_files": 1, "answer": "4821"}
+03:10:20 R4 {"turn": 2, "s": 27.3, "prompt_tokens": 28269, "slot_files": 2, "answer": "27611"}
+03:10:38 R4 {"turn": 3, "s": 18.1, "prompt_tokens": 35398, "slot_files": 3, "answer": "17412"}
+03:11:01 R4 {"conv": "A", "turn": 1, "prompt_n": 25846, "cache_n": 121, "answer": "6247"}
+03:11:25 R4 {"conv": "B", "turn": 1, "prompt_n": 25859, "cache_n": 121, "answer": "6722"}
+03:11:44 R4 {"conv": "A", "turn": 2, "prompt_n": 25, "cache_n": 25971, "answer": "pump"}
+03:11:47 R4 {"conv": "B", "turn": 2, "prompt_n": 24, "cache_n": 25985, "answer": "pump"}
+03:11:52 R4 index 6 entries; 3 deltas; CUDA errors 0
+03:12:12 server r3c_old (r-1105a BONSAI_LAYER=0): health=1; window 262144 / q4_0  (12 GB default, BONSAI_CTK=q8_0 for the previous one; trained max 262144)|kv     tiered: cells 0..260352 in VRAM, 260352..262144 in system RAM (VRAM margin 1000 MiB); shared |spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI|
+R3c old {"case": "tools", "finish": "tool_calls", "ok": true, "detail": "{\"city\": \"Paris\"}", "reasoning_chars": 113}
+R3c old {"case": "json_schema", "finish": "stop", "ok": true, "detail": "{\"city\": \"Tokyo\", \"population_millions\": 14.0}", "reasoning_chars": 2118}
+03:12:21 R3c old CUDA errors 0
+03:12:39 server r3c_new (r-1123z BONSAI_LAYER=0): health=1; window 262144 / q4_0  (12 GB default, BONSAI_CTK=q8_0 for the previous one; trained max 262144)|kv     tiered: cells 0..260352 in VRAM, 260352..262144 in system RAM (VRAM margin 1000 MiB); shared |spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI|
+R3c new {"case": "tools", "finish": "tool_calls", "ok": true, "detail": "{\"city\": \"Paris\"}", "reasoning_chars": 113}
+R3c new {"case": "json_schema", "finish": "stop", "ok": true, "detail": "{\"city\": \"Tokyo\", \"population_millions\": 14.0}", "reasoning_chars": 2118}
+03:12:48 R3c new CUDA errors 0
+03:13:06 server r5_old_4000_1 (r-1105a BONSAI_LAYER=0): health=1; window 262144 / q4_0  (12 GB default, BONSAI_CTK=q8_0 for the previous one; trained max 262144)|kv     tiered: cells 0..260352 in VRAM, 260352..262144 in system RAM (VRAM margin 1000 MiB); shared |spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI|
+R5 r5_old_4000_1: code   depth   4000 (evaluated 4048): prefill  1297.3 tok/s  ttft   3.12s  decode  105.8 tok/s (400 tok)
+R5 r5_old_4000_1: prose  depth   4000 (evaluated 512): prefill  1002.4 tok/s  ttft   0.51s  decode   88.0 tok/s (400 tok)
+R5 r5_old_4000_1: bash   depth   4000 (evaluated 516): prefill  1008.5 tok/s  ttft   0.51s  decode   96.3 tok/s (400 tok)
+R5 r5_old_4000_1: mean decode 96.7 tok/s
+R5 r5_old_4000_1 think: train: finish stop, reasoning 304 chars, content 87 chars
+R5 r5_old_4000_1 think: code: finish stop, reasoning 1316 chars, content 692 chars
+R5 r5_old_4000_1 think: prose: finish stop, reasoning 150 chars, content 277 chars
+R5 r5_old_4000_1 think: bash: finish stop, reasoning 22676 chars, content 275 chars
+R5 r5_old_4000_1 think: logic: finish stop, reasoning 634 chars, content 484 chars
+R5 r5_old_4000_1 think: math: finish stop, reasoning 765 chars, content 374 chars
+03:15:03 R5 r5_old_4000_1: mem 11751 MHz; CUDA errors 0
+03:15:21 server r5_new_4000_1 (r-1123z BONSAI_LAYER=0): health=1; window 262144 / q4_0  (12 GB default, BONSAI_CTK=q8_0 for the previous one; trained max 262144)|kv     tiered: cells 0..260352 in VRAM, 260352..262144 in system RAM (VRAM margin 1000 MiB); shared |spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI|
+R5 r5_new_4000_1: code   depth   4000 (evaluated 4048): prefill  1289.5 tok/s  ttft   3.14s  decode  103.8 tok/s (400 tok)
+R5 r5_new_4000_1: prose  depth   4000 (evaluated 512): prefill   986.7 tok/s  ttft   0.52s  decode   86.7 tok/s (400 tok)
+R5 r5_new_4000_1: bash   depth   4000 (evaluated 516): prefill  1007.3 tok/s  ttft   0.51s  decode   95.6 tok/s (400 tok)
+R5 r5_new_4000_1: mean decode 95.4 tok/s
+R5 r5_new_4000_1 think: train: finish stop, reasoning 304 chars, content 87 chars
+R5 r5_new_4000_1 think: code: finish stop, reasoning 1316 chars, content 692 chars
+R5 r5_new_4000_1 think: prose: finish stop, reasoning 150 chars, content 277 chars
+R5 r5_new_4000_1 think: bash: finish stop, reasoning 22676 chars, content 275 chars
+R5 r5_new_4000_1 think: logic: finish stop, reasoning 634 chars, content 484 chars
+R5 r5_new_4000_1 think: math: finish stop, reasoning 765 chars, content 374 chars
+03:17:20 R5 r5_new_4000_1: mem 11751 MHz; CUDA errors 0
+03:17:37 server r5_old_32000_1 (r-1105a BONSAI_LAYER=0): health=1; window 262144 / q4_0  (12 GB default, BONSAI_CTK=q8_0 for the previous one; trained max 262144)|kv     tiered: cells 0..260352 in VRAM, 260352..262144 in system RAM (VRAM margin 1000 MiB); shared |spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI|
+R5 r5_old_32000_1: code   depth  32000 (evaluated 32044): prefill  1153.6 tok/s  ttft  27.78s  decode   96.3 tok/s (400 tok)
+R5 r5_old_32000_1: prose  depth  32000 (evaluated 512): prefill   782.6 tok/s  ttft   0.65s  decode   75.8 tok/s (400 tok)
+R5 r5_old_32000_1: bash   depth  32000 (evaluated 516): prefill   790.5 tok/s  ttft   0.65s  decode   92.0 tok/s (400 tok)
+R5 r5_old_32000_1: mean decode 88.0 tok/s
+03:18:21 R5 r5_old_32000_1: mem 11751 MHz; CUDA errors 0
+03:18:39 server r5_new_32000_1 (r-1123z BONSAI_LAYER=0): health=1; window 262144 / q4_0  (12 GB default, BONSAI_CTK=q8_0 for the previous one; trained max 262144)|kv     tiered: cells 0..260352 in VRAM, 260352..262144 in system RAM (VRAM margin 1000 MiB); shared |spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI|
+R5 r5_new_32000_1: code   depth  32000 (evaluated 32044): prefill  1156.0 tok/s  ttft  27.72s  decode   96.2 tok/s (400 tok)
+R5 r5_new_32000_1: prose  depth  32000 (evaluated 512): prefill   781.0 tok/s  ttft   0.66s  decode   75.9 tok/s (400 tok)
+R5 r5_new_32000_1: bash   depth  32000 (evaluated 516): prefill   793.8 tok/s  ttft   0.65s  decode   91.4 tok/s (400 tok)
+R5 r5_new_32000_1: mean decode 87.8 tok/s
+03:19:22 R5 r5_new_32000_1: mem 11751 MHz; CUDA errors 0
+03:19:29 R5 file counts: thinking off 6 / 6 (need 6 / 6), thinking on 6 / 6 (need 6 / 6)
+03:19:30 R5 texts (thinking off): 6 / 6 identical
+03:19:30 R5 thinking on: texts: 6 / 6 identical 
+03:19:31 servers left: 0; VRAM used 0 MiB
+03:19:31 === release-20261123 [r1 r2 r4 r3c r5] done
+03:20:43 server r6 (r-1123z BONSAI_LAYER=0): health=1; window 262144 / q4_0  (12 GB default, BONSAI_CTK=q8_0 for the previous one; trained max 262144)|kv     tiered: cells 0..260352 in VRAM, 260352..262144 in system RAM (VRAM margin 1000 MiB); shared |spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI|
+R6               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+R6 OSError: [WinError 6] The handle is invalid
+03:20:51 R6 empty answers: 0; CUDA errors 0
+03:20:58 servers left: 0; VRAM used 0 MiB
+03:20:58 === release-20261123 [r6] done
+03:22:51 server r6 (r-1123z BONSAI_LAYER=0): health=1; window 262144 / q4_0  (12 GB default, BONSAI_CTK=q8_0 for the previous one; trained max 262144)|kv     tiered: cells 0..260352 in VRAM, 260352..262144 in system RAM (VRAM margin 1000 MiB); shared |spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI|
+R6 pass@1 96.95%  (159/164)  arm=medium effort=- temp=0.0 max_tokens=24576  3557.8s
+R6 wrote C:\Users\<user>\AppData\Local\Temp\r1123-logs-r6\humaneval-1123\summary.json
+04:22:09 R6 empty answers: 0; CUDA errors 0
+04:22:16 servers left: 0; VRAM used 0 MiB
+04:22:16 === release-20261123 [r6] done

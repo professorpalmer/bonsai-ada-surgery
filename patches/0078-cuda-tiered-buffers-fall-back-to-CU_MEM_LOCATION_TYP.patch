@@ -1,0 +1,156 @@
+From 93011a14510d986f6bb8e8fc5ed6e9717ca55dc2 Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Fri, 20 Nov 2026 19:03:26 -0500
+Subject: [PATCH 78/79] cuda: tiered buffers fall back to
+ CU_MEM_LOCATION_TYPE_HOST_NUMA when the driver refuses HOST (570 and older);
+ stop message to update the driver; GGML_CUDA_HOSTMEM_FORCE=host|numa|pinned
+ for tests
+
+(cherry picked from commit 30d6a711e3e01c44f5abf1949118c023361e224d)
+---
+ ggml/src/ggml-cuda/ggml-cuda.cu | 111 +++++++++++++++++++++++++++++---
+ 1 file changed, 103 insertions(+), 8 deletions(-)
+
+diff --git a/ggml/src/ggml-cuda/ggml-cuda.cu b/ggml/src/ggml-cuda/ggml-cuda.cu
+index 2cf802163..408c185c5 100644
+--- a/ggml/src/ggml-cuda/ggml-cuda.cu
++++ b/ggml/src/ggml-cuda/ggml-cuda.cu
+@@ -1574,6 +1574,102 @@ const void * ggml_cuda_tier_unalias(const void * p) {
+     return p;
+ }
+ 
++// System-RAM pages of a tiered buffer (cuMemCreate on a host location). Drivers of the 580 family and newer take
++// CU_MEM_LOCATION_TYPE_HOST. Older drivers (570: CUDA driver API 12.8) refuse it with CUDA_ERROR_INVALID_VALUE, and
++// take CU_MEM_LOCATION_TYPE_HOST_NUMA with the device's host NUMA node (0 without NUMA). Pinned memory from
++// cuMemHostAlloc is not a third path: a tiered buffer is one device address range of VRAM and host pages, and only
++// cuMemCreate handles can be mapped into it. If neither host type works, the load stops (driver update message).
++// GGML_CUDA_HOSTMEM_FORCE=host|numa|pinned forces one path, for tests ("pinned" = no host path: the stop message).
++enum ggml_cuda_hostmem_path { GGML_CUDA_HOSTMEM_UNSET, GGML_CUDA_HOSTMEM_HOST, GGML_CUDA_HOSTMEM_NUMA, GGML_CUDA_HOSTMEM_NONE };
++
++static int ggml_cuda_hostmem_numa_node(int physical) {
++    CUdevice dev;
++    int id = -1;
++    if (cuDeviceGet(&dev, physical) != CUDA_SUCCESS ||
++        cuDeviceGetAttribute(&id, CU_DEVICE_ATTRIBUTE_HOST_NUMA_ID, dev) != CUDA_SUCCESS || id < 0) {
++        id = 0;
++    }
++    return id;
++}
++
++static CUmemAllocationProp ggml_cuda_hostmem_prop(int physical, bool numa) {
++    CUmemAllocationProp p = {};
++    p.type          = CU_MEM_ALLOCATION_TYPE_PINNED;
++    p.location.type = numa ? CU_MEM_LOCATION_TYPE_HOST_NUMA : CU_MEM_LOCATION_TYPE_HOST;
++    p.location.id   = numa ? ggml_cuda_hostmem_numa_node(physical) : 0;
++    return p;
++}
++
++// cuMemCreate of len bytes of pinned system RAM, on the first host location type this driver accepts.
++static CUresult ggml_cuda_hostmem_create(CUmemGenericAllocationHandle * h, size_t len, int physical) {
++    static std::mutex m;
++    static int  path   = GGML_CUDA_HOSTMEM_UNSET;
++    static bool forced = false;
++    static bool logged = false;
++    std::lock_guard<std::mutex> lock(m);
++    if (path == GGML_CUDA_HOSTMEM_UNSET) {
++        const char * e = getenv("GGML_CUDA_HOSTMEM_FORCE");
++        const std::string f = e ? e : "";
++        forced = true;
++        if (f == "host") {
++            path = GGML_CUDA_HOSTMEM_HOST;
++        } else if (f == "numa") {
++            path = GGML_CUDA_HOSTMEM_NUMA;
++        } else if (f == "pinned") {
++            path = GGML_CUDA_HOSTMEM_NONE;
++        } else {
++            path   = GGML_CUDA_HOSTMEM_HOST;
++            forced = false;
++            if (!f.empty()) {
++                GGML_LOG_WARN("%s: GGML_CUDA_HOSTMEM_FORCE=%s is not host, numa or pinned: ignored\n", __func__, f.c_str());
++            }
++        }
++    }
++    CUresult r = CUDA_ERROR_NOT_SUPPORTED;
++    if (path == GGML_CUDA_HOSTMEM_HOST) {
++        const CUmemAllocationProp p = ggml_cuda_hostmem_prop(physical, false);
++        r = cuMemCreate(h, len, &p, 0);
++        if (r == CUDA_SUCCESS) {
++            if (!logged) {
++                GGML_LOG_INFO("%s: system-RAM pages: cuMemCreate on CU_MEM_LOCATION_TYPE_HOST%s\n", __func__, forced ? " (forced)" : "");
++                logged = true;
++            }
++            return r;
++        }
++        if (forced || (r != CUDA_ERROR_INVALID_VALUE && r != CUDA_ERROR_NOT_SUPPORTED)) {
++            return r;
++        }
++        path = GGML_CUDA_HOSTMEM_NUMA; // this driver refuses HOST: older than the 580 family
++    }
++    if (path == GGML_CUDA_HOSTMEM_NUMA) {
++        const CUmemAllocationProp p = ggml_cuda_hostmem_prop(physical, true);
++        r = cuMemCreate(h, len, &p, 0);
++        if (r == CUDA_SUCCESS && !logged) {
++            // the fallback is a warning, so that it is in the log at the default verbosity (info lines are not)
++            if (forced) {
++                GGML_LOG_INFO("%s: system-RAM pages: cuMemCreate on CU_MEM_LOCATION_TYPE_HOST_NUMA, node %d (forced)\n", __func__, p.location.id);
++            } else {
++                GGML_LOG_WARN("%s: system-RAM pages: cuMemCreate on CU_MEM_LOCATION_TYPE_HOST_NUMA, node %d: this driver refuses "
++                    "CU_MEM_LOCATION_TYPE_HOST (older than the 580 family)\n", __func__, p.location.id);
++            }
++            logged = true;
++        }
++    }
++    return r;
++}
++
++// allocation granularity of the system-RAM pages (0 if no host location type is accepted)
++static size_t ggml_cuda_hostmem_granularity(int physical) {
++    size_t g = 0;
++    for (const bool numa : { false, true }) {
++        const CUmemAllocationProp p = ggml_cuda_hostmem_prop(physical, numa);
++        if (cuMemGetAllocationGranularity(&g, &p, CU_MEM_ALLOC_GRANULARITY_MINIMUM) == CUDA_SUCCESS && g > 0) {
++            return g;
++        }
++    }
++    return 0;
++}
++
+ static ggml_backend_buffer_t ggml_backend_cuda_tier_alloc(ggml_backend_buffer_type_t buft, size_t size) {
+     ggml_backend_cuda_buffer_type_context * bctx = (ggml_backend_cuda_buffer_type_context *) buft->context;
+     const int device   = bctx->device;
+@@ -1584,14 +1680,9 @@ static ggml_backend_buffer_t ggml_backend_cuda_tier_alloc(ggml_backend_buffer_ty
+     pd.location.type = CU_MEM_LOCATION_TYPE_DEVICE;
+     pd.location.id   = physical;
+ 
+-    CUmemAllocationProp ph = {};
+-    ph.type          = CU_MEM_ALLOCATION_TYPE_PINNED;
+-    ph.location.type = CU_MEM_LOCATION_TYPE_HOST;
+-    ph.location.id   = 0;
+-
+-    size_t gd = 0, gh = 0;
++    size_t gd = 0, gh = ggml_cuda_hostmem_granularity(physical);
+     CU_CHECK(cuMemGetAllocationGranularity(&gd, &pd, CU_MEM_ALLOC_GRANULARITY_MINIMUM));
+-    if (cuMemGetAllocationGranularity(&gh, &ph, CU_MEM_ALLOC_GRANULARITY_MINIMUM) != CUDA_SUCCESS || gh == 0) {
++    if (gh == 0) {
+         gh = gd;
+     }
+     const size_t gran  = std::max(gd, gh);
+@@ -1652,10 +1743,14 @@ static ggml_backend_buffer_t ggml_backend_cuda_tier_alloc(ggml_backend_buffer_ty
+         }
+         const size_t len = (q - p) * gran;
+         CUmemGenericAllocationHandle h;
+-        r = cuMemCreate(&h, len, in_vram[p] ? &pd : &ph, 0);
++        r = in_vram[p] ? cuMemCreate(&h, len, &pd, 0) : ggml_cuda_hostmem_create(&h, len, physical);
+         if (r != CUDA_SUCCESS) {
+             const char * es = nullptr; cuGetErrorString(r, &es);
+             GGML_LOG_ERROR("%s: cuMemCreate(%s, %.1f MiB) failed: %s\n", __func__, in_vram[p] ? "vram" : "host", len/1048576.0, es ? es : "?");
++            if (!in_vram[p] && (r == CUDA_ERROR_INVALID_VALUE || r == CUDA_ERROR_NOT_SUPPORTED)) {
++                GGML_LOG_ERROR("%s: this NVIDIA driver can not map system RAM into the tiered K/V cache "
++                    "(cuMemCreate refuses the host location types): update the NVIDIA driver to 580 or newer\n", __func__);
++            }
+             undo();
+             return nullptr;
+         }
+-- 
+2.55.0.windows.3
+

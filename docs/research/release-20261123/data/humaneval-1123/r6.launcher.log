@@ -1,0 +1,11 @@
+model  Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf
+window 262144 / q4_0  (12 GB default, BONSAI_CTK=q8_0 for the previous one; trained max 262144)
+kv     tiered: cells 0..260352 in VRAM, 260352..262144 in system RAM (VRAM margin 1000 MiB); shared CUDA pool on (BONSAI_SHARED_POOL=0 turns it off); packed KQ mask (240 MiB saved)
+ckpt   also every 8192 tokens inside long messages (BONSAI_CKPT_EVERY=0 turns it off)
+ram    32 GB RAM: prompt cache 4096 MiB, 32 checkpoints per slot (BONSAI_RAM_BUDGET=0: server defaults)
+vram   12010 of 12282 MiB free at start (other programs: 272 MiB); each GiB more free moves the line by about 62k cells
+spec   draft 2 (4 past the VRAM line), draft window 16384 (MTP on); lookup drafting up to 32 (BONSAI_LOOKUP=0 turns it off)
+env    set in this window, these change the defaults: BONSAI_LAYER=0  BONSAI_MODEL=<home>/Projects/bonsai-2-27b-serve\models\Ternary-Bonsai-2-27B-PTQ1_0-mtp-procreations.gguf
+       A new PowerShell window starts without them. Remove-Item Env:NAME removes one.
+listen 0.0.0.0:8080  think=True effort=medium budget=20480  harness-proofing=True  backend-sampling=True
+api    Authorization: Bearer <artifacts/api_key.txt>

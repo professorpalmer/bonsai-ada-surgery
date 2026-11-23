@@ -1,0 +1,328 @@
+From f5693f08cdc0da341b443cf77017d4195dbf4fb5 Mon Sep 17 00:00:00 2001
+From: Cary Palmer <24235924+professorpalmer@users.noreply.github.com>
+Date: Wed, 18 Nov 2026 17:18:29 -0500
+Subject: [PATCH 74/79] cuda: tiered K/V: write back all host runs of a
+ redirected set_rows
+
+One tiered buffer holds K then V of a layer (2 equal parts) in 2 MiB pages.
+When the K tensor is not a whole number of pages, the last page of the K
+host tail also holds the first cells of V. V then has two host runs: that
+page and its own tail. On the prompt-read path (no CUDA graph) set_rows
+writes through the staging alias and a kernel copies the rows to the host
+pages. That kernel got only the first host run of the tensor, so the V rows
+of the tail stayed in staging and the host pages kept their old bytes. The
+next batch staged the old bytes: wrong V for all cells past the VRAM line
+that a prompt batch wrote. K was correct. Decode steps with a CUDA graph
+write in place and were correct.
+
+Condition: kv_size x row bytes not a multiple of 2 MiB, and V with a VRAM
+head. q4_0 / q8_0 rows: n_ctx not a multiple of 32,768. f16: not a
+multiple of 1,024.
+
+Fix: ggml_cuda_tier_step launches the write-back for each host run that
+the tensor meets.
+
+tests/test-kv-tier.cpp (no model file, build-only target): K + V q4_0,
+10,240 cells x 576 bytes (K 5.625 MiB), VRAM fraction 0.25, 6 steps of
+256-row set_rows and one attention op over all cells, against an ordinary
+device buffer. Before: 669 of 10,240 V rows differ (first cell 4,323, the
+start of the V host tail), attention output different at 2 of 6 steps.
+After: all bytes and all outputs equal.
+
+RTX 4070, a 2-bit Qwen3.8-27B quant (measured on this engine):
+- llama-perplexity, 2 chunks, -b 512, line 2,048: q4_0 -c 6144 all cells
+  6.0658, line before 6.1718, line after 6.0658. f16 -c 5376 all cells
+  6.4994, line after 6.4994.
+- llama-server, top-10 logprobs of the first token after 11 prompts of 40k
+  to 58k tokens, -c 61440, line 16,384 against all cells: before 0/11
+  equal, after 11/11 equal. -c 65536 (whole pages) was 11/11 before.
+
+(cherry picked from commit e2ded3d68d703ac6f81fb94dbabd127a1cd77138)
+---
+ ggml/src/ggml-cuda/ggml-cuda.cu |  31 +++--
+ tests/CMakeLists.txt            |   3 +
+ tests/test-kv-tier.cpp          | 201 ++++++++++++++++++++++++++++++++
+ 3 files changed, 223 insertions(+), 12 deletions(-)
+ create mode 100644 tests/test-kv-tier.cpp
+
+diff --git a/ggml/src/ggml-cuda/ggml-cuda.cu b/ggml/src/ggml-cuda/ggml-cuda.cu
+index db0eaa1d2..2cf802163 100644
+--- a/ggml/src/ggml-cuda/ggml-cuda.cu
++++ b/ggml/src/ggml-cuda/ggml-cuda.cu
+@@ -854,8 +854,6 @@ struct ggml_cuda_tier_redirect {
+     void *       data;     // the node's own address, restored after the write-back
+     const void * entry;    // ggml_cuda_tier_entry of the tiered buffer
+     size_t       base;     // offset of the node's data in the tiered buffer
+-    size_t       h_lo;     // host run of the node's range, as offsets from base
+-    size_t       h_hi;
+ };
+ struct ggml_cuda_tier_state {
+     std::vector<ggml_cuda_tier_redirect> rd; // set_rows nodes that write through the alias, in graph order
+@@ -2256,7 +2254,7 @@ static void ggml_cuda_tier_graph_begin(ggml_backend_cuda_context & ctx, ggml_cud
+                 const bool flat = idx && (idx->type == GGML_TYPE_I64 || idx->type == GGML_TYPE_I32) && ggml_is_contiguous(idx) &&
+                     idx->ne[1] == 1 && idx->ne[2] == 1 && idx->ne[3] == 1 && n->ne[2] == 1 && n->ne[3] == 1;
+                 if (redirect_on && flat) {
+-                    ts.rd.push_back({ i, n, n->data, e, base, a - base, b - base });
++                    ts.rd.push_back({ i, n, n->data, e, base });
+                 } else {
+                     all_redirected = false;
+                 }
+@@ -2301,16 +2299,25 @@ static void ggml_cuda_tier_step(ggml_backend_cuda_context & ctx, ggml_cuda_tier_
+         const size_t row_bytes = ggml_row_size(n->type, n->ne[0]);
+         const size_t align = (size_t) r.base | (size_t) n->nb[1] | row_bytes;
+         const int    vec = align % 16 == 0 ? 16 : align % 4 == 0 ? 4 : 1;
+-        if (idx->ne[0] == 0) {
+-            // nothing written
+-        } else if (idx->type == GGML_TYPE_I64) {
+-            k_tier_write_back<<<(unsigned) idx->ne[0], 128, 0, ctx.stream()>>>(alias, orig, (const int64_t *) idx->data,
+-                n->nb[1], row_bytes, r.h_lo, r.h_hi, vec);
+-        } else {
+-            k_tier_write_back<<<(unsigned) idx->ne[0], 128, 0, ctx.stream()>>>(alias, orig, (const int32_t *) idx->data,
+-                n->nb[1], row_bytes, r.h_lo, r.h_hi, vec);
++        // One launch for each host run that the node's range meets. A tensor can meet more than one: when the size of
++        // a part is not a multiple of the page size, the last page of the K tail holds the first cells of V, so V has
++        // that page and its own tail. (With only the first run, the V rows of the tail stayed in staging and the host
++        // pages kept their old bytes: wrong V for all cells past the line that a prefill batch wrote.)
++        const size_t n_lo = r.base, n_hi = std::min(e->total, r.base + ggml_nbytes(n));
++        for (auto & hr : e->host_runs) {
++            const size_t a = std::max(n_lo, hr.first), b = std::min(n_hi, hr.first + hr.second);
++            if (a >= b || idx->ne[0] == 0) {
++                continue;
++            }
++            if (idx->type == GGML_TYPE_I64) {
++                k_tier_write_back<<<(unsigned) idx->ne[0], 128, 0, ctx.stream()>>>(alias, orig, (const int64_t *) idx->data,
++                    n->nb[1], row_bytes, a - r.base, b - r.base, vec);
++            } else {
++                k_tier_write_back<<<(unsigned) idx->ne[0], 128, 0, ctx.stream()>>>(alias, orig, (const int32_t *) idx->data,
++                    n->nb[1], row_bytes, a - r.base, b - r.base, vec);
++            }
++            CUDA_CHECK(cudaGetLastError());
+         }
+-        CUDA_CHECK(cudaGetLastError());
+         r.node->data = r.data;
+     }
+     if (ts.inflight && ts.rd_next < ts.rd.size() && ts.rd[ts.rd_next].at <= i + 4) {
+diff --git a/tests/CMakeLists.txt b/tests/CMakeLists.txt
+index 89c1b8c60..7453bdd4e 100644
+--- a/tests/CMakeLists.txt
++++ b/tests/CMakeLists.txt
+@@ -388,6 +388,9 @@ if (NOT LLAMA_USE_SYSTEM_GGML)
+     llama_build_and_test(test-alloc.cpp)
+ endif()
+ 
++# needs a GPU with CUDA VMM (prints SKIP without one), so build only
++llama_build(test-kv-tier.cpp)
++
+ llama_build(test-export-graph-ops.cpp)
+ if (TARGET gguf-model-data)
+     target_link_libraries(test-export-graph-ops PRIVATE gguf-model-data)
+diff --git a/tests/test-kv-tier.cpp b/tests/test-kv-tier.cpp
+new file mode 100644
+index 000000000..fbaac9a60
+--- /dev/null
++++ b/tests/test-kv-tier.cpp
+@@ -0,0 +1,201 @@
++// Tiered K/V buffer (CUDA VMM, llama_context_params.n_kv_vram_cells): writes and reads past the VRAM line must give
++// the bytes of an ordinary device buffer.
++//
++// One "layer": K then V in one buffer (2 parts), q4_0, 1,024 values for each cell (576 bytes), 10,240 cells. The K
++// tensor is 5.625 MiB, not a whole number of 2 MiB pages, so the last page of the K host tail also holds the first
++// cells of V, and rows cross page boundaries. Each step writes 256 rows of K and V with set_rows and runs one
++// attention op over all cells, as a prompt batch does (no CUDA graph: redirected writes, write-back, prefetch). The
++// steps put rows on each side of each run boundary. The same steps run on an ordinary device buffer; the K bytes, the
++// V bytes and each attention output must be equal.
++//
++// History: the write-back of the redirected set_rows used only the first host run of a tensor. With K not page-aligned
++// the first host run of V is the shared page, so the V rows of the real host tail were never written to host memory.
++//
++// No model file. Without a GPU device or without tiered buffers (no VMM) the test prints SKIP and passes.
++
++#include "ggml.h"
++#include "ggml-alloc.h"
++#include "ggml-backend.h"
++
++#include <cinttypes>
++#include <cstdio>
++#include <cstdlib>
++#include <cstring>
++#include <vector>
++
++static const int     D       = 256;     // head size
++static const int     H       = 4;       // K/V heads (and Q heads)
++static const int64_t CELLS   = 10240;
++static const int     ROWS    = 256;     // rows written for each step
++static const int     NQ      = 64;      // queries for each step
++static const int64_t STEPS[] = { 0, 512, 3520, 4224, 6000, 9984 };   // first cell of each step
++
++struct result {
++    std::vector<uint8_t>            k, v;
++    std::vector<std::vector<float>> out;
++};
++
++static uint32_t rng_state;
++static float frand() {
++    rng_state = rng_state*1664525u + 1013904223u;
++    return ((rng_state >> 8) & 0xFFFF)/32768.0f - 1.0f;
++}
++
++static bool run(ggml_backend_t backend, ggml_backend_buffer_type_t buft, result & res) {
++    ggml_init_params ip = { ggml_tensor_overhead()*8, nullptr, true };
++    ggml_context * ctx_kv = ggml_init(ip);
++    ggml_tensor * k = ggml_new_tensor_2d(ctx_kv, GGML_TYPE_Q4_0, D*H, CELLS);
++    ggml_tensor * v = ggml_new_tensor_2d(ctx_kv, GGML_TYPE_Q4_0, D*H, CELLS);
++    ggml_backend_buffer_t buf_kv = ggml_backend_alloc_ctx_tensors_from_buft(ctx_kv, buft);
++    if (!buf_kv) {
++        ggml_free(ctx_kv);
++        return false;
++    }
++    ggml_backend_buffer_clear(buf_kv, 0);
++
++    ggml_gallocr_t galloc = ggml_gallocr_new(ggml_backend_get_default_buffer_type(backend));
++    rng_state = 12345;
++    bool ok = true;
++    for (int64_t first : STEPS) {
++        ggml_init_params gp = { ggml_tensor_overhead()*64 + ggml_graph_overhead(), nullptr, true };
++        ggml_context * ctx = ggml_init(gp);
++        ggml_tensor * k_rows = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, D*H, ROWS);
++        ggml_tensor * v_rows = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, D*H, ROWS);
++        ggml_tensor * idx    = ggml_new_tensor_1d(ctx, GGML_TYPE_I64, ROWS);
++        ggml_tensor * q      = ggml_new_tensor_3d(ctx, GGML_TYPE_F32, D, NQ, H);
++        ggml_tensor * mask   = ggml_new_tensor_2d(ctx, GGML_TYPE_F16, CELLS, NQ);
++        for (ggml_tensor * t : { k_rows, v_rows, idx, q, mask }) {
++            ggml_set_input(t);
++        }
++
++        ggml_cgraph * gf = ggml_new_graph(ctx);
++        ggml_build_forward_expand(gf, ggml_set_rows(ctx, k, k_rows, idx));
++        ggml_build_forward_expand(gf, ggml_set_rows(ctx, v, v_rows, idx));
++        const size_t r1 = ggml_row_size(GGML_TYPE_Q4_0, D), r2 = ggml_row_size(GGML_TYPE_Q4_0, D*H);
++        ggml_tensor * kk = ggml_permute(ctx, ggml_view_4d(ctx, k, D, H, CELLS, 1, r1, r2, r2*CELLS, 0), 0, 2, 1, 3);
++        ggml_tensor * vv = ggml_permute(ctx, ggml_view_4d(ctx, v, D, H, CELLS, 1, r1, r2, r2*CELLS, 0), 0, 2, 1, 3);
++        ggml_tensor * out = ggml_flash_attn_ext(ctx, q, kk, vv, mask, 1.0f/16.0f, 0.0f, 0.0f);
++        ggml_set_output(out);
++        ggml_build_forward_expand(gf, out);
++        if (!ggml_gallocr_alloc_graph(galloc, gf)) {
++            printf("graph allocation failed\n");
++            ok = false;
++        }
++
++        if (ok) {
++            std::vector<float> rows((size_t) D*H*ROWS), qd((size_t) D*NQ*H);
++            std::vector<int64_t> ids(ROWS);
++            std::vector<ggml_fp16_t> zeros((size_t) CELLS*NQ, ggml_fp32_to_fp16(0.0f));
++            for (int i = 0; i < ROWS; ++i) {
++                ids[i] = first + i;
++            }
++            for (float & x : rows) { x = frand(); }
++            ggml_backend_tensor_set(k_rows, rows.data(), 0, ggml_nbytes(k_rows));
++            for (float & x : rows) { x = frand(); }
++            ggml_backend_tensor_set(v_rows, rows.data(), 0, ggml_nbytes(v_rows));
++            for (float & x : qd) { x = frand(); }
++            ggml_backend_tensor_set(q, qd.data(), 0, ggml_nbytes(q));
++            ggml_backend_tensor_set(idx, ids.data(), 0, ggml_nbytes(idx));
++            ggml_backend_tensor_set(mask, zeros.data(), 0, ggml_nbytes(mask));
++
++            if (ggml_backend_graph_compute(backend, gf) != GGML_STATUS_SUCCESS) {
++                printf("graph compute failed\n");
++                ok = false;
++            } else {
++                std::vector<float> o((size_t) ggml_nelements(out));
++                ggml_backend_tensor_get(out, o.data(), 0, ggml_nbytes(out));
++                res.out.push_back(o);
++            }
++        }
++        ggml_free(ctx);
++        if (!ok) {
++            break;
++        }
++    }
++    if (ok) {
++        res.k.resize(ggml_nbytes(k));
++        res.v.resize(ggml_nbytes(v));
++        ggml_backend_tensor_get(k, res.k.data(), 0, res.k.size());
++        ggml_backend_tensor_get(v, res.v.data(), 0, res.v.size());
++    }
++    ggml_gallocr_free(galloc);
++    ggml_backend_buffer_free(buf_kv);
++    ggml_free(ctx_kv);
++    return ok;
++}
++
++// number of rows that differ and the first one
++static int64_t diff_rows(const std::vector<uint8_t> & a, const std::vector<uint8_t> & b, int64_t * first) {
++    const size_t row = a.size()/CELLS;
++    int64_t n = 0;
++    *first = -1;
++    for (int64_t c = 0; c < CELLS; ++c) {
++        if (memcmp(a.data() + c*row, b.data() + c*row, row) != 0) {
++            if (n++ == 0) {
++                *first = c;
++            }
++        }
++    }
++    return n;
++}
++
++int main() {
++    ggml_backend_dev_t dev = nullptr;
++    for (size_t i = 0; i < ggml_backend_dev_count(); ++i) {
++        if (ggml_backend_dev_type(ggml_backend_dev_get(i)) == GGML_BACKEND_DEVICE_TYPE_GPU) {
++            dev = ggml_backend_dev_get(i);
++            break;
++        }
++    }
++    if (!dev) {
++        printf("SKIP: no GPU device\n");
++        return 0;
++    }
++    using tier_fn_t = ggml_backend_buffer_type_t (*)(int, double, int, const char *);
++    ggml_backend_reg_t reg = ggml_backend_dev_backend_reg(dev);
++    auto * fn = reg ? (tier_fn_t) ggml_backend_reg_get_proc_address(reg, "ggml_backend_cuda_tier_buffer_type") : nullptr;
++    if (!fn) {
++        printf("SKIP: the backend of %s has no tiered buffers\n", ggml_backend_dev_name(dev));
++        return 0;
++    }
++    ggml_backend_t backend = ggml_backend_dev_init(dev, nullptr);
++    if (!backend) {
++        printf("SKIP: cannot start %s\n", ggml_backend_dev_name(dev));
++        return 0;
++    }
++    printf("backend %s, K and V %" PRId64 " cells x %zu bytes (K tensor %.3f MiB)\n", ggml_backend_name(backend), CELLS,
++        ggml_row_size(GGML_TYPE_Q4_0, D*H), CELLS*ggml_row_size(GGML_TYPE_Q4_0, D*H)/1048576.0);
++
++    result plain, tier;
++    if (!run(backend, ggml_backend_dev_buffer_type(dev), plain)) {
++        printf("FAIL: the run on the ordinary device buffer failed\n");
++        return 1;
++    }
++    ggml_backend_buffer_type_t tb = fn(0, 0.25, 2, "kvtest_l0");
++    if (!tb || !run(backend, tb, tier)) {
++        if (!tb || tier.out.empty()) {
++            printf("SKIP: no tiered buffer on this build or device (no VMM)\n");
++            ggml_backend_free(backend);
++            return 0;
++        }
++        printf("FAIL: the run on the tiered buffer failed\n");
++        return 1;
++    }
++
++    int fails = 0;
++    int64_t first = -1;
++    int64_t n = diff_rows(plain.k, tier.k, &first);
++    printf("K rows that differ: %" PRId64 " of %" PRId64 "%s\n", n, CELLS, n ? "" : " (ok)");
++    if (n) { printf("  first different cell %" PRId64 "\n", first); fails++; }
++    n = diff_rows(plain.v, tier.v, &first);
++    printf("V rows that differ: %" PRId64 " of %" PRId64 "%s\n", n, CELLS, n ? "" : " (ok)");
++    if (n) { printf("  first different cell %" PRId64 "\n", first); fails++; }
++    for (size_t s = 0; s < plain.out.size() && s < tier.out.size(); ++s) {
++        const bool same = memcmp(plain.out[s].data(), tier.out[s].data(), plain.out[s].size()*sizeof(float)) == 0;
++        printf("step %zu (cells %" PRId64 " to %" PRId64 "): attention output %s\n", s, STEPS[s], STEPS[s] + ROWS - 1, same ? "equal" : "DIFFERENT");
++        fails += !same;
++    }
++    ggml_backend_free(backend);
++    printf(fails ? "FAIL\n" : "ALL OK\n");
++    return fails ? 1 : 0;
++}
+-- 
+2.55.0.windows.3
+

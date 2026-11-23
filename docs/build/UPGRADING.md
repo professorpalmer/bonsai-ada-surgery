@@ -9,6 +9,16 @@ launcher prints `layer on` when the runtime is present and falls back to the pla
 
 ## What each bundle changed (newest first)
 
+`bundle-20261123` (engine `e6dda24c9`, patches 0074-0079): optional update: removes build paths from the binaries; no
+change to answers. The DLLs of earlier bundles held local build paths in their assert messages; these are built from
+neutral paths. Also: the engine source loads the tiered K/V cache on drivers of the 570 family (0078, 0079; for
+Linux builds: this Windows bundle needs a CUDA 13 driver); the web chat page's
+third-party licences are in `licenses\web-ui-THIRD-PARTY.txt`; the launcher rounds `BONSAI_CTX` up to a multiple of
+32,768 when the tiered cache is on (no change at the defaults). Hygiene with no output change on Bonsai: 0074 (the
+tier write-back per host run; bundles since 2026-10-15 already wrote every row correctly), 0075 (an fp32 V-sum test
+switch, off), 0076 / 0077 (expert models only). Greedy texts are identical to bundle-20261105. Gates:
+`docs/research/release-20261123`.
+
 `bundle-20261105` (engine `21fd9beda`, patch 0073): a turn cannot end inside the think block. With thinking on and
 sampling, the model could sometimes pick the end-of-turn token while it was still thinking. The client then got
 reasoning and no answer and no tool call, and an agent stopped the task, often in the middle of a sentence. Now every

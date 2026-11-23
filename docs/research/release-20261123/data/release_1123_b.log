@@ -1,0 +1,34 @@
+02:39:20 1105 zip sha256  (published d3ebf3a604bb82b5)
+02:39:53 B0 versions: 1105 ; candidate ; worktree head e6dda24c9
+02:39:54 B0 files in candidate bin with the user name: 0; with 'Users\\' source paths: 0; Y:-paths in ggml-cuda.dll: 254
+02:39:54 B0 1105 bin files with the user name (old build): 9
+02:39:55 B1 test-kv-tier: rc 0; 1 ok lines, 0 fail lines
+step 2 (cells 3520 to 3775): attention output equal
+step 3 (cells 4224 to 4479): attention output equal
+step 4 (cells 6000 to 6255): attention output equal
+step 5 (cells 9984 to 10239): attention output equal
+ALL OK
+02:43:23 B2 fa_f1off: rc 0, 208 s;   3115/3115 tests passed; FAIL lines 0; OK
+02:46:49 B2 fa_f1on: rc 0, 206 s;   3115/3115 tests passed; FAIL lines 0; OK
+02:47:02 B2 mmid: rc 0, 13 s;   1085/1085 tests passed; FAIL lines 0; OK
+02:47:09 B2 mm_n1: rc 0, 7 s;   699/699 tests passed; FAIL lines 0; OK
+02:47:09 servers left 0; VRAM used 0 MiB
+02:47:10 job1 done
+clean GPU at start: 0 llama-server, VRAM used 0 MiB
+02:50:14 === B3 identity (q8_0, 16k, 50 prompts, 96 tokens, no drafting; F1 off)
+B3 old: prompts 50, mean decode 66.2 tok/s over 45 prompts with >= 32 tokens
+02:51:49 B3 old: mem clock under load 11751 MHz
+B3 cand: prompts 50, mean decode 66.0 tok/s over 45 prompts with >= 32 tokens
+B3 cand: identity: 50/50 prompts token-identical
+02:53:28 B3 cand: mem clock under load 11751 MHz
+02:53:33 B3 servers left: 0
+02:53:33 === B4 KL at window 64,512 (one 64,321-token document, q8_0, batch 512)
+02:54:46 B4 A0 (vram cells 0 A=1): rc 0, 73 s, positions 21356 KL 0.038613 top1 0.9623
+02:55:59 B4 A1 (vram cells 16384 A=1): rc 0, 73 s, positions 21356 KL 0.038613 top1 0.9623
+02:57:13 B4 C0 (vram cells 0 A=1): rc 0, 73 s, positions 21356 KL 0.038613 top1 0.9623
+02:58:27 B4 C1 (vram cells 16384 A=1): rc 0, 73 s, positions 21356 KL 0.038613 top1 0.9623
+02:59:48 B4 C1f1 (vram cells 16384 GGML_CUDA_FA_VKQ_F32=1): rc 0, 80 s, positions 21356 KL 0.038619 top1 0.9619
+B4 KL: {'A0': 0.038613, 'A1': 0.038613, 'C0': 0.038613, 'C1': 0.038613, 'C1f1': 0.038619}
+B4 fail-without (A1 - A0 >= 0.05): NO; pass-with (|C1-C0| <= 0.0005, |C0-A0| <= 0.0005): YES -> FAIL
+02:59:48 servers left 0; VRAM used 0 MiB
+02:59:48 job2 done
